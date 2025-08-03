@@ -1,58 +1,35 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 
 export function Dashboard() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome to your transcription dashboard
-        </p>
-      </div>
+    <div className="h-full flex flex-col items-center justify-center">
+      <div className="text-center space-y-6 max-w-md">
+        <div className="h-20 w-20 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+          <svg
+            className="h-10 w-10 text-primary"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
+        </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Start</CardTitle>
-            <CardDescription>
-              Get started with your first transcription
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button className="w-full">Upload Audio File</Button>
-          </CardContent>
-        </Card>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold">Start a new transcription</h1>
+          <p className="text-muted-foreground">
+            or choose from your recent transcriptions on the left bar
+          </p>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Files</CardTitle>
-            <CardDescription>Your most recent transcriptions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              No files uploaded yet
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Usage</CardTitle>
-            <CardDescription>Your current plan usage</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              0 minutes used this month
-            </p>
-          </CardContent>
-        </Card>
+        <Button size="lg" className="px-8">
+          Upload Audio File
+        </Button>
       </div>
     </div>
   );

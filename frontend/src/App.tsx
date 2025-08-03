@@ -30,18 +30,11 @@ function App() {
           </>
         ) : (
           // Private routes (authenticated)
-          <>
-            <Route
-              path="/"
-              element={
-                <AuthenticatedLayout>
-                  <Dashboard />
-                </AuthenticatedLayout>
-              }
-            />
+          <Route element={<AuthenticatedLayout />}>
+            <Route path="/" element={<Dashboard />} />
             <Route path="/login" element={<Navigate to="/" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
-          </>
+          </Route>
         )}
       </Routes>
     </BrowserRouter>

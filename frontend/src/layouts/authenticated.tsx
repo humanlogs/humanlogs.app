@@ -1,6 +1,7 @@
-import type { ReactNode } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Logo } from "../components/Logo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,12 +15,9 @@ import {
 } from "../components/ui/resizable";
 import { Separator } from "../components/ui/separator";
 import { useUser } from "../features/user/use-user";
+import { Outlet } from "react-router-dom";
 
-interface AuthenticatedLayoutProps {
-  children: ReactNode;
-}
-
-export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
+export function AuthenticatedLayout() {
   const { user, logout } = useUser();
 
   const handleLogout = () => {
@@ -41,7 +39,7 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex h-14 items-center justify-between px-4">
           <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-semibold">Transcription App</h1>
+            <Logo className="h-8 w-auto" />
           </div>
 
           <div className="flex items-center space-x-4">
@@ -91,18 +89,60 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
             className="min-w-[200px]"
           >
             <div className="flex h-full flex-col bg-muted/20">
+              <div className="p-4 border-b">
+                <Input
+                  placeholder="Search transcriptions..."
+                  className="w-full"
+                />
+              </div>
               <div className="flex-1 overflow-auto p-4">
-                <nav className="space-y-2">
-                  <Button variant="ghost" className="w-full justify-start">
-                    Dashboard
-                  </Button>
-                  <Button variant="ghost" className="w-full justify-start">
-                    Transcriptions
-                  </Button>
-                  <Button variant="ghost" className="w-full justify-start">
-                    Settings
-                  </Button>
-                </nav>
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-muted-foreground px-2">
+                    Recent Transcriptions
+                  </h3>
+                  <div className="space-y-1">
+                    {/* Mock transcription items - will be replaced with real data */}
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start h-auto p-2"
+                    >
+                      <div className="flex flex-col items-start text-left">
+                        <span className="text-sm font-medium">
+                          Meeting Recording
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          2 hours ago
+                        </span>
+                      </div>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start h-auto p-2"
+                    >
+                      <div className="flex flex-col items-start text-left">
+                        <span className="text-sm font-medium">
+                          Interview Notes
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          1 day ago
+                        </span>
+                      </div>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start h-auto p-2"
+                    >
+                      <div className="flex flex-col items-start text-left">
+                        <span className="text-sm font-medium">
+                          Podcast Episode
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          3 days ago
+                        </span>
+                      </div>
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           </ResizablePanel>
@@ -111,7 +151,9 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
 
           {/* Main content */}
           <ResizablePanel defaultSize={80} minSize={70}>
-            <main className="h-full overflow-auto p-6">{children}</main>
+            <main className="h-full overflow-auto p-6">
+              <Outlet />
+            </main>
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
