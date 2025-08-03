@@ -1,0 +1,56 @@
+{
+    "stt": {
+        "use": "STT_USE",
+        "key": "STT_API_KEY"
+    },
+    "google": {
+        "client_id": "GOOGLE_CLIENT_ID",
+        "client_secret": "GOOGLE_CLIENT_SECRET"
+    },
+    "apple": {
+        "client_id": "APPLE_CLIENT_ID",
+        "key_id": "APPLE_KEY_ID",
+        "team_id": "APPLE_TEAM_ID",
+        "private_key": "APPLE_PRIVATE_KEY"
+    },
+    "stripe": {
+        "webhook_secret": "STRIPE_WEBHOOK_SECRET",
+        "secret": "STRIPE_SECRET"
+    },
+    "aws": {
+        "id": "AWS_ID",
+        "secret": "AWS_SECRET",
+        "region": "AWS_REGION"
+    },
+    "email": {
+        "type": "EMAIL_TYPE",
+        "from": "EMAIL_FROM",
+        "ses": {
+            "region": "EMAIL_SES_REGION"
+        }
+    },
+    "db": {
+        "database": "DB_DATABASE",
+        "postgres": {
+            "host": "DB_POSTGRES_HOST",
+            "port": "DB_POSTGRES_PORT",
+            "user": "DB_POSTGRES_USER",
+            "password": "DB_POSTGRES_PASSWORD"
+        }
+    },
+    "redis": {
+        "use": "REDIS_USE",
+        "url": "REDIS_URL"
+    },
+    "s3": {
+        "use": "S3_USE",
+        "bucket": "S3_BUCKET"
+    },
+    "jwt": {
+        "secret": "JWT_SECRET"
+    },
+    "server": {
+        "port": "SERVER_PORT",
+        "domain": "SERVER_DOMAIN"
+    }
+}

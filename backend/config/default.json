@@ -1,0 +1,69 @@
+{
+  "google": {
+    "client_id": "",
+    "client_secret": ""
+  },
+  "apple": {
+    "client_id": "",
+    "key_id": "",
+    "team_id": "",
+    "private_key": "",
+    "verification_endpoint": "",
+    "shared_secret": ""
+  },
+  "aws": {
+    "id": "",
+    "secret": "",
+    "region": ""
+  },
+  "redis": {
+    "use": false,
+    "url": ""
+  },
+  "stripe": {
+    "webhook_secret": "",
+    "secret": ""
+  },
+  "email": {
+    "type": "file",
+    "from": "notifications@totext.app",
+    "from_name": "ToText",
+    "ses": {
+      "region": "eu-west-1"
+    },
+    "file": {
+      "path": "./storage/emails/"
+    }
+  },
+  "mq": {
+    "sqs": {
+      "region": "eu-west-3",
+      "prefix": ""
+    }
+  },
+  "db": {
+    "type": "postgres",
+    "database": "totextapp",
+    "postgres": {
+      "host": "localhost",
+      "port": 5432,
+      "user": "postgres",
+      "password": "postgres"
+    }
+  },
+  "s3": {
+    "use": false,
+    "local_path": "./storage/",
+    "bucket": "",
+    "domain": "s3.totext.app"
+  },
+  "jwt": {
+    "secret": "%5qjOQ~7e:Nc6CVJk}Ftn>+cumhpG9O>Wkav-]QXNNB2U~:3{2'bpufgQX98xr%"
+  },
+  "server": {
+    "allow_cors": true,
+    "port": 3000,
+    "helmet": false,
+    "domain": "http://localhost:2999"
+  }
+}

@@ -1,32 +1,84 @@
-# React + TypeScript + Vite
+# Frontend - React + TypeScript + Vite + shadcn/ui
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern React frontend application built with TypeScript, Vite, and shadcn/ui components.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- React 18 with TypeScript
+- Vite for fast development and building
+- Tailwind CSS for styling
+- shadcn/ui component library
+- Path aliases configured (@/* imports)
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Node.js (v18 or higher)
+- npm
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+### Installation
 
-      // Other configs...
+```bash
+npm install
+```
+
+### Development
+
+```bash
+npm run dev
+```
+
+The application will start on http://localhost:5173
+
+### Build
+
+```bash
+npm run build
+```
+
+### Preview
+
+```bash
+npm run preview
+```
+
+## Project Structure
+
+```
+frontend/
+├── src/
+│   ├── components/
+│   │   └── ui/           # shadcn/ui components
+│   ├── lib/
+│   │   └── utils.ts      # Utility functions
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── index.css
+├── public/
+├── package.json
+├── vite.config.ts
+├── tailwind.config.js
+├── postcss.config.js
+├── components.json       # shadcn/ui configuration
+└── tsconfig.json
+```
+
+## shadcn/ui Components
+
+This project includes shadcn/ui components. To add more components:
+
+```bash
+npx shadcn@latest add [component-name]
+```
+
+Available components: https://ui.shadcn.com/docs/components
+
+## Styling
+
+- Tailwind CSS is configured and ready to use
+- shadcn/ui components use Tailwind CSS classes
+- Custom styles can be added to `src/index.css`
     ],
     languageOptions: {
       parserOptions: {

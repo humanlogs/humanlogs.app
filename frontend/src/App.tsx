@@ -1,35 +1,51 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useUser } from "@/features/user/use-user";
+import { AuthenticatedLayout } from "@/layouts/authenticated";
+import { Dashboard } from "@/views/private/dashboard";
+import { LoginPage } from "@/views/public/login";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { user } = useUser();
+  const isAuthenticated = !!user.data;
+
+  if (user.isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        {!isAuthenticated ? (
+          // Public routes (not authenticated)
+          <>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </>
+        ) : (
+          // Private routes (authenticated)
+          <>
+            <Route
+              path="/"
+              element={
+                <AuthenticatedLayout>
+                  <Dashboard />
+                </AuthenticatedLayout>
+              }
+            />
+            <Route path="/login" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </>
+        )}
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
