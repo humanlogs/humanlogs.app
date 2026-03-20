@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// User model - linked to Auth0
+model User {
+  id              String          @id @default(uuid())
+  auth0Id         String          @unique
+  email           String          @unique
+  name            String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  transcriptions  Transcription[]
+  projects        Project[]
+}
+
+// Project model - for organizing transcriptions
+model Project {
+  id              String          @id @default(uuid())
+  name            String
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transcriptions  Transcription[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([userId])
+}
+
+// Transcription model - main entity
+model Transcription {
+  id              String              @id @default(uuid())
+  userId          String
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId       String?
+  project         Project?            @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  
+  // File storage
+  audioFileKey    String              // S3 key for audio file
+  audioFileName   String              // Original filename
+  audioFileSize   Int                 // File size in bytes
+  
+  // Transcription data
+  transcription   Json?               // In-database transcription result
+  language        String              // Language code (e.g., "en", "fr")
+  vocabulary      String[]            // Custom vocabulary terms
+  speakerCount    Int                 @default(1)
+  
+  // Status tracking
+  state           TranscriptionState  @default(PENDING)
+  errorMessage    String?
+  
+  // Timestamps
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  completedAt     DateTime?
+  
+  @@index([userId])
+  @@index([projectId])
+  @@index([state])
+  @@index([createdAt])
+}
+
+enum TranscriptionState {
+  PENDING
+  TRANSCRIBING
+  COMPLETED
+  ERROR
+}

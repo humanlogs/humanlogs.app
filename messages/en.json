@@ -1,0 +1,29 @@
+{
+    "sidebar": {
+        "appName": "Transcription",
+        "appSubtitle": "AI-powered transcription service",
+        "newTranscription": "New Transcription",
+        "search": "Search...",
+        "noResults": "No results found",
+        "user": {
+            "plan": "Plan",
+            "credits": "Credits",
+            "renewal": "Renewal",
+            "billing": "Billing",
+            "theme": "Theme",
+            "light": "Light",
+            "dark": "Dark",
+            "system": "System",
+            "language": "Language",
+            "feedback": "Feedback",
+            "help": "Help",
+            "logout": "Logout"
+        },
+        "languages": {
+            "en": "English",
+            "fr": "Français",
+            "es": "Español",
+            "de": "Deutsch"
+        }
+    }
+}

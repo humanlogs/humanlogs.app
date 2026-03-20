@@ -1,0 +1,21 @@
+{
+    "auth0": {
+        "secret": "AUTH0_SECRET",
+        "baseUrl": "AUTH0_BASE_URL",
+        "issuerBaseUrl": "AUTH0_ISSUER_BASE_URL",
+        "clientId": "AUTH0_CLIENT_ID",
+        "clientSecret": "AUTH0_CLIENT_SECRET"
+    },
+    "database": {
+        "url": "DATABASE_URL"
+    },
+    "aws": {
+        "region": "AWS_REGION",
+        "s3": {
+            "bucketName": "S3_BUCKET_NAME"
+        }
+    },
+    "elevenlabs": {
+        "apiKey": "ELEVENLABS_API_KEY"
+    }
+}

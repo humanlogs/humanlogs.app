@@ -1,0 +1,29 @@
+{
+    "sidebar": {
+        "appName": "Transcription",
+        "appSubtitle": "Service de transcription IA",
+        "newTranscription": "Nouvelle transcription",
+        "search": "Rechercher...",
+        "noResults": "Aucun résultat trouvé",
+        "user": {
+            "plan": "Forfait",
+            "credits": "Crédits",
+            "renewal": "Renouvellement",
+            "billing": "Facturation",
+            "theme": "Thème",
+            "light": "Clair",
+            "dark": "Sombre",
+            "system": "Système",
+            "language": "Langue",
+            "feedback": "Commentaires",
+            "help": "Aide",
+            "logout": "Déconnexion"
+        },
+        "languages": {
+            "en": "English",
+            "fr": "Français",
+            "es": "Español",
+            "de": "Deutsch"
+        }
+    }
+}

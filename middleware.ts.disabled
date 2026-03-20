@@ -1,0 +1,5 @@
+// Middleware for next-intl is disabled for now
+// Using client-side locale management instead
+export const config = {
+  matcher: [],
+};

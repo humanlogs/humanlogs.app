@@ -1,0 +1,29 @@
+{
+    "sidebar": {
+        "appName": "Transcription",
+        "appSubtitle": "Servicio de transcripción con IA",
+        "newTranscription": "Nueva transcripción",
+        "search": "Buscar...",
+        "noResults": "No se encontraron resultados",
+        "user": {
+            "plan": "Plan",
+            "credits": "Créditos",
+            "renewal": "Renovación",
+            "billing": "Facturación",
+            "theme": "Tema",
+            "light": "Claro",
+            "dark": "Oscuro",
+            "system": "Sistema",
+            "language": "Idioma",
+            "feedback": "Comentarios",
+            "help": "Ayuda",
+            "logout": "Cerrar sesión"
+        },
+        "languages": {
+            "en": "English",
+            "fr": "Français",
+            "es": "Español",
+            "de": "Deutsch"
+        }
+    }
+}

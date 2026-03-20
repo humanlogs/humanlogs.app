@@ -1,0 +1,26 @@
+{
+    "auth0": {
+        "secret": "",
+        "baseUrl": "http://localhost:3000",
+        "issuerBaseUrl": "",
+        "clientId": "",
+        "clientSecret": ""
+    },
+    "database": {
+        "url": ""
+    },
+    "aws": {
+        "accessKeyId": "yo",
+        "accessKeySecret": "yes",
+        "region": "us-east-1",
+        "s3": {
+            "bucketName": "ah"
+        }
+    },
+    "elevenlabs": {
+        "apiKey": ""
+    },
+    "server": {
+        "port": 3000
+    }
+}

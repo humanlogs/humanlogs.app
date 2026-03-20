@@ -1,0 +1,29 @@
+{
+    "sidebar": {
+        "appName": "Transcription",
+        "appSubtitle": "KI-gestützte Transkription",
+        "newTranscription": "Neue Transkription",
+        "search": "Suchen...",
+        "noResults": "Keine Ergebnisse gefunden",
+        "user": {
+            "plan": "Tarif",
+            "credits": "Credits",
+            "renewal": "Erneuerung",
+            "billing": "Abrechnung",
+            "theme": "Design",
+            "light": "Hell",
+            "dark": "Dunkel",
+            "system": "System",
+            "language": "Sprache",
+            "feedback": "Feedback",
+            "help": "Hilfe",
+            "logout": "Abmelden"
+        },
+        "languages": {
+            "en": "English",
+            "fr": "Français",
+            "es": "Español",
+            "de": "Deutsch"
+        }
+    }
+}
