@@ -1,13 +1,11 @@
 {
     "sidebar": {
-        "appName": "Transcription",
-        "appSubtitle": "Service de transcription IA",
         "newTranscription": "Nouvelle transcription",
         "search": "Rechercher...",
         "noResults": "Aucun résultat trouvé",
         "user": {
             "plan": "Forfait",
-            "credits": "Crédits",
+            "credits": "Utilisation",
             "renewal": "Renouvellement",
             "billing": "Facturation",
             "theme": "Thème",
@@ -25,5 +23,34 @@
             "es": "Español",
             "de": "Deutsch"
         }
+    },
+    "newTranscription": {
+        "title": "Nouvelle Transcription",
+        "subtitle": "Téléchargez des fichiers audio pour créer une nouvelle transcription",
+        "audioFiles": "Fichiers Audio",
+        "dragDrop": "Glissez-déposez des fichiers audio ici, ou cliquez pour parcourir",
+        "supportedFormats": "Formats supportés : MP3, WAV, M4A, FLAC (max 500 Mo par fichier)",
+        "noFiles": "Aucun fichier audio ajouté",
+        "fileName": "Nom du fichier",
+        "duration": "Durée",
+        "size": "Taille",
+        "remove": "Supprimer",
+        "settings": "Paramètres de Transcription",
+        "language": "Langue",
+        "languageHelper": "Sélectionnez la langue parlée dans l'audio",
+        "speakers": "Nombre d'Intervenants",
+        "speakersHelper": "Combien de personnes différentes parlent ?",
+        "vocabulary": "Vocabulaire Personnalisé",
+        "vocabularyHelper": "Ajoutez des mots ou termes spécifiques séparés par des virgules (ex : termes techniques, noms, acronymes)",
+        "vocabularyPlaceholder": "Euh, Hmm",
+        "summary": "Résumé",
+        "totalDuration": "Durée Totale",
+        "estimatedCredits": "Crédits Estimés",
+        "creditsInfo": "1 crédit = 1 minute d'audio",
+        "availableCredits": "Crédits Disponibles",
+        "insufficientCredits": "Crédits insuffisants. Veuillez mettre à niveau votre forfait.",
+        "startTranscription": "Démarrer la Transcription",
+        "processing": "Traitement en cours...",
+        "uploading": "Téléchargement des fichiers..."
     }
 }

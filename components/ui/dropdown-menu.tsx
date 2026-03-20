@@ -45,7 +45,7 @@ export function DropdownMenu({
         {isOpen && (
           <div
             className={cn(
-              "absolute bottom-full mb-2 w-48 rounded-md border bg-popover p-1 shadow-md z-50",
+              "absolute bottom-full mb-2 w-60 rounded-md border bg-popover p-1 shadow-md z-50",
               align === "end" ? "right-0" : "left-0",
             )}
           >
@@ -130,7 +130,7 @@ export function DropdownMenuSub({ trigger, children }: DropdownMenuSubProps) {
         </svg>
       </button>
       {isSubOpen && (
-        <div className="absolute left-full top-0 ml-1 w-48 rounded-md border bg-popover p-1 shadow-md z-50">
+        <div className="absolute left-full top-0 -ml-1 w-48 rounded-md border bg-popover p-1 shadow-md z-50">
           {children}
         </div>
       )}

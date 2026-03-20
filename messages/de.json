@@ -1,7 +1,5 @@
 {
     "sidebar": {
-        "appName": "Transcription",
-        "appSubtitle": "KI-gestützte Transkription",
         "newTranscription": "Neue Transkription",
         "search": "Suchen...",
         "noResults": "Keine Ergebnisse gefunden",
@@ -25,5 +23,34 @@
             "es": "Español",
             "de": "Deutsch"
         }
+    },
+    "newTranscription": {
+        "title": "Neue Transkription",
+        "subtitle": "Laden Sie Audiodateien hoch, um eine neue Transkription zu erstellen",
+        "audioFiles": "Audiodateien",
+        "dragDrop": "Ziehen Sie Audiodateien hierher oder klicken Sie zum Durchsuchen",
+        "supportedFormats": "Unterstützte Formate: MP3, WAV, M4A, FLAC (max. 500MB pro Datei)",
+        "noFiles": "Noch keine Audiodateien hinzugefügt",
+        "fileName": "Dateiname",
+        "duration": "Dauer",
+        "size": "Größe",
+        "remove": "Entfernen",
+        "settings": "Transkriptionseinstellungen",
+        "language": "Sprache",
+        "languageHelper": "Wählen Sie die im Audio gesprochene Sprache",
+        "speakers": "Anzahl der Sprecher",
+        "speakersHelper": "Wie viele verschiedene Personen sprechen?",
+        "vocabulary": "Benutzerdefiniertes Vokabular",
+        "vocabularyHelper": "Fügen Sie spezifische Wörter oder Begriffe hinzu, getrennt durch Kommas (z.B. Fachbegriffe, Namen, Akronyme)",
+        "vocabularyPlaceholder": "Euh, Hmm",
+        "summary": "Zusammenfassung",
+        "totalDuration": "Gesamtdauer",
+        "estimatedCredits": "Geschätzte Credits",
+        "creditsInfo": "1 Credit = 1 Minute Audio",
+        "availableCredits": "Verfügbare Credits",
+        "insufficientCredits": "Nicht genügend Credits. Bitte upgraden Sie Ihren Tarif.",
+        "startTranscription": "Transkription Starten",
+        "processing": "Verarbeitung...",
+        "uploading": "Dateien werden hochgeladen..."
     }
 }

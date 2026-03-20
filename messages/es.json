@@ -1,7 +1,5 @@
 {
     "sidebar": {
-        "appName": "Transcription",
-        "appSubtitle": "Servicio de transcripción con IA",
         "newTranscription": "Nueva transcripción",
         "search": "Buscar...",
         "noResults": "No se encontraron resultados",
@@ -25,5 +23,34 @@
             "es": "Español",
             "de": "Deutsch"
         }
+    },
+    "newTranscription": {
+        "title": "Nueva Transcripción",
+        "subtitle": "Sube archivos de audio para crear una nueva transcripción",
+        "audioFiles": "Archivos de Audio",
+        "dragDrop": "Arrastra y suelta archivos de audio aquí, o haz clic para explorar",
+        "supportedFormats": "Formatos soportados: MP3, WAV, M4A, FLAC (máx 500MB por archivo)",
+        "noFiles": "No se han añadido archivos de audio",
+        "fileName": "Nombre del archivo",
+        "duration": "Duración",
+        "size": "Tamaño",
+        "remove": "Eliminar",
+        "settings": "Configuración de Transcripción",
+        "language": "Idioma",
+        "languageHelper": "Selecciona el idioma hablado en el audio",
+        "speakers": "Número de Hablantes",
+        "speakersHelper": "¿Cuántas personas diferentes están hablando?",
+        "vocabulary": "Vocabulario Personalizado",
+        "vocabularyHelper": "Añade palabras o términos específicos separados por comas (ej: términos técnicos, nombres, acrónimos)",
+        "vocabularyPlaceholder": "Euh, Hmm",
+        "summary": "Resumen",
+        "totalDuration": "Duración Total",
+        "estimatedCredits": "Créditos Estimados",
+        "creditsInfo": "1 crédito = 1 minuto de audio",
+        "availableCredits": "Créditos Disponibles",
+        "insufficientCredits": "Créditos insuficientes. Por favor, mejora tu plan.",
+        "startTranscription": "Iniciar Transcripción",
+        "processing": "Procesando...",
+        "uploading": "Subiendo archivos..."
     }
 }

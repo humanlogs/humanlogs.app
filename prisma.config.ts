@@ -2,19 +2,10 @@
 // npm install --save-dev prisma dotenv
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
-import config from "config";
-
-// Get database URL from config with fallback to environment variable
-const getDatabaseUrl = () => {
-  return config.get<string>("database.url");
-};
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
-  },
-  datasource: {
-    url: getDatabaseUrl(),
   },
 });

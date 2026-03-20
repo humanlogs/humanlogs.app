@@ -20,13 +20,14 @@ export default async function AppLayout({
 
   return (
     <SidebarProvider>
-      <AppSidebar user={session.user} />
-      <SidebarInset>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-        </header>
-        <main className="flex flex-col flex-1 w-full">{children}</main>
-      </SidebarInset>
+      <AppSidebar user={session.user}>
+        <SidebarInset>
+          <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+          </header>
+          <main className="flex flex-col flex-1 w-full">{children}</main>
+        </SidebarInset>
+      </AppSidebar>
     </SidebarProvider>
   );
 }

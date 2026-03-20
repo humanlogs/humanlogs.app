@@ -21,6 +21,9 @@ export async function getCurrentUser(): Promise<UserSession | null> {
 
   const auth0User = session.user;
 
+  // Detect default language from Auth0 user locale or default to 'en'
+  const defaultLanguage = auth0User.locale?.substring(0, 2) || "en";
+
   // Ensure user exists in database (create or update)
   const dbUser = await prisma.user.upsert({
     where: { auth0Id: auth0User.sub },
@@ -33,6 +36,7 @@ export async function getCurrentUser(): Promise<UserSession | null> {
       auth0Id: auth0User.sub,
       email: auth0User.email!,
       name: auth0User.name,
+      language: defaultLanguage, // Set default language on signup
     },
   });
 

@@ -1,13 +1,11 @@
 {
     "sidebar": {
-        "appName": "Transcription",
-        "appSubtitle": "AI-powered transcription service",
         "newTranscription": "New Transcription",
         "search": "Search...",
         "noResults": "No results found",
         "user": {
             "plan": "Plan",
-            "credits": "Credits",
+            "credits": "Usage",
             "renewal": "Renewal",
             "billing": "Billing",
             "theme": "Theme",
@@ -25,5 +23,34 @@
             "es": "Español",
             "de": "Deutsch"
         }
+    },
+    "newTranscription": {
+        "title": "New Transcription",
+        "subtitle": "Upload audio files to create a new transcription",
+        "audioFiles": "Audio Files",
+        "dragDrop": "Drag & drop audio files here, or click to browse",
+        "supportedFormats": "Supported formats: MP3, WAV, M4A, FLAC (max 500MB per file)",
+        "noFiles": "No audio files added yet",
+        "fileName": "File name",
+        "duration": "Duration",
+        "size": "Size",
+        "remove": "Remove",
+        "settings": "Transcription Settings",
+        "language": "Language",
+        "languageHelper": "Select the language spoken in the audio",
+        "speakers": "Number of Speakers",
+        "speakersHelper": "How many different people are speaking?",
+        "vocabulary": "Custom Vocabulary",
+        "vocabularyHelper": "Add specific words or terms separated by commas (e.g., technical terms, names, acronyms)",
+        "vocabularyPlaceholder": "Euh, Hmm",
+        "summary": "Summary",
+        "totalDuration": "Total Duration",
+        "estimatedCredits": "Estimated Credits",
+        "creditsInfo": "1 credit = 1 minute of audio",
+        "availableCredits": "Available Credits",
+        "insufficientCredits": "Insufficient credits. Please upgrade your plan.",
+        "startTranscription": "Start Transcription",
+        "processing": "Processing...",
+        "uploading": "Uploading files..."
     }
 }
