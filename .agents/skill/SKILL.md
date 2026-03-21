@@ -150,7 +150,6 @@ model Transcription {
 
 enum TranscriptionState {
   PENDING
-  TRANSCRIBING
   COMPLETED
   ERROR
 }

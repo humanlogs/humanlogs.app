@@ -41,27 +41,3 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
 export function getSocketServer(): SocketIOServer | null {
   return io;
 }
-
-// Emit database change events
-export function emitDatabaseChange(
-  userId: string,
-  table: string,
-  operation: "create" | "update" | "delete",
-  data?: unknown,
-) {
-  if (!io) {
-    console.warn("Socket.io server not initialized");
-    return;
-  }
-
-  const event = {
-    table,
-    operation,
-    timestamp: new Date().toISOString(),
-    data,
-  };
-
-  // Emit to user-specific room
-  io.to(`user:${userId}`).emit("db:change", event);
-  console.log(`Emitted db:change to user:${userId}`, event);
-}

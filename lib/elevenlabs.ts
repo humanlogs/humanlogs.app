@@ -1,18 +1,29 @@
-import { getConfig } from "./config";
 import { ElevenLabsClient as ElevenLabsSDK } from "@elevenlabs/elevenlabs-js";
+import { getConfig } from "./config";
 
 export interface TranscriptionWord {
-  word: string;
+  text: string;
   start: number;
   end: number;
-  speaker?: string;
+  type?: string; // word, spacing, audio_event, etc.
+  speaker_id?: string;
+  [key: string]: unknown; // Preserve any additional fields from ElevenLabs
+}
+
+export interface TranscriptionChannel {
+  text: string;
+  words: TranscriptionWord[];
+  language_code?: string;
+  [key: string]: unknown; // Preserve any additional fields
 }
 
 export interface TranscriptionResult {
   text: string;
   words: TranscriptionWord[];
   speakers?: string[];
-  language?: string;
+  language_code?: string;
+  transcripts?: TranscriptionChannel[]; // For multichannel responses
+  [key: string]: unknown; // Preserve any additional fields from ElevenLabs
 }
 
 export interface TranscriptionRequest {
@@ -30,6 +41,17 @@ export interface TranscriptionFileRequest {
   vocabulary?: string[];
 }
 
+export interface AsyncTranscriptionResponse {
+  transcriptionId: string;
+  message: string;
+}
+
+export interface TranscriptionStatus {
+  status: "pending" | "processing" | "completed" | "failed";
+  transcription?: TranscriptionResult;
+  error?: string;
+}
+
 class ElevenLabsClient {
   private client: ElevenLabsSDK;
 
@@ -41,178 +63,203 @@ class ElevenLabsClient {
   }
 
   /**
-   * Transcribe audio using ElevenLabs Speech-to-Text API (synchronous)
-   * Uses cloud_storage_url to pass the signed URL directly to ElevenLabs
+   * Build common transcription parameters
    */
-  async transcribeFromUrl(
-    request: TranscriptionRequest,
-  ): Promise<TranscriptionResult> {
-    try {
-      const response = await this.client.speechToText.convert({
-        modelId: "scribe_v2",
-        cloudStorageUrl: request.audioUrl,
-        languageCode: request.language || undefined,
-        numSpeakers: request.speakerCount || undefined,
-        diarize: request.speakerCount ? request.speakerCount > 1 : false,
-        timestampsGranularity: "word",
-        keyterms:
-          request.vocabulary && request.vocabulary.length > 0
-            ? request.vocabulary
-            : undefined,
-      });
-
-      // Cast to unknown first to work with SDK's complex union types
-      const result = response as unknown as Record<string, unknown>;
-
-      // Handle single channel response
-      if ("text" in result && "words" in result && !("transcripts" in result)) {
-        return this.mapSingleChannelResponse(result);
-      }
-
-      // Handle multichannel response
-      if ("transcripts" in result && Array.isArray(result.transcripts)) {
-        return this.mapMultichannelResponse(result);
-      }
-
-      throw new Error("Unexpected response format from ElevenLabs API");
-    } catch (error) {
-      console.error("Error transcribing with ElevenLabs:", error);
-      throw error;
-    }
+  private buildTranscriptionParams(
+    request: TranscriptionRequest | TranscriptionFileRequest,
+  ) {
+    return {
+      modelId: "scribe_v2" as const,
+      tagAudioEvents: true,
+      webhook: true, // Enable async processing
+      languageCode: request.language || undefined,
+      numSpeakers: request.speakerCount || undefined,
+      diarize: request.speakerCount ? request.speakerCount > 1 : false,
+      timestampsGranularity: "word" as const,
+      keyterms:
+        request.vocabulary && request.vocabulary.length > 0
+          ? request.vocabulary
+          : undefined,
+    };
   }
 
   /**
-   * Transcribe audio file directly by uploading it
-   * Use this when the file is local and cannot be accessed via URL
+   * Extract transcription ID from response
    */
-  async transcribeFromFile(
+  private extractTranscriptionId(
+    response: unknown,
+  ): AsyncTranscriptionResponse {
+    const result = response as Record<string, unknown>;
+
+    if (!("transcriptionId" in result) || !result.transcriptionId) {
+      throw new Error("Transcription ID not returned from async request");
+    }
+
+    return {
+      transcriptionId: String(result.transcriptionId),
+      message: String(result.message || "Transcription started"),
+    };
+  }
+
+  /**
+   * Start an async transcription job from a file
+   * Returns a transcription ID that can be used to check status later
+   */
+  async transcribeFromFileAsync(
     request: TranscriptionFileRequest,
-  ): Promise<TranscriptionResult> {
+  ): Promise<AsyncTranscriptionResponse> {
     try {
       // Create a File-like object from the buffer
-      // Convert Buffer to Uint8Array which is compatible with File API
       const uint8Array = new Uint8Array(request.fileBuffer);
       const file = new File([uint8Array], request.fileName, {
-        type: "audio/mpeg", // ElevenLabs auto-detects format
+        type: "audio/mpeg",
       });
 
       const response = await this.client.speechToText.convert({
-        modelId: "scribe_v2",
+        ...this.buildTranscriptionParams(request),
         file,
-        languageCode: request.language || undefined,
-        numSpeakers: request.speakerCount || undefined,
-        diarize: request.speakerCount ? request.speakerCount > 1 : false,
-        timestampsGranularity: "word",
-        keyterms:
-          request.vocabulary && request.vocabulary.length > 0
-            ? request.vocabulary
-            : undefined,
       });
 
-      // Cast to unknown first to work with SDK's complex union types
-      const result = response as unknown as Record<string, unknown>;
-
-      // Handle single channel response
-      if ("text" in result && "words" in result && !("transcripts" in result)) {
-        return this.mapSingleChannelResponse(result);
-      }
-
-      // Handle multichannel response
-      if ("transcripts" in result && Array.isArray(result.transcripts)) {
-        return this.mapMultichannelResponse(result);
-      }
-
-      throw new Error("Unexpected response format from ElevenLabs API");
+      return this.extractTranscriptionId(response);
     } catch (error) {
-      console.error("Error transcribing with ElevenLabs:", error);
+      console.error("Error starting async transcription:", error);
       throw error;
     }
   }
 
   /**
-   * Map single channel response to our format
+   * Start an async transcription job from a URL
+   * Returns a transcription ID that can be used to check status later
    */
-  private mapSingleChannelResponse(
-    response: Record<string, unknown>,
-  ): TranscriptionResult {
+  async transcribeFromUrlAsync(
+    request: TranscriptionRequest,
+  ): Promise<AsyncTranscriptionResponse> {
+    try {
+      const response = await this.client.speechToText.convert({
+        ...this.buildTranscriptionParams(request),
+        cloudStorageUrl: request.audioUrl,
+      });
+
+      return this.extractTranscriptionId(response);
+    } catch (error) {
+      console.error("Error starting async transcription:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get the status and result of an async transcription
+   */
+  async getTranscriptionStatus(
+    transcriptionId: string,
+  ): Promise<TranscriptionStatus> {
+    try {
+      const response =
+        await this.client.speechToText.transcripts.get(transcriptionId);
+
+      // Cast to unknown first
+      const result = response as unknown as Record<string, unknown>;
+
+      // Check if transcription is completed
+      if ("text" in result && "words" in result) {
+        // Transcription is completed, preserve the full response
+        const transcriptionResult = this.mapResponse(result);
+
+        return {
+          status: "completed",
+          transcription: transcriptionResult,
+        };
+      }
+
+      // Check for error status
+      if ("status" in result) {
+        const status = String(result.status).toLowerCase();
+        if (status === "failed" || status === "error") {
+          return {
+            status: "failed",
+            error: result.error ? String(result.error) : "Transcription failed",
+          };
+        }
+        if (status === "processing" || status === "transcribing") {
+          return { status: "processing" };
+        }
+        if (status === "pending") {
+          return { status: "pending" };
+        }
+      }
+
+      // Default to processing if status unclear
+      return { status: "processing" };
+    } catch (error) {
+      console.error("Error getting transcription status:", error);
+      // If the transcription is not found, it might still be pending
+      if (error instanceof Error && error.message.includes("404")) {
+        return { status: "pending" };
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Map ElevenLabs response to our format, preserving all data
+   */
+  private mapResponse(response: Record<string, unknown>): TranscriptionResult {
     const responseWords =
       (response.words as Array<Record<string, unknown>>) || [];
-    const words: TranscriptionWord[] = responseWords
-      .filter((w) => w.type === "word") // Filter out spacing and audio_events
-      .map((w) => ({
-        word: String(w.text || ""),
-        start: Number(w.start || 0),
-        end: Number(w.end || 0),
-        speaker: w.speaker_id ? String(w.speaker_id) : undefined,
-      }));
+
+    // Preserve all word data from ElevenLabs
+    const words: TranscriptionWord[] = responseWords.map((w) => ({
+      text: String(w.text || ""),
+      start: Number(w.start || 0),
+      end: Number(w.end || 0),
+      type: w.type ? String(w.type) : undefined,
+      speaker_id: w.speaker_id ? String(w.speaker_id) : undefined,
+      ...w, // Preserve all additional fields
+    }));
 
     // Extract unique speakers from words
     const speakerIds = new Set(
-      words.map((w) => w.speaker).filter((s): s is string => s !== undefined),
+      words
+        .map((w) => w.speaker_id)
+        .filter((s): s is string => s !== undefined),
     );
 
-    return {
+    // Build result preserving all ElevenLabs fields
+    const result: TranscriptionResult = {
       text: String(response.text || ""),
       words,
       speakers: speakerIds.size > 0 ? Array.from(speakerIds) : undefined,
-      language: response.language_code
+      language_code: response.language_code
         ? String(response.language_code)
         : undefined,
+      ...response, // Preserve all additional fields from ElevenLabs
     };
-  }
 
-  /**
-   * Map multichannel response to our format
-   * Combines all channels into a single transcription
-   */
-  private mapMultichannelResponse(
-    response: Record<string, unknown>,
-  ): TranscriptionResult {
-    const allWords: TranscriptionWord[] = [];
-    const allSpeakers = new Set<string>();
-    let combinedText = "";
-
-    const transcripts =
-      (response.transcripts as Array<Record<string, unknown>>) || [];
-
-    for (const transcript of transcripts) {
-      if (transcript.text) {
-        combinedText += (combinedText ? " " : "") + String(transcript.text);
-      }
-
-      const transcriptWords =
-        (transcript.words as Array<Record<string, unknown>>) || [];
-      const channelWords = transcriptWords
-        .filter((w) => w.type === "word")
-        .map((w) => ({
-          word: String(w.text || ""),
-          start: Number(w.start || 0),
-          end: Number(w.end || 0),
-          speaker: w.speaker_id ? String(w.speaker_id) : undefined,
-        }));
-
-      allWords.push(...channelWords);
-
-      channelWords.forEach((word) => {
-        if (word.speaker) allSpeakers.add(word.speaker);
-      });
+    // Handle multichannel transcripts if present
+    if ("transcripts" in response && Array.isArray(response.transcripts)) {
+      const transcripts = response.transcripts as Array<
+        Record<string, unknown>
+      >;
+      result.transcripts = transcripts.map((transcript) => ({
+        text: String(transcript.text || ""),
+        words: ((transcript.words as Array<Record<string, unknown>>) || []).map(
+          (w) => ({
+            text: String(w.text || ""),
+            start: Number(w.start || 0),
+            end: Number(w.end || 0),
+            type: w.type ? String(w.type) : undefined,
+            speaker_id: w.speaker_id ? String(w.speaker_id) : undefined,
+            ...w,
+          }),
+        ),
+        language_code: transcript.language_code
+          ? String(transcript.language_code)
+          : undefined,
+        ...transcript,
+      }));
     }
 
-    // Sort words by start time
-    allWords.sort((a, b) => a.start - b.start);
-
-    const firstTranscript = transcripts[0] as
-      | Record<string, unknown>
-      | undefined;
-
-    return {
-      text: combinedText,
-      words: allWords,
-      speakers: allSpeakers.size > 0 ? Array.from(allSpeakers) : undefined,
-      language: firstTranscript?.language_code
-        ? String(firstTranscript.language_code)
-        : undefined,
-    };
+    return result;
   }
 
   /**
@@ -234,10 +281,11 @@ with ${request.speakerCount || 1} speaker(s).`;
     const words: TranscriptionWord[] = mockText
       .split(" ")
       .map((word, index) => ({
-        word,
+        text: word,
         start: index * 0.5,
         end: (index + 1) * 0.5,
-        speaker:
+        type: "word",
+        speaker_id:
           request.speakerCount && request.speakerCount > 1
             ? `Speaker ${(index % request.speakerCount) + 1}`
             : undefined,
@@ -253,7 +301,7 @@ with ${request.speakerCount || 1} speaker(s).`;
               (_, i) => `Speaker ${i + 1}`,
             )
           : undefined,
-      language: request.language || "en",
+      language_code: request.language || "en",
     };
   }
 }

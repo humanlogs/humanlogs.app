@@ -1,8 +1,8 @@
 "use client";
 
 import { useLocale, useTranslations } from "@/components/locale-provider";
-import { SidebarUserMenu } from "@/components/sidebar-user-menu";
-import { TranscriptionMenuItem } from "@/components/transcription-menu-item";
+import { SidebarUserMenu } from "@/components/sidebar/sidebar-user-menu";
+import { TranscriptionMenuItem } from "@/components/sidebar/transcription-menu-item";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -18,13 +18,14 @@ import {
 import {
   useProjects,
   useTranscriptions,
-  useUserProfile,
   useUpdateUserLanguage,
+  useUserProfile,
 } from "@/hooks/use-api";
-import { MicIcon, PencilIcon, PlusCircleIcon, SearchIcon } from "lucide-react";
+import { MicIcon, PencilIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
+import { useProjectModal } from "./project-create-modal";
 
 type AppSidebarProps = {
   user: {
@@ -40,6 +41,7 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
   const t = useTranslations("sidebar");
   const { setLocale } = useLocale();
   const [searchQuery, setSearchQuery] = React.useState("");
+  const { openRename } = useProjectModal();
 
   // Fetch data using React Query
   const { data: projects = [] } = useProjects();
@@ -131,17 +133,16 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
           <div className="px-2 py-2">
             <Link href="/new">
               <Button className="w-full bg-blue-500 text-white" size="lg">
-                <PlusCircleIcon className="h-4 w-4" />
                 {t("newTranscription")}
               </Button>
             </Link>
           </div>
         </SidebarHeader>
 
-        <SidebarContent className="pt-2 space-y-2">
+        <SidebarContent className="pt-2">
           {/* Search only shown when there are transcriptions */}
           {hasTranscriptions && (
-            <div className="px-4">
+            <div className="px-4 pb-2">
               <div className="relative">
                 <SearchIcon className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                 <SidebarInput
@@ -159,18 +160,19 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
           {filteredProjects.map((project) => (
             <SidebarGroup key={project.id}>
               <SidebarGroupLabel className="group/label">
-                <span className="flex-1">{project.name}</span>
-                <button
+                <span className="">{project.name}</span>
+                <Button
                   type="button"
                   className="opacity-0 group-hover/label:opacity-100 transition-opacity"
+                  variant={"ghost"}
+                  size={"icon-xs"}
                   onClick={() => {
-                    // TODO: Implement project name editing
-                    console.log("Edit project:", project.id);
+                    openRename(project.id, project.name);
                   }}
                   aria-label="Edit project name"
                 >
                   <PencilIcon className="h-3 w-3" />
-                </button>
+                </Button>
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>

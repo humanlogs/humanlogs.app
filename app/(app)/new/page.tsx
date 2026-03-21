@@ -1,22 +1,31 @@
 "use client";
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
-import { useTranslations, useLocale } from "@/components/locale-provider";
-import { toast } from "sonner";
+import { useLocale, useTranslations } from "@/components/locale-provider";
+import { ProjectSelector } from "@/components/project-selector";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  FileIcon,
+  PauseIcon,
+  PencilIcon,
+  PlayIcon,
+  Trash2Icon,
   UploadIcon,
-  XIcon,
-  MinusIcon,
-  PlusIcon,
-  AlertCircleIcon,
-  FileAudioIcon,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import * as React from "react";
+import { toast } from "sonner";
 
 type AudioFile = {
   id: string;
@@ -34,14 +43,24 @@ export default function NewTranscriptionPage() {
 
   // Form state
   const [audioFiles, setAudioFiles] = React.useState<AudioFile[]>([]);
+  const [projectId, setProjectId] = React.useState<string | undefined>();
   const [language, setLanguage] = React.useState<string>(locale);
   const [speakers, setSpeakers] = React.useState<number>(2);
-  const [vocabulary, setVocabulary] = React.useState<string>("Euh, Hmm");
+  const [vocabulary, setVocabulary] = React.useState<string>("Euh, Hmm, Bah");
   const [isDragging, setIsDragging] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [userCredits, setUserCredits] = React.useState<number | null>(null);
+  const [playingAudioId, setPlayingAudioId] = React.useState<string | null>(
+    null,
+  );
+  const [renameModalOpen, setRenameModalOpen] = React.useState(false);
+  const [renamingFile, setRenamingFile] = React.useState<AudioFile | null>(
+    null,
+  );
+  const [tempFileName, setTempFileName] = React.useState("");
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const audioRefs = React.useRef<Map<string, HTMLAudioElement>>(new Map());
 
   // Load speaker count from localStorage and user credits on mount
   React.useEffect(() => {
@@ -160,6 +179,19 @@ export default function NewTranscriptionPage() {
 
   // Remove file
   const removeFile = (id: string) => {
+    // Clean up audio element if it exists
+    const audioElement = audioRefs.current.get(id);
+    if (audioElement) {
+      audioElement.pause();
+      URL.revokeObjectURL(audioElement.src);
+      audioRefs.current.delete(id);
+    }
+
+    // Stop playing if this was the playing audio
+    if (playingAudioId === id) {
+      setPlayingAudioId(null);
+    }
+
     setAudioFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
@@ -169,6 +201,75 @@ export default function NewTranscriptionPage() {
       prev.map((f) => (f.id === id ? { ...f, name: newName } : f)),
     );
   };
+
+  // Play/pause audio
+  const togglePlayPause = (audioFile: AudioFile) => {
+    const audioElement = audioRefs.current.get(audioFile.id);
+
+    if (!audioElement) {
+      // Create new audio element if it doesn't exist
+      const newAudio = new Audio(URL.createObjectURL(audioFile.file));
+      audioRefs.current.set(audioFile.id, newAudio);
+
+      // Handle audio end
+      newAudio.addEventListener("ended", () => {
+        setPlayingAudioId(null);
+      });
+
+      // Play the audio
+      newAudio.play();
+      setPlayingAudioId(audioFile.id);
+    } else if (playingAudioId === audioFile.id) {
+      // Pause current audio
+      audioElement.pause();
+      setPlayingAudioId(null);
+    } else {
+      // Pause all other audios
+      audioRefs.current.forEach((audio, id) => {
+        if (id !== audioFile.id) {
+          audio.pause();
+        }
+      });
+
+      // Play this audio
+      audioElement.play();
+      setPlayingAudioId(audioFile.id);
+    }
+  };
+
+  // Open rename modal
+  const openRenameModal = (audioFile: AudioFile) => {
+    setRenamingFile(audioFile);
+    setTempFileName(audioFile.name);
+    setRenameModalOpen(true);
+  };
+
+  // Submit rename
+  const handleRenameSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!renamingFile || !tempFileName.trim()) {
+      toast.error("Please enter a file name");
+      return;
+    }
+
+    updateFileName(renamingFile.id, tempFileName.trim());
+    setRenameModalOpen(false);
+    setRenamingFile(null);
+    setTempFileName("");
+  };
+
+  // Cleanup audio elements on unmount or file removal
+  React.useEffect(() => {
+    const audios = audioRefs.current;
+    return () => {
+      audios.forEach((audio) => {
+        audio.pause();
+        URL.revokeObjectURL(audio.src);
+      });
+      audios.clear();
+    };
+  }, []);
 
   // Calculate totals
   const totalSeconds = audioFiles.reduce(
@@ -213,6 +314,9 @@ export default function NewTranscriptionPage() {
     try {
       // Prepare form data
       const formData = new FormData();
+      if (projectId) {
+        formData.append("projectId", projectId);
+      }
       formData.append("language", language);
       formData.append("speakerCount", speakers.toString());
       formData.append("vocabulary", vocabulary);
@@ -264,32 +368,29 @@ export default function NewTranscriptionPage() {
   };
 
   return (
-    <div className="flex flex-col flex-1 p-8 overflow-auto">
+    <div className="flex flex-col flex-1 p-8">
       <div className="w-full max-w-5xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">{t("title")}</h1>
-          <p className="text-muted-foreground">{t("subtitle")}</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Audio Files Section */}
-          <div className="bg-card rounded-lg border p-6">
-            <h2 className="text-xl font-semibold mb-4">{t("audioFiles")}</h2>
+          <h2 className="text-xl font-semibold mb-4">{t("audioFiles")}</h2>
 
-            {/* Drag & Drop Zone */}
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                isDragging
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50"
-              }`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <UploadIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-lg font-medium mb-2">{t("dragDrop")}</p>
+          {/* Drag & Drop Zone */}
+          <div
+            className={`border-2 border-dashed rounded-lg p-8 flex items-center justify-center space-x-4 text-left transition-colors ${
+              isDragging
+                ? "border-primary bg-primary/5"
+                : "border-border hover:border-primary/50"
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <div className="border rounded-md w-12 h-12 flex items-center justify-center">
+              <UploadIcon className="w-6 h-6 text-black" />
+            </div>
+            <div>
+              <p className="text-lg font-medium">{t("dragDrop")}</p>
               <p className="text-sm text-muted-foreground">
                 {t("supportedFormats")}
               </p>
@@ -302,200 +403,187 @@ export default function NewTranscriptionPage() {
                 onChange={handleFileInputChange}
               />
             </div>
+          </div>
 
-            {/* File List */}
-            {audioFiles.length > 0 ? (
-              <div className="mt-6 space-y-3">
-                {audioFiles.map((audioFile) => (
-                  <div
-                    key={audioFile.id}
-                    className="flex items-center gap-4 p-4 border rounded-lg hover:bg-accent/50 transition-colors"
-                  >
-                    <FileAudioIcon className="w-10 h-10 text-primary shrink-0" />
+          {/* File List */}
+          {audioFiles.length > 0 && (
+            <div className="mt-6 space-y-3">
+              {audioFiles.map((audioFile) => (
+                <div
+                  key={audioFile.id}
+                  className="flex items-center gap-4 p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                >
+                  <div className="rounded-md w-12 h-12 flex items-center justify-center bg-muted">
+                    <FileIcon className="w-6 h-6 text-black" />
+                  </div>
 
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <Input
-                        value={audioFile.name}
-                        onChange={(e) =>
-                          updateFileName(audioFile.id, e.target.value)
-                        }
-                        className="font-medium"
-                        placeholder={t("fileName")}
-                      />
-                      <div className="flex gap-4 text-sm text-muted-foreground">
-                        <span>
-                          {t("duration")}: {formatDuration(audioFile.duration)}
-                        </span>
-                        <span>
-                          {t("size")}: {formatSize(audioFile.size)}
-                        </span>
-                      </div>
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <span className="group/label font-medium">
+                      {audioFile.name}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-xs"
+                        onClick={() => openRenameModal(audioFile)}
+                        className="ml-1 shrink-0 opacity-0 group-hover/label:opacity-100 transition-opacity"
+                      >
+                        <PencilIcon className="w-4 h-4" />
+                      </Button>
+                    </span>
+                    <div className="flex gap-4 text-sm text-muted-foreground">
+                      <span>
+                        {formatDuration(audioFile.duration)} |{" "}
+                        {formatSize(audioFile.size)}
+                      </span>
                     </div>
+                  </div>
 
+                  <div className="flex items-center">
                     <Button
                       type="button"
                       variant="ghost"
-                      size="icon"
+                      size="icon-lg"
+                      onClick={() => togglePlayPause(audioFile)}
+                      className="shrink-0"
+                    >
+                      {playingAudioId === audioFile.id ? (
+                        <PauseIcon fill="current" className="w-4 h-4" />
+                      ) : (
+                        <PlayIcon fill="current" className="w-4 h-4" />
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-lg"
                       onClick={() => removeFile(audioFile.id)}
                       className="shrink-0"
                     >
-                      <XIcon className="w-4 h-4" />
+                      <Trash2Icon className="w-4 h-4" />
                     </Button>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="mt-6 text-center text-muted-foreground">
-                {t("noFiles")}
-              </p>
-            )}
-          </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Settings Section */}
-          <div className="bg-card rounded-lg border p-6">
-            <h2 className="text-xl font-semibold mb-6">{t("settings")}</h2>
-
-            <div className="space-y-6">
-              {/* Language */}
-              <div className="space-y-2">
-                <Label htmlFor="language">{t("language")}</Label>
-                <Select
-                  id="language"
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
-                >
-                  <option value="en">{tLang("en")}</option>
-                  <option value="fr">{tLang("fr")}</option>
-                  <option value="es">{tLang("es")}</option>
-                  <option value="de">{tLang("de")}</option>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  {t("languageHelper")}
-                </p>
-              </div>
-
-              {/* Number of Speakers */}
-              <div className="space-y-2">
-                <Label htmlFor="speakers">{t("speakers")}</Label>
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setSpeakers(Math.max(1, speakers - 1))}
-                    disabled={speakers <= 1}
-                  >
-                    <MinusIcon className="w-4 h-4" />
-                  </Button>
-                  <Input
-                    id="speakers"
-                    type="number"
-                    min="1"
-                    max="20"
-                    value={speakers}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value, 10);
-                      if (!isNaN(val) && val > 0 && val <= 20) {
-                        setSpeakers(val);
-                      }
-                    }}
-                    className="w-20 text-center"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setSpeakers(Math.min(20, speakers + 1))}
-                    disabled={speakers >= 20}
-                  >
-                    <PlusIcon className="w-4 h-4" />
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("speakersHelper")}
-                </p>
-              </div>
-
-              {/* Custom Vocabulary */}
-              <div className="space-y-2">
-                <Label htmlFor="vocabulary">{t("vocabulary")}</Label>
-                <Textarea
-                  id="vocabulary"
-                  value={vocabulary}
-                  onChange={(e) => setVocabulary(e.target.value)}
-                  placeholder={t("vocabularyPlaceholder")}
-                  rows={3}
-                />
-                <p className="text-xs text-muted-foreground">
-                  {t("vocabularyHelper")}
-                </p>
-              </div>
+          <div className="space-y-6">
+            {/* Project */}
+            <div className="space-x-2">
+              <ProjectSelector
+                value={projectId}
+                onChange={setProjectId}
+                size="sm"
+                className="w-max inline-flex"
+              />
+              <Select
+                size="sm"
+                className="w-max inline-flex"
+                options={[
+                  { label: tLang("en"), value: "en" },
+                  { label: tLang("fr"), value: "fr" },
+                  { label: tLang("es"), value: "es" },
+                  { label: tLang("de"), value: "de" },
+                ]}
+                value={language}
+                onChange={setLanguage}
+                placeholder={t("language")}
+                searchPlaceholder="Search languages..."
+              />
+              <Select
+                size="sm"
+                className="w-max inline-flex"
+                options={[1, 2, 3, 4, 5, 32].map((num) => ({
+                  label:
+                    num === 1
+                      ? "Single speaker"
+                      : num === 32
+                        ? "More than 5 speakers"
+                        : `${num.toString()} speakers`,
+                  value: num.toString(),
+                }))}
+                value={speakers.toString()}
+                onChange={(value) => setSpeakers(parseInt(value, 10))}
+                placeholder={t("language")}
+                searchPlaceholder="Search languages..."
+              />
             </div>
-          </div>
 
-          {/* Summary Section */}
-          <div className="bg-card rounded-lg border p-6">
-            <h2 className="text-xl font-semibold mb-6">{t("summary")}</h2>
-
-            <div className="space-y-4">
-              <div className="flex justify-between items-center pb-4 border-b">
-                <span className="text-muted-foreground">
-                  {t("totalDuration")}
-                </span>
-                <span className="text-lg font-semibold">
-                  {formatDuration(totalSeconds)} ({totalMinutes} min)
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center pb-4 border-b">
-                <span className="text-muted-foreground">
-                  {t("estimatedCredits")}
-                </span>
-                <span className="text-lg font-semibold">
-                  {estimatedCredits}{" "}
-                  {estimatedCredits === 1 ? "credit" : "credits"}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center pb-4 border-b">
-                <span className="text-muted-foreground">
-                  {t("availableCredits")}
-                </span>
-                <span className="text-lg font-semibold">
-                  {userCredits === null ? "..." : userCredits}
-                </span>
-              </div>
-
-              <p className="text-xs text-muted-foreground text-center">
-                {t("creditsInfo")}
+            {/* Custom Vocabulary */}
+            <div className="space-y-2">
+              <Label htmlFor="vocabulary">{t("vocabulary")}</Label>
+              <Textarea
+                id="vocabulary"
+                value={vocabulary}
+                onChange={(e) => setVocabulary(e.target.value)}
+                placeholder={t("vocabularyPlaceholder")}
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground">
+                {t("vocabularyHelper")}
               </p>
-
-              {!hasEnoughCredits && audioFiles.length > 0 && (
-                <div className="flex items-start gap-2 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-                  <AlertCircleIcon className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-                  <p className="text-sm text-destructive">
-                    {t("insufficientCredits")}
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-end">
+          <div className="flex justify-end items-center gap-2 flex-wrap">
+            {estimatedCredits > 0 && (
+              <div className="text-muted-foreground w-full text-right text-sm">
+                {estimatedCredits} credits
+              </div>
+            )}
             <Button
               type="submit"
               size="lg"
+              className={"bg-blue-500"}
               disabled={
                 audioFiles.length === 0 || !hasEnoughCredits || isSubmitting
               }
-              className="min-w-[200px]"
             >
               {isSubmitting ? t("processing") : t("startTranscription")}
             </Button>
           </div>
         </form>
       </div>
+
+      {/* Rename File Modal */}
+      <Dialog open={renameModalOpen} onOpenChange={setRenameModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename Audio File</DialogTitle>
+            <DialogDescription>
+              Enter a new name for your audio file.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleRenameSubmit}>
+            <div className="py-4 px-6">
+              <div className="space-y-2">
+                <Label htmlFor="file-name">File Name</Label>
+                <Input
+                  id="file-name"
+                  value={tempFileName}
+                  onChange={(e) => setTempFileName(e.target.value)}
+                  placeholder="e.g., Interview Recording"
+                  autoFocus
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setRenameModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" className="bg-blue-500">
+                Rename
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

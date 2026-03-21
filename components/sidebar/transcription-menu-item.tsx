@@ -5,7 +5,7 @@ import Link from "next/link";
 import { SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 import { FileTextIcon, LoaderIcon, AlertCircleIcon } from "lucide-react";
 
-type TranscriptionState = "PENDING" | "TRANSCRIBING" | "COMPLETED" | "ERROR";
+type TranscriptionState = "PENDING" | "COMPLETED" | "ERROR";
 
 type TranscriptionMenuItemProps = {
   transcription: {
@@ -30,38 +30,27 @@ export function TranscriptionMenuItem({
       alert(
         transcription.errorMessage || "An error occurred during transcription",
       );
-    } else if (transcription.state === "TRANSCRIBING") {
-      // Optionally show progress info
-      console.log("Transcription in progress:", transcription.id);
     }
   };
 
   const getStatusIcon = () => {
     switch (transcription.state) {
-      case "TRANSCRIBING":
+      case "PENDING":
         return (
-          <button
-            type="button"
-            onClick={handleStatusClick}
-            className="flex items-center justify-center shrink-0"
-            aria-label="Transcription in progress"
-          >
-            <LoaderIcon className="h-4 w-4 animate-spin text-blue-500" />
-          </button>
+          <div className="flex items-center justify-center shrink-0">
+            <LoaderIcon
+              className="h-4 w-4 animate-spin"
+              style={{ animationDuration: "5s" }}
+            />
+          </div>
         );
       case "ERROR":
         return (
-          <button
-            type="button"
-            onClick={handleStatusClick}
-            className="flex items-center justify-center shrink-0 hover:opacity-80 transition-opacity"
-            aria-label="Transcription error - click for details"
-          >
+          <div className="flex items-center justify-center shrink-0 hover:opacity-80 transition-opacity">
             <AlertCircleIcon className="h-4 w-4 text-red-500" />
-          </button>
+          </div>
         );
       case "COMPLETED":
-      case "PENDING":
       default:
         return <FileTextIcon className="h-4 w-4" />;
     }

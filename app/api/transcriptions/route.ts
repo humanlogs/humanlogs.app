@@ -1,6 +1,9 @@
-import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-helpers";
+import { isElevenLabsConfigured } from "@/lib/elevenlabs";
 import { prisma } from "@/lib/prisma";
+import { Transcription } from "@prisma/client";
+import { NextResponse } from "next/server";
+import { pollPendingTranscriptions } from "./[id]/route";
 
 export async function GET() {
   try {
@@ -11,30 +14,46 @@ export async function GET() {
       where: {
         userId: user.id,
       },
-      include: {
-        project: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
       orderBy: {
         updatedAt: "desc",
       },
       take: 1000,
     });
 
+    // Check status for PENDING transcriptions with ElevenLabs
+    if (isElevenLabsConfigured()) {
+      const statusChecks = transcriptions
+        .filter((t) => t.state === "PENDING" && t.elevenLabsTranscriptionId)
+        .map(async (t) => {
+          return await pollPendingTranscriptions(t);
+        });
+
+      // Wait for all status checks to complete
+      if (statusChecks.length > 0) {
+        await Promise.all(statusChecks);
+
+        // Re-fetch transcriptions to get updated data
+        const updatedTranscriptions = await prisma.transcription.findMany({
+          where: {
+            userId: user.id,
+          },
+          orderBy: {
+            updatedAt: "desc",
+          },
+          take: 1000,
+        });
+
+        // Transform to match the frontend format
+        const formattedTranscriptions = updatedTranscriptions.map(
+          formatTranscriptionList,
+        );
+
+        return NextResponse.json(formattedTranscriptions);
+      }
+    }
+
     // Transform to match the frontend format
-    const formattedTranscriptions = transcriptions.map((t) => ({
-      id: t.id,
-      title: t.audioFileName,
-      updatedAt: t.updatedAt.toISOString(),
-      projectId: t.projectId,
-      projectName: t.project?.name,
-      state: t.state,
-      errorMessage: t.errorMessage,
-    }));
+    const formattedTranscriptions = transcriptions.map(formatTranscriptionList);
 
     return NextResponse.json(formattedTranscriptions);
   } catch (error) {
@@ -45,3 +64,15 @@ export async function GET() {
     );
   }
 }
+
+const formatTranscriptionList = (t: Transcription) => {
+  return {
+    id: t.id,
+    title: t.title,
+    audioFileName: t.audioFileName,
+    updatedAt: t.updatedAt.toISOString(),
+    projectId: t.projectId,
+    state: t.state,
+    errorMessage: t.errorMessage,
+  };
+};

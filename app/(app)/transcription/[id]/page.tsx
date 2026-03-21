@@ -1,29 +1,86 @@
+"use client";
+
+import { TranscriptionActions } from "@/components/transcriptions/transcription-actions";
+import { TranscriptionEditor } from "@/components/transcriptions/transcription-editor";
+import { TranscriptionFailed } from "@/components/transcriptions/transcription-failed";
+import { TranscriptionLoading } from "@/components/transcriptions/transcription-loading";
+import { useTranscription } from "@/hooks/use-api";
+import { use, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { toast } from "sonner";
+import { Button } from "../../../../components/ui/button";
+import { PencilIcon } from "lucide-react";
+
 type TranscriptionPageProps = {
   params: Promise<{
     id: string;
   }>;
 };
 
-export default async function TranscriptionPage({
-  params,
-}: TranscriptionPageProps) {
-  const { id } = await params;
+export default function TranscriptionPage({ params }: TranscriptionPageProps) {
+  const { id } = use(params);
+  const { data: transcription, isLoading, error } = useTranscription(id);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(
+        error.message || "An error occurred while fetching the transcription.",
+      );
+    }
+  }, [error]);
+
+  if (isLoading || error) {
+    return <></>;
+  }
 
   return (
     <div className="flex flex-col flex-1 p-8">
       <div className="w-full max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Transcription Details</h1>
-          <p className="text-muted-foreground">ID: {id}</p>
-        </div>
+        {transcription && (
+          <>
+            {createPortal(
+              <div className="flex items-center gap-2 w-full">
+                <div className="flex-1">
+                  <span className="font-semibold group/label">
+                    {transcription.title || transcription.audioFileName}
+                    <Button
+                      type="button"
+                      className="opacity-0 group-hover/label:opacity-100 transition-opacity"
+                      variant={"ghost"}
+                      size={"icon-xs"}
+                      onClick={() => {
+                        // TODO
+                      }}
+                      aria-label="Edit name"
+                    >
+                      <PencilIcon className="h-3 w-3" />
+                    </Button>
+                  </span>
+                </div>
+                <TranscriptionActions
+                  transcriptionId={transcription.id}
+                  transcriptionName={
+                    transcription.title || transcription.audioFileName
+                  }
+                  projectId={transcription.projectId}
+                />
+              </div>,
+              document.getElementById("transcription-header-portal")!,
+            )}
+          </>
+        )}
 
-        <div className="bg-card rounded-lg border p-8">
-          <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">
-              Transcription details will be displayed here
-            </p>
-          </div>
-        </div>
+        {transcription?.state === "ERROR" && (
+          <TranscriptionFailed transcription={transcription} />
+        )}
+
+        {transcription?.state === "PENDING" && (
+          <TranscriptionLoading transcription={transcription} />
+        )}
+
+        {transcription?.state === "COMPLETED" && (
+          <TranscriptionEditor transcription={transcription} />
+        )}
       </div>
     </div>
   );

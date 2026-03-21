@@ -31,3 +31,37 @@ export async function GET() {
     );
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const user = await requireAuth();
+    const body = await request.json();
+
+    const { name } = body;
+
+    if (!name || typeof name !== "string" || !name.trim()) {
+      return NextResponse.json(
+        { error: "Project name is required" },
+        { status: 400 },
+      );
+    }
+
+    const project = await prisma.project.create({
+      data: {
+        name: name.trim(),
+        userId: user.id,
+      },
+    });
+
+    return NextResponse.json({
+      id: project.id,
+      name: project.name,
+    });
+  } catch (error) {
+    console.error("Error creating project:", error);
+    return NextResponse.json(
+      { error: "Failed to create project" },
+      { status: 500 },
+    );
+  }
+}

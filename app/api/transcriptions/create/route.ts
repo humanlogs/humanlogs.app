@@ -131,6 +131,7 @@ export async function POST(request: NextRequest) {
         const transcription = await prisma.transcription.create({
           data: {
             userId: user.id,
+            title: fileName,
             audioFileName: fileName,
             audioFileSize: file.size,
             audioFileKey: "", // Will be updated after upload
@@ -211,7 +212,7 @@ export async function POST(request: NextRequest) {
 
 /**
  * Process a transcription asynchronously
- * This function handles the actual transcription with ElevenLabs
+ * This function starts an async transcription job with ElevenLabs
  */
 async function processTranscription(
   transcriptionId: string,
@@ -224,25 +225,19 @@ async function processTranscription(
   },
 ): Promise<void> {
   try {
-    // Update state to TRANSCRIBING
-    await prisma.transcription.update({
-      where: { id: transcriptionId },
-      data: { state: "TRANSCRIBING" },
-    });
-
     const storage = getStorage();
     const elevenLabs = getElevenLabsClient();
 
     // Get audio URL or file path
     const audioUrl = await storage.getUrl(storageKey, 7200); // 2 hours
 
-    let result;
-
     if (isElevenLabsConfigured()) {
-      // Use real ElevenLabs API (synchronous)
+      // Use real ElevenLabs API (async)
       console.log(
-        `Starting ElevenLabs transcription for ${transcriptionId}...`,
+        `Starting ElevenLabs async transcription for ${transcriptionId}...`,
       );
+
+      let elevenLabsTranscriptionId: string;
 
       // Check if we need to upload the file directly (local storage)
       if (audioUrl.startsWith("file://")) {
@@ -253,26 +248,44 @@ async function processTranscription(
           select: { audioFileName: true },
         });
 
-        result = await elevenLabs.transcribeFromFile({
+        const result = await elevenLabs.transcribeFromFileAsync({
           fileBuffer,
           fileName: transcription?.audioFileName || "audio.mp3",
           language: options.language,
           speakerCount: options.speakerCount,
           vocabulary: options.vocabulary,
         });
+
+        elevenLabsTranscriptionId = result.transcriptionId;
       } else {
         // Use URL-based transcription (S3 or other cloud storage)
-        result = await elevenLabs.transcribeFromUrl({
+        const result = await elevenLabs.transcribeFromUrlAsync({
           audioUrl,
           language: options.language,
           speakerCount: options.speakerCount,
           vocabulary: options.vocabulary,
         });
+
+        elevenLabsTranscriptionId = result.transcriptionId;
       }
+
+      // Store the ElevenLabs transcription ID
+      await prisma.transcription.update({
+        where: { id: transcriptionId },
+        data: {
+          elevenLabsTranscriptionId,
+        },
+      });
+
+      console.log(
+        `Transcription job started for ${transcriptionId} with ElevenLabs ID: ${elevenLabsTranscriptionId}`,
+      );
     } else {
       // Use simulated transcription for development
       console.log(`Simulating transcription for ${transcriptionId}...`);
-      result = await elevenLabs.simulateTranscription(
+
+      // Simulate async processing
+      const result = await elevenLabs.simulateTranscription(
         {
           audioUrl,
           language: options.language,
@@ -281,19 +294,19 @@ async function processTranscription(
         },
         options.duration,
       );
+
+      // Save the transcription result
+      await prisma.transcription.update({
+        where: { id: transcriptionId },
+        data: {
+          state: "COMPLETED",
+          transcription: result as never,
+          completedAt: new Date(),
+        },
+      });
+
+      console.log(`Simulated transcription completed for ${transcriptionId}`);
     }
-
-    // Save the transcription result
-    await prisma.transcription.update({
-      where: { id: transcriptionId },
-      data: {
-        state: "COMPLETED",
-        transcription: result as never,
-        completedAt: new Date(),
-      },
-    });
-
-    console.log(`Transcription completed for ${transcriptionId}`);
   } catch (error) {
     console.error(`Error processing transcription ${transcriptionId}:`, error);
 

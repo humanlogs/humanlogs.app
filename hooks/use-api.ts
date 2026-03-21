@@ -12,8 +12,27 @@ type Transcription = {
   title: string;
   updatedAt: string;
   projectId?: string;
-  state: "PENDING" | "TRANSCRIBING" | "COMPLETED" | "ERROR";
+  state: "PENDING" | "COMPLETED" | "ERROR";
   errorMessage?: string | null;
+};
+
+export type TranscriptionDetail = {
+  id: string;
+  title: string;
+  audioFileName: string;
+  audioFileSize: number;
+  audioFileKey: string;
+  language: string;
+  vocabulary: string[];
+  speakerCount: number;
+  state: "PENDING" | "COMPLETED" | "ERROR";
+  errorMessage?: string | null;
+  transcription?: unknown;
+  projectId?: string;
+  projectName?: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
 };
 
 type UserProfile = {
@@ -29,7 +48,7 @@ type UserProfile = {
 // Fetch projects
 export function useProjects() {
   return useQuery({
-    queryKey: ["project"],
+    queryKey: ["projects"],
     queryFn: async () => {
       const response = await fetch("/api/projects");
       if (!response.ok) {
@@ -43,7 +62,7 @@ export function useProjects() {
 // Fetch transcriptions
 export function useTranscriptions() {
   return useQuery({
-    queryKey: ["transcription"],
+    queryKey: ["transcriptions"],
     queryFn: async () => {
       const response = await fetch("/api/transcriptions");
       if (!response.ok) {
@@ -54,10 +73,33 @@ export function useTranscriptions() {
   });
 }
 
+// Fetch single transcription
+export function useTranscription(id: string) {
+  return useQuery({
+    queryKey: ["transcriptions", id],
+    queryFn: async () => {
+      const response = await fetch(`/api/transcriptions/${id}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error("Transcription not found");
+        }
+        if (response.status === 403) {
+          throw new Error(
+            "You don't have permission to view this transcription",
+          );
+        }
+        throw new Error("Failed to fetch transcription");
+      }
+      return response.json() as Promise<TranscriptionDetail>;
+    },
+    enabled: !!id,
+  });
+}
+
 // Fetch user profile
 export function useUserProfile() {
   return useQuery({
-    queryKey: ["user"],
+    queryKey: ["users"],
     queryFn: async () => {
       const response = await fetch("/api/user");
       if (!response.ok) {
@@ -89,7 +131,7 @@ export function useUpdateUserLanguage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });
 }
