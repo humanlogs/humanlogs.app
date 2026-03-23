@@ -8,8 +8,8 @@ import { SpeakerRenameDialog } from "./components/speaker-rename-dialog";
 import { useBracketWrap } from "./hooks/use-bracket-wrap";
 import { useEditorSync } from "./hooks/use-editor-sync";
 import { useFormat } from "./hooks/use-format";
-import { useSpeakerPositions } from "./hooks/use-speaker-positions";
 import { Speaker, useSpeakerActions } from "./hooks/use-speaker-actions";
+import { useSpeakerPositions } from "./hooks/use-speaker-positions";
 import { InteractiveAudio } from "./interactive-audio";
 
 interface TranscriptEditorContentProps {
@@ -32,7 +32,7 @@ export function TranscriptEditorContent({
   // re-renders are skipped when the parent echoes back what we already set.
   const segmentsRef = useRef<TranscriptionSegment[] | null>(null);
 
-  const { handleInput, handleUndoKeyDown } = useEditorSync(
+  const { handleInput, handleBeforeInput, handleUndoKeyDown } = useEditorSync(
     editorRef,
     segmentsRef,
     segments,
@@ -52,7 +52,7 @@ export function TranscriptEditorContent({
   return (
     <>
       <SpeakerRenameDialog />
-      <div className="flex flex-col h-full space-y-4 py-6">
+      <div className="flex flex-col h-full space-y-4 py-6 z-0 relative">
         <EditorToolbar applyFormat={applyFormat} />
         <InteractiveAudio segments={segments} id={id} />
         <div className="flex flex-row px-6 gap-4 flex-1 z-10">
@@ -69,6 +69,7 @@ export function TranscriptEditorContent({
             suppressContentEditableWarning
             spellCheck
             className="flex-1 text-base leading-relaxed overflow-y-auto focus:outline-none"
+            onBeforeInput={handleBeforeInput}
             onInput={handleInput}
             onKeyDown={(e) => {
               handleBracketWrapKeyDown(e);

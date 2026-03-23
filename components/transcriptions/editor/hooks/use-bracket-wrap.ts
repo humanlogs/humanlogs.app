@@ -1,11 +1,18 @@
 "use client";
 
 import { useCallback } from "react";
+import { getSelectionOffsets } from "../utils/selection";
 
 const BRACKET_PAIRS: Record<string, string> = {
   "(": ")",
   "[": "]",
   "{": "}",
+};
+
+// Store the original selection before bracket wrap for undo history
+// This is accessed by the editor-sync to override beforeInput selection
+export const bracketWrapState = {
+  originalSelection: null as { start: number; end: number } | null,
 };
 
 export function useBracketWrap() {
@@ -31,6 +38,15 @@ export function useBracketWrap() {
 
     e.preventDefault();
 
+    // Capture the original selection BEFORE any modifications
+    const editorElement = (e.target as HTMLElement).closest(
+      "[contenteditable]",
+    ) as HTMLElement;
+    if (editorElement) {
+      const originalSel = getSelectionOffsets(editorElement);
+      bracketWrapState.originalSelection = originalSel;
+    }
+
     // Get the selected text
     const selectedText = range.toString();
     const closingBracket = BRACKET_PAIRS[key];
@@ -41,21 +57,29 @@ export function useBracketWrap() {
     // Use execCommand for proper undo/redo integration
     document.execCommand("insertText", false, wrappedText);
 
-    // Select the text inside the brackets
-    if (selection && selectedText.length > 0) {
-      const newRange = document.createRange();
-      const currentNode = selection.anchorNode;
-      if (currentNode && currentNode.nodeType === Node.TEXT_NODE) {
-        const textContent = currentNode.textContent || "";
-        const wrapPosition = textContent.lastIndexOf(wrappedText);
-        if (wrapPosition !== -1) {
-          newRange.setStart(currentNode, wrapPosition + 1);
-          newRange.setEnd(currentNode, wrapPosition + 1 + selectedText.length);
-          selection.removeAllRanges();
-          selection.addRange(newRange);
+    // Select text inside brackets after a brief delay to ensure input event completes
+    setTimeout(() => {
+      bracketWrapState.originalSelection = null;
+
+      const currentSelection = window.getSelection();
+      if (currentSelection && selectedText.length > 0) {
+        const newRange = document.createRange();
+        const currentNode = currentSelection.anchorNode;
+        if (currentNode && currentNode.nodeType === Node.TEXT_NODE) {
+          const textContent = currentNode.textContent || "";
+          const wrapPosition = textContent.lastIndexOf(wrappedText);
+          if (wrapPosition !== -1) {
+            newRange.setStart(currentNode, wrapPosition + 1);
+            newRange.setEnd(
+              currentNode,
+              wrapPosition + 1 + selectedText.length,
+            );
+            currentSelection.removeAllRanges();
+            currentSelection.addRange(newRange);
+          }
         }
       }
-    }
+    }, 0);
   }, []);
 
   return { handleKeyDown };

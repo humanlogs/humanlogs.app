@@ -3,8 +3,8 @@ import { TranscriptionSegment } from "../../../hooks/use-api";
 /**
  * Normalizes an array of TranscriptionSegments so that:
  * 1.
- * - Every word segment contains no whitespace
- * - Every spacing segment contains only whitespace or line breaks
+ * - Every word segment contains no whitespace nor line breaks
+ * - Every spacing segment contains only whitespace or line breaks or //TODO punctuation (.,!?;¿¡:…)
  * - Every word are separated by a spacing segment (space or new line)
  * -> Split or create segments to satisfy this rules, with empty start/end/speakerId/modifiers values
  * 2.

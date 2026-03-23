@@ -201,21 +201,31 @@ export const InteractiveAudio = ({
 
     // Cleanup
     return () => {
-      wavesurfer.destroy();
+      try {
+        wavesurfer.destroy();
+      } catch (err) {
+        console.error("Error destroying wavesurfer:", err);
+      }
     };
   }, [id, registerSeekHandler, setCurrentTime]);
 
   useHotkeys(
-    ["alt+space", "space", "ctrl+space", "cmd+space", "shift+space"],
+    ["alt+space", "ctrl+space", "cmd+space", "shift+space"],
     togglePlayPause,
     {
       preventDefault: true,
+      enableOnContentEditable: true,
+      useKey: true,
     },
   );
+  useHotkeys(["space"], togglePlayPause, {
+    preventDefault: true,
+    useKey: true,
+  });
 
   return (
     <div className="w-full px-6 pb-0">
-      <div className="w-full bg-slate-100 h-10 relative rounded-md overflow-hidden">
+      <div className="w-full bg-slate-100 dark:bg-slate-900 h-10 relative rounded-md overflow-hidden">
         <div ref={containerRef} className="w-full h-full" />
       </div>
     </div>
