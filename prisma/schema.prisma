@@ -28,7 +28,6 @@ model Project {
   userId         String
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
-  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   transcriptions Transcription[]
 
   @@index([userId])
@@ -52,17 +51,25 @@ model Transcription {
   createdAt                 DateTime           @default(now())
   updatedAt                 DateTime           @updatedAt
   completedAt               DateTime?
-  project                   Project?           @relation(fields: [projectId], references: [id])
-  user                      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([projectId])
-  @@index([state])
-  @@index([createdAt])
+  @@index([userId, projectId])
+  @@index([userId, state])
+  @@index([userId, createdAt])
 }
 
 enum TranscriptionState {
   PENDING
   COMPLETED
   ERROR
+}
+
+model TranscriptionHistory {
+  id                        String             @id @default(uuid())
+  transcriptionId           String
+  userId                    String
+  transcription             Json?
+  updatedAt                 DateTime           @updatedAt
+
+  @@index([userId, transcriptionId, updatedAt])
 }

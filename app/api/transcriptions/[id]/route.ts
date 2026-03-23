@@ -123,14 +123,6 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     const updated = await prisma.transcription.update({
       where: { id },
       data: updateData,
-      include: {
-        project: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
     });
 
     // Notify client of transcription update

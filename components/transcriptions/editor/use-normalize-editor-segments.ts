@@ -178,7 +178,7 @@ export function normalizeEditorSegments(
       seg.start !== undefined && seg.end !== undefined
         ? seg.end - seg.start
         : 0;
-    const tooLong = duration > 2;
+    const tooLong = duration > 2 && !seg.text.includes("\n");
 
     if (tooLong && !speakerChange) {
       // Expand to spacing + (pause) + spacing
@@ -215,8 +215,6 @@ export function normalizeEditorSegments(
       result.push(seg);
     }
   }
-
-  console.log(result);
 
   return result;
 }

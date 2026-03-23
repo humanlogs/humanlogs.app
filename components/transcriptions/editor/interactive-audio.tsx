@@ -131,7 +131,7 @@ export const InteractiveAudio = ({
         ctx.clearRect(0, 0, width, height);
 
         // Draw symmetrical waveform with speaker colors
-        const barWidth = 5;
+        const barWidth = 3;
         const barGap = 1;
         const step = barWidth + barGap;
 

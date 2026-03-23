@@ -38,7 +38,11 @@ export function elementToSegment(el: HTMLElement): TranscriptionSegment {
 export function domToSegments(container: HTMLElement): TranscriptionSegment[] {
   const segments: TranscriptionSegment[] = [];
 
-  const processNode = (node: Node, inherited: ("b" | "i" | "u")[]): void => {
+  const processNode = (
+    node: Node,
+    inherited: ("b" | "i" | "u")[],
+    isFirstChild: boolean,
+  ): void => {
     if (node.nodeType === Node.ELEMENT_NODE) {
       const el = node as HTMLElement;
       const tag = el.tagName.toLowerCase();
@@ -66,8 +70,15 @@ export function domToSegments(container: HTMLElement): TranscriptionSegment[] {
         return;
       }
 
-      for (const child of Array.from(el.childNodes)) {
-        processNode(child, mods);
+      // DIV elements created by pressing Enter — add a line break before their
+      // content (except the very first div in the container, which shouldn't
+      // inject a leading newline).
+      if (el.tagName === "DIV" && !isFirstChild) {
+        segments.push({ type: "spacing", text: "\n" });
+      }
+
+      for (let i = 0; i < el.childNodes.length; i++) {
+        processNode(el.childNodes[i], mods, i === 0);
       }
     } else if (node.nodeType === Node.TEXT_NODE) {
       const text = node.textContent ?? "";
@@ -91,8 +102,8 @@ export function domToSegments(container: HTMLElement): TranscriptionSegment[] {
     }
   };
 
-  for (const child of Array.from(container.childNodes)) {
-    processNode(child, []);
+  for (let i = 0; i < container.childNodes.length; i++) {
+    processNode(container.childNodes[i], [], i === 0);
   }
   return segments;
 }

@@ -1,0 +1,180 @@
+"use client";
+
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+} from "@/components/ui/dropdown-menu";
+import _ from "lodash";
+import { UserRoundPen, UserRoundPlus, Users } from "lucide-react";
+import { TranscriptionSegment } from "../../../../hooks/use-api";
+import { getSpeakerLabel, Speaker } from "../hooks/use-speaker-actions";
+import { SpeakerPosition } from "../hooks/use-speaker-positions";
+import { useSpeakerRenameModal } from "./speaker-rename-dialog";
+
+// Colour palette — cycles when there are more speakers than entries
+const SPEAKER_COLORS = [
+  "bg-blue-500/10 border-blue-500/50 text-blue-500",
+  "bg-green-500/10 border-green-500/50 text-green-500",
+  "bg-purple-500/10 border-purple-500/50 text-purple-500",
+  "bg-orange-500/10 border-orange-500/50 text-orange-500",
+  "bg-pink-500/10 border-pink-500/50 text-pink-500",
+  "bg-cyan-500/10 border-cyan-500/50 text-cyan-500",
+  "bg-yellow-500/10 border-yellow-500/50 text-yellow-500",
+  "bg-red-500/10 border-red-500/50 text-red-500",
+];
+
+/** Shared badge chip — used for interactive badges and the invisible decoy row. */
+export function SpeakerBadgeChip({
+  label,
+  colorClass,
+  className,
+}: {
+  label: string;
+  colorClass: string;
+  className?: string;
+}) {
+  return (
+    <Badge
+      variant="outline"
+      className={`h-5 text-xs ${colorClass} ${className ?? ""}`}
+    >
+      {label}
+    </Badge>
+  );
+}
+
+interface SpeakerColumnProps {
+  positions: SpeakerPosition[];
+  speakers: Speaker[];
+  segments: TranscriptionSegment[];
+  onRenameSpeaker: (speakerId: string, name: string) => void;
+  onChangeSpeakerForTurn: (turnIndex: number, targetId: string | null) => void;
+}
+
+interface SpeakerBadgeProps {
+  position: SpeakerPosition;
+  speakers: Speaker[];
+  segments: TranscriptionSegment[];
+  onRenameSpeaker: (speakerId: string, name: string) => void;
+  onChangeSpeakerForTurn: (turnIndex: number, targetId: string | null) => void;
+}
+
+function SpeakerBadge({
+  position,
+  speakers,
+  segments,
+  onRenameSpeaker,
+  onChangeSpeakerForTurn,
+}: SpeakerBadgeProps) {
+  const { speakerId, index, top } = position;
+  const { openRename } = useSpeakerRenameModal();
+
+  const label = getSpeakerLabel(speakerId, speakers, segments);
+  const speakerArrayIndex = speakers.findIndex((s) => s.id === speakerId);
+  const colorClass =
+    SPEAKER_COLORS[
+      (speakerArrayIndex >= 0 ? speakerArrayIndex : index) %
+        SPEAKER_COLORS.length
+    ];
+  const otherSpeakers = speakers.filter((s) => s.id !== speakerId);
+
+  return (
+    <div
+      className="absolute left-0 -translate-y-1/2 whitespace-nowrap"
+      style={{ top }}
+    >
+      <DropdownMenu
+        align="start"
+        trigger={
+          <SpeakerBadgeChip
+            label={label}
+            colorClass={colorClass}
+            className="cursor-pointer select-none"
+          />
+        }
+      >
+        <DropdownMenuItem
+          onClick={() =>
+            openRename(speakerId, label, (name) =>
+              onRenameSpeaker(speakerId, name),
+            )
+          }
+        >
+          <UserRoundPen className="mr-2 h-3.5 w-3.5" />
+          Rename speaker
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuSub
+          trigger={
+            <span className="flex items-center gap-2">
+              <Users className="h-3.5 w-3.5" />
+              Change speaker
+            </span>
+          }
+        >
+          {otherSpeakers.map((s) => (
+            <DropdownMenuItem
+              key={s.id}
+              onClick={() => onChangeSpeakerForTurn(index, s.id)}
+            >
+              {getSpeakerLabel(s.id, speakers, segments)}
+            </DropdownMenuItem>
+          ))}
+          {otherSpeakers.length > 0 && <DropdownMenuSeparator />}
+          <DropdownMenuItem onClick={() => onChangeSpeakerForTurn(index, null)}>
+            <UserRoundPlus className="mr-2 h-3.5 w-3.5" />
+            New speaker
+          </DropdownMenuItem>
+        </DropdownMenuSub>
+      </DropdownMenu>
+    </div>
+  );
+}
+
+export function SpeakerColumn({
+  positions,
+  speakers,
+  segments,
+  onRenameSpeaker,
+  onChangeSpeakerForTurn,
+}: SpeakerColumnProps) {
+  if (positions.length === 0) return <div className="w-24 shrink-0" />;
+
+  return (
+    <div className="relative w-max shrink-0 whitespace-nowrap">
+      {positions.map((pos) => (
+        <SpeakerBadge
+          key={`${pos.speakerId}-${pos.index}`}
+          position={pos}
+          speakers={speakers}
+          segments={segments}
+          onRenameSpeaker={onRenameSpeaker}
+          onChangeSpeakerForTurn={onChangeSpeakerForTurn}
+        />
+      ))}
+
+      {/* Invisible badges — reserve column width for the widest speaker name so the layout never shifts on rename/add. */}
+      <div className="opacity-0 pointer-events-none flex flex-col gap-1">
+        {_.uniqBy(positions, "speakerId").map((s) => {
+          const idx = speakers.findIndex((sp) => sp.id === s.speakerId);
+          return (
+            <SpeakerBadgeChip
+              key={s.speakerId}
+              label={getSpeakerLabel(s.speakerId, speakers, segments)}
+              colorClass={
+                SPEAKER_COLORS[
+                  (idx >= 0 ? idx : s.index) % SPEAKER_COLORS.length
+                ]
+              }
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}

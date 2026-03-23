@@ -37,6 +37,7 @@ export type TranscriptionDetail = {
 };
 
 export type TranscriptionContent = {
+  speakers: { id: string; name?: string }[];
   words: TranscriptionSegment[];
 };
 
