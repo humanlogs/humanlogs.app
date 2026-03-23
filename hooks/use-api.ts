@@ -1,6 +1,7 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 type Project = {
   id: string;
@@ -27,12 +28,25 @@ export type TranscriptionDetail = {
   speakerCount: number;
   state: "PENDING" | "COMPLETED" | "ERROR";
   errorMessage?: string | null;
-  transcription?: unknown;
+  transcription?: TranscriptionContent;
   projectId?: string;
   projectName?: string;
   createdAt: string;
   updatedAt: string;
   completedAt?: string;
+};
+
+export type TranscriptionContent = {
+  words: TranscriptionSegment[];
+};
+
+export type TranscriptionSegment = {
+  type: "spacing" | "word";
+  text: string;
+  start?: number;
+  end?: number;
+  speakerId?: string;
+  modifiers?: ("b" | "i" | "u")[];
 };
 
 type UserProfile = {
@@ -44,6 +58,10 @@ type UserProfile = {
   creditsRefill: number;
   plan: string;
 };
+
+// Module-level variables for global polling
+let pollingInterval: NodeJS.Timeout | null = null;
+let activeSubscribers = 0;
 
 // Fetch projects
 export function useProjects() {
@@ -61,7 +79,9 @@ export function useProjects() {
 
 // Fetch transcriptions
 export function useTranscriptions() {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ["transcriptions"],
     queryFn: async () => {
       const response = await fetch("/api/transcriptions");
@@ -71,6 +91,37 @@ export function useTranscriptions() {
       return response.json() as Promise<Transcription[]>;
     },
   });
+
+  // Track active subscribers
+  useEffect(() => {
+    activeSubscribers++;
+    return () => {
+      activeSubscribers--;
+      // Clear interval only if no active subscribers
+      if (activeSubscribers === 0 && pollingInterval) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+      }
+    };
+  }, []);
+
+  // Manage polling based on pending transcriptions
+  useEffect(() => {
+    const hasPending = query.data?.some((t) => t.state === "PENDING");
+
+    if (hasPending && !pollingInterval) {
+      // Start polling every 10 seconds
+      pollingInterval = setInterval(() => {
+        queryClient.invalidateQueries({ queryKey: ["transcriptions"] });
+      }, 10000);
+    } else if (!hasPending && pollingInterval) {
+      // Stop polling when no pending transcriptions
+      clearInterval(pollingInterval);
+      pollingInterval = null;
+    }
+  }, [query.data, queryClient]);
+
+  return query;
 }
 
 // Fetch single transcription

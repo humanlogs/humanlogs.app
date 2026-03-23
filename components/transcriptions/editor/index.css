@@ -1,0 +1,57 @@
+/* Audio waveform styles (if using audio player) */
+::part(canvases) {
+    clip-path: none !important;
+}
+
+::part(cursor) {
+    border-radius: 0 !important;
+    transition: all 0.1s;
+}
+
+/* Editor paragraph styles */
+[contenteditable] {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+[contenteditable]:empty:before {
+    content: attr(data-placeholder);
+    color: hsl(var(--muted-foreground));
+    opacity: 0.5;
+}
+
+/* Prevent blue outline on focus in some browsers */
+[contenteditable]:focus {
+    outline: none;
+}
+
+/* Format text modifiers */
+[contenteditable] b,
+[contenteditable] strong {
+    font-weight: 600;
+}
+
+[contenteditable] i,
+[contenteditable] em {
+    font-style: italic;
+}
+
+[contenteditable] u {
+    text-decoration: underline;
+}
+
+/* Word span styles for audio sync */
+.word-span, .spacing-span {
+    display: inline;
+    border-radius: 5px;
+    padding: 0 3px;
+    margin: 0 -3px;
+}
+
+.word-span.active {
+    background-color: hsl(217 91% 60% / 0.25);
+}
+
+.word-span.active-neighbor {
+    background-color: hsl(217 91% 60% / 0.15);
+}
