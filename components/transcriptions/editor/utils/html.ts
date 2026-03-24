@@ -13,6 +13,7 @@ export function segmentToHtml(
 ): string {
   const modifiers = seg.modifiers ?? [];
   let content = escapeHtml(seg.text);
+  if (modifiers.includes("s")) content = `<s>${content}</s>`;
   if (modifiers.includes("u")) content = `<u>${content}</u>`;
   if (modifiers.includes("i")) content = `<i>${content}</i>`;
   if (modifiers.includes("b")) content = `<b>${content}</b>`;

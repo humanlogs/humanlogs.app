@@ -1,4 +1,4 @@
-import { TranscriptionSegment } from "../../../hooks/use-api";
+import { TranscriptionSegment } from "../../../../hooks/use-api";
 
 /**
  * Normalizes an array of TranscriptionSegments so that:
@@ -21,6 +21,9 @@ import { TranscriptionSegment } from "../../../hooks/use-api";
  */
 export function normalizeEditorSegments(
   segments: TranscriptionSegment[],
+  options?: {
+    addPauses?: boolean; // whether to add (pause) segments for long silences, default: true
+  },
 ): TranscriptionSegment[] {
   if (segments.length === 0) return segments;
 
@@ -38,14 +41,41 @@ export function normalizeEditorSegments(
       if (!/\s/.test(seg.text)) {
         expanded.push(seg);
       } else {
+        // Split word containing whitespace, distributing timing proportionally
         const parts = seg.text.split(/(\s+)/);
+        const totalLength = seg.text.length;
+        let charOffset = 0;
+
         for (const part of parts) {
           if (!part) continue;
+
+          // Calculate proportional start/end times based on character position
+          let partStart = seg.start;
+          let partEnd = seg.end;
+          if (
+            seg.start !== undefined &&
+            seg.end !== undefined &&
+            totalLength > 0
+          ) {
+            const duration = seg.end - seg.start;
+            const startRatio = charOffset / totalLength;
+            const endRatio = (charOffset + part.length) / totalLength;
+            partStart = seg.start + duration * startRatio;
+            partEnd = seg.start + duration * endRatio;
+          }
+
           expanded.push(
             /^\s+$/.test(part)
-              ? { type: "spacing", text: part }
-              : { ...seg, text: part },
+              ? {
+                  type: "spacing",
+                  text: part,
+                  start: partStart,
+                  end: partEnd,
+                  speakerId: seg.speakerId,
+                }
+              : { ...seg, text: part, start: partStart, end: partEnd },
           );
+          charOffset += part.length;
         }
       }
     } else {
@@ -53,19 +83,48 @@ export function normalizeEditorSegments(
       if (/^\s*$/.test(seg.text)) {
         expanded.push(seg);
       } else {
+        // Split spacing containing non-whitespace, distributing timing proportionally
         const parts = seg.text.split(/(\s+)/);
+        const totalLength = seg.text.length;
+        let charOffset = 0;
+
         for (const part of parts) {
           if (!part) continue;
+
+          // Calculate proportional start/end times
+          let partStart = seg.start;
+          let partEnd = seg.end;
+          if (
+            seg.start !== undefined &&
+            seg.end !== undefined &&
+            totalLength > 0
+          ) {
+            const duration = seg.end - seg.start;
+            const startRatio = charOffset / totalLength;
+            const endRatio = (charOffset + part.length) / totalLength;
+            partStart = seg.start + duration * startRatio;
+            partEnd = seg.start + duration * endRatio;
+          }
+
           expanded.push(
             /^\s+$/.test(part)
               ? {
                   ...seg,
                   type: "spacing" as const,
                   text: part,
+                  start: partStart,
+                  end: partEnd,
                   modifiers: undefined,
                 }
-              : { ...seg, type: "word" as const, text: part },
+              : {
+                  ...seg,
+                  type: "word" as const,
+                  text: part,
+                  start: partStart,
+                  end: partEnd,
+                },
           );
+          charOffset += part.length;
         }
       }
     }
@@ -85,14 +144,21 @@ export function normalizeEditorSegments(
   }
 
   // ---------------------------------------------------------------------------
-  // Step 2: Merge consecutive segments of the same type, keeping the first
-  //         segment's start/end/speakerId/modifiers.
+  // Step 2: Merge consecutive segments of the same type.
+  //         For timing: keep start of first segment and end of last segment.
   // ---------------------------------------------------------------------------
   const merged: TranscriptionSegment[] = [];
   for (const seg of separated) {
     const prev = merged[merged.length - 1];
     if (prev && prev.type === seg.type) {
-      merged[merged.length - 1] = { ...prev, text: prev.text + seg.text };
+      // Merge: keep start from first, end from current, first non-undefined metadata
+      merged[merged.length - 1] = {
+        ...prev,
+        text: prev.text + seg.text,
+        end: seg.end ?? prev.end,
+        speakerId: prev.speakerId ?? seg.speakerId,
+        modifiers: prev.modifiers ?? seg.modifiers,
+      };
     } else {
       merged.push({ ...seg });
     }
@@ -180,7 +246,7 @@ export function normalizeEditorSegments(
         : 0;
     const tooLong = duration > 2 && !seg.text.includes("\n");
 
-    if (tooLong && !speakerChange) {
+    if (tooLong && !speakerChange && options?.addPauses) {
       // Expand to spacing + (pause) + spacing
       const mid =
         seg.start !== undefined && seg.end !== undefined

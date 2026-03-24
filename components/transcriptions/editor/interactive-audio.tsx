@@ -1,11 +1,20 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { useHotkeys } from "react-hotkeys-hook";
+import { useCallback, useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
 import { TranscriptionSegment } from "../../../hooks/use-api";
 import { useAudio } from "./audio-context";
 import "./index.css"; // Import custom styles for canvas
+
+// Audio controls interface
+export interface AudioControls {
+  isPlaying: boolean;
+  togglePlayPause: () => void;
+  pause: () => void;
+  play: () => void;
+  seekTo: (time: number) => void;
+  playSegment: (start: number, end: number) => void;
+}
 
 // Generate consistent colors for speakers
 const getSpeakerColor = (speakerId: string, index: number): string => {
@@ -77,21 +86,78 @@ const getSpeakerSegments = (oSegments: TranscriptionSegment[]) => {
 export const InteractiveAudio = ({
   segments,
   id,
+  onAudioControlsReady,
 }: {
   segments: TranscriptionSegment[];
   id: string;
+  onAudioControlsReady?: (controls: AudioControls) => void;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
   const { setCurrentTime, registerSeekHandler } = useAudio();
+  const segmentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   // Toggle play/pause
-  const togglePlayPause = () => {
+  const togglePlayPause = useCallback(() => {
     console.log("Toggling play/pause");
     if (wavesurferRef.current) {
       wavesurferRef.current.playPause();
     }
-  };
+  }, []);
+
+  // Pause audio
+  const pause = useCallback(() => {
+    if (wavesurferRef.current) {
+      wavesurferRef.current.pause();
+    }
+    if (segmentTimeoutRef.current) {
+      clearTimeout(segmentTimeoutRef.current);
+      segmentTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Play audio
+  const play = useCallback(() => {
+    if (wavesurferRef.current) {
+      wavesurferRef.current.play();
+    }
+  }, []);
+
+  // Seek to specific time
+  const seekTo = useCallback((time: number) => {
+    if (wavesurferRef.current) {
+      const duration = wavesurferRef.current.getDuration();
+      if (duration > 0) {
+        wavesurferRef.current.seekTo(time / duration);
+      }
+    }
+  }, []);
+
+  // Play a specific segment (start to end time)
+  const playSegment = useCallback(
+    (start: number, end: number) => {
+      if (!wavesurferRef.current) return;
+
+      // Clear any existing timeout
+      if (segmentTimeoutRef.current) {
+        clearTimeout(segmentTimeoutRef.current);
+      }
+
+      // Seek to start
+      seekTo(start);
+
+      // Play
+      play();
+
+      // Stop at end
+      const duration = (end - start) * 1000; // Convert to ms
+      segmentTimeoutRef.current = setTimeout(() => {
+        pause();
+      }, duration);
+    },
+    [seekTo, play, pause],
+  );
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -186,6 +252,15 @@ export const InteractiveAudio = ({
       setCurrentTime(currentTime);
     });
 
+    // Track play/pause state
+    wavesurfer.on("play", () => {
+      setIsPlaying(true);
+    });
+
+    wavesurfer.on("pause", () => {
+      setIsPlaying(false);
+    });
+
     // Fetch and load the audio
     const loadAudio = async () => {
       try {
@@ -201,27 +276,34 @@ export const InteractiveAudio = ({
 
     // Cleanup
     return () => {
-      try {
-        wavesurfer.destroy();
-      } catch (err) {
-        console.error("Error destroying wavesurfer:", err);
+      if (segmentTimeoutRef.current) {
+        clearTimeout(segmentTimeoutRef.current);
       }
+      wavesurfer.destroy();
     };
-  }, [id, registerSeekHandler, setCurrentTime]);
+  }, [id, registerSeekHandler, setCurrentTime, segments]);
 
-  useHotkeys(
-    ["alt+space", "ctrl+space", "cmd+space", "shift+space"],
+  // Notify parent of audio controls whenever they change
+  useEffect(() => {
+    if (onAudioControlsReady && wavesurferRef.current) {
+      onAudioControlsReady({
+        isPlaying,
+        togglePlayPause,
+        pause,
+        play,
+        seekTo,
+        playSegment,
+      });
+    }
+  }, [
+    isPlaying,
+    onAudioControlsReady,
     togglePlayPause,
-    {
-      preventDefault: true,
-      enableOnContentEditable: true,
-      useKey: true,
-    },
-  );
-  useHotkeys(["space"], togglePlayPause, {
-    preventDefault: true,
-    useKey: true,
-  });
+    pause,
+    play,
+    seekTo,
+    playSegment,
+  ]);
 
   return (
     <div className="w-full px-6 pb-0">

@@ -1,6 +1,6 @@
 "use client";
 
-import { RefObject, useCallback } from "react";
+import { RefObject, useCallback, useEffect, useState } from "react";
 
 function expandSelectionToWords() {
   const selection = window.getSelection();
@@ -52,9 +52,65 @@ function expandSelectionToWords() {
   selection.addRange(newRange);
 }
 
+// Detect which formats are active at the current cursor position
+function getActiveFormats(): Set<"b" | "i" | "u" | "s"> {
+  const selection = window.getSelection();
+  const active = new Set<"b" | "i" | "u" | "s">();
+
+  if (!selection || selection.rangeCount === 0) return active;
+
+  let node: Node | null = selection.anchorNode;
+
+  // Walk up the DOM tree from the cursor position
+  while (node && node.nodeType !== Node.DOCUMENT_NODE) {
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const element = node as HTMLElement;
+      const tag = element.tagName.toLowerCase();
+
+      if (tag === "b" || tag === "strong") active.add("b");
+      if (tag === "i" || tag === "em") active.add("i");
+      if (tag === "u") active.add("u");
+      if (tag === "s" || tag === "strike" || tag === "del") active.add("s");
+
+      // Stop at the editor boundary
+      if (element.hasAttribute("contenteditable")) break;
+    }
+    node = node.parentNode;
+  }
+
+  return active;
+}
+
 export function useFormat(editorRef: RefObject<HTMLDivElement | null>) {
+  const [activeFormats, setActiveFormats] = useState<
+    Set<"b" | "i" | "u" | "s">
+  >(new Set());
+
+  // Update active formats on selection change
+  useEffect(() => {
+    const updateFormats = () => {
+      setActiveFormats(getActiveFormats());
+    };
+
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    // Update on selection change and input
+    document.addEventListener("selectionchange", updateFormats);
+    editor.addEventListener("input", updateFormats);
+    editor.addEventListener("keyup", updateFormats);
+    editor.addEventListener("mouseup", updateFormats);
+
+    return () => {
+      document.removeEventListener("selectionchange", updateFormats);
+      editor.removeEventListener("input", updateFormats);
+      editor.removeEventListener("keyup", updateFormats);
+      editor.removeEventListener("mouseup", updateFormats);
+    };
+  }, [editorRef]);
+
   const applyFormat = useCallback(
-    (modifier: "b" | "i" | "u") => {
+    (modifier: "b" | "i" | "u" | "s") => {
       if (!editorRef.current) return;
       editorRef.current.focus();
 
@@ -62,10 +118,19 @@ export function useFormat(editorRef: RefObject<HTMLDivElement | null>) {
       expandSelectionToWords();
 
       const command =
-        modifier === "b" ? "bold" : modifier === "i" ? "italic" : "underline";
+        modifier === "b"
+          ? "bold"
+          : modifier === "i"
+            ? "italic"
+            : modifier === "u"
+              ? "underline"
+              : "strikeThrough";
       // execCommand integrates with the browser's native undo/redo stack and
       // preserves the current selection automatically.
       document.execCommand(command, false);
+
+      // Update active formats after applying
+      setActiveFormats(getActiveFormats());
     },
     // editorRef is a stable ref — not needed in deps
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -93,9 +158,15 @@ export function useFormat(editorRef: RefObject<HTMLDivElement | null>) {
           applyFormat("u");
         }
       }
+
+      // Cmd+Shift+X or Ctrl+Shift+X for strikethrough
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "x") {
+        e.preventDefault();
+        applyFormat("s");
+      }
     },
     [applyFormat],
   );
 
-  return { applyFormat, handleKeyDown };
+  return { applyFormat, handleKeyDown, activeFormats };
 }

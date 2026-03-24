@@ -44,14 +44,21 @@
 .word-span, .spacing-span {
     display: inline;
     border-radius: 5px;
-    padding: 0 3px;
-    margin: 0 -3px;
+    padding: 0 1px;
+    margin: 0 -1px;
+    transition: background-color 0.2s ease-out;
 }
 
-.word-span.active {
-    background-color: hsl(217 91% 60% / 0.25);
+/* Audio playback highlight */
+.word-span.active, .spacing-span.active {
+    min-width: 4px;
+    background-color: color-mix(in oklab, var(--color-red-500) 30%, transparent);
+    transition: none;
 }
 
-.word-span.active-neighbor {
-    background-color: hsl(217 91% 60% / 0.15);
+/* Keyboard navigation mode highlight */
+.word-span.active-segment, .spacing-span.active-segment {
+    background-color: color-mix(in oklab, var(--color-blue-500) 25%, transparent);
+    outline: 1px solid color-mix(in oklab, var(--color-blue-500) 50%, transparent);
+    outline-offset: 1px;
 }

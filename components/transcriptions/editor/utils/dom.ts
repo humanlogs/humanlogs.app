@@ -1,21 +1,25 @@
 import { TranscriptionSegment } from "../../../../hooks/use-api";
 
 // Maps HTML tag names produced by execCommand to the modifier they represent
-const MODIFIER_TAG: Record<string, "b" | "i" | "u"> = {
+const MODIFIER_TAG: Record<string, "b" | "i" | "u" | "s"> = {
   b: "b",
   strong: "b",
   i: "i",
   em: "i",
   u: "u",
+  s: "s",
+  strike: "s",
+  del: "s",
 };
 
 export function elementToSegment(el: HTMLElement): TranscriptionSegment {
   const type = (el.dataset.type ?? "word") as "word" | "spacing";
   const text = el.textContent ?? "";
-  const modifiers: ("b" | "i" | "u")[] = [];
+  const modifiers: ("b" | "i" | "u" | "s")[] = [];
   if (el.querySelector("b, strong")) modifiers.push("b");
   if (el.querySelector("i, em")) modifiers.push("i");
   if (el.querySelector("u")) modifiers.push("u");
+  if (el.querySelector("s, strike, del")) modifiers.push("s");
 
   return {
     type,
@@ -25,7 +29,9 @@ export function elementToSegment(el: HTMLElement): TranscriptionSegment {
     end: el.dataset.end !== undefined ? parseFloat(el.dataset.end) : undefined,
     speakerId: el.dataset.speaker || undefined,
     modifiers:
-      modifiers.length > 0 ? (modifiers as ("b" | "i" | "u")[]) : undefined,
+      modifiers.length > 0
+        ? (modifiers as ("b" | "i" | "u" | "s")[])
+        : undefined,
   };
 }
 
@@ -40,7 +46,7 @@ export function domToSegments(container: HTMLElement): TranscriptionSegment[] {
 
   const processNode = (
     node: Node,
-    inherited: ("b" | "i" | "u")[],
+    inherited: ("b" | "i" | "u" | "s")[],
     isFirstChild: boolean,
   ): void => {
     if (node.nodeType === Node.ELEMENT_NODE) {
@@ -48,7 +54,7 @@ export function domToSegments(container: HTMLElement): TranscriptionSegment[] {
       const tag = el.tagName.toLowerCase();
 
       const mod = MODIFIER_TAG[tag];
-      const mods: ("b" | "i" | "u")[] =
+      const mods: ("b" | "i" | "u" | "s")[] =
         mod && !inherited.includes(mod) ? [...inherited, mod] : inherited;
 
       if (el.dataset.type) {
@@ -57,6 +63,7 @@ export function domToSegments(container: HTMLElement): TranscriptionSegment[] {
           | "b"
           | "i"
           | "u"
+          | "s"
         )[];
         segments.push({
           ...seg,
@@ -94,7 +101,7 @@ export function domToSegments(container: HTMLElement): TranscriptionSegment[] {
             text: part,
             modifiers:
               inherited.length > 0
-                ? ([...inherited] as ("b" | "i" | "u")[])
+                ? ([...inherited] as ("b" | "i" | "u" | "s")[])
                 : undefined,
           });
         }

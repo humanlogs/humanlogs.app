@@ -47,7 +47,7 @@ export type TranscriptionSegment = {
   start?: number;
   end?: number;
   speakerId?: string;
-  modifiers?: ("b" | "i" | "u")[];
+  modifiers?: ("b" | "i" | "u" | "s")[];
 };
 
 type UserProfile = {

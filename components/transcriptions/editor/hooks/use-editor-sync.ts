@@ -2,7 +2,7 @@
 
 import { RefObject, useCallback, useEffect, useRef } from "react";
 import { TranscriptionSegment } from "../../../../hooks/use-api";
-import { normalizeEditorSegments } from "../use-normalize-editor-segments";
+import { normalizeEditorSegments } from "./use-normalize-editor-segments";
 import { domToSegments } from "../utils/dom";
 import { segmentsToHtml } from "../utils/html";
 import {
