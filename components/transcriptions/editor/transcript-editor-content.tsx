@@ -142,11 +142,12 @@ export function TranscriptEditorContent({
             activeFormats={activeFormats}
             searchReplace={searchReplace}
             searchInputRef={searchInputRef}
+            audioControls={audioControls}
           />
         </div>
 
         {/* Scrollable content area */}
-        <div className="flex flex-row px-6 gap-4 flex-1 pt-4 pb-6">
+        <div className="flex flex-row px-6 gap-2 flex-1 pt-4 pb-6">
           <SpeakerColumn
             positions={speakerPositions}
             speakers={speakers}
@@ -154,7 +155,7 @@ export function TranscriptEditorContent({
             onRenameSpeaker={renameSpeaker}
             onChangeSpeakerForTurn={changeSpeakerForTurn}
           />
-          <div className="flex-1 relative overflow-y-auto">
+          <div className="flex-1 relative overflow-y-auto px-2">
             <SearchHighlights highlights={highlights} />
             <div
               ref={editorRef}

@@ -14,16 +14,21 @@ type DropdownMenuProps = {
   trigger: React.ReactNode;
   children: React.ReactNode;
   align?: "start" | "end";
+  position?: "auto" | "top" | "bottom";
 };
 
 export function DropdownMenu({
   trigger,
   children,
   align = "start",
+  position: initialPosition = "auto",
 }: DropdownMenuProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [position, setPosition] = React.useState({
-    vertical: "top" as "top" | "bottom",
+    vertical:
+      initialPosition !== "auto"
+        ? initialPosition
+        : ("top" as "top" | "bottom"),
     horizontal: align,
     maxHeight: "none" as string,
   });

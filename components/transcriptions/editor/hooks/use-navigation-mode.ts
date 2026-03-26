@@ -45,7 +45,7 @@ export function useNavigationMode(
         if (domElement) {
           domElement.scrollIntoView({
             behavior: "smooth",
-            block: "center",
+            block: "nearest",
           });
           domElement.classList.add("active-segment");
         }
@@ -81,6 +81,13 @@ export function useNavigationMode(
     };
   });
 
+  // Bind the state of the playing audio to the navigate mode: if the audio is playing, we are in navigate mode, if it's paused, we are in edit mode
+  useEffect(() => {
+    if (audioControls?.isPlaying && state !== "navigate") {
+      editorRef.current?.blur();
+    }
+  }, [audioControls?.isPlaying, setState, state]);
+
   // Arrows: move into segments
   // Space = play / pause
   // Arrow on the right or bottom, do not stop play
@@ -91,7 +98,7 @@ export function useNavigationMode(
 
   // Play / pause / change speed
   useHotkeys(
-    ["space", "alt+space", "shift+space", "ctrl+space", "ctrl+shift+space"],
+    ["space", "alt+space", "ctrl+space", "ctrl+alt+space"],
     (event) => {
       console.log("here");
       event.preventDefault();
@@ -102,7 +109,7 @@ export function useNavigationMode(
     [state, audioControls],
   );
   useHotkeys(
-    ["alt+space", "ctrl+space"],
+    ["alt+space"],
     (event) => {
       event.preventDefault();
       // Ignore if the editor is not focused
@@ -118,14 +125,14 @@ export function useNavigationMode(
     [state, audioControls],
   );
   useHotkeys(
-    ["shift", "ctrl", "shift+ctrl"],
+    ["alt", "ctrl", "alt+ctrl"],
     (event) => {
       if (state !== "navigate") return;
       event.preventDefault();
 
-      if (event.shiftKey && event.ctrlKey) {
+      if (event.altKey && event.ctrlKey) {
         audioControls?.setPlaybackSpeed(4);
-      } else if (event.shiftKey) {
+      } else if (event.altKey) {
         audioControls?.setPlaybackSpeed(2);
       } else if (event.ctrlKey) {
         audioControls?.setPlaybackSpeed(0.5);

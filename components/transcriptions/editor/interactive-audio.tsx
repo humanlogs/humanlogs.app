@@ -9,6 +9,7 @@ import "./index.css"; // Import custom styles for canvas
 // Audio controls interface
 export interface AudioControls {
   isPlaying: boolean;
+  playbackSpeed: number;
   togglePlayPause: () => void;
   pause: () => void;
   play: () => void;
@@ -100,6 +101,7 @@ export const InteractiveAudio = ({
   const { setCurrentTime, registerSeekHandler } = useAudio();
   const segmentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeedVal] = useState(1);
 
   // Toggle play/pause
   const togglePlayPause = useCallback(() => {
@@ -170,6 +172,7 @@ export const InteractiveAudio = ({
       if (mediaElement) {
         mediaElement.preservesPitch = true;
         mediaElement.playbackRate = speed;
+        setPlaybackSpeedVal(speed);
       }
     }
   }, []);
@@ -304,6 +307,7 @@ export const InteractiveAudio = ({
     if (onAudioControlsReady && wavesurferRef.current) {
       onAudioControlsReady({
         isPlaying,
+        playbackSpeed,
         togglePlayPause,
         pause,
         play,
@@ -316,6 +320,7 @@ export const InteractiveAudio = ({
       });
     }
   }, [
+    playbackSpeed,
     isPlaying,
     onAudioControlsReady,
     togglePlayPause,
