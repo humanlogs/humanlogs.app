@@ -4,9 +4,10 @@ import { TranscriptionActions } from "@/components/transcriptions/transcription-
 import { TranscriptionEditor } from "@/components/transcriptions/transcription-editor";
 import { TranscriptionFailed } from "@/components/transcriptions/transcription-failed";
 import { TranscriptionLoading } from "@/components/transcriptions/transcription-loading";
+import { SaveStatus } from "@/components/transcriptions/editor/hooks/use-auto-save";
 import { useTranscription } from "@/hooks/use-api";
 import { PencilIcon } from "lucide-react";
-import { use, useEffect } from "react";
+import { use, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { useTranscriptionRenameModal } from "../../../../components/transcriptions/dialogs/transcription-rename-dialog";
@@ -22,6 +23,7 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
   const { id } = use(params);
   const { data: transcription, isLoading, error } = useTranscription(id);
   const { openRename } = useTranscriptionRenameModal();
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
 
   useEffect(() => {
     if (error) {
@@ -67,6 +69,7 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
                   transcription.title || transcription.audioFileName
                 }
                 projectId={transcription.projectId}
+                saveStatus={saveStatus}
               />
             </div>,
             document.getElementById("transcription-header-portal")!,
@@ -91,7 +94,10 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
       )}
 
       {transcription?.state === "COMPLETED" && (
-        <TranscriptionEditor transcription={transcription} />
+        <TranscriptionEditor
+          transcription={transcription}
+          onSaveStatusChange={setSaveStatus}
+        />
       )}
     </>
   );

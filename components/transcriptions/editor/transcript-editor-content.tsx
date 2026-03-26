@@ -15,7 +15,7 @@ import { useSearchHighlights } from "./hooks/use-search-highlights";
 import { useSearchReplace } from "./hooks/use-search-replace";
 import { Speaker, useSpeakerActions } from "./hooks/use-speaker-actions";
 import { useSpeakerPositions } from "./hooks/use-speaker-positions";
-import { InteractiveAudio, AudioControls } from "./interactive-audio";
+import { AudioControls, InteractiveAudio } from "./interactive-audio";
 
 interface TranscriptEditorContentProps {
   segments: TranscriptionSegment[];
@@ -62,20 +62,8 @@ export function TranscriptEditorContent({
   const { handleKeyDown: handleBracketWrapKeyDown } = useBracketWrap();
 
   // Navigation mode
-  const navigationMode = useNavigationMode(editorRef, segments, audioControls);
+  useNavigationMode(editorRef, segments, audioControls);
 
-  console.log("[TranscriptEditor] Navigation mode state:", {
-    state: navigationMode.isFocused
-      ? "EDITING"
-      : navigationMode.isManualNavigation
-        ? "MANUAL_NAV"
-        : audioControls?.isPlaying
-          ? "AUDIO_PLAYING"
-          : "IDLE",
-    isFocused: navigationMode.isFocused,
-    isManualNavigation: navigationMode.isManualNavigation,
-    activeSegmentIndex: navigationMode.activeSegmentIndex,
-  });
   const speakerPositions = useSpeakerPositions(editorRef, segments);
   const { renameSpeaker, changeSpeakerForTurn } = useSpeakerActions({
     speakers,
@@ -143,7 +131,7 @@ export function TranscriptEditorContent({
       <SpeakerRenameDialog />
       <div className="flex flex-col h-full">
         {/* Sticky top section */}
-        <div className="sticky top-0 z-20 bg-white dark:bg-gray-950 space-y-4 pt-6">
+        <div className="space-y-4 pt-6">
           <InteractiveAudio
             segments={segments}
             id={id}
@@ -158,7 +146,7 @@ export function TranscriptEditorContent({
         </div>
 
         {/* Scrollable content area */}
-        <div className="flex flex-row px-6 gap-4 flex-1 overflow-hidden pt-4 pb-6">
+        <div className="flex flex-row px-6 gap-4 flex-1 pt-4 pb-6">
           <SpeakerColumn
             positions={speakerPositions}
             speakers={speakers}

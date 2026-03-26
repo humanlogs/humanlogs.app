@@ -14,6 +14,8 @@ export interface AudioControls {
   play: () => void;
   seekTo: (time: number) => void;
   playSegment: (start: number, end: number) => void;
+  setPlaybackSpeed: (speed: number) => void;
+  onTimeUpdate: (callback: (currentTime: number) => void) => void;
 }
 
 // Generate consistent colors for speakers
@@ -94,6 +96,7 @@ export const InteractiveAudio = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
+  const onTimeUpdateRef = useRef<(currentTime: number) => void>(() => {});
   const { setCurrentTime, registerSeekHandler } = useAudio();
   const segmentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -159,6 +162,18 @@ export const InteractiveAudio = ({
     [seekTo, play, pause],
   );
 
+  // Set playback speed (with pitch preservation)
+  const setPlaybackSpeed = useCallback((speed: number) => {
+    if (wavesurferRef.current) {
+      console.log("Setting playback speed to", speed);
+      const mediaElement = wavesurferRef.current.getMediaElement();
+      if (mediaElement) {
+        mediaElement.preservesPitch = true;
+        mediaElement.playbackRate = speed;
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -177,7 +192,7 @@ export const InteractiveAudio = ({
       height: 40,
       minPxPerSec: 1,
       normalize: true,
-      backend: "WebAudio",
+      backend: "MediaElement",
       renderFunction: (channels, ctx) => {
         const { width, height } = ctx.canvas;
         const halfHeight = height / 2;
@@ -245,6 +260,7 @@ export const InteractiveAudio = ({
     // Update current time as audio plays
     wavesurfer.on("timeupdate", (currentTime) => {
       setCurrentTime(currentTime);
+      if (onTimeUpdateRef.current) onTimeUpdateRef.current(currentTime);
     });
 
     // Also update on seek
@@ -281,7 +297,7 @@ export const InteractiveAudio = ({
       }
       wavesurfer.destroy();
     };
-  }, [id, registerSeekHandler, setCurrentTime, segments]);
+  }, [id, registerSeekHandler, setCurrentTime, !!segments.length]);
 
   // Notify parent of audio controls whenever they change
   useEffect(() => {
@@ -293,6 +309,10 @@ export const InteractiveAudio = ({
         play,
         seekTo,
         playSegment,
+        setPlaybackSpeed,
+        onTimeUpdate: (callback) => {
+          onTimeUpdateRef.current = callback;
+        },
       });
     }
   }, [
@@ -303,6 +323,7 @@ export const InteractiveAudio = ({
     play,
     seekTo,
     playSegment,
+    setPlaybackSpeed,
   ]);
 
   return (

@@ -29,6 +29,7 @@ model Project {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   transcriptions Transcription[]
+  user           User            @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
@@ -50,9 +51,13 @@ model Transcription {
   elevenLabsTranscriptionId String?
   createdAt                 DateTime           @default(now())
   updatedAt                 DateTime           @updatedAt
+  updatedBy                 String             @default("system")
   completedAt               DateTime?
+  user                      User               @relation(fields: [userId], references: [id])
+  project                   Project?           @relation(fields: [projectId], references: [id])
 
-  @@index([userId])
+  @@index([id])
+  @@index([userId, id])
   @@index([userId, projectId])
   @@index([userId, state])
   @@index([userId, createdAt])
@@ -65,11 +70,12 @@ enum TranscriptionState {
 }
 
 model TranscriptionHistory {
-  id                        String             @id @default(uuid())
-  transcriptionId           String
-  userId                    String
-  transcription             Json?
-  updatedAt                 DateTime           @updatedAt
+  id              String   @id @default(uuid())
+  transcriptionId String
+  userId          String
+  transcription   Json?
+  updatedAt       DateTime @updatedAt
+  updatedBy       String
 
   @@index([userId, transcriptionId, updatedAt])
 }

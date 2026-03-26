@@ -1,510 +1,381 @@
 "use client";
 
-import { RefObject, useCallback, useEffect, useRef, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { TranscriptionSegment } from "../../../../hooks/use-api";
+import { AudioControls } from "../interactive-audio";
 
-export interface NavigationState {
-  isFocused: boolean;
-  isManualNavigation: boolean;
-  activeSegmentIndex: number | null;
-}
+export type NavigationState = "edit" | "navigate";
 
 export function useNavigationMode(
   editorRef: RefObject<HTMLDivElement | null>,
   segments: TranscriptionSegment[],
-  audioControls: {
-    isPlaying: boolean;
-    togglePlayPause: () => void;
-    pause: () => void;
-    play: () => void;
-    seekTo: (time: number) => void;
-    playSegment: (start: number, end: number) => void;
-  } | null,
+  audioControls: AudioControls | null,
 ) {
-  // Three states:
-  // 1. Audio playing: !isFocused && !isManualNavigation && isPlaying
-  // 2. Manual navigation: !isFocused && isManualNavigation
-  // 3. Editing: isFocused
-  const [isFocused, setIsFocused] = useState(false);
-  const [isManualNavigation, setIsManualNavigation] = useState(false);
-  const [activeSegmentIndex, setActiveSegmentIndex] = useState<number | null>(
-    null,
-  );
-  const isNavigatingRef = useRef(false);
-  const navigationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [state, setState] = useState<NavigationState>("navigate");
+  const [currentIndex, setCurrentIndex] = useState<number>(-1);
+  const lastNavigationTime = useRef<number>(0);
 
-  // Debug logging
   useEffect(() => {
-    const currentState = isFocused
-      ? "EDITING"
-      : isManualNavigation
-        ? "MANUAL_NAV"
-        : audioControls?.isPlaying
-          ? "AUDIO_PLAYING"
-          : "IDLE";
-
-    console.log("[NavigationMode] State change:", {
-      state: currentState,
-      isFocused,
-      isManualNavigation,
-      isPlaying: audioControls?.isPlaying,
-      activeSegmentIndex,
-      hasAudioControls: !!audioControls,
-      segmentsCount: segments.length,
-    });
-  }, [
-    isFocused,
-    isManualNavigation,
-    activeSegmentIndex,
-    audioControls,
-    segments.length,
-  ]);
-
-  // Find the segment element by index
-  const getSegmentElement = useCallback(
-    (index: number): HTMLElement | null => {
-      if (!editorRef.current) return null;
-      const element = editorRef.current.querySelector(
-        `[data-index="${index}"]`,
-      );
-      return element as HTMLElement | null;
-    },
-    [editorRef],
-  );
-
-  // Set selection to a specific segment
-  const selectSegment = useCallback(
-    (index: number) => {
-      const element = getSegmentElement(index);
-      if (!element) return;
-
-      const segment = segments[index];
-      const range = document.createRange();
-      const selection = window.getSelection();
-
-      if (!selection) return;
-
-      if (segment.type === "spacing") {
-        // For spacing, put cursor at the beginning
-        const firstNode = element.firstChild || element;
-        range.setStart(firstNode, 0);
-        range.setEnd(firstNode, 0);
-      } else {
-        // For word, select the entire content
-        range.selectNodeContents(element);
-      }
-
-      selection.removeAllRanges();
-      selection.addRange(range);
-
-      // Scroll into view if needed
-      element.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    },
-    [getSegmentElement, segments],
-  );
-
-  // Enter editing mode (state 3)
-  const enterEditingMode = useCallback(
-    (selectActive = true) => {
-      console.log("[NavigationMode] Entering editing mode (state 3)", {
-        selectActive,
-        activeSegmentIndex,
-      });
-      setIsFocused(true);
-      setIsManualNavigation(false);
-      audioControls?.pause();
-
-      if (selectActive && activeSegmentIndex !== null) {
-        selectSegment(activeSegmentIndex);
-      }
-
-      editorRef.current?.focus();
-    },
-    [activeSegmentIndex, selectSegment, audioControls, editorRef],
-  );
-
-  // Exit editing mode to manual navigation (state 2)
-  const exitToManualNavigation = useCallback(() => {
-    console.log("[NavigationMode] Exiting to manual navigation (state 2)");
-    setIsFocused(false);
-    setIsManualNavigation(true);
-    audioControls?.pause();
-    // Clear selection
-    const selection = window.getSelection();
-    selection?.removeAllRanges();
-  }, [audioControls]);
-
-  // Exit editing mode to audio playing (state 1)
-  const exitToAudioPlaying = useCallback(() => {
-    console.log("[NavigationMode] Exiting to audio playing (state 1)");
-    setIsFocused(false);
-    setIsManualNavigation(false);
-    // Clear selection
-    const selection = window.getSelection();
-    selection?.removeAllRanges();
-    // Start audio if not already playing
-    if (audioControls && !audioControls.isPlaying) {
-      audioControls.play();
-    }
-  }, [audioControls]);
-
-  // Enter manual navigation mode from audio playing (state 1 -> 2)
-  const enterManualNavigation = useCallback(() => {
-    console.log(
-      "[NavigationMode] Entering manual navigation from audio (state 1 -> 2)",
-    );
-    setIsManualNavigation(true);
-    audioControls?.pause();
-  }, [audioControls]);
-
-  // Exit manual navigation to audio playing (state 2 -> 1)
-  const exitManualNavigationToAudio = useCallback(() => {
-    console.log(
-      "[NavigationMode] Exiting manual navigation to audio (state 2 -> 1)",
-    );
-    setIsManualNavigation(false);
-    // Start/resume audio
-    if (audioControls) {
-      if (!audioControls.isPlaying) {
-        audioControls.play();
-      }
-    }
-  }, [audioControls]);
-
-  // Navigate to next/previous segment
-  const navigateSegment = useCallback(
-    (direction: "next" | "previous") => {
-      console.log("[NavigationMode] Navigating:", direction, {
-        activeSegmentIndex,
-        isManualNavigation,
-        hasAudioControls: !!audioControls,
-      });
-
-      isNavigatingRef.current = true;
-
-      // If coming from audio playing state, enter manual navigation
-      if (!isManualNavigation && !isFocused) {
-        enterManualNavigation();
-      }
-
-      let newIndex: number;
-      if (activeSegmentIndex === null) {
-        // Start from first word segment
-        newIndex = segments.findIndex((s) => s.type === "word");
-        console.log(
-          "[NavigationMode] Starting from first word segment:",
-          newIndex,
+    if (audioControls)
+      audioControls.onTimeUpdate((currentTime) => {
+        if (Date.now() - lastNavigationTime.current < 500) return;
+        // Update the current index based on the current time
+        const currentSegmentIndex = segments.findIndex(
+          (segment) =>
+            segment.start !== undefined &&
+            segment.end !== undefined &&
+            currentTime >= segment.start &&
+            currentTime <= segment.end,
         );
-      } else {
-        // Find next/previous word segment
-        const step = direction === "next" ? 1 : -1;
-        newIndex = activeSegmentIndex + step;
+        setCurrentIndex(ensureWord(currentSegmentIndex, segments, "r"));
+      });
+  }, [audioControls, segments, state]);
 
-        // Skip spacing segments
-        while (
-          newIndex >= 0 &&
-          newIndex < segments.length &&
-          segments[newIndex].type !== "word"
-        ) {
-          newIndex += step;
-        }
-        console.log(
-          "[NavigationMode] New index after skipping spacing:",
-          newIndex,
-        );
-      }
-
-      // Bounds check
-      if (newIndex < 0 || newIndex >= segments.length) {
-        console.log("[NavigationMode] Out of bounds:", newIndex);
-        isNavigatingRef.current = false;
-        return;
-      }
-
-      const segment = segments[newIndex];
-      if (segment.type !== "word" || segment.start === undefined) {
-        console.log("[NavigationMode] Invalid segment:", segment);
-        isNavigatingRef.current = false;
-        return;
-      }
-
-      console.log(
-        "[NavigationMode] Setting active segment:",
-        newIndex,
-        segment,
-      );
-      setActiveSegmentIndex(newIndex);
-
-      // Highlight the segment
-      const element = getSegmentElement(newIndex);
-      if (element) {
-        console.log("[NavigationMode] Highlighting element:", element);
-        element.scrollIntoView({ block: "nearest", behavior: "smooth" });
-        element.classList.add("active-segment");
-        // Remove class from other segments
+  // Show the currently selected segment in the editor
+  useEffect(() => {
+    if (state === "navigate") {
+      if (currentIndex !== -1) {
         editorRef.current?.querySelectorAll(".active-segment").forEach((el) => {
-          if (el !== element) el.classList.remove("active-segment");
+          el.classList.remove("active-segment");
         });
-      } else {
-        console.log("[NavigationMode] Element not found for index:", newIndex);
-      }
-
-      // Play the segment audio
-      if (segment.end !== undefined && audioControls) {
-        console.log(
-          "[NavigationMode] Playing segment audio:",
-          segment.start,
-          segment.end,
+        const domElement = editorRef.current?.querySelector(
+          `[data-index="${currentIndex}"]`,
         );
-        audioControls.playSegment(segment.start, segment.end);
-      } else {
-        console.log("[NavigationMode] Cannot play audio:", {
-          hasEnd: !!segment.end,
-          hasAudioControls: !!audioControls,
-        });
-      }
-
-      setTimeout(() => {
-        isNavigatingRef.current = false;
-      }, 100);
-    },
-    [
-      activeSegmentIndex,
-      isManualNavigation,
-      isFocused,
-      segments,
-      audioControls,
-      getSegmentElement,
-      editorRef,
-      enterManualNavigation,
-    ],
-  );
-
-  // Start continuous navigation (when holding arrow key)
-  const startContinuousNavigation = useCallback(
-    (direction: "next" | "previous") => {
-      console.log(
-        "[NavigationMode] Starting continuous navigation:",
-        direction,
-      );
-      if (navigationIntervalRef.current) return;
-
-      navigateSegment(direction);
-
-      // Calculate interval based on average segment duration
-      const avgDuration = 0.3; // Default 300ms if we can't calculate
-      navigationIntervalRef.current = setInterval(() => {
-        navigateSegment(direction);
-      }, avgDuration * 1000);
-    },
-    [navigateSegment],
-  );
-
-  // Stop continuous navigation
-  const stopContinuousNavigation = useCallback(() => {
-    console.log("[NavigationMode] Stopping continuous navigation");
-    if (navigationIntervalRef.current) {
-      clearInterval(navigationIntervalRef.current);
-      navigationIntervalRef.current = null;
-    }
-  }, []);
-
-  // Space: handle based on state
-  // - If in manual navigation (state 2), start audio (state 2 -> 1)
-  // - If in audio playing or idle, toggle play/pause
-  useHotkeys(
-    "space",
-    (e) => {
-      console.log("[NavigationMode] Space pressed", {
-        isFocused,
-        isManualNavigation,
-        isPlaying: audioControls?.isPlaying,
-      });
-      if (isFocused) return;
-
-      e.preventDefault();
-
-      if (isManualNavigation) {
-        // State 2 -> State 1: exit manual nav and start audio
-        exitManualNavigationToAudio();
-      } else {
-        // Just toggle play/pause
-        audioControls?.togglePlayPause();
-      }
-    },
-    {
-      enabled: !isFocused,
-      enableOnContentEditable: true,
-      preventDefault: true,
-    },
-    [isFocused, isManualNavigation, audioControls, exitManualNavigationToAudio],
-  );
-
-  // Arrow keys: navigate segments (unfocused mode)
-  useHotkeys(
-    "right,down",
-    (e) => {
-      console.log("[NavigationMode] Right/Down arrow pressed", { isFocused });
-      if (isFocused) return;
-      e.preventDefault();
-      if (!isNavigatingRef.current) {
-        startContinuousNavigation("next");
-      }
-    },
-    {
-      enabled: !isFocused,
-      enableOnContentEditable: true,
-      preventDefault: true,
-      keydown: true,
-    },
-    [isFocused, startContinuousNavigation],
-  );
-
-  useHotkeys(
-    "left,up",
-    (e) => {
-      console.log("[NavigationMode] Left/Up arrow pressed", { isFocused });
-      if (isFocused) return;
-      e.preventDefault();
-      if (!isNavigatingRef.current) {
-        startContinuousNavigation("previous");
-      }
-    },
-    {
-      enabled: !isFocused,
-      enableOnContentEditable: true,
-      preventDefault: true,
-      keydown: true,
-    },
-    [isFocused, startContinuousNavigation],
-  );
-
-  // Stop navigation on arrow key release
-  useHotkeys(
-    "right,down,left,up",
-    () => {
-      console.log("[NavigationMode] Arrow key released");
-      stopContinuousNavigation();
-    },
-    {
-      enabled: !isFocused,
-      enableOnContentEditable: true,
-      keyup: true,
-    },
-    [isFocused, stopContinuousNavigation],
-  );
-
-  // Enter: enter editing mode (state 1 or 2 -> 3)
-  useHotkeys(
-    "enter",
-    (e) => {
-      console.log("[NavigationMode] Enter pressed", {
-        isFocused,
-        isManualNavigation,
-      });
-      if (isFocused) return;
-      e.preventDefault();
-      enterEditingMode();
-    },
-    {
-      enabled: !isFocused,
-      enableOnContentEditable: true,
-      preventDefault: true,
-    },
-    [isFocused, enterEditingMode],
-  );
-
-  // Escape: exit editing mode to manual navigation (state 3 -> 2)
-  useHotkeys(
-    "escape",
-    (e) => {
-      console.log("[NavigationMode] Escape pressed", { isFocused });
-      if (!isFocused) return;
-      e.preventDefault();
-      exitToManualNavigation();
-    },
-    {
-      enabled: isFocused,
-      enableOnContentEditable: true,
-      preventDefault: true,
-    },
-    [isFocused, exitToManualNavigation],
-  );
-
-  // Modified Space: exit editing mode to audio playing (state 3 -> 1)
-  useHotkeys(
-    "alt+space,ctrl+space,meta+space,shift+space",
-    (e) => {
-      console.log("[NavigationMode] Modified Space pressed", { isFocused });
-      if (!isFocused) return;
-      e.preventDefault();
-      exitToAudioPlaying();
-    },
-    {
-      enabled: isFocused,
-      enableOnContentEditable: true,
-      preventDefault: true,
-    },
-    [isFocused, exitToAudioPlaying],
-  );
-
-  // Detect when editor gets native focus (clicked) - enter editing mode
-  useEffect(() => {
-    const editor = editorRef.current;
-    if (!editor) return;
-
-    const handleFocus = () => {
-      console.log("[NavigationMode] Editor focus event (clicked)");
-      setIsFocused(true);
-      setIsManualNavigation(false);
-      audioControls?.pause();
-    };
-
-    const handleBlur = () => {
-      console.log("[NavigationMode] Editor blur event");
-      // Only exit editing mode if focus truly left the editor
-      setTimeout(() => {
-        if (
-          !document.activeElement ||
-          !editor.contains(document.activeElement)
-        ) {
-          console.log(
-            "[NavigationMode] Editor lost focus - exiting to manual navigation",
-          );
-          setIsFocused(false);
-          setIsManualNavigation(true); // Exit to manual navigation, not audio playing
+        if (domElement) {
+          domElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+          domElement.classList.add("active-segment");
         }
-      }, 0);
-    };
+      }
+    } else {
+      editorRef.current?.querySelectorAll(".active-segment").forEach((el) => {
+        el.classList.remove("active-segment");
+      });
+    }
+  }, [currentIndex, state, editorRef]);
 
+  // Bind the state to the focus of the editor
+  useEffect(() => {
+    if (!editorRef.current) return;
+    const handleFocus = () => {
+      audioControls?.pause();
+      setState("edit");
+    };
+    const handleBlur = () => {
+      // Unselect any text in the editor
+      const selection = window.getSelection();
+      if (selection) {
+        selection.removeAllRanges();
+      }
+      setState("navigate");
+    };
+    const editor = editorRef.current;
     editor.addEventListener("focus", handleFocus);
     editor.addEventListener("blur", handleBlur);
-
     return () => {
       editor.removeEventListener("focus", handleFocus);
       editor.removeEventListener("blur", handleBlur);
     };
-  }, [editorRef, audioControls]);
+  });
 
-  // Clear manual navigation highlight when audio is playing
-  useEffect(() => {
-    if (!isManualNavigation && !isFocused && editorRef.current) {
-      // Remove active-segment class when not in manual navigation
-      editorRef.current.querySelectorAll(".active-segment").forEach((el) => {
-        el.classList.remove("active-segment");
-      });
-    }
-  }, [isManualNavigation, isFocused, editorRef]);
+  // Arrows: move into segments
+  // Space = play / pause
+  // Arrow on the right or bottom, do not stop play
+  // Arrow on the left / top: stop playback
+  // Shift + arrow, get back to the first word or the previous sentence / next sentence
+  // Maintain shift while in play mode: goes to x2 playback + ctrl goes to x4 playback
+  // Maintain ctrl while in play mode: goes to x0.5 playback
 
-  return {
-    isFocused,
-    isManualNavigation,
-    activeSegmentIndex,
-    setActiveSegmentIndex,
-    enterEditingMode,
-    exitToManualNavigation,
-    exitToAudioPlaying,
-    navigateSegment,
-  };
+  // Play / pause / change speed
+  useHotkeys(
+    ["space", "alt+space", "shift+space", "ctrl+space", "ctrl+shift+space"],
+    (event) => {
+      console.log("here");
+      event.preventDefault();
+      if (state !== "navigate") return;
+      audioControls?.togglePlayPause();
+    },
+    {},
+    [state, audioControls],
+  );
+  useHotkeys(
+    ["alt+space", "ctrl+space"],
+    (event) => {
+      event.preventDefault();
+      // Ignore if the editor is not focused
+      if (state !== "edit") return;
+      // Blur the editor to trigger the navigate mode and then toggle play/pause
+      if (editorRef.current) editorRef.current.blur();
+      audioControls?.togglePlayPause();
+    },
+    {
+      enableOnContentEditable: true,
+      enableOnFormTags: true,
+    },
+    [state, audioControls],
+  );
+  useHotkeys(
+    ["shift", "ctrl", "shift+ctrl"],
+    (event) => {
+      if (state !== "navigate") return;
+      event.preventDefault();
+
+      if (event.shiftKey && event.ctrlKey) {
+        audioControls?.setPlaybackSpeed(4);
+      } else if (event.shiftKey) {
+        audioControls?.setPlaybackSpeed(2);
+      } else if (event.ctrlKey) {
+        audioControls?.setPlaybackSpeed(0.5);
+      } else {
+        audioControls?.setPlaybackSpeed(1);
+      }
+    },
+    {
+      keyup: true,
+      keydown: true,
+    },
+    [state, audioControls],
+  );
+
+  // Navigate in segments
+  useHotkeys(
+    [
+      "ArrowRight",
+      "ArrowDown",
+      "ArrowLeft",
+      "ArrowUp",
+      "Shift+ArrowRight",
+      "Shift+ArrowDown",
+      "Shift+ArrowLeft",
+      "Shift+ArrowUp",
+    ],
+    (event) => {
+      if (state !== "navigate") return;
+      event.preventDefault();
+
+      lastNavigationTime.current = Date.now();
+
+      // Back arrows stop the playback
+      if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+        audioControls?.pause();
+      }
+
+      let selection = 0;
+
+      if (currentIndex !== -1) {
+        selection = currentIndex;
+
+        // Find the next / previous segment or top / bottom segment in DOM and seek to it
+        if (event.shiftKey) {
+          // First first segment in the sentence starting by previous word
+          // Or first word of next sentence
+          // Basically start from previous / next word, then move up to one of this cases:
+          // - Word or spacing contains a dot, exclamation mark or question mark (end of sentence) -> go to next word segment
+          if (event.key === "ArrowRight") {
+            let found = false;
+            for (let i = currentIndex + 1; i < segments.length; i++) {
+              if (
+                /.*[.!?].*/.test(segments[i].text) ||
+                (segments[i].type === "spacing" && duration(segments[i]) > 1)
+              ) {
+                selection = i;
+                found = true;
+                break;
+              }
+            }
+            if (!found) selection = segments.length - 1;
+          } else if (event.key === "ArrowLeft") {
+            let found = false;
+            for (let i = currentIndex - 3; i >= 0; i--) {
+              console.log(segments[i]);
+              if (
+                /.*[.!?].*/.test(segments[i].text) ||
+                (segments[i].type === "spacing" && duration(segments[i]) > 1)
+              ) {
+                selection = i;
+                found = true;
+                break;
+              }
+            }
+            if (!found) selection = 0;
+          }
+          for (
+            let i = selection + (selection > 0 ? 1 : 0);
+            i < segments.length;
+            i++
+          ) {
+            if (segments[i].type === "word") {
+              selection = i;
+              break;
+            }
+          }
+        } else {
+          if (event.key === "ArrowRight") {
+            selection = currentIndex + 1;
+          } else if (event.key === "ArrowLeft") {
+            selection = currentIndex - 1;
+          }
+        }
+
+        // For up and down, find the segment that is the closest in the DOM
+        // In the DOM we can use "data-index" attribute to find the current segment, then find the closest one with the same "data-speaker-id" attribute for the same speaker, or if there is no speaker, the closest one in terms of "data-start" attribute
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+          const domElement = editorRef.current?.querySelector(
+            `[data-index="${currentIndex}"]`,
+          );
+          if (!domElement) return;
+
+          const rect = domElement.getBoundingClientRect();
+
+          let nextElement =
+            event.key === "ArrowDown"
+              ? domElement.nextElementSibling
+              : domElement.previousElementSibling;
+          while (nextElement) {
+            const rectCandidate = nextElement.getBoundingClientRect();
+            // First wait for Y axis change (got to new line)
+            if (differentVerticalLine(rect, rectCandidate)) {
+              break;
+            }
+            nextElement =
+              event.key === "ArrowDown"
+                ? nextElement.nextElementSibling
+                : nextElement.previousElementSibling;
+          }
+
+          if (nextElement) {
+            let closest = 1000000000;
+            const rectLine = nextElement.getBoundingClientRect();
+            while (nextElement) {
+              const rectCandidate = nextElement.getBoundingClientRect();
+              const distance = Math.abs(rectCandidate.left - rect.left);
+              if (distance < closest) {
+                closest = distance;
+                selection = Number(nextElement.getAttribute("data-index") || 0);
+              }
+              if (
+                distance > closest ||
+                differentVerticalLine(rectLine, rectCandidate)
+              ) {
+                break;
+              }
+              nextElement =
+                event.key === "ArrowDown"
+                  ? nextElement.nextElementSibling
+                  : nextElement.previousElementSibling;
+            }
+          }
+        }
+
+        // Ensure the selection is a word
+        selection = ensureWord(
+          selection,
+          segments,
+          event.key === "ArrowRight" || event.key === "ArrowDown" ? "r" : "l",
+        );
+      }
+
+      audioControls?.seekTo(
+        segments[Math.max(0, Math.min(segments.length, selection))].start || 0,
+      );
+      setCurrentIndex(selection);
+    },
+    {},
+    [state, audioControls, segments, currentIndex],
+  );
+
+  // "Enter" key enters in focus mode and select the current word
+  // Any letter or shift+letter or number, or accent also trigger the focus mode, but also add that letter there
+  useHotkeys(
+    ["Enter", "*"],
+    (event) => {
+      if (state !== "navigate") return;
+
+      // Do not trigger if it's a shortcut (e.g. cmd + b, alt + shift + f, etc.)
+      if (event.metaKey || event.altKey || event.ctrlKey) {
+        return;
+      }
+
+      // Do not trigger for FN keys, arrows, etc.
+      if (event.key.length > 1 && event.key !== "Enter") {
+        return;
+      }
+
+      // Do not trigger on space
+      if (event.key === " ") {
+        return;
+      }
+
+      event.preventDefault();
+      editorRef.current?.focus();
+
+      // Set the selection range
+      const domElement = editorRef.current?.querySelector(
+        `[data-index="${currentIndex}"]`,
+      );
+      if (domElement) {
+        const range = document.createRange();
+        range.selectNodeContents(domElement);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      }
+
+      // If a letter was typed, then add that letter there
+      if (event.key.length === 1) {
+        document.execCommand("insertText", false, event.key);
+      }
+    },
+    {},
+    [state, currentIndex],
+  );
+
+  useHotkeys(
+    ["Escape"],
+    (event) => {
+      if (state !== "edit") return;
+      event.preventDefault();
+      editorRef.current?.blur();
+    },
+    {
+      enableOnContentEditable: true,
+      enableOnFormTags: true,
+    },
+    [state],
+  );
+
+  return {};
 }
+
+const duration = (segment: TranscriptionSegment) => {
+  if (!segment.start || !segment.end) return 0;
+  return segment.end - segment.start;
+};
+
+const differentVerticalLine = (rect: DOMRect, rectCandidate: DOMRect) => {
+  return (
+    rect.top + rect.height * 0.75 <= rectCandidate.top ||
+    rect.top >= rectCandidate.top + rectCandidate.height * 0.75
+  );
+};
+
+const ensureWord = (
+  selection: number,
+  segments: TranscriptionSegment[],
+  direction: "r" | "l",
+) => {
+  while (
+    segments[selection] &&
+    !(segments[selection].type === "word" || duration(segments[selection]) > 1)
+  ) {
+    if (direction === "r") {
+      selection++;
+    } else if (direction === "l") {
+      selection--;
+    }
+  }
+  return Math.max(0, Math.min(segments.length - 1, selection));
+};

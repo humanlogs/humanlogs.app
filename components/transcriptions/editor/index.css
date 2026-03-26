@@ -52,7 +52,7 @@
 /* Audio playback highlight */
 .word-span.active, .spacing-span.active {
     min-width: 4px;
-    background-color: color-mix(in oklab, var(--color-red-500) 30%, transparent);
+    background-color: color-mix(in oklab, var(--color-gray-500) 10%, transparent);
     transition: none;
 }
 

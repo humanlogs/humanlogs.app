@@ -284,7 +284,3 @@ export function normalizeEditorSegments(
 
   return result;
 }
-
-export function useNormalizeEditorSegments() {
-  return normalizeEditorSegments;
-}

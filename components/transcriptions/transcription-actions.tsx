@@ -14,24 +14,29 @@ import {
   FileJsonIcon,
   FileTextIcon,
   FolderIcon,
+  HistoryIcon,
   MoreVerticalIcon,
   PencilIcon,
   TrashIcon,
+  XCircleIcon,
 } from "lucide-react";
 import { useTranscriptionDeleteModal } from "./dialogs/transcription-delete-dialog";
 import { useTranscriptionRenameModal } from "./dialogs/transcription-rename-dialog";
 import { useTranscriptionSetProjectModal } from "./dialogs/transcription-set-project-dialog";
+import { SaveStatus } from "./editor/hooks/use-auto-save";
 
 type TranscriptionActionsProps = {
   transcriptionId: string;
   transcriptionName: string;
   projectId?: string;
+  saveStatus?: SaveStatus;
 };
 
 export function TranscriptionActions({
   transcriptionId,
   transcriptionName,
   projectId,
+  saveStatus = "idle",
 }: TranscriptionActionsProps) {
   const { openRename } = useTranscriptionRenameModal();
   const { openSetProject } = useTranscriptionSetProjectModal();
@@ -108,11 +113,36 @@ export function TranscriptionActions({
 
   return (
     <>
-      <div className="space-x-2 flex">
+      <div className="space-x-2 flex items-center">
+        {/* Save status indicator */}
+        {saveStatus !== "idle" && (
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground mr-4">
+            {saveStatus === "saving" && <>Saving...</>}
+            {saveStatus === "saved" && <>Saved</>}
+            {saveStatus === "error" && (
+              <>
+                {" "}
+                <XCircleIcon className="h-3.5 w-3.5 text-destructive" />{" "}
+                <span className="text-destructive">You are offline</span>
+              </>
+            )}
+          </div>
+        )}
+
         <DropdownMenu
           trigger={
             <Button variant={"ghost"} size="icon-sm">
               <DownloadIcon className="h-4 w-4" />
+            </Button>
+          }
+          align="end"
+        >
+          {downloadMenu}
+        </DropdownMenu>
+        <DropdownMenu
+          trigger={
+            <Button variant={"ghost"} size="icon-sm">
+              <HistoryIcon className="h-4 w-4" />
             </Button>
           }
           align="end"

@@ -79,6 +79,8 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     const updateData: {
       title?: string;
       projectId?: string | null;
+      transcription?: never;
+      updatedBy?: string;
     } = {};
 
     if (body.title !== undefined) {
@@ -118,6 +120,36 @@ export async function PATCH(request: Request, { params }: RouteParams) {
           { status: 400 },
         );
       }
+    }
+
+    // Handle transcription content updates
+    if (body.transcription !== undefined) {
+      if (
+        typeof body.transcription !== "object" ||
+        body.transcription === null
+      ) {
+        return NextResponse.json(
+          { error: "transcription must be an object" },
+          { status: 400 },
+        );
+      }
+
+      // Create a history entry before updating (if model exists)
+      // Note: Uncomment once Prisma client is regenerated
+      // if (transcription.transcription !== null) {
+      //   await prisma.transcriptionHistory.create({
+      //     data: {
+      //       transcriptionId: id,
+      //       userId: user.id,
+      //       transcription: transcription.transcription as never,
+      //       updatedBy: (transcription as any).updatedBy || user.id,
+      //     },
+      //   });
+      // }
+
+      updateData.transcription = body.transcription as never;
+      // @ts-expect-error - updatedBy field will be available after Prisma regeneration
+      updateData.updatedBy = user.id;
     }
 
     const updated = await prisma.transcription.update({
