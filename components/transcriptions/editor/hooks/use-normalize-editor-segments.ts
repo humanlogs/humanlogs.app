@@ -130,7 +130,7 @@ export function normalizeEditorSegments(
     }
   }
 
-  // Ensure every pair of adjacent word segments is separated by a spacing
+  // Ensure every pair of adjacent word segments is separated by a spacing or merge them
   const separated: TranscriptionSegment[] = [];
   for (let i = 0; i < expanded.length; i++) {
     separated.push(expanded[i]);
@@ -139,7 +139,9 @@ export function normalizeEditorSegments(
       i + 1 < expanded.length &&
       expanded[i + 1].type === "word"
     ) {
-      separated.push({ type: "spacing", text: " " });
+      if (expanded[i].speakerId !== expanded[i + 1].speakerId) {
+        separated.push({ type: "spacing", text: " " });
+      }
     }
   }
 

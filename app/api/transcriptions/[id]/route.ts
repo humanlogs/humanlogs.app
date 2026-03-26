@@ -134,21 +134,20 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         );
       }
 
-      // Create a history entry before updating (if model exists)
-      // Note: Uncomment once Prisma client is regenerated
-      // if (transcription.transcription !== null) {
-      //   await prisma.transcriptionHistory.create({
-      //     data: {
-      //       transcriptionId: id,
-      //       userId: user.id,
-      //       transcription: transcription.transcription as never,
-      //       updatedBy: (transcription as any).updatedBy || user.id,
-      //     },
-      //   });
-      // }
+      // Create a history entry before updating
+      if (transcription.transcription !== null) {
+        // @ts-expect-error - TranscriptionHistory model exists but TypeScript may need reload
+        await prisma.transcriptionHistory.create({
+          data: {
+            transcriptionId: id,
+            userId: user.id,
+            transcription: transcription.transcription as never,
+            updatedBy: user.id,
+          },
+        });
+      }
 
       updateData.transcription = body.transcription as never;
-      // @ts-expect-error - updatedBy field will be available after Prisma regeneration
       updateData.updatedBy = user.id;
     }
 

@@ -25,6 +25,7 @@ import { useTranscriptionDeleteModal } from "./dialogs/transcription-delete-dial
 import { useTranscriptionRenameModal } from "./dialogs/transcription-rename-dialog";
 import { useTranscriptionSetProjectModal } from "./dialogs/transcription-set-project-dialog";
 import { useTranscriptionExportModal } from "./dialogs/transcription-export-dialog";
+import { useTranscriptionHistoryModal } from "./transcription-history-sheet";
 import { SaveStatus } from "./editor/hooks/use-auto-save";
 import { TranscriptionContent } from "@/hooks/use-api";
 import {
@@ -54,6 +55,7 @@ export function TranscriptionActions({
   const { openSetProject } = useTranscriptionSetProjectModal();
   const { openDelete } = useTranscriptionDeleteModal();
   const { openExport } = useTranscriptionExportModal();
+  const { openHistory } = useTranscriptionHistoryModal();
 
   const handleRename = () => {
     openRename(transcriptionId, transcriptionName);
@@ -65,6 +67,10 @@ export function TranscriptionActions({
 
   const handleDelete = () => {
     openDelete(transcriptionId, transcriptionName);
+  };
+
+  const handleOpenHistory = () => {
+    openHistory(transcriptionId);
   };
 
   const handleExportCSV = () => {
@@ -215,16 +221,9 @@ export function TranscriptionActions({
         >
           {downloadMenu}
         </DropdownMenu>
-        <DropdownMenu
-          trigger={
-            <Button variant={"ghost"} size="icon-sm">
-              <HistoryIcon className="h-4 w-4" />
-            </Button>
-          }
-          align="end"
-        >
-          {downloadMenu}
-        </DropdownMenu>
+        <Button variant={"ghost"} size="icon-sm" onClick={handleOpenHistory}>
+          <HistoryIcon className="h-4 w-4" />
+        </Button>
         <DropdownMenu
           trigger={
             <Button variant={"ghost"} size="icon-sm">

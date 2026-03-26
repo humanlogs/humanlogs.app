@@ -9,22 +9,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import _ from "lodash";
 import { UserRoundPen, UserRoundPlus, Users } from "lucide-react";
+import { getSpeakerColorClass } from "../../../../lib/utils";
 import { TranscriptionSegment } from "../../../../hooks/use-api";
 import { getSpeakerLabel, Speaker } from "../hooks/use-speaker-actions";
 import { SpeakerPosition } from "../hooks/use-speaker-positions";
 import { useSpeakerRenameModal } from "./speaker-rename-dialog";
-
-// Colour palette — cycles when there are more speakers than entries
-const SPEAKER_COLORS = [
-  "bg-blue-500/10 border-blue-500/50 text-blue-500",
-  "bg-green-500/10 border-green-500/50 text-green-500",
-  "bg-purple-500/10 border-purple-500/50 text-purple-500",
-  "bg-orange-500/10 border-orange-500/50 text-orange-500",
-  "bg-pink-500/10 border-pink-500/50 text-pink-500",
-  "bg-cyan-500/10 border-cyan-500/50 text-cyan-500",
-  "bg-yellow-500/10 border-yellow-500/50 text-yellow-500",
-  "bg-red-500/10 border-red-500/50 text-red-500",
-];
 
 /** Shared badge chip — used for interactive badges and the invisible decoy row. */
 export function SpeakerBadgeChip({
@@ -74,11 +63,9 @@ function SpeakerBadge({
 
   const label = getSpeakerLabel(speakerId, speakers, segments);
   const speakerArrayIndex = speakers.findIndex((s) => s.id === speakerId);
-  const colorClass =
-    SPEAKER_COLORS[
-      (speakerArrayIndex >= 0 ? speakerArrayIndex : index) %
-        SPEAKER_COLORS.length
-    ];
+  const colorClass = getSpeakerColorClass(
+    speakerArrayIndex >= 0 ? speakerArrayIndex : index,
+  );
   const otherSpeakers = speakers.filter((s) => s.id !== speakerId);
 
   return (
@@ -166,11 +153,7 @@ export function SpeakerColumn({
             <SpeakerBadgeChip
               key={s.speakerId}
               label={getSpeakerLabel(s.speakerId, speakers, segments)}
-              colorClass={
-                SPEAKER_COLORS[
-                  (idx >= 0 ? idx : s.index) % SPEAKER_COLORS.length
-                ]
-              }
+              colorClass={getSpeakerColorClass(idx >= 0 ? idx : s.index)}
             />
           );
         })}

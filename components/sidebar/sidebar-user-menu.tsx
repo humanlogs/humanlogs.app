@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import { useTranslations, useLocale } from "@/components/locale-provider";
 import {
   CreditCardIcon,
@@ -19,6 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuSub,
 } from "@/components/ui/dropdown-menu";
+import { UserAvatar } from "@/components/ui/user-avatar";
 
 type UserProfile = {
   id: string;
@@ -60,17 +60,6 @@ export function SidebarUserMenu({
     userProfile?.plan === "one-time"
       ? "One-Time Plan"
       : userProfile?.plan || "Free Plan";
-
-  // Get user's initials
-  const getUserInitial = () => {
-    if (user.name) {
-      return user.name.charAt(0).toUpperCase();
-    }
-    if (user.email) {
-      return user.email.charAt(0).toUpperCase();
-    }
-    return "U";
-  };
 
   // Get current theme
   const currentTheme =
@@ -124,18 +113,8 @@ export function SidebarUserMenu({
                 <span className="text-[10px] font-bold">
                   {Math.round(creditsPercentage)}%
                 </span>
-              ) : user.picture ? (
-                <Image
-                  src={user.picture}
-                  alt={user.name || "User"}
-                  width={28}
-                  height={28}
-                  className="rounded-full object-cover"
-                />
               ) : (
-                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold">
-                  {getUserInitial()}
-                </div>
+                <UserAvatar user={user} size="sm" className="w-7 h-7" />
               )}
             </div>
           </div>

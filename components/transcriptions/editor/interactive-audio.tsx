@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
 import { TranscriptionSegment } from "../../../hooks/use-api";
+import { getSpeakerColor } from "../../../lib/utils";
 import { useAudio } from "./audio-context";
 import "./index.css"; // Import custom styles for canvas
 
@@ -10,6 +11,7 @@ import "./index.css"; // Import custom styles for canvas
 export interface AudioControls {
   isPlaying: boolean;
   playbackSpeed: number;
+  totalDuration?: number;
   togglePlayPause: () => void;
   pause: () => void;
   play: () => void;
@@ -18,21 +20,6 @@ export interface AudioControls {
   setPlaybackSpeed: (speed: number) => void;
   onTimeUpdate: (callback: (currentTime: number) => void) => void;
 }
-
-// Generate consistent colors for speakers
-const getSpeakerColor = (speakerId: string, index: number): string => {
-  const colors = [
-    "#3b82f6", // blue
-    "#10b981", // green
-    "#ec4899", // pink
-    "#06b6d4", // cyan
-    "#8b5cf6", // violet
-    "#f59e0b", // amber
-    "#f97316", // orange
-    "#ef4444", // red
-  ];
-  return colors[index % colors.length];
-};
 
 // Extract speaker segments from transcription
 const getSpeakerSegments = (oSegments: TranscriptionSegment[]) => {
@@ -48,10 +35,7 @@ const getSpeakerSegments = (oSegments: TranscriptionSegment[]) => {
 
     // Assign color to new speaker
     if (!speakerColors.has(word.speakerId)) {
-      speakerColors.set(
-        word.speakerId,
-        getSpeakerColor(word.speakerId, colorIndex++),
-      );
+      speakerColors.set(word.speakerId, getSpeakerColor(colorIndex++));
     }
 
     // New speaker segment
@@ -72,7 +56,8 @@ const getSpeakerSegments = (oSegments: TranscriptionSegment[]) => {
 
   // Add final segment
   if (currentSpeaker && segments.length > 0) {
-    const lastWord = segments[segments.length - 1];
+    console.log("here", currentSpeaker, segments.length);
+    const lastWord = oSegments[oSegments.length - 1];
     segments.push({
       start: segmentStart,
       end: lastWord.end,
@@ -80,8 +65,6 @@ const getSpeakerSegments = (oSegments: TranscriptionSegment[]) => {
       color: speakerColors.get(currentSpeaker) || "#4a5568",
     });
   }
-
-  console.log(segments);
 
   return segments;
 };
@@ -102,6 +85,7 @@ export const InteractiveAudio = ({
   const segmentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeedVal] = useState(1);
+  const [totalDuration, setTotalDuration] = useState<number | undefined>(0);
 
   // Toggle play/pause
   const togglePlayPause = useCallback(() => {
@@ -271,6 +255,11 @@ export const InteractiveAudio = ({
       setCurrentTime(currentTime);
     });
 
+    wavesurfer.on("ready", () => {
+      const duration = wavesurfer.getDuration();
+      setTotalDuration(duration);
+    });
+
     // Track play/pause state
     wavesurfer.on("play", () => {
       setIsPlaying(true);
@@ -300,7 +289,15 @@ export const InteractiveAudio = ({
       }
       wavesurfer.destroy();
     };
-  }, [id, registerSeekHandler, setCurrentTime, !!segments.length]);
+  }, [
+    id,
+    registerSeekHandler,
+    setCurrentTime,
+    segments
+      .map((s) => s.speakerId)
+      .filter((a, i) => a != segments[i - 1]?.speakerId)
+      .join(","),
+  ]); // Re-run if speaker segments change only
 
   // Notify parent of audio controls whenever they change
   useEffect(() => {
@@ -308,6 +305,7 @@ export const InteractiveAudio = ({
       onAudioControlsReady({
         isPlaying,
         playbackSpeed,
+        totalDuration,
         togglePlayPause,
         pause,
         play,
@@ -322,6 +320,7 @@ export const InteractiveAudio = ({
   }, [
     playbackSpeed,
     isPlaying,
+    totalDuration,
     onAudioControlsReady,
     togglePlayPause,
     pause,

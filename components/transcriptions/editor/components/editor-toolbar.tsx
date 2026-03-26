@@ -13,6 +13,8 @@ import {
 import { Button } from "../../../ui/button";
 import { AudioControls } from "../interactive-audio";
 import { SearchReplaceToolbar } from "./search-replace-toolbar";
+import { useState } from "react";
+import { useAudio } from "../audio-context";
 
 interface EditorToolbarProps {
   applyFormat: (modifier: "b" | "i" | "u" | "s") => void;
@@ -47,7 +49,7 @@ export function EditorToolbar({
   return (
     <div className="flex items-center gap-0 px-6 shrink-0">
       <Button
-        variant={activeFormats.has("b") ? "default" : "ghost"}
+        variant={audioControls?.isPlaying ? "default" : "ghost"}
         size="sm"
         onMouseDown={(e) => {
           e.preventDefault(); // keep focus in editor
@@ -86,6 +88,13 @@ export function EditorToolbar({
           </DropdownMenuItem>
         ))}{" "}
       </DropdownMenu>
+
+      <Separator
+        orientation="vertical"
+        className="mx-2 h-4 w-px bg-slate-500/20"
+      />
+
+      <TimeCode audioControls={audioControls} />
 
       <Separator
         orientation="vertical"
@@ -160,3 +169,34 @@ export function EditorToolbar({
     </div>
   );
 }
+
+export const TimeCode = ({
+  audioControls,
+}: {
+  audioControls: AudioControls | null;
+}) => {
+  const context = useAudio();
+
+  const hasHours = (audioControls?.totalDuration || 0) >= 3600;
+  const hasMinutes = (audioControls?.totalDuration || 0) >= 60;
+
+  const formatTime = (time: number) => {
+    const hours = Math.floor(time / 3600);
+    const minutes = Math.floor((time % 3600) / 60);
+    const seconds = Math.floor(time % 60);
+    const tensOfSeconds = Math.floor((time * 100) % 100);
+    return `${hasHours ? hours + ":" : ""}${
+      hasMinutes || hasHours ? minutes.toString().padStart(2, "0") + ":" : ""
+    }${seconds.toString().padStart(2, "0")}.${tensOfSeconds.toString().padStart(2, "0")}`;
+  };
+
+  return (
+    <span className="text-xs mx-2">
+      <strong className="font-mono">{formatTime(context.currentTime)}</strong>
+      <span className="text-muted-foreground">
+        {" / "}
+        {formatTime(audioControls?.totalDuration || 0)}
+      </span>
+    </span>
+  );
+};

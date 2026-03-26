@@ -11,6 +11,8 @@ import { TranscriptionRenameDialog } from "@/components/transcriptions/dialogs/t
 import { TranscriptionDeleteDialog } from "@/components/transcriptions/dialogs/transcription-delete-dialog";
 import { TranscriptionSetProjectDialog } from "@/components/transcriptions/dialogs/transcription-set-project-dialog";
 import { TranscriptionExportDialog } from "@/components/transcriptions/dialogs/transcription-export-dialog";
+import { TranscriptionHistorySheet } from "@/components/transcriptions/transcription-history-sheet";
+import { VersionComparisonModal } from "@/components/transcriptions/dialogs/version-comparison-modal";
 
 export default async function AppLayout({
   children,
@@ -42,6 +44,8 @@ export default async function AppLayout({
       <TranscriptionDeleteDialog />
       <TranscriptionSetProjectDialog />
       <TranscriptionExportDialog />
+      <TranscriptionHistorySheet />
+      <VersionComparisonModal />
     </SidebarProvider>
   );
 }

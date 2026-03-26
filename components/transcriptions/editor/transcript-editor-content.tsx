@@ -155,23 +155,25 @@ export function TranscriptEditorContent({
             onRenameSpeaker={renameSpeaker}
             onChangeSpeakerForTurn={changeSpeakerForTurn}
           />
-          <div className="flex-1 relative overflow-y-auto px-2">
-            <SearchHighlights highlights={highlights} />
-            <div
-              ref={editorRef}
-              contentEditable
-              suppressContentEditableWarning
-              spellCheck
-              className="text-base leading-relaxed focus:outline-none relative"
-              onBeforeInput={handleBeforeInput}
-              onInput={handleInput}
-              onKeyDown={(e) => {
-                handleBracketWrapKeyDown(e);
-                handleUndoKeyDown(e);
-                handleFormatKeyDown(e);
-              }}
-              data-placeholder="Start typing…"
-            />
+          <div className="flex-1 px-2">
+            <div className="relative">
+              <SearchHighlights highlights={highlights} />
+              <div
+                ref={editorRef}
+                contentEditable
+                suppressContentEditableWarning
+                spellCheck
+                className="text-base leading-relaxed focus:outline-none relative"
+                onBeforeInput={handleBeforeInput}
+                onInput={handleInput}
+                onKeyDown={(e) => {
+                  handleBracketWrapKeyDown(e);
+                  handleUndoKeyDown(e);
+                  handleFormatKeyDown(e);
+                }}
+                data-placeholder="Start typing…"
+              />
+            </div>
           </div>
         </div>
       </div>
