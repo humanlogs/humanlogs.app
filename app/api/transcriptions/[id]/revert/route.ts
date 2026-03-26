@@ -50,10 +50,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     });
 
     if (!version || version.transcriptionId !== id) {
-      return NextResponse.json(
-        { error: "Version not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "Version not found" }, { status: 404 });
     }
 
     // Save current state to history before reverting

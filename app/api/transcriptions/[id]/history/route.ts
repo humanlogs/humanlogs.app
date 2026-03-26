@@ -203,9 +203,10 @@ export async function GET(request: Request, { params }: RouteParams) {
 
       for (let i = 0; i < entries.length; i++) {
         const entry = entries[i];
-        
+
         // Don't group significant changes (>100 words added or removed)
-        const isSignificantChange = entry.additions > 100 || entry.removals > 100;
+        const isSignificantChange =
+          entry.additions > 100 || entry.removals > 100;
 
         if (currentGroup.length === 0) {
           currentGroup.push(entry);
@@ -215,9 +216,14 @@ export async function GET(request: Request, { params }: RouteParams) {
             lastEntry.updatedAt.getTime() - entry.updatedAt.getTime();
 
           // Group only if within time window AND neither entry is significant
-          const lastIsSignificant = lastEntry.additions > 100 || lastEntry.removals > 100;
-          
-          if (timeDiff <= windowMs && !isSignificantChange && !lastIsSignificant) {
+          const lastIsSignificant =
+            lastEntry.additions > 100 || lastEntry.removals > 100;
+
+          if (
+            timeDiff <= windowMs &&
+            !isSignificantChange &&
+            !lastIsSignificant
+          ) {
             currentGroup.push(entry);
           } else {
             grouped.push(mergeHistoryGroup(currentGroup));

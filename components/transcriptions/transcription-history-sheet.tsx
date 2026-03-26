@@ -145,7 +145,8 @@ export function TranscriptionHistorySheet() {
                     <ClockIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                     <span>{formatDate(entry.updatedAt)}</span>
                     <span className="text-muted-foreground">
-                      {formatTime(entry.updatedAt)}</span>
+                      {formatTime(entry.updatedAt)}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">

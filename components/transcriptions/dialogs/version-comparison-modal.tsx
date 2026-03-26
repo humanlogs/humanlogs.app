@@ -84,11 +84,7 @@ export function VersionComparisonModal() {
 
   // Fetch the specific version data
   const { data: versionData, isLoading } = useQuery({
-    queryKey: [
-      "transcription-version",
-      data?.transcriptionId,
-      data?.versionId,
-    ],
+    queryKey: ["transcription-version", data?.transcriptionId, data?.versionId],
     queryFn: async () => {
       if (!data?.transcriptionId || !data?.versionId) return null;
       const response = await fetch(
@@ -185,7 +181,10 @@ export function VersionComparisonModal() {
       if (currentWord && !previousWord) {
         // Added word
         elements.push(
-          <span key={`add-${i}`} className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-0.5 rounded">
+          <span
+            key={`add-${i}`}
+            className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-0.5 rounded"
+          >
             {currentWord.text}
           </span>,
           " ",
@@ -193,7 +192,10 @@ export function VersionComparisonModal() {
       } else if (!currentWord && previousWord) {
         // Removed word
         elements.push(
-          <span key={`remove-${i}`} className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 line-through px-0.5 rounded">
+          <span
+            key={`remove-${i}`}
+            className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 line-through px-0.5 rounded"
+          >
             {previousWord.text}
           </span>,
           " ",
@@ -205,8 +207,7 @@ export function VersionComparisonModal() {
             <span key={`change-${i}`}>
               <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 line-through px-0.5 rounded">
                 {previousWord.text}
-              </span>
-              {" "}
+              </span>{" "}
               <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-0.5 rounded">
                 {currentWord.text}
               </span>
@@ -215,15 +216,16 @@ export function VersionComparisonModal() {
           );
         } else {
           // Unchanged word
-          elements.push(
-            <span key={`same-${i}`}>{currentWord.text}</span>,
-            " ",
-          );
+          elements.push(<span key={`same-${i}`}>{currentWord.text}</span>, " ");
         }
       }
     }
 
-    return <div className="text-sm leading-relaxed whitespace-pre-wrap">{elements}</div>;
+    return (
+      <div className="text-sm leading-relaxed whitespace-pre-wrap">
+        {elements}
+      </div>
+    );
   };
 
   const formatDateTime = (dateString: string) => {
@@ -296,13 +298,17 @@ export function VersionComparisonModal() {
           <div className="text-sm text-muted-foreground">
             {currentVersion && (
               <>
-                <span className="text-green-600">+{currentVersion.additions}</span>
+                <span className="text-green-600">
+                  +{currentVersion.additions}
+                </span>
                 {" / "}
                 <span className="text-red-600">-{currentVersion.removals}</span>
                 {currentVersion.changed > 0 && (
                   <>
                     {" / "}
-                    <span className="text-orange-600">~{currentVersion.changed}</span>
+                    <span className="text-orange-600">
+                      ~{currentVersion.changed}
+                    </span>
                   </>
                 )}
                 {" words"}

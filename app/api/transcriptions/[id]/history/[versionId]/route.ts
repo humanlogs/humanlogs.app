@@ -53,15 +53,14 @@ export async function GET(request: Request, { params }: RouteParams) {
     );
 
     if (versionIndex === -1) {
-      return NextResponse.json(
-        { error: "Version not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "Version not found" }, { status: 404 });
     }
 
     const currentVersion = allHistory[versionIndex];
     const previousVersion =
-      versionIndex < allHistory.length - 1 ? allHistory[versionIndex + 1] : null;
+      versionIndex < allHistory.length - 1
+        ? allHistory[versionIndex + 1]
+        : null;
 
     return NextResponse.json({
       current: currentVersion.transcription,
