@@ -9,11 +9,9 @@ import {
 } from "@/components/ui/sheet";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useModal } from "@/components/use-modal";
-import { useVersionComparisonModal } from "./dialogs/version-comparison-modal";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { ClockIcon, PlusIcon, MinusIcon, PencilIcon } from "lucide-react";
-import * as React from "react";
+import { useVersionComparisonModal } from "./dialogs/version-comparison-modal";
 
 export type TranscriptionHistoryModalData = {
   transcriptionId: string;
@@ -142,49 +140,41 @@ export function TranscriptionHistorySheet() {
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex items-center gap-2 text-sm font-medium">
-                    <ClockIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                     <span>{formatDate(entry.updatedAt)}</span>
                     <span className="text-muted-foreground">
                       {formatTime(entry.updatedAt)}
                     </span>
                   </div>
-
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <UserAvatar user={entry.user} size="sm" />
-                    <span className="truncate">
-                      {entry.user.name || entry.user.email}
-                    </span>
-                  </div>
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  {(entry.additions > 0 ||
-                    entry.removals > 0 ||
-                    entry.changed > 0) && (
-                    <div className="flex items-center gap-3 text-xs">
-                      {entry.additions > 0 && (
+                <div className="flex-1 min-w-0 text-xs">
+                  {entry.additions > 0 ||
+                  entry.removals > 0 ||
+                  entry.changed > 0 ? (
+                    <div className="flex items-center gap-3">
+                      {entry.additions + entry.changed > 0 && (
                         <span className="flex items-center gap-1 text-green-600">
-                          <PlusIcon className="h-3 w-3" />
-                          {entry.additions} word
-                          {entry.additions !== 1 ? "s" : ""}
+                          +{entry.additions + entry.changed} word
+                          {entry.additions + entry.changed !== 1 ? "s" : ""}
                         </span>
                       )}
-                      {entry.removals > 0 && (
+                      {entry.removals + entry.changed > 0 && (
                         <span className="flex items-center gap-1 text-red-600">
-                          <MinusIcon className="h-3 w-3" />
-                          {entry.removals} word
-                          {entry.removals !== 1 ? "s" : ""}
-                        </span>
-                      )}
-                      {entry.changed > 0 && (
-                        <span className="flex items-center gap-1 text-orange-600">
-                          <PencilIcon className="h-3 w-3" />
-                          {entry.changed} word
-                          {entry.changed !== 1 ? "s" : ""}
+                          -{entry.removals + entry.changed} word
+                          {entry.removals + entry.changed !== 1 ? "s" : ""}
                         </span>
                       )}
                     </div>
+                  ) : (
+                    <div>No changes</div>
                   )}
+                </div>
+
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-3">
+                  <UserAvatar user={entry.user} size="sm" />
+                  <span className="truncate">
+                    {entry.user.name || entry.user.email}
+                  </span>
                 </div>
               </div>
             ))}

@@ -170,19 +170,37 @@ export function VersionComparisonModal() {
     const currentWords = versionData.current.words || [];
     const previousWords = versionData.previous?.words || [];
 
-    // Simple diff: compare by position
-    const maxLength = Math.max(currentWords.length, previousWords.length);
+    // Use word.start as unique identifier for accurate diffing
+    const currentMap = new Map<number, Word>();
+    const previousMap = new Map<number, Word>();
+
+    for (const word of currentWords) {
+      if (word.start !== undefined) {
+        currentMap.set(word.start, word);
+      }
+    }
+
+    for (const word of previousWords) {
+      if (word.start !== undefined) {
+        previousMap.set(word.start, word);
+      }
+    }
+
+    // Get all unique start times and sort them chronologically
+    const allStarts = new Set([...currentMap.keys(), ...previousMap.keys()]);
+    const sortedStarts = Array.from(allStarts).sort((a, b) => a - b);
+
     const elements: React.ReactNode[] = [];
 
-    for (let i = 0; i < maxLength; i++) {
-      const currentWord = currentWords[i];
-      const previousWord = previousWords[i];
+    for (const start of sortedStarts) {
+      const currentWord = currentMap.get(start);
+      const previousWord = previousMap.get(start);
 
       if (currentWord && !previousWord) {
-        // Added word
+        // Added word (exists in current but not in previous)
         elements.push(
           <span
-            key={`add-${i}`}
+            key={`add-${start}`}
             className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-0.5 rounded"
           >
             {currentWord.text}
@@ -190,10 +208,10 @@ export function VersionComparisonModal() {
           " ",
         );
       } else if (!currentWord && previousWord) {
-        // Removed word
+        // Removed word (exists in previous but not in current)
         elements.push(
           <span
-            key={`remove-${i}`}
+            key={`remove-${start}`}
             className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 line-through px-0.5 rounded"
           >
             {previousWord.text}
@@ -202,9 +220,9 @@ export function VersionComparisonModal() {
         );
       } else if (currentWord && previousWord) {
         if (currentWord.text !== previousWord.text) {
-          // Changed word - show both
+          // Changed word (same start time but different text)
           elements.push(
-            <span key={`change-${i}`}>
+            <span key={`change-${start}`}>
               <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 line-through px-0.5 rounded">
                 {previousWord.text}
               </span>{" "}
@@ -216,7 +234,10 @@ export function VersionComparisonModal() {
           );
         } else {
           // Unchanged word
-          elements.push(<span key={`same-${i}`}>{currentWord.text}</span>, " ");
+          elements.push(
+            <span key={`same-${start}`}>{currentWord.text}</span>,
+            " ",
+          );
         }
       }
     }

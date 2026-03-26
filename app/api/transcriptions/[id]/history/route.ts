@@ -136,27 +136,49 @@ export async function GET(request: Request, { params }: RouteParams) {
                 .words || []
             : [];
 
-        // Calculate actual changes
-        let changed = 0;
+        // Use word.start as unique identifier
+        // Build maps for efficient lookup
+        const currentMap = new Map<number, { text?: string }>();
+        const previousMap = new Map<number, { text?: string }>();
 
-        // Count words that exist in both versions but have different text
-        const minLength = Math.min(currentWords.length, previousWords.length);
-        for (let i = 0; i < minLength; i++) {
-          const currentWord = currentWords[i] as { text?: string };
-          const previousWord = previousWords[i] as { text?: string };
-          if (currentWord?.text !== previousWord?.text) {
-            changed++;
+        for (const word of currentWords) {
+          const w = word as { start?: number; text?: string };
+          if (w.start !== undefined) {
+            currentMap.set(w.start, w);
           }
         }
 
-        const additions = Math.max(
-          0,
-          currentWords.length - previousWords.length,
-        );
-        const removals = Math.max(
-          0,
-          previousWords.length - currentWords.length,
-        );
+        for (const word of previousWords) {
+          const w = word as { start?: number; text?: string };
+          if (w.start !== undefined) {
+            previousMap.set(w.start, w);
+          }
+        }
+
+        let additions = 0;
+        let removals = 0;
+        let changed = 0;
+
+        // Check all current words
+        for (const [start, currentWord] of currentMap) {
+          if (!previousMap.has(start)) {
+            // start present in current but not in previous → addition
+            additions++;
+          } else {
+            // start present in both, check if text changed
+            const previousWord = previousMap.get(start);
+            if (currentWord.text !== previousWord?.text) {
+              changed++;
+            }
+          }
+        }
+
+        // Check for removals (in previous but not in current)
+        for (const start of previousMap.keys()) {
+          if (!currentMap.has(start)) {
+            removals++;
+          }
+        }
 
         return {
           id: entry.id,
