@@ -10,6 +10,7 @@ import { ProjectCreateModal } from "@/components/project-create-modal";
 import { TranscriptionRenameDialog } from "@/components/transcriptions/dialogs/transcription-rename-dialog";
 import { TranscriptionDeleteDialog } from "@/components/transcriptions/dialogs/transcription-delete-dialog";
 import { TranscriptionSetProjectDialog } from "@/components/transcriptions/dialogs/transcription-set-project-dialog";
+import { TranscriptionExportDialog } from "@/components/transcriptions/dialogs/transcription-export-dialog";
 
 export default async function AppLayout({
   children,
@@ -40,6 +41,7 @@ export default async function AppLayout({
       <TranscriptionRenameDialog />
       <TranscriptionDeleteDialog />
       <TranscriptionSetProjectDialog />
+      <TranscriptionExportDialog />
     </SidebarProvider>
   );
 }

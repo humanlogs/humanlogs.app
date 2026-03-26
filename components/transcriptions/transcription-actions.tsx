@@ -17,19 +17,30 @@ import {
   HistoryIcon,
   MoreVerticalIcon,
   PencilIcon,
+  Settings2Icon,
   TrashIcon,
   XCircleIcon,
 } from "lucide-react";
 import { useTranscriptionDeleteModal } from "./dialogs/transcription-delete-dialog";
 import { useTranscriptionRenameModal } from "./dialogs/transcription-rename-dialog";
 import { useTranscriptionSetProjectModal } from "./dialogs/transcription-set-project-dialog";
+import { useTranscriptionExportModal } from "./dialogs/transcription-export-dialog";
 import { SaveStatus } from "./editor/hooks/use-auto-save";
+import { TranscriptionContent } from "@/hooks/use-api";
+import {
+  exportAsCSV,
+  exportAsJSON,
+  exportAsWord,
+  exportAsTXTWithOptions,
+} from "@/lib/export-utils";
+import { toast } from "sonner";
 
 type TranscriptionActionsProps = {
   transcriptionId: string;
   transcriptionName: string;
   projectId?: string;
   saveStatus?: SaveStatus;
+  transcription?: TranscriptionContent;
 };
 
 export function TranscriptionActions({
@@ -37,10 +48,12 @@ export function TranscriptionActions({
   transcriptionName,
   projectId,
   saveStatus = "idle",
+  transcription,
 }: TranscriptionActionsProps) {
   const { openRename } = useTranscriptionRenameModal();
   const { openSetProject } = useTranscriptionSetProjectModal();
   const { openDelete } = useTranscriptionDeleteModal();
+  const { openExport } = useTranscriptionExportModal();
 
   const handleRename = () => {
     openRename(transcriptionId, transcriptionName);
@@ -54,34 +67,93 @@ export function TranscriptionActions({
     openDelete(transcriptionId, transcriptionName);
   };
 
-  const handleDuplicate = () => {
-    // TODO: Implement duplicate
-    console.log("Duplicate transcription:", transcriptionId);
-  };
-
   const handleExportCSV = () => {
-    // TODO: Implement CSV export
-    console.log("Export as CSV:", transcriptionId);
+    if (!transcription) {
+      toast.error("No transcription data available");
+      return;
+    }
+    try {
+      exportAsCSV(transcription, transcriptionName);
+      toast.success("Exported as CSV");
+    } catch (error) {
+      toast.error("Failed to export CSV");
+      console.error("Export CSV error:", error);
+    }
   };
 
   const handleExportTXT = () => {
-    // TODO: Implement TXT export
-    console.log("Export as TXT:", transcriptionId);
+    if (!transcription) {
+      toast.error("No transcription data available");
+      return;
+    }
+    try {
+      // Use basic export with default options
+      exportAsTXTWithOptions(transcription, transcriptionName, {
+        speakerIds: transcription.speakers.map((s) => s.id),
+        toLowerCase: false,
+        removeAccents: false,
+        removePunctuation: false,
+        showSpeakerNames: true,
+        keepLineBreaks: true,
+      });
+      toast.success("Exported as TXT");
+    } catch (error) {
+      toast.error("Failed to export TXT");
+      console.error("Export TXT error:", error);
+    }
   };
 
-  const handleExportWord = () => {
-    // TODO: Implement Word export
-    console.log("Export as Word:", transcriptionId);
+  const handleExportAdvanced = () => {
+    if (!transcription) {
+      toast.error("No transcription data available");
+      return;
+    }
+    // Open the advanced export dialog
+    openExport(transcription, transcriptionName);
+  };
+
+  const handleExportWord = async () => {
+    if (!transcription) {
+      toast.error("No transcription data available");
+      return;
+    }
+    try {
+      await exportAsWord(transcription, transcriptionName);
+      toast.success("Exported as Word document");
+    } catch (error) {
+      toast.error("Failed to export Word document");
+      console.error("Export Word error:", error);
+    }
   };
 
   const handleExportJSON = () => {
-    // TODO: Implement JSON export
-    console.log("Export as JSON:", transcriptionId);
+    if (!transcription) {
+      toast.error("No transcription data available");
+      return;
+    }
+    try {
+      exportAsJSON(transcription, transcriptionName);
+      toast.success("Exported as JSON");
+    } catch (error) {
+      toast.error("Failed to export JSON");
+      console.error("Export JSON error:", error);
+    }
   };
 
   const handleDownloadAudio = () => {
-    // TODO: Implement audio download
-    console.log("Download audio:", transcriptionId);
+    try {
+      // Create a link to download the audio file
+      const link = document.createElement("a");
+      link.href = `/api/transcriptions/${transcriptionId}/audio`;
+      link.download = transcriptionName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success("Downloading audio file");
+    } catch (error) {
+      toast.error("Failed to download audio file");
+      console.error("Download audio error:", error);
+    }
   };
 
   const downloadMenu = (
@@ -101,6 +173,10 @@ export function TranscriptionActions({
       <DropdownMenuItem onClick={handleExportJSON}>
         <FileJsonIcon className="h-4 w-4 mr-2" />
         JSON
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={handleExportAdvanced}>
+        <Settings2Icon className="h-4 w-4 mr-2" />
+        Advanced
       </DropdownMenuItem>
 
       <DropdownMenuSeparator />
