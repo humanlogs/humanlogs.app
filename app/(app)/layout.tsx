@@ -16,6 +16,7 @@ import { VersionComparisonModal } from "@/components/transcriptions/dialogs/vers
 import { SpeakerOptionsDialog } from "@/components/transcriptions/dialogs/speaker-options-dialog";
 import { ShortcutsDialog } from "@/components/transcriptions/dialogs/shortcuts-dialog";
 import { FeedbackDialog } from "@/components/dialogs/feedback-dialog";
+import { HelpDialog } from "@/components/dialogs/help-dialog";
 
 export default async function AppLayout({
   children,
@@ -55,6 +56,7 @@ export default async function AppLayout({
       <SpeakerOptionsDialog />
       <ShortcutsDialog />
       <FeedbackDialog />
+      <HelpDialog />
     </SidebarProvider>
   );
 }

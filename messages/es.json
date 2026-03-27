@@ -193,5 +193,33 @@
             "featureMessageRequired": "Por favor describe la función que te gustaría ver",
             "submitFailed": "Error al enviar comentarios"
         }
+    },
+    "help": {
+        "title": "Ayuda y Recursos",
+        "description": "Comienza con el tutorial, consulta la documentación o únete a la comunidad",
+        "tutorial": {
+            "title": "Tutorial",
+            "description": "Reinicia la transcripción del tutorial interactivo en tu idioma preferido",
+            "reset": "Reiniciar",
+            "resetting": "Reiniciando...",
+            "resetSuccess": "El tutorial se ha reiniciado correctamente",
+            "resetError": "Error al reiniciar el tutorial"
+        },
+        "documentation": {
+            "title": "Documentación",
+            "description": "Aprende a usar todas las funciones y mejores prácticas",
+            "open": "Abrir Documentación"
+        },
+        "forum": {
+            "title": "Foro de la Comunidad",
+            "description": "Haz preguntas, comparte consejos y conecta con otros usuarios",
+            "open": "Abrir Foro"
+        },
+        "languages": {
+            "en": "English",
+            "fr": "Français",
+            "es": "Español",
+            "de": "Deutsch"
+        }
     }
 }

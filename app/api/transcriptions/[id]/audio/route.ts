@@ -2,6 +2,8 @@ import { requireAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { getStorage } from "@/lib/storage";
 import { NextResponse } from "next/server";
+import * as fs from "fs/promises";
+import * as path from "path";
 
 type RouteParams = {
   params: Promise<{
@@ -46,9 +48,28 @@ export async function GET(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Get the audio file from storage
-    const storage = getStorage();
-    const buffer = await storage.getFileBuffer(transcription.audioFileKey);
+    let buffer: Buffer;
+
+    // Check if this is a tutorial transcription (stored locally)
+    if (transcription.audioFileKey.startsWith("tutorial:")) {
+      // Extract language from the key: tutorial:{language}:audio.mp3
+      const parts = transcription.audioFileKey.split(":");
+      const language = parts[1];
+
+      // Load the tutorial audio file from assets
+      const audioPath = path.join(
+        process.cwd(),
+        "assets",
+        "tutorial",
+        language,
+        "audio.mp3",
+      );
+      buffer = await fs.readFile(audioPath);
+    } else {
+      // Get the audio file from storage (S3 or local)
+      const storage = getStorage();
+      buffer = await storage.getFileBuffer(transcription.audioFileKey);
+    }
 
     // Determine content type from file extension
     const ext = transcription.audioFileName.split(".").pop()?.toLowerCase();

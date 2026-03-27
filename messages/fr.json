@@ -193,5 +193,33 @@
             "featureMessageRequired": "Veuillez décrire la fonctionnalité que vous aimeriez voir",
             "submitFailed": "Échec de l'envoi des commentaires"
         }
+    },
+    "help": {
+        "title": "Aide & Ressources",
+        "description": "Commencez avec le tutoriel, consultez la documentation ou rejoignez la communauté",
+        "tutorial": {
+            "title": "Tutoriel",
+            "description": "Réinitialisez la transcription du tutoriel interactif dans votre langue préférée",
+            "reset": "Réinitialiser",
+            "resetting": "Réinitialisation...",
+            "resetSuccess": "Le tutoriel a été réinitialisé avec succès",
+            "resetError": "Échec de la réinitialisation du tutoriel"
+        },
+        "documentation": {
+            "title": "Documentation",
+            "description": "Apprenez à utiliser toutes les fonctionnalités et les meilleures pratiques",
+            "open": "Ouvrir la Documentation"
+        },
+        "forum": {
+            "title": "Forum Communautaire",
+            "description": "Posez des questions, partagez des astuces et connectez-vous avec d'autres utilisateurs",
+            "open": "Ouvrir le Forum"
+        },
+        "languages": {
+            "en": "English",
+            "fr": "Français",
+            "es": "Español",
+            "de": "Deutsch"
+        }
     }
 }

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useFeedbackModal } from "@/components/dialogs/feedback-dialog";
+import { useHelpModal } from "@/components/dialogs/help-dialog";
 import {
   CheckIcon,
   CreditCardIcon,
@@ -44,6 +45,7 @@ export function SidebarUserMenu({
   const { locale } = useLocale();
   const { theme, setTheme } = useTheme();
   const { open: openFeedbackModal } = useFeedbackModal();
+  const { open: openHelpModal } = useHelpModal();
   const [isHoveringAvatar, setIsHoveringAvatar] = React.useState(false);
 
   // Calculate credits display
@@ -230,9 +232,7 @@ export function SidebarUserMenu({
           {t("user.featureRequest")}
         </DropdownMenuItem>
 
-        <DropdownMenuItem
-          onClick={() => window.open("https://help.example.com", "_blank")}
-        >
+        <DropdownMenuItem onClick={() => openHelpModal({})}>
           <HelpCircleIcon className="w-4 h-4 mr-2" />
           {t("user.help")}
         </DropdownMenuItem>

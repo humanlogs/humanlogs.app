@@ -2,6 +2,7 @@ import { prisma } from "./prisma";
 import { auth0 } from "./auth0";
 import { getLocalSession } from "./local-auth";
 import { authConfig } from "./config";
+import { createTutorialTranscription } from "./tutorial-helpers";
 
 export interface UserSession {
   id: string;
@@ -56,6 +57,11 @@ export async function getCurrentUser(): Promise<UserSession | null> {
       language: defaultLanguage, // Set default language on signup
     },
   });
+
+  // Initialize tutorial for new users (async, don't block login)
+  createTutorialTranscription(dbUser.id, dbUser.language).catch((error) =>
+    console.error("Failed to create tutorial:", error),
+  );
 
   return {
     id: dbUser.id,

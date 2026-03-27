@@ -193,5 +193,33 @@
             "featureMessageRequired": "Please describe the feature you'd like to see",
             "submitFailed": "Failed to submit feedback"
         }
+    },
+    "help": {
+        "title": "Help & Resources",
+        "description": "Get started with the tutorial, browse documentation, or join the community",
+        "tutorial": {
+            "title": "Tutorial",
+            "description": "Reset the interactive tutorial transcription in your preferred language",
+            "reset": "Reset",
+            "resetting": "Resetting...",
+            "resetSuccess": "Tutorial has been reset successfully",
+            "resetError": "Failed to reset tutorial"
+        },
+        "documentation": {
+            "title": "Documentation",
+            "description": "Learn how to use all features and best practices",
+            "open": "Open Documentation"
+        },
+        "forum": {
+            "title": "Community Forum",
+            "description": "Ask questions, share tips, and connect with other users",
+            "open": "Open Forum"
+        },
+        "languages": {
+            "en": "English",
+            "fr": "Français",
+            "es": "Español",
+            "de": "Deutsch"
+        }
     }
 }

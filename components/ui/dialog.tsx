@@ -144,7 +144,7 @@ export function DialogFooter({
   return (
     <div
       className={cn(
-        "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 p-6 pt-0 sticky bottom-0 pt-4 bg-transparent z-10 backdrop-blur-lg",
+        "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 p-6 mt-2 sticky bottom-0 pt-4 bg-transparent z-10 backdrop-blur-lg",
         className,
       )}
     >

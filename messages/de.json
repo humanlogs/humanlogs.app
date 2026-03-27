@@ -193,5 +193,33 @@
             "featureMessageRequired": "Bitte beschreiben Sie die Funktion, die Sie sehen möchten",
             "submitFailed": "Feedback konnte nicht gesendet werden"
         }
+    },
+    "help": {
+        "title": "Hilfe & Ressourcen",
+        "description": "Starten Sie mit dem Tutorial, durchsuchen Sie die Dokumentation oder treten Sie der Community bei",
+        "tutorial": {
+            "title": "Tutorial",
+            "description": "Setzen Sie die interaktive Tutorial-Transkription in Ihrer bevorzugten Sprache zurück",
+            "reset": "Zurücksetzen",
+            "resetting": "Wird zurückgesetzt...",
+            "resetSuccess": "Das Tutorial wurde erfolgreich zurückgesetzt",
+            "resetError": "Fehler beim Zurücksetzen des Tutorials"
+        },
+        "documentation": {
+            "title": "Dokumentation",
+            "description": "Erfahren Sie, wie Sie alle Funktionen und Best Practices nutzen",
+            "open": "Dokumentation Öffnen"
+        },
+        "forum": {
+            "title": "Community-Forum",
+            "description": "Stellen Sie Fragen, teilen Sie Tipps und vernetzen Sie sich mit anderen Benutzern",
+            "open": "Forum Öffnen"
+        },
+        "languages": {
+            "en": "English",
+            "fr": "Français",
+            "es": "Español",
+            "de": "Deutsch"
+        }
     }
 }

@@ -5,6 +5,7 @@ import { notifyDatabaseChange } from "@/lib/socket-helpers";
 import { Transcription } from "@prisma/client";
 import _ from "lodash";
 import { NextResponse } from "next/server";
+import { getStorage } from "../../../../lib/storage";
 
 type RouteParams = {
   params: Promise<{
@@ -193,9 +194,22 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
+    // Delete all history entries for this transcription
+    await prisma.transcriptionHistory.deleteMany({
+      where: { transcriptionId: id, userId: user.id },
+    });
+
+    // Delete the audio file from storage if it exists (but not tutorial files)
+    if (
+      transcription.audioFileKey &&
+      !transcription.audioFileKey.startsWith("tutorial:")
+    ) {
+      await getStorage().delete(transcription.audioFileKey);
+    }
+
     // Delete the transcription
     await prisma.transcription.delete({
-      where: { id },
+      where: { id, userId: user.id },
     });
 
     // Notify client of transcription deletion

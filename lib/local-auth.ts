@@ -3,6 +3,7 @@ import { prisma } from "./prisma";
 import { authConfig, ldapConfig } from "./config";
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
+import { createTutorialTranscription } from "./tutorial-helpers";
 
 const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days
 
@@ -237,6 +238,11 @@ export async function registerLocal(
       language: "en",
     },
   });
+
+  // Create tutorial transcription for new user (async, don't await)
+  createTutorialTranscription(user.id, user.language).catch((error) =>
+    console.error("Failed to create tutorial:", error),
+  );
 
   return {
     id: user.id,
