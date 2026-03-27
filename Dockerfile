@@ -48,6 +48,7 @@ COPY --from=builder /app/lib ./lib
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/config ./config
 COPY --from=builder /app/messages ./messages
+COPY --from=builder /app/prisma.config.js ./prisma.config.js
 
 # Set the correct permission for prerender cache
 RUN chown -R nextjs:nodejs /app/.next
