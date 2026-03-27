@@ -52,7 +52,7 @@ export function SidebarUserMenu({
 
   // Calculate credits display
   const creditsUsed = userProfile?.credits || 0;
-  const creditsTotal = userProfile?.creditsRefill || 1000;
+  const creditsTotal = userProfile?.creditsRefill || 0;
   const creditsRemaining = Math.max(0, creditsTotal - creditsUsed);
   const creditsPercentage =
     creditsTotal > 0 ? (creditsUsed / creditsTotal) * 100 : 0;

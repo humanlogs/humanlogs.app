@@ -17,7 +17,7 @@ model User {
   credits        Int             @default(100)
   language       String          @default("en")
   plan           String          @default("one-time")
-  creditsRefill  Int             @default(1000)
+  creditsRefill  Int             @default(100)
   projects       Project[]
   transcriptions Transcription[]
 }
