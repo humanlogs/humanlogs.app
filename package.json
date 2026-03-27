@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "tsx watch server.ts",
     "build": "next build",
-    "start": "npx prisma deploy && NODE_ENV=production tsx server.ts",
+    "start": "npx prisma migrate deploy && NODE_ENV=production tsx server.ts",
     "lint": "eslint"
   },
   "dependencies": {
