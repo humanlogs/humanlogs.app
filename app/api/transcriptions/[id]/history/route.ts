@@ -72,7 +72,6 @@ export async function GET(request: Request, { params }: RouteParams) {
     }
 
     // Fetch history entries for this transcription
-    // @ts-expect-error - TranscriptionHistory model exists but TypeScript may need reload
     const history = await prisma.transcriptionHistory.findMany({
       where: {
         transcriptionId: id,

@@ -40,7 +40,6 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
 
     // Fetch the version to revert to
-    // @ts-expect-error - TranscriptionHistory model exists but TypeScript may need reload
     const version = await prisma.transcriptionHistory.findUnique({
       where: { id: versionId },
       select: {
@@ -55,7 +54,6 @@ export async function POST(request: Request, { params }: RouteParams) {
 
     // Save current state to history before reverting
     if (transcription.transcription !== null) {
-      // @ts-expect-error - TranscriptionHistory model exists but TypeScript may need reload
       await prisma.transcriptionHistory.create({
         data: {
           transcriptionId: id,

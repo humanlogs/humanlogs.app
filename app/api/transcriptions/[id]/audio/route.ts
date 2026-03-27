@@ -66,7 +66,7 @@ export async function GET(request: Request, { params }: RouteParams) {
                 : "audio/mpeg";
 
     // Return audio file with streaming support
-    return new Response(buffer, {
+    return new Response(buffer as BodyInit, {
       status: 200,
       headers: {
         "Content-Type": contentType,

@@ -136,7 +136,6 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
       // Create a history entry before updating
       if (transcription.transcription !== null) {
-        // @ts-expect-error - TranscriptionHistory model exists but TypeScript may need reload
         await prisma.transcriptionHistory.create({
           data: {
             transcriptionId: id,
