@@ -1,10 +1,22 @@
 {
-    "auth0": {
-        "secret": "",
-        "baseUrl": "http://localhost:3000",
-        "issuerBaseUrl": "",
-        "clientId": "",
-        "clientSecret": ""
+    "auth": {
+        "mode": "local",
+        "sessionSecret": "change-this-secret-in-production",
+        "auth0": {
+            "secret": "",
+            "baseUrl": "http://localhost:3000",
+            "issuerBaseUrl": "",
+            "clientId": "",
+            "clientSecret": ""
+        },
+        "ldap": {
+            "enabled": false,
+            "url": "ldap://localhost:389",
+            "bindDN": "",
+            "bindPassword": "",
+            "searchBase": "ou=users,dc=example,dc=com",
+            "searchFilter": "(uid={{username}})"
+        }
     },
     "database": {
         "url": ""

@@ -7,11 +7,19 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useModal } from "@/components/use-modal";
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
-import { useVersionComparisonModal } from "./dialogs/version-comparison-modal";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  RotateCcwIcon,
+  ArrowLeftIcon,
+} from "lucide-react";
+import * as React from "react";
+import { toast } from "sonner";
 
 export type TranscriptionHistoryModalData = {
   transcriptionId: string;
@@ -44,9 +52,24 @@ type HistoryEntry = {
   changed: number;
 };
 
+type Word = {
+  text: string;
+  start: number;
+  end: number;
+  speaker?: string;
+};
+
+type TranscriptionContent = {
+  words: Word[];
+  [key: string]: unknown;
+};
+
 export function TranscriptionHistorySheet() {
   const { isOpen, data, close } = useTranscriptionHistoryModal();
-  const { openVersion } = useVersionComparisonModal();
+  const queryClient = useQueryClient();
+  const [selectedVersionIndex, setSelectedVersionIndex] = React.useState<
+    number | null
+  >(null);
 
   const { data: history, isLoading } = useQuery({
     queryKey: ["transcription-history", data?.transcriptionId],
@@ -62,6 +85,190 @@ export function TranscriptionHistorySheet() {
     },
     enabled: isOpen && !!data?.transcriptionId,
   });
+
+  const selectedVersion =
+    selectedVersionIndex !== null && history
+      ? history[selectedVersionIndex]
+      : null;
+
+  // Fetch the specific version data when a version is selected
+  const { data: versionData, isLoading: isLoadingVersion } = useQuery({
+    queryKey: [
+      "transcription-version",
+      data?.transcriptionId,
+      selectedVersion?.id,
+    ],
+    queryFn: async () => {
+      if (!data?.transcriptionId || !selectedVersion?.id) return null;
+      const response = await fetch(
+        `/api/transcriptions/${data.transcriptionId}/history/${selectedVersion.id}`,
+      );
+      if (!response.ok) throw new Error("Failed to fetch version");
+      return response.json() as Promise<{
+        current: TranscriptionContent;
+        previous: TranscriptionContent | null;
+      }>;
+    },
+    enabled: isOpen && !!data?.transcriptionId && !!selectedVersion?.id,
+  });
+
+  // Revert mutation
+  const revertMutation = useMutation({
+    mutationFn: async (versionId: string) => {
+      if (!data?.transcriptionId) throw new Error("No transcription ID");
+      const response = await fetch(
+        `/api/transcriptions/${data.transcriptionId}/revert`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ versionId }),
+        },
+      );
+      if (!response.ok) throw new Error("Failed to revert");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast.success("Version restored successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["transcription", data?.transcriptionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["transcription-history", data?.transcriptionId],
+      });
+      setSelectedVersionIndex(null);
+    },
+    onError: () => {
+      toast.error("Failed to restore version");
+    },
+  });
+
+  // Reset selection when sheet closes
+  React.useEffect(() => {
+    if (!isOpen) {
+      setSelectedVersionIndex(null);
+    }
+  }, [isOpen]);
+
+  const hasPrevious =
+    selectedVersionIndex !== null &&
+    selectedVersionIndex < (history?.length ?? 0) - 1;
+  const hasNext = selectedVersionIndex !== null && selectedVersionIndex > 0;
+
+  const goToPrevious = () => {
+    if (hasPrevious && selectedVersionIndex !== null) {
+      setSelectedVersionIndex(selectedVersionIndex + 1);
+    }
+  };
+
+  const goToNext = () => {
+    if (hasNext && selectedVersionIndex !== null) {
+      setSelectedVersionIndex(selectedVersionIndex - 1);
+    }
+  };
+
+  const handleRevert = () => {
+    if (selectedVersion?.id) {
+      revertMutation.mutate(selectedVersion.id);
+    }
+  };
+
+  // Generate diff view
+  const renderDiff = () => {
+    if (!versionData) return null;
+
+    const currentWords = versionData.current.words || [];
+    const previousWords = versionData.previous?.words || [];
+
+    // Use word.start as unique identifier for accurate diffing
+    const currentMap = new Map<number, Word>();
+    const previousMap = new Map<number, Word>();
+
+    for (const word of currentWords) {
+      if (word.start !== undefined) {
+        currentMap.set(word.start, word);
+      }
+    }
+
+    for (const word of previousWords) {
+      if (word.start !== undefined) {
+        previousMap.set(word.start, word);
+      }
+    }
+
+    // Get all unique start times and sort them chronologically
+    const allStarts = new Set([...currentMap.keys(), ...previousMap.keys()]);
+    const sortedStarts = Array.from(allStarts).sort((a, b) => a - b);
+
+    const elements: React.ReactNode[] = [];
+
+    for (const start of sortedStarts) {
+      const currentWord = currentMap.get(start);
+      const previousWord = previousMap.get(start);
+
+      if (currentWord && !previousWord) {
+        // Added word (exists in current but not in previous)
+        elements.push(
+          <span
+            key={`add-${start}`}
+            className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-0.5 rounded"
+          >
+            {currentWord.text}
+          </span>,
+          " ",
+        );
+      } else if (!currentWord && previousWord) {
+        // Removed word (exists in previous but not in current)
+        elements.push(
+          <span
+            key={`remove-${start}`}
+            className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 line-through px-0.5 rounded"
+          >
+            {previousWord.text}
+          </span>,
+          " ",
+        );
+      } else if (currentWord && previousWord) {
+        if (currentWord.text !== previousWord.text) {
+          // Changed word (same start time but different text)
+          elements.push(
+            <span key={`change-${start}`}>
+              <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 line-through px-0.5 rounded">
+                {previousWord.text}
+              </span>{" "}
+              <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-0.5 rounded">
+                {currentWord.text}
+              </span>
+            </span>,
+            " ",
+          );
+        } else {
+          // Unchanged word
+          elements.push(
+            <span key={`same-${start}`}>{currentWord.text}</span>,
+            " ",
+          );
+        }
+      }
+    }
+
+    return (
+      <div className="text-sm leading-relaxed whitespace-pre-wrap">
+        {elements}
+      </div>
+    );
+  };
+
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -101,84 +308,180 @@ export function TranscriptionHistorySheet() {
     <Sheet open={isOpen} onOpenChange={(open) => !open && close()}>
       <SheetContent
         side="right"
-        className="w-[400px] sm:w-[540px] flex flex-col"
+        className={cn(
+          "min-w-[500px] flex flex-col",
+          selectedVersionIndex !== null && "max-w-[100vw]!  w-[50vw]!",
+        )}
       >
-        <SheetHeader>
-          <SheetTitle>Version History</SheetTitle>
-          <SheetDescription>
-            View all changes made to this transcription
-          </SheetDescription>
-        </SheetHeader>
+        {selectedVersionIndex === null ? (
+          <>
+            <SheetHeader>
+              <SheetTitle>Version History</SheetTitle>
+              <SheetDescription>
+                View all changes made to this transcription
+              </SheetDescription>
+            </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto">
-          {isLoading && (
-            <div className="flex items-center justify-center py-8 text-muted-foreground px-6">
-              Loading history...
-            </div>
-          )}
-
-          {!isLoading && history && history.length === 0 && (
-            <div className="flex items-center justify-center py-8 text-muted-foreground px-6">
-              No history available
-            </div>
-          )}
-
-          {!isLoading &&
-            history &&
-            history.map((entry, index) => (
-              <div
-                key={entry.id}
-                className={cn(
-                  "border-b px-6 py-4 hover:bg-accent/50 transition-colors cursor-pointer",
-                  index === 0 && "border-t",
-                )}
-                onClick={() => {
-                  if (data?.transcriptionId) {
-                    openVersion(data.transcriptionId, entry.id, index);
-                  }
-                }}
-              >
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <div className="flex items-center gap-2 text-sm font-medium">
-                    <span>{formatDate(entry.updatedAt)}</span>
-                    <span className="text-muted-foreground">
-                      {formatTime(entry.updatedAt)}
-                    </span>
-                  </div>
+            <div className="flex-1 overflow-y-auto">
+              {isLoading && (
+                <div className="flex items-center justify-center py-8 text-muted-foreground px-6">
+                  Loading history...
                 </div>
+              )}
 
-                <div className="flex-1 min-w-0 text-xs">
-                  {entry.additions > 0 ||
-                  entry.removals > 0 ||
-                  entry.changed > 0 ? (
-                    <div className="flex items-center gap-3">
-                      {entry.additions + entry.changed > 0 && (
-                        <span className="flex items-center gap-1 text-green-600">
-                          +{entry.additions + entry.changed} word
-                          {entry.additions + entry.changed !== 1 ? "s" : ""}
+              {!isLoading && history && history.length === 0 && (
+                <div className="flex items-center justify-center py-8 text-muted-foreground px-6">
+                  No history available
+                </div>
+              )}
+
+              {!isLoading &&
+                history &&
+                history.map((entry, index) => (
+                  <div
+                    key={entry.id}
+                    className={cn(
+                      "border-b px-6 py-4 hover:bg-accent/50 transition-colors cursor-pointer",
+                      index === 0 && "border-t",
+                    )}
+                    onClick={() => setSelectedVersionIndex(index)}
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="flex items-center gap-2 text-sm font-medium">
+                        <span>{formatDate(entry.updatedAt)}</span>
+                        <span className="text-muted-foreground">
+                          {formatTime(entry.updatedAt)}
                         </span>
-                      )}
-                      {entry.removals + entry.changed > 0 && (
-                        <span className="flex items-center gap-1 text-red-600">
-                          -{entry.removals + entry.changed} word
-                          {entry.removals + entry.changed !== 1 ? "s" : ""}
-                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex-1 min-w-0 text-xs">
+                      {entry.additions > 0 ||
+                      entry.removals > 0 ||
+                      entry.changed > 0 ? (
+                        <div className="flex items-center gap-3">
+                          {entry.additions > 0 && (
+                            <span className="flex items-center gap-1 text-green-600">
+                              +{entry.additions} word
+                              {entry.additions !== 1 ? "s" : ""}
+                            </span>
+                          )}
+                          {entry.removals > 0 && (
+                            <span className="flex items-center gap-1 text-red-600">
+                              -{entry.removals} word
+                              {entry.removals !== 1 ? "s" : ""}
+                            </span>
+                          )}
+                          {entry.changed > 0 && (
+                            <span className="flex items-center gap-1 text-yellow-600">
+                              ~{entry.changed} word
+                              {entry.changed !== 1 ? "s" : ""}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <div>No changes</div>
                       )}
                     </div>
-                  ) : (
-                    <div>No changes</div>
+
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-3">
+                      <UserAvatar user={entry.user} size="sm" />
+                      <span className="truncate">
+                        {entry.user.name || entry.user.email}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <SheetHeader>
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <SheetTitle>Version Comparison</SheetTitle>
+                  {selectedVersion && (
+                    <SheetDescription className="flex items-center gap-3 mt-2">
+                      <UserAvatar user={selectedVersion.user} size="sm" />
+                      <span>
+                        {selectedVersion.user.name ||
+                          selectedVersion.user.email}{" "}
+                        • {formatDateTime(selectedVersion.updatedAt)}
+                      </span>
+                      <div className="text-sm text-muted-foreground">
+                        <span className="text-green-600">
+                          +{selectedVersion.additions}
+                        </span>
+                        {" / "}
+                        <span className="text-red-600">
+                          -{selectedVersion.removals}
+                        </span>
+                        {selectedVersion.changed > 0 && (
+                          <>
+                            {" / "}
+                            <span className="text-orange-600">
+                              ~{selectedVersion.changed}
+                            </span>
+                          </>
+                        )}
+                        {" words"}
+                      </div>
+                    </SheetDescription>
                   )}
                 </div>
-
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-3">
-                  <UserAvatar user={entry.user} size="sm" />
-                  <span className="truncate">
-                    {entry.user.name || entry.user.email}
-                  </span>
-                </div>
               </div>
-            ))}
-        </div>
+            </SheetHeader>
+
+            <div className="flex items-center justify-between pb-4 px-4 border-b -mt-4">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToPrevious}
+                  disabled={!hasPrevious}
+                >
+                  <ChevronLeftIcon className="h-4 w-4" />
+                  Older
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToNext}
+                  disabled={!hasNext}
+                >
+                  Newer
+                  <ChevronRightIcon className="h-4 w-4" />
+                </Button>
+              </div>
+              <Button
+                onClick={handleRevert}
+                disabled={revertMutation.isPending}
+                variant="default"
+                className={"bg-blue-500"}
+                confirm="Are you sure you want to revert to this version?"
+              >
+                <RotateCcwIcon className="h-4 w-4" />
+                Revert to this version
+              </Button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 px-6">
+              {isLoadingVersion && (
+                <div className="flex items-center justify-center py-8 text-muted-foreground">
+                  Loading version...
+                </div>
+              )}
+
+              {!isLoadingVersion && !versionData && (
+                <div className="flex items-center justify-center py-8 text-muted-foreground">
+                  Failed to load version
+                </div>
+              )}
+
+              {!isLoadingVersion && versionData && renderDiff()}
+            </div>
+          </>
+        )}
       </SheetContent>
     </Sheet>
   );

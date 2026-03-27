@@ -76,7 +76,7 @@ export default function NewTranscriptionPage() {
     fetch("/api/user")
       .then((res) => res.json())
       .then((data) => {
-        const available = (data.creditsRefill || 0) - (data.credits || 0);
+        const available = data.credits || 0;
         setUserCredits(Math.max(0, available));
       })
       .catch((err) => console.error("Error fetching credits:", err));

@@ -3,6 +3,10 @@ import { z } from "zod";
 
 // Define the configuration schema
 const configSchema = z.object({
+  auth: z.object({
+    mode: z.enum(["auth0", "local"]),
+    sessionSecret: z.string().optional(),
+  }),
   auth0: z.object({
     secret: z.string(),
     baseUrl: z.string().url(),
@@ -10,6 +14,16 @@ const configSchema = z.object({
     clientId: z.string(),
     clientSecret: z.string(),
   }),
+  ldap: z
+    .object({
+      enabled: z.boolean(),
+      url: z.string(),
+      bindDN: z.string(),
+      bindPassword: z.string(),
+      searchBase: z.string(),
+      searchFilter: z.string(),
+    })
+    .optional(),
   database: z.object({
     url: z.string(),
   }),
@@ -44,13 +58,27 @@ export function getConfig(): AppConfig {
 }
 
 // Export individual config sections for convenience
+export const authConfig = {
+  mode: config.get<"auth0" | "local">("auth.mode"),
+  sessionSecret: config.get<string>("auth.sessionSecret"),
+};
+
 // Auth0 config uses ONLY environment variables (Edge Runtime compatible)
 export const auth0Config = {
-  secret: config.get<string>("auth0.secret"),
-  baseUrl: config.get<string>("auth0.baseUrl"),
-  issuerBaseUrl: config.get<string>("auth0.issuerBaseUrl"),
-  clientId: config.get<string>("auth0.clientId"),
-  clientSecret: config.get<string>("auth0.clientSecret"),
+  secret: config.get<string>("auth.auth0.secret"),
+  baseUrl: config.get<string>("auth.auth0.baseUrl"),
+  issuerBaseUrl: config.get<string>("auth.auth0.issuerBaseUrl"),
+  clientId: config.get<string>("auth.auth0.clientId"),
+  clientSecret: config.get<string>("auth.auth0.clientSecret"),
+};
+
+export const ldapConfig = {
+  enabled: config.get<boolean>("auth.ldap.enabled"),
+  url: config.get<string>("auth.ldap.url"),
+  bindDN: config.get<string>("auth.ldap.bindDN"),
+  bindPassword: config.get<string>("auth.ldap.bindPassword"),
+  searchBase: config.get<string>("auth.ldap.searchBase"),
+  searchFilter: config.get<string>("auth.ldap.searchFilter"),
 };
 
 export const databaseConfig = {

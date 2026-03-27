@@ -267,26 +267,6 @@ export function VersionComparisonModal() {
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>Version Comparison</span>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goToPrevious}
-                disabled={!hasPrevious}
-              >
-                <ChevronLeftIcon className="h-4 w-4 mr-1" />
-                Older
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goToNext}
-                disabled={!hasNext}
-              >
-                Newer
-                <ChevronRightIcon className="h-4 w-4 ml-1" />
-              </Button>
-            </div>
           </DialogTitle>
           {currentVersion && (
             <DialogDescription className="flex items-center gap-3">
@@ -295,11 +275,33 @@ export function VersionComparisonModal() {
                 {currentVersion.user.name || currentVersion.user.email} •{" "}
                 {formatDateTime(currentVersion.updatedAt)}
               </span>
+              <div className="text-sm text-muted-foreground">
+                {currentVersion && (
+                  <>
+                    <span className="text-green-600">
+                      +{currentVersion.additions}
+                    </span>
+                    {" / "}
+                    <span className="text-red-600">
+                      -{currentVersion.removals}
+                    </span>
+                    {currentVersion.changed > 0 && (
+                      <>
+                        {" / "}
+                        <span className="text-orange-600">
+                          ~{currentVersion.changed}
+                        </span>
+                      </>
+                    )}
+                    {" words"}
+                  </>
+                )}
+              </div>
             </DialogDescription>
           )}
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto border rounded-lg p-4 bg-muted/30">
+        <div className="flex-1 overflow-y-auto p-4 px-6">
           {isLoading && (
             <div className="flex items-center justify-center py-8 text-muted-foreground">
               Loading version...
@@ -315,33 +317,34 @@ export function VersionComparisonModal() {
           {!isLoading && versionData && renderDiff()}
         </div>
 
-        <div className="flex items-center justify-between pt-4 border-t">
-          <div className="text-sm text-muted-foreground">
-            {currentVersion && (
-              <>
-                <span className="text-green-600">
-                  +{currentVersion.additions}
-                </span>
-                {" / "}
-                <span className="text-red-600">-{currentVersion.removals}</span>
-                {currentVersion.changed > 0 && (
-                  <>
-                    {" / "}
-                    <span className="text-orange-600">
-                      ~{currentVersion.changed}
-                    </span>
-                  </>
-                )}
-                {" words"}
-              </>
-            )}
+        <div className="flex items-center justify-between p-4 px-6 border-t">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToPrevious}
+              disabled={!hasPrevious}
+            >
+              <ChevronLeftIcon className="h-4 w-4" />
+              Older
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToNext}
+              disabled={!hasNext}
+            >
+              Newer
+              <ChevronRightIcon className="h-4 w-4" />
+            </Button>
           </div>
           <Button
             onClick={handleRevert}
             disabled={revertMutation.isPending}
             variant="default"
+            confirm="Are you sure you want to revert to this version?"
           >
-            <RotateCcwIcon className="h-4 w-4 mr-2" />
+            <RotateCcwIcon className="h-4 w-4" />
             Revert to this version
           </Button>
         </div>

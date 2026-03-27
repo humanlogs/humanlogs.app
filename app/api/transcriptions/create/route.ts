@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const availableCredits = userProfile.creditsRefill - userProfile.credits;
+    const availableCredits = userProfile.credits;
     if (availableCredits < creditsNeeded) {
       return NextResponse.json(
         {
@@ -179,6 +179,9 @@ export async function POST(request: NextRequest) {
         where: { id: user.id },
         data: {
           credits: {
+            increment: -creditsNeeded,
+          },
+          creditsUsed: {
             increment: creditsNeeded,
           },
         },

@@ -6,6 +6,9 @@ const withNextIntl = createNextIntlPlugin("./lib/i18n.ts");
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
+  env: {
+    NEXT_PUBLIC_AUTH_MODE: process.env.AUTH_MODE || "auth0",
+  },
   images: {
     remotePatterns: [
       {

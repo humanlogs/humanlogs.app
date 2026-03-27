@@ -1,16 +1,6 @@
 "use client";
 
-import * as React from "react";
-import { useTranslations, useLocale } from "@/components/locale-provider";
-import {
-  CreditCardIcon,
-  ExternalLinkIcon,
-  MoonIcon,
-  SunIcon,
-  LanguagesIcon,
-  CheckIcon,
-  LogOutIcon,
-} from "lucide-react";
+import { useLocale, useTranslations } from "@/components/locale-provider";
 import { useTheme } from "@/components/theme-provider";
 import {
   DropdownMenu,
@@ -19,6 +9,16 @@ import {
   DropdownMenuSub,
 } from "@/components/ui/dropdown-menu";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import {
+  CheckIcon,
+  CreditCardIcon,
+  ExternalLinkIcon,
+  LanguagesIcon,
+  LogOutIcon,
+  MoonIcon,
+  SunIcon,
+} from "lucide-react";
+import * as React from "react";
 
 type UserProfile = {
   id: string;
@@ -27,6 +27,7 @@ type UserProfile = {
   language: string;
   credits: number;
   creditsRefill: number;
+  creditsUsed: number;
   plan: string;
 };
 
@@ -51,9 +52,9 @@ export function SidebarUserMenu({
   const [isHoveringAvatar, setIsHoveringAvatar] = React.useState(false);
 
   // Calculate credits display
-  const creditsUsed = userProfile?.credits || 0;
   const creditsTotal = userProfile?.creditsRefill || 0;
-  const creditsRemaining = Math.max(0, creditsTotal - creditsUsed);
+  const creditsRemaining = userProfile?.credits || 0;
+  const creditsUsed = userProfile?.creditsUsed || 0;
   const creditsPercentage =
     creditsTotal > 0 ? (creditsUsed / creditsTotal) * 100 : 0;
   const planType =
@@ -231,7 +232,22 @@ export function SidebarUserMenu({
         <DropdownMenuSeparator />
 
         <DropdownMenuItem
-          onClick={() => (window.location.href = "/api/auth/logout")}
+          onClick={async () => {
+            // Check if using local auth
+            const authMode = process.env.NEXT_PUBLIC_AUTH_MODE;
+
+            if (authMode === "local") {
+              try {
+                await fetch("/api/local-auth/logout", { method: "POST" });
+                window.location.href = "/login";
+              } catch (error) {
+                console.error("Logout failed:", error);
+                window.location.href = "/login";
+              }
+            } else {
+              window.location.href = "/api/auth/logout";
+            }
+          }}
         >
           <LogOutIcon className="w-4 h-4 mr-2" />
           {t("user.logout")}

@@ -1,9 +1,11 @@
 import { prisma } from "./prisma";
 import { auth0 } from "./auth0";
+import { getLocalSession } from "./local-auth";
+import { authConfig } from "./config";
 
 export interface UserSession {
   id: string;
-  auth0Id: string;
+  auth0Id?: string;
   email: string;
   name?: string;
 }
@@ -13,6 +15,21 @@ export interface UserSession {
  * and ensure they exist in our database
  */
 export async function getCurrentUser(): Promise<UserSession | null> {
+  // Use local auth if mode is set to "local"
+  if (authConfig.mode === "local") {
+    const localSession = await getLocalSession();
+    if (!localSession) {
+      return null;
+    }
+
+    return {
+      id: localSession.id,
+      email: localSession.email,
+      name: localSession.name,
+    };
+  }
+
+  // Otherwise use Auth0
   const session = await auth0.getSession();
 
   if (!session?.user) {

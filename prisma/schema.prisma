@@ -12,12 +12,14 @@ model User {
   auth0Id        String          @unique
   email          String          @unique
   name           String?
+  passwordHash   String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   credits        Int             @default(100)
   language       String          @default("en")
   plan           String          @default("one-time")
   creditsRefill  Int             @default(100)
+  creditsUsed    Int             @default(0)
   projects       Project[]
   transcriptions Transcription[]
 }
