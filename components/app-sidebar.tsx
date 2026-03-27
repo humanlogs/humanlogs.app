@@ -122,12 +122,12 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
           {/* Logo Section */}
           <div className="flex items-center gap-2 px-2 py-2">
             <img
-              src="/logo-black.png"
+              src="/logo-colors.svg"
               alt="Logo"
               className="flex dark:hidden items-center justify-center w-5 h-5"
             />
             <img
-              src="/logo.svg"
+              src="/logo-white.svg"
               alt="Logo"
               className="dark:flex hidden items-center justify-center w-5 h-5"
             />

@@ -7,12 +7,7 @@
 >
   <style>
     path:not(#colored) {
-      fill: black;
-    }
-    @media (prefers-color-scheme: dark) {
-      path:not(#colored) {
-        fill: white;
-      }
+      fill: white;
     }
   </style>
   <path
