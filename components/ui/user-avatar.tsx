@@ -1,5 +1,3 @@
-import * as React from "react";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 type UserAvatarProps = {
@@ -45,7 +43,7 @@ export function UserAvatar({ user, size = "md", className }: UserAvatarProps) {
       )}
     >
       {user.picture ? (
-        <Image
+        <img
           src={user.picture}
           alt={user.name || user.email || "User"}
           width={imageSizes[size]}
