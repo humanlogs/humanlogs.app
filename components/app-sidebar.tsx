@@ -120,12 +120,19 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
       <Sidebar>
         <SidebarHeader>
           {/* Logo Section */}
-          <div className="flex items-center gap-3 px-2 py-2">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-primary-foreground">
-              <MicIcon className="w-6 h-6" />
-            </div>
+          <div className="flex items-center gap-2 px-2 py-2">
+            <img
+              src="/logo-black.png"
+              alt="Logo"
+              className="flex dark:hidden items-center justify-center w-5 h-5"
+            />
+            <img
+              src="/logo.svg"
+              alt="Logo"
+              className="dark:flex hidden items-center justify-center w-5 h-5"
+            />
             <div className="flex-1">
-              <h2 className="text-lg font-bold">Scribe</h2>
+              <h2 className="text-2xl font-bold">Transcription</h2>
             </div>
           </div>
 

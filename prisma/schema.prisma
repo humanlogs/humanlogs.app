@@ -14,7 +14,7 @@ model User {
   name           String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
-  credits        Int             @default(0)
+  credits        Int             @default(100)
   language       String          @default("en")
   plan           String          @default("one-time")
   creditsRefill  Int             @default(1000)
