@@ -42,11 +42,27 @@ export function useNavigationMode(
         const domElement = editorRef.current?.querySelector(
           `[data-index="${currentIndex}"]`,
         );
+        console.log("currentIndex", currentIndex, domElement);
         if (domElement) {
-          domElement.scrollIntoView({
-            behavior: "smooth",
-            block: "nearest",
-          });
+          // Scrolling strategy
+          const headerHeight =
+            document.querySelector("header")?.getBoundingClientRect().height ||
+            0;
+          const rect = domElement.getBoundingClientRect();
+          const viewportHeight = window.innerHeight;
+          const topMargin = Math.max(viewportHeight * 0.1, 100);
+          const bottomMargin = viewportHeight * 0.9;
+          const visibleTop = headerHeight + topMargin;
+          const visibleBottom = bottomMargin;
+          if (!(rect.top >= visibleTop && rect.bottom <= visibleBottom)) {
+            const targetY =
+              rect.top + window.pageYOffset - headerHeight - topMargin;
+            window.scrollTo({
+              top: targetY,
+              behavior: "smooth",
+            });
+          }
+
           domElement.classList.add("active-segment");
         }
       }

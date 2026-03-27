@@ -331,8 +331,8 @@ export const InteractiveAudio = ({
   ]);
 
   return (
-    <div className="w-full px-6 pb-0">
-      <div className="w-full bg-slate-100 dark:bg-slate-900 h-10 relative rounded-md overflow-hidden">
+    <div className="w-full pb-0 px-4">
+      <div className="w-full bg-slate-100 dark:bg-slate-900 h-10 relative overflow-hidden rounded-b-md">
         <div ref={containerRef} className="w-full h-full" />
       </div>
     </div>

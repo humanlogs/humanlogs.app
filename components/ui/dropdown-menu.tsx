@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 type DropdownContextType = {
@@ -24,6 +25,7 @@ export function DropdownMenu({
   position: initialPosition = "auto",
 }: DropdownMenuProps) {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [isMounted, setIsMounted] = React.useState(false);
   const [position, setPosition] = React.useState({
     vertical:
       initialPosition !== "auto"
@@ -31,14 +33,35 @@ export function DropdownMenu({
         : ("top" as "top" | "bottom"),
     horizontal: align,
     maxHeight: "none" as string,
+    top: 0,
+    left: 0,
   });
   const menuRef = React.useRef<HTMLDivElement>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
   const triggerRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const clickedOutsideTrigger =
+        triggerRef.current && !triggerRef.current.contains(target);
+      const clickedOutsideContent =
+        contentRef.current && !contentRef.current.contains(target);
+
+      // Check if clicked inside any dropdown menu (including submenus)
+      const clickedInDropdown = (target as Element).closest(
+        "[data-dropdown-menu]",
+      );
+
+      if (
+        clickedOutsideTrigger &&
+        clickedOutsideContent &&
+        !clickedInDropdown
+      ) {
         setIsOpen(false);
       }
     };
@@ -69,34 +92,47 @@ export function DropdownMenu({
         // Determine vertical position
         let vertical: "top" | "bottom" = "top";
         let maxHeight = "none";
+        let top = 0;
 
         if (spaceAbove >= contentRect.height + gap) {
           vertical = "top";
+          top = triggerRect.top - contentRect.height - gap;
         } else if (spaceBelow >= contentRect.height + gap) {
           vertical = "bottom";
+          top = triggerRect.bottom + gap;
         } else {
           // Not enough space in either direction - choose the larger space
           if (spaceAbove > spaceBelow) {
             vertical = "top";
             maxHeight = `${spaceAbove - gap - 16}px`; // 16px extra padding
+            top = gap;
           } else {
             vertical = "bottom";
             maxHeight = `${spaceBelow - gap - 16}px`;
+            top = triggerRect.bottom + gap;
           }
         }
 
         // Determine horizontal position
         let horizontal: "start" | "end" = align;
+        let left = 0;
 
         if (align === "start" && spaceRight < menuWidth) {
           // Not enough space on the right, align to end
           horizontal = "end";
+          left = triggerRect.right - menuWidth;
         } else if (align === "end" && spaceLeft < menuWidth) {
           // Not enough space on the left, align to start
           horizontal = "start";
+          left = triggerRect.left;
+        } else {
+          left =
+            align === "start"
+              ? triggerRect.left
+              : triggerRect.right - menuWidth;
         }
 
-        setPosition({ vertical, horizontal, maxHeight });
+        setPosition({ vertical, horizontal, maxHeight, top, left });
       };
 
       // Update position immediately
@@ -119,26 +155,29 @@ export function DropdownMenu({
         <div ref={triggerRef} onClick={() => setIsOpen(!isOpen)}>
           {trigger}
         </div>
-        {isOpen && (
-          <div
-            ref={contentRef}
-            className={cn(
-              "absolute w-60 rounded-md border bg-popover p-1 shadow-md z-50",
-              position.vertical === "top"
-                ? "bottom-full mb-2"
-                : "top-full mt-2",
-              position.horizontal === "end" ? "right-0" : "left-0",
-              position.maxHeight !== "none" && "overflow-y-auto",
-            )}
-            style={
-              position.maxHeight !== "none"
-                ? { maxHeight: position.maxHeight }
-                : undefined
-            }
-          >
-            {children}
-          </div>
-        )}
+        {isMounted &&
+          isOpen &&
+          createPortal(
+            <div
+              ref={contentRef}
+              data-dropdown-menu
+              className={cn(
+                "fixed w-60 rounded-md border bg-popover p-1 shadow-md z-50",
+                position.maxHeight !== "none" && "overflow-y-auto",
+              )}
+              style={{
+                top: `${position.top}px`,
+                left: `${position.left}px`,
+                maxHeight:
+                  position.maxHeight !== "none"
+                    ? position.maxHeight
+                    : undefined,
+              }}
+            >
+              {children}
+            </div>,
+            document.body,
+          )}
       </div>
     </DropdownContext.Provider>
   );
@@ -186,14 +225,57 @@ type DropdownMenuSubProps = {
 
 export function DropdownMenuSub({ trigger, children }: DropdownMenuSubProps) {
   const [isSubOpen, setIsSubOpen] = React.useState(false);
+  const [isMounted, setIsMounted] = React.useState(false);
   const [position, setPosition] = React.useState({
     horizontal: "right" as "left" | "right",
     vertical: "top" as "top" | "bottom" | "center",
     maxHeight: "none" as string,
+    top: 0,
+    left: 0,
   });
   const subMenuRef = React.useRef<HTMLDivElement>(null);
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
+  const closeTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const clearCloseTimeout = React.useCallback(() => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+  }, []);
+
+  const tryClose = React.useCallback(() => {
+    clearCloseTimeout();
+    closeTimeoutRef.current = setTimeout(() => {
+      setIsSubOpen(false);
+    }, 10);
+  }, [clearCloseTimeout]);
+
+  const handleTriggerEnter = React.useCallback(() => {
+    clearCloseTimeout();
+    setIsSubOpen(true);
+  }, [clearCloseTimeout]);
+
+  const handleTriggerLeave = React.useCallback(() => {
+    tryClose();
+  }, [tryClose]);
+
+  const handleContentEnter = React.useCallback(() => {
+    clearCloseTimeout();
+  }, [clearCloseTimeout]);
+
+  const handleContentLeave = React.useCallback(() => {
+    tryClose();
+  }, [tryClose]);
+
+  React.useEffect(() => {
+    return () => clearCloseTimeout();
+  }, [clearCloseTimeout]);
 
   React.useEffect(() => {
     if (isSubOpen && triggerRef.current && contentRef.current) {
@@ -209,21 +291,30 @@ export function DropdownMenuSub({ trigger, children }: DropdownMenuSubProps) {
         const spaceBelow = viewportHeight - triggerRect.bottom;
 
         const menuWidth = 192; // w-48 = 12rem = 192px
-        const overlap = 4; // -ml-1 = -0.25rem = -4px
+        const overlap = 8; // Increase overlap for smoother navigation
 
         // Determine horizontal position (prefer right)
         let horizontal: "left" | "right" = "right";
+        let left = 0;
+
         if (spaceRight >= menuWidth + overlap) {
           horizontal = "right";
+          left = triggerRect.right - overlap;
         } else if (spaceLeft >= menuWidth + overlap) {
           horizontal = "left";
+          left = triggerRect.left - menuWidth + overlap;
         } else if (spaceLeft > spaceRight) {
           horizontal = "left";
+          left = triggerRect.left - menuWidth + overlap;
+        } else {
+          horizontal = "right";
+          left = triggerRect.right - overlap;
         }
 
         // Determine vertical position and max height
         let vertical: "top" | "bottom" | "center" = "top";
         let maxHeight = "none";
+        let top = 0;
 
         const contentHeight = contentRect.height;
         const availableBelow = spaceBelow + triggerRect.height;
@@ -231,21 +322,25 @@ export function DropdownMenuSub({ trigger, children }: DropdownMenuSubProps) {
         if (availableBelow >= contentHeight) {
           // Enough space aligning to top
           vertical = "top";
+          top = triggerRect.top;
         } else if (spaceAbove >= contentHeight) {
           // Align to bottom of trigger
           vertical = "bottom";
+          top = triggerRect.bottom - contentHeight;
         } else {
           // Not enough space - use the larger space and limit height
           if (availableBelow > spaceAbove) {
             vertical = "top";
             maxHeight = `${availableBelow - 16}px`;
+            top = triggerRect.top;
           } else {
             vertical = "bottom";
             maxHeight = `${spaceAbove - 16}px`;
+            top = triggerRect.bottom - parseInt(maxHeight);
           }
         }
 
-        setPosition({ horizontal, vertical, maxHeight });
+        setPosition({ horizontal, vertical, maxHeight, top, left });
       };
 
       // Update position immediately
@@ -263,16 +358,13 @@ export function DropdownMenuSub({ trigger, children }: DropdownMenuSubProps) {
   }, [isSubOpen]);
 
   return (
-    <div
-      className="relative"
-      ref={subMenuRef}
-      onMouseEnter={() => setIsSubOpen(true)}
-      onMouseLeave={() => setIsSubOpen(false)}
-    >
+    <div className="relative" ref={subMenuRef}>
       <button
         ref={triggerRef}
         className="flex w-full items-center justify-between rounded-sm px-2 py-2 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
         type="button"
+        onMouseEnter={handleTriggerEnter}
+        onMouseLeave={handleTriggerLeave}
       >
         {trigger}
         <svg
@@ -294,27 +386,38 @@ export function DropdownMenuSub({ trigger, children }: DropdownMenuSubProps) {
           />
         </svg>
       </button>
-      {isSubOpen && (
-        <div
-          ref={contentRef}
-          className={cn(
-            "absolute w-48 rounded-md border bg-popover p-1 shadow-md z-50",
-            position.horizontal === "right"
-              ? "left-full -ml-1"
-              : "right-full -mr-1",
-            position.vertical === "top" && "top-0",
-            position.vertical === "bottom" && "bottom-0",
-            position.maxHeight !== "none" && "overflow-y-auto",
-          )}
-          style={
-            position.maxHeight !== "none"
-              ? { maxHeight: position.maxHeight }
-              : undefined
-          }
-        >
-          {children}
-        </div>
-      )}
+      {isMounted &&
+        isSubOpen &&
+        createPortal(
+          <div
+            className="fixed z-50"
+            style={{
+              top: `${position.top - 10}px`,
+              left: `${position.left - 10}px`,
+              padding: "10px",
+            }}
+            onMouseEnter={handleContentEnter}
+            onMouseLeave={handleContentLeave}
+          >
+            <div
+              ref={contentRef}
+              data-dropdown-menu
+              className={cn(
+                "w-48 rounded-md border bg-popover p-1 shadow-md",
+                position.maxHeight !== "none" && "overflow-y-auto",
+              )}
+              style={{
+                maxHeight:
+                  position.maxHeight !== "none"
+                    ? position.maxHeight
+                    : undefined,
+              }}
+            >
+              {children}
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

@@ -4,10 +4,9 @@ import { RefObject, useCallback, useEffect, useState } from "react";
 
 function expandSelectionToWords() {
   const selection = window.getSelection();
-  if (!selection || selection.rangeCount === 0) return;
+  if (!selection) return;
 
   const range = selection.getRangeAt(0);
-  if (range.collapsed) return;
 
   // Get the text content and positions
   const startContainer = range.startContainer;

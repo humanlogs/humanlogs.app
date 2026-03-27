@@ -73,7 +73,7 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
                 transcription={transcription.transcription}
               />
             </div>,
-            document.getElementById("transcription-header-portal")!,
+            document.getElementById("header-actions-portal")!,
           )}
         </>
       )}

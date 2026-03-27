@@ -7,6 +7,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuSub,
 } from "@/components/ui/dropdown-menu";
+import { TranscriptionContent } from "@/hooks/use-api";
+import {
+  exportAsCSV,
+  exportAsJSON,
+  exportAsTXTWithOptions,
+  exportAsWord,
+} from "@/lib/export-utils";
 import {
   DownloadIcon,
   FileAudio2Icon,
@@ -19,22 +26,17 @@ import {
   PencilIcon,
   Settings2Icon,
   TrashIcon,
+  UserCogIcon,
   XCircleIcon,
 } from "lucide-react";
+import { toast } from "sonner";
+import { useSpeakerOptionsModal } from "./dialogs/speaker-options-dialog";
 import { useTranscriptionDeleteModal } from "./dialogs/transcription-delete-dialog";
+import { useTranscriptionExportModal } from "./dialogs/transcription-export-dialog";
 import { useTranscriptionRenameModal } from "./dialogs/transcription-rename-dialog";
 import { useTranscriptionSetProjectModal } from "./dialogs/transcription-set-project-dialog";
-import { useTranscriptionExportModal } from "./dialogs/transcription-export-dialog";
-import { useTranscriptionHistoryModal } from "./transcription-history-sheet";
 import { SaveStatus } from "./editor/hooks/use-auto-save";
-import { TranscriptionContent } from "@/hooks/use-api";
-import {
-  exportAsCSV,
-  exportAsJSON,
-  exportAsWord,
-  exportAsTXTWithOptions,
-} from "@/lib/export-utils";
-import { toast } from "sonner";
+import { useTranscriptionHistoryModal } from "./transcription-history-sheet";
 
 type TranscriptionActionsProps = {
   transcriptionId: string;
@@ -56,6 +58,7 @@ export function TranscriptionActions({
   const { openDelete } = useTranscriptionDeleteModal();
   const { openExport } = useTranscriptionExportModal();
   const { openHistory } = useTranscriptionHistoryModal();
+  const { openSpeakerOptions } = useSpeakerOptionsModal();
 
   const handleRename = () => {
     openRename(transcriptionId, transcriptionName);
@@ -162,6 +165,29 @@ export function TranscriptionActions({
     }
   };
 
+  const handleSpeakerOptions = () => {
+    if (!transcription) {
+      toast.error("No transcription data available");
+      return;
+    }
+    // Map TranscriptionContent speakers to Speaker type
+    const speakers = transcription.speakers.map((s) => ({
+      id: s.id,
+      name: s.name,
+    }));
+    openSpeakerOptions(
+      transcription,
+      speakers,
+      transcription.words,
+      (options) => {
+        // TODO: Implement speaker options application logic
+        // This would need to call an API endpoint to update the transcription
+        console.log("Speaker options to apply:", options);
+        toast.info("Speaker options feature - implementation in progress");
+      },
+    );
+  };
+
   const downloadMenu = (
     <>
       <DropdownMenuItem onClick={handleExportCSV}>
@@ -240,7 +266,6 @@ export function TranscriptionActions({
             <FolderIcon className="h-4 w-4 mr-2" />
             Set Project
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
           <DropdownMenuSub
             trigger={
               <>
@@ -251,6 +276,11 @@ export function TranscriptionActions({
           >
             {downloadMenu}
           </DropdownMenuSub>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleSpeakerOptions}>
+            <UserCogIcon className="h-4 w-4 mr-2" />
+            Speaker Options
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleDelete} className="text-destructive">
             <TrashIcon className="h-4 w-4 mr-2" />

@@ -8,6 +8,7 @@
             "credits": "Utilisation",
             "renewal": "Renouvellement",
             "billing": "Facturation",
+            "security": "Sécurité",
             "theme": "Thème",
             "light": "Clair",
             "dark": "Sombre",
@@ -22,6 +23,112 @@
             "fr": "Français",
             "es": "Español",
             "de": "Deutsch"
+        }
+    },
+    "account": {
+        "billing": {
+            "title": "Facturation & Abonnement",
+            "description": "Gérez votre abonnement et vos crédits",
+            "current_plan": "Forfait Actuel",
+            "credits": "Crédits",
+            "available_credits": "Crédits Disponibles",
+            "credits_refill": "Recharge Mensuelle",
+            "credits_used": "Crédits Utilisés",
+            "next_renewal": "Prochain Renouvellement",
+            "subscription_status": "Statut",
+            "cancel_subscription": "Annuler l'Abonnement",
+            "manage_subscription": "Gérer l'Abonnement",
+            "upgrade_plan": "Améliorer le Forfait",
+            "plans": {
+                "title": "Forfaits Disponibles",
+                "free": {
+                    "name": "Gratuit",
+                    "price": "Gratuit",
+                    "features": [
+                        "100 minutes par mois",
+                        "Collaboration illimitée",
+                        "Toutes les fonctionnalités"
+                    ]
+                },
+                "monthly": {
+                    "name": "Pro Mensuel",
+                    "price": "15€/mois",
+                    "features": [
+                        "1200 minutes (20 heures) par mois",
+                        "Collaboration illimitée",
+                        "Toutes les fonctionnalités"
+                    ]
+                },
+                "yearly": {
+                    "name": "Pro Annuel",
+                    "price": "13,75€/mois",
+                    "billed": "Facturé 165€ annuellement",
+                    "features": [
+                        "1200 minutes (20 heures) par mois",
+                        "Collaboration illimitée",
+                        "Toutes les fonctionnalités",
+                        "Économisez 15€/an"
+                    ]
+                },
+                "one_time": {
+                    "name": "Achat Unique",
+                    "price": "20€",
+                    "features": [
+                        "1200 minutes (20 heures)",
+                        "Crédits à usage unique",
+                        "Sans expiration"
+                    ]
+                }
+            },
+            "subscribe": "S'abonner",
+            "purchase": "Acheter",
+            "current": "Forfait Actuel",
+            "cancel_confirm_title": "Annuler l'Abonnement?",
+            "cancel_confirm_description": "Votre abonnement restera actif jusqu'à la fin de la période de facturation. Vous aurez toujours accès à vos crédits.",
+            "cancel_confirm": "Oui, Annuler",
+            "canceling": "Annulation...",
+            "loading": "Chargement...",
+            "active": "Actif",
+            "canceled": "Annulé",
+            "minutes": "minutes",
+            "no_renewal": "Aucun abonnement actif"
+        },
+        "security": {
+            "title": "Sécurité",
+            "description": "Gérez le chiffrement de bout en bout et les paramètres de confiance des appareils",
+            "encryption_status": "Chiffrement de Bout en Bout",
+            "encryption_disabled_title": "Le chiffrement n'est pas activé",
+            "encryption_disabled_description": "Activez le chiffrement de bout en bout pour sécuriser vos données. Un certificat sera généré et vous devrez le stocker en lieu sûr.",
+            "encryption_enabled_title": "Le chiffrement de bout en bout est actif",
+            "encryption_enabled_description": "Vos données sont protégées par un chiffrement de bout en bout. Conservez votre certificat en lieu sûr.",
+            "enable_encryption": "Activer le Chiffrement",
+            "disable_encryption": "Désactiver le Chiffrement",
+            "generating": "Génération...",
+            "key_loaded": "Clé de chiffrement chargée sur cet appareil",
+            "key_loaded_description": "Vous pouvez accéder aux données chiffrées depuis cet appareil.",
+            "key_required": "Clé de chiffrement requise",
+            "key_required_description": "Veuillez télécharger votre certificat pour accéder aux données chiffrées sur cet appareil.",
+            "upload_certificate": "Télécharger le Certificat",
+            "uploading": "Téléchargement...",
+            "device_trust": "Confiance de l'Appareil",
+            "device_trusted_description": "Cet appareil est de confiance. Votre clé de chiffrement restera stockée même après déconnexion.",
+            "device_not_trusted_description": "Cet appareil n'est pas de confiance. Votre clé de chiffrement sera supprimée lors de la déconnexion.",
+            "trusted": "Appareil de Confiance",
+            "not_trusted": "Appareil Non Fiable",
+            "key_persists": "Clé conservée après déconnexion",
+            "key_removed_on_logout": "Clé supprimée à la déconnexion",
+            "trust_device": "Faire Confiance à cet Appareil",
+            "untrust_device": "Ne Plus Faire Confiance",
+            "remove_key_from_device": "Supprimer la Clé de l'Appareil",
+            "how_it_works": "Comment ça marche",
+            "step_1_title": "1. Génération du Certificat",
+            "step_1_description": "Un certificat contenant une paire de clés publique et privée est généré dans votre navigateur. La clé publique est stockée sur nos serveurs, tandis que la clé privée reste avec vous.",
+            "step_2_title": "2. Stockage Sécurisé",
+            "step_2_description": "La clé privée est chiffrée et stockée dans le stockage sécurisé de votre navigateur. Vous pouvez télécharger le certificat en tant que sauvegarde.",
+            "step_3_title": "3. Confiance de l'Appareil",
+            "step_3_description": "Choisissez si vous souhaitez conserver la clé de chiffrement sur cet appareil après déconnexion. Les appareils non fiables nécessiteront de télécharger à nouveau votre certificat.",
+            "tip_title": "Conseil : Gardez votre certificat en sécurité !",
+            "tip_description": "Envoyez votre certificat par email ou stockez-le dans un endroit sûr. Vous en aurez besoin pour accéder à vos données chiffrées depuis de nouveaux appareils."
         }
     },
     "newTranscription": {

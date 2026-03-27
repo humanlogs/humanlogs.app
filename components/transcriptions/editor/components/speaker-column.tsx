@@ -8,12 +8,16 @@ import {
   DropdownMenuSub,
 } from "@/components/ui/dropdown-menu";
 import _ from "lodash";
-import { UserRoundPen, UserRoundPlus, Users } from "lucide-react";
+import { UserCog, UserRoundPen, UserRoundPlus, Users } from "lucide-react";
 import { getSpeakerColorClass } from "../../../../lib/utils";
 import { TranscriptionSegment } from "../../../../hooks/use-api";
 import { getSpeakerLabel, Speaker } from "../hooks/use-speaker-actions";
 import { SpeakerPosition } from "../hooks/use-speaker-positions";
 import { useSpeakerRenameModal } from "./speaker-rename-dialog";
+import {
+  useSpeakerOptionsModal,
+  SpeakerOptionsData,
+} from "../../dialogs/speaker-options-dialog";
 
 /** Shared badge chip — used for interactive badges and the invisible decoy row. */
 export function SpeakerBadgeChip({
@@ -41,6 +45,7 @@ interface SpeakerColumnProps {
   segments: TranscriptionSegment[];
   onRenameSpeaker: (speakerId: string, name: string) => void;
   onChangeSpeakerForTurn: (turnIndex: number, targetId: string | null) => void;
+  onApplySpeakerOptions?: (options: SpeakerOptionsData) => void;
 }
 
 interface SpeakerBadgeProps {
@@ -49,6 +54,7 @@ interface SpeakerBadgeProps {
   segments: TranscriptionSegment[];
   onRenameSpeaker: (speakerId: string, name: string) => void;
   onChangeSpeakerForTurn: (turnIndex: number, targetId: string | null) => void;
+  onApplySpeakerOptions?: (options: SpeakerOptionsData) => void;
 }
 
 function SpeakerBadge({
@@ -57,9 +63,11 @@ function SpeakerBadge({
   segments,
   onRenameSpeaker,
   onChangeSpeakerForTurn,
+  onApplySpeakerOptions,
 }: SpeakerBadgeProps) {
   const { speakerId, index, top } = position;
   const { openRename } = useSpeakerRenameModal();
+  const { openSpeakerOptions } = useSpeakerOptionsModal();
 
   const label = getSpeakerLabel(speakerId, speakers, segments);
   const speakerArrayIndex = speakers.findIndex((s) => s.id === speakerId);
@@ -67,6 +75,20 @@ function SpeakerBadge({
     speakerArrayIndex >= 0 ? speakerArrayIndex : index,
   );
   const otherSpeakers = speakers.filter((s) => s.id !== speakerId);
+
+  const handleOpenSpeakerOptions = () => {
+    const transcription = {
+      speakers: speakers.map((s) => ({ id: s.id, name: s.name })),
+      words: segments,
+    };
+    openSpeakerOptions(
+      transcription,
+      speakers,
+      segments,
+      onApplySpeakerOptions || (() => {}),
+      speakerId, // Pre-select the clicked speaker
+    );
+  };
 
   return (
     <div
@@ -92,6 +114,11 @@ function SpeakerBadge({
         >
           <UserRoundPen className="mr-2 h-3.5 w-3.5" />
           Rename speaker
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={handleOpenSpeakerOptions}>
+          <UserCog className="mr-2 h-3.5 w-3.5" />
+          Speaker Options
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
@@ -129,6 +156,7 @@ export function SpeakerColumn({
   segments,
   onRenameSpeaker,
   onChangeSpeakerForTurn,
+  onApplySpeakerOptions,
 }: SpeakerColumnProps) {
   if (positions.length === 0) return <div className="w-24 shrink-0" />;
 
@@ -142,6 +170,7 @@ export function SpeakerColumn({
           segments={segments}
           onRenameSpeaker={onRenameSpeaker}
           onChangeSpeakerForTurn={onChangeSpeakerForTurn}
+          onApplySpeakerOptions={onApplySpeakerOptions}
         />
       ))}
 

@@ -8,6 +8,7 @@
             "credits": "Créditos",
             "renewal": "Renovación",
             "billing": "Facturación",
+            "security": "Seguridad",
             "theme": "Tema",
             "light": "Claro",
             "dark": "Oscuro",
@@ -22,6 +23,112 @@
             "fr": "Français",
             "es": "Español",
             "de": "Deutsch"
+        }
+    },
+    "account": {
+        "billing": {
+            "title": "Facturación y Suscripción",
+            "description": "Gestionar su suscripción y créditos",
+            "current_plan": "Plan Actual",
+            "credits": "Créditos",
+            "available_credits": "Créditos Disponibles",
+            "credits_refill": "Recarga Mensual",
+            "credits_used": "Créditos Usados",
+            "next_renewal": "Próxima Renovación",
+            "subscription_status": "Estado",
+            "cancel_subscription": "Cancelar Suscripción",
+            "manage_subscription": "Gestionar Suscripción",
+            "upgrade_plan": "Mejorar Plan",
+            "plans": {
+                "title": "Planes Disponibles",
+                "free": {
+                    "name": "Gratuito",
+                    "price": "Gratis",
+                    "features": [
+                        "100 minutos por mes",
+                        "Colaboración ilimitada",
+                        "Todas las funciones"
+                    ]
+                },
+                "monthly": {
+                    "name": "Pro Mensual",
+                    "price": "15€/mes",
+                    "features": [
+                        "1200 minutos (20 horas) por mes",
+                        "Colaboración ilimitada",
+                        "Todas las funciones"
+                    ]
+                },
+                "yearly": {
+                    "name": "Pro Anual",
+                    "price": "13,75€/mes",
+                    "billed": "Facturado 165€ anualmente",
+                    "features": [
+                        "1200 minutos (20 horas) por mes",
+                        "Colaboración ilimitada",
+                        "Todas las funciones",
+                        "Ahorre 15€/año"
+                    ]
+                },
+                "one_time": {
+                    "name": "Compra Única",
+                    "price": "20€",
+                    "features": [
+                        "1200 minutos (20 horas)",
+                        "Créditos de uso único",
+                        "Sin expiración"
+                    ]
+                }
+            },
+            "subscribe": "Suscribirse",
+            "purchase": "Comprar",
+            "current": "Plan Actual",
+            "cancel_confirm_title": "¿Cancelar Suscripción?",
+            "cancel_confirm_description": "Su suscripción permanecerá activa hasta el final del período de facturación. Todavía tendrá acceso a sus créditos.",
+            "cancel_confirm": "Sí, Cancelar",
+            "canceling": "Cancelando...",
+            "loading": "Cargando...",
+            "active": "Activo",
+            "canceled": "Cancelado",
+            "minutes": "minutos",
+            "no_renewal": "Sin suscripción activa"
+        },
+        "security": {
+            "title": "Seguridad",
+            "description": "Gestionar el cifrado de extremo a extremo y la configuración de confianza del dispositivo",
+            "encryption_status": "Cifrado de Extremo a Extremo",
+            "encryption_disabled_title": "El cifrado no está habilitado",
+            "encryption_disabled_description": "Active el cifrado de extremo a extremo para proteger sus datos. Se generará un certificado que deberá almacenar de forma segura.",
+            "encryption_enabled_title": "El cifrado de extremo a extremo está activo",
+            "encryption_enabled_description": "Sus datos están protegidos con cifrado de extremo a extremo. Mantenga su certificado seguro.",
+            "enable_encryption": "Habilitar Cifrado",
+            "disable_encryption": "Deshabilitar Cifrado",
+            "generating": "Generando...",
+            "key_loaded": "Clave de cifrado cargada en este dispositivo",
+            "key_loaded_description": "Puede acceder a los datos cifrados desde este dispositivo.",
+            "key_required": "Se requiere clave de cifrado",
+            "key_required_description": "Por favor, cargue su certificado para acceder a los datos cifrados en este dispositivo.",
+            "upload_certificate": "Cargar Certificado",
+            "uploading": "Cargando...",
+            "device_trust": "Confianza del Dispositivo",
+            "device_trusted_description": "Este dispositivo es de confianza. Su clave de cifrado permanecerá almacenada incluso después de cerrar sesión.",
+            "device_not_trusted_description": "Este dispositivo no es de confianza. Su clave de cifrado se eliminará al cerrar sesión.",
+            "trusted": "Dispositivo de Confianza",
+            "not_trusted": "Dispositivo No Confiable",
+            "key_persists": "Clave permanece después de cerrar sesión",
+            "key_removed_on_logout": "Clave eliminada al cerrar sesión",
+            "trust_device": "Confiar en Este Dispositivo",
+            "untrust_device": "Dejar de Confiar",
+            "remove_key_from_device": "Eliminar Clave del Dispositivo",
+            "how_it_works": "Cómo Funciona",
+            "step_1_title": "1. Generación de Certificado",
+            "step_1_description": "Se genera un certificado que contiene un par de claves pública y privada en su navegador. La clave pública se almacena en nuestros servidores, mientras que la clave privada permanece con usted.",
+            "step_2_title": "2. Almacenamiento Seguro",
+            "step_2_description": "La clave privada se cifra y se almacena en el almacenamiento seguro de su navegador. Puede descargar el certificado como copia de seguridad.",
+            "step_3_title": "3. Confianza del Dispositivo",
+            "step_3_description": "Elija si desea mantener la clave de cifrado en este dispositivo después de cerrar sesión. Los dispositivos no confiables requerirán que cargue su certificado nuevamente.",
+            "tip_title": "Consejo: ¡Mantenga su certificado seguro!",
+            "tip_description": "Envíe su certificado por correo electrónico o guárdelo en un lugar seguro. Lo necesitará para acceder a sus datos cifrados desde nuevos dispositivos."
         }
     },
     "newTranscription": {

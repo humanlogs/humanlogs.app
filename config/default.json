@@ -32,6 +32,15 @@
     "elevenlabs": {
         "apiKey": ""
     },
+    "stripe": {
+        "secretKey": "",
+        "webhookSecret": "",
+        "prices": {
+            "monthlySubscription": "",
+            "yearlySubscription": "",
+            "oneTimeCredits": ""
+        }
+    },
     "server": {
         "port": 3000
     }

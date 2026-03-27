@@ -16,6 +16,9 @@ import { useSearchReplace } from "./hooks/use-search-replace";
 import { Speaker, useSpeakerActions } from "./hooks/use-speaker-actions";
 import { useSpeakerPositions } from "./hooks/use-speaker-positions";
 import { AudioControls, InteractiveAudio } from "./interactive-audio";
+import { createPortal } from "react-dom";
+import { cn } from "../../../lib/utils";
+import { SpeakerOptionsData } from "../dialogs/speaker-options-dialog";
 
 interface TranscriptEditorContentProps {
   segments: TranscriptionSegment[];
@@ -72,6 +75,81 @@ export function TranscriptEditorContent({
     onSegmentsChange: onChange,
   });
 
+  // Apply speaker options (modifications, merge, remove)
+  const applySpeakerOptions = (options: SpeakerOptionsData) => {
+    let updatedSegments = [...segments];
+
+    // Apply text modifications to speaker's segments
+    if (options.modification !== "none") {
+      updatedSegments = updatedSegments.map((seg) => {
+        if (seg.speakerId !== options.speakerId) return seg;
+
+        let newText = seg.text;
+
+        // Apply text transformations
+        switch (options.modification) {
+          case "uppercase":
+            newText = seg.text.toUpperCase();
+            break;
+          case "lowercase":
+            newText = seg.text.toLowerCase();
+            break;
+          case "parenthesis":
+            newText = `(${seg.text})`;
+            break;
+        }
+
+        // Apply formatting modifiers
+        const newModifiers = [...(seg.modifiers || [])];
+        if (options.modification === "bold" && !newModifiers.includes("b")) {
+          newModifiers.push("b");
+        } else if (
+          options.modification === "italic" &&
+          !newModifiers.includes("i")
+        ) {
+          newModifiers.push("i");
+        } else if (
+          options.modification === "underline" &&
+          !newModifiers.includes("u")
+        ) {
+          newModifiers.push("u");
+        }
+
+        return {
+          ...seg,
+          text: newText,
+          modifiers:
+            newModifiers.length > 0
+              ? (newModifiers as ("b" | "i" | "u" | "s")[])
+              : seg.modifiers,
+        };
+      });
+    }
+
+    // Remove content if requested
+    if (options.removeContent) {
+      updatedSegments = updatedSegments.filter(
+        (seg) => seg.speakerId !== options.speakerId,
+      );
+    }
+
+    // Merge speaker if requested
+    if (options.mergeToSpeakerId && !options.removeContent) {
+      updatedSegments = updatedSegments.map((seg) => {
+        if (seg.speakerId === options.speakerId) {
+          return { ...seg, speakerId: options.mergeToSpeakerId as string };
+        }
+        return seg;
+      });
+
+      // Keep the speaker in the speakers list for undo support (Ctrl+Z)
+      // Don't remove it from the array
+    }
+
+    // Apply changes
+    onChange(updatedSegments);
+  };
+
   // Search and replace
   const searchReplace = useSearchReplace(segments, onChange);
 
@@ -126,34 +204,49 @@ export function TranscriptEditorContent({
     return () => document.removeEventListener("keydown", handleGlobalKeyDown);
   }, [searchReplace]);
 
+  useEffect(() => {
+    return;
+    window.addEventListener("scroll", () => {
+      document
+        .getElementById("header-sub-portal-container")
+        ?.classList.toggle("border-b", window.scrollY > 0);
+    });
+  }, []);
+
   return (
     <>
       <SpeakerRenameDialog />
       <div className="flex flex-col h-full">
         {/* Sticky top section */}
-        <div className="space-y-4 pt-6">
-          <InteractiveAudio
-            segments={segments}
-            id={id}
-            onAudioControlsReady={setAudioControls}
-          />
-          <EditorToolbar
-            applyFormat={applyFormat}
-            activeFormats={activeFormats}
-            searchReplace={searchReplace}
-            searchInputRef={searchInputRef}
-            audioControls={audioControls}
-          />
-        </div>
+        {createPortal(
+          <div id="header-sub-portal-container" className={cn("space-y-2")}>
+            <InteractiveAudio
+              segments={segments}
+              id={id}
+              onAudioControlsReady={setAudioControls}
+            />
+            <div className="px-4 pb-2">
+              <EditorToolbar
+                applyFormat={applyFormat}
+                activeFormats={activeFormats}
+                searchReplace={searchReplace}
+                searchInputRef={searchInputRef}
+                audioControls={audioControls}
+              />
+            </div>
+          </div>,
+          document.getElementById("header-sub-portal")!,
+        )}
 
         {/* Scrollable content area */}
-        <div className="flex flex-row px-6 gap-2 flex-1 pt-4 pb-6">
+        <div className="flex flex-row px-4 gap-2 flex-1 pb-6">
           <SpeakerColumn
             positions={speakerPositions}
             speakers={speakers}
             segments={segments}
             onRenameSpeaker={renameSpeaker}
             onChangeSpeakerForTurn={changeSpeakerForTurn}
+            onApplySpeakerOptions={applySpeakerOptions}
           />
           <div className="flex-1 px-2">
             <div className="relative">

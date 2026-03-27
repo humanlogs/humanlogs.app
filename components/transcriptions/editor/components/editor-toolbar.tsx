@@ -11,10 +11,9 @@ import {
   Underline,
 } from "lucide-react";
 import { Button } from "../../../ui/button";
+import { useAudio } from "../audio-context";
 import { AudioControls } from "../interactive-audio";
 import { SearchReplaceToolbar } from "./search-replace-toolbar";
-import { useState } from "react";
-import { useAudio } from "../audio-context";
 
 interface EditorToolbarProps {
   applyFormat: (modifier: "b" | "i" | "u" | "s") => void;
@@ -47,7 +46,7 @@ export function EditorToolbar({
   audioControls,
 }: EditorToolbarProps) {
   return (
-    <div className="flex items-center gap-0 px-6 shrink-0">
+    <div className="flex items-center gap-0 shrink-0">
       <Button
         variant={audioControls?.isPlaying ? "default" : "ghost"}
         size="sm"
@@ -59,7 +58,10 @@ export function EditorToolbar({
         title="Play / Pause (Alt+Space)"
       >
         {audioControls?.isPlaying ? (
-          <PauseIcon className="h-3.5 w-3.5 text-red-500 animation-pulse" />
+          <PauseIcon
+            className="h-3.5 w-3.5 text-pink-500 fill-pink-500 animation-pulse"
+            fill="filled"
+          />
         ) : (
           <PlayIcon className="h-3.5 w-3.5" />
         )}

@@ -45,7 +45,7 @@ export default function RootLayout({
                 storageKey="transcription-theme"
               >
                 {children}
-                <Toaster richColors position="top-right" />
+                <Toaster richColors position="bottom-right" />
               </ThemeProvider>
             </LocaleProvider>
           </SocketProvider>

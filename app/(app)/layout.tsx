@@ -13,6 +13,7 @@ import { TranscriptionSetProjectDialog } from "@/components/transcriptions/dialo
 import { TranscriptionExportDialog } from "@/components/transcriptions/dialogs/transcription-export-dialog";
 import { TranscriptionHistorySheet } from "@/components/transcriptions/transcription-history-sheet";
 import { VersionComparisonModal } from "@/components/transcriptions/dialogs/version-comparison-modal";
+import { SpeakerOptionsDialog } from "@/components/transcriptions/dialogs/speaker-options-dialog";
 
 export default async function AppLayout({
   children,
@@ -29,12 +30,15 @@ export default async function AppLayout({
     <SidebarProvider>
       <AppSidebar user={session.user}>
         <SidebarInset className="flex flex-col">
-          <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 sticky top-0 bg-background z-10">
-            <SidebarTrigger className="-ml-1" />
-            <div
-              id="transcription-header-portal"
-              className="flex-1 flex items-center justify-between"
-            />
+          <header className="sticky top-0 bg-background z-10">
+            <div className="border-b px-4 flex h-14 shrink-0 items-center gap-2">
+              <SidebarTrigger className="-ml-1" />
+              <div
+                id="header-actions-portal"
+                className="flex-1 flex items-center justify-between"
+              />
+            </div>
+            <div id="header-sub-portal" className="w-full" />
           </header>
           <main className="flex-1 overflow-y-auto">{children}</main>
         </SidebarInset>
@@ -46,6 +50,7 @@ export default async function AppLayout({
       <TranscriptionExportDialog />
       <TranscriptionHistorySheet />
       <VersionComparisonModal />
+      <SpeakerOptionsDialog />
     </SidebarProvider>
   );
 }

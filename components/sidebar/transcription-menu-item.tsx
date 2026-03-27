@@ -1,9 +1,8 @@
 "use client";
 
-import * as React from "react";
+import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
+import { AlertCircleIcon, FileTextIcon, LoaderIcon } from "lucide-react";
 import Link from "next/link";
-import { SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
-import { FileTextIcon, LoaderIcon, AlertCircleIcon } from "lucide-react";
 
 type TranscriptionState = "PENDING" | "COMPLETED" | "ERROR";
 
@@ -21,18 +20,6 @@ export function TranscriptionMenuItem({
   transcription,
   isActive,
 }: TranscriptionMenuItemProps) {
-  const handleStatusClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (transcription.state === "ERROR") {
-      // Show error message (you can customize this with a toast or modal)
-      alert(
-        transcription.errorMessage || "An error occurred during transcription",
-      );
-    }
-  };
-
   const getStatusIcon = () => {
     switch (transcription.state) {
       case "PENDING":

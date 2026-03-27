@@ -17,6 +17,7 @@ import {
   LogOutIcon,
   MoonIcon,
   SunIcon,
+  ShieldCheckIcon,
 } from "lucide-react";
 import * as React from "react";
 
@@ -152,9 +153,18 @@ export function SidebarUserMenu({
 
       {/* Menu Items */}
       <div className="py-1">
-        <DropdownMenuItem onClick={() => console.log("Billing")}>
+        <DropdownMenuItem
+          onClick={() => (window.location.href = "/account/billing")}
+        >
           <CreditCardIcon className="w-4 h-4 mr-2" />
           {t("user.billing")}
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() => (window.location.href = "/account/security")}
+        >
+          <ShieldCheckIcon className="w-4 h-4 mr-2" />
+          {t("user.security")}
         </DropdownMenuItem>
 
         <DropdownMenuSub
