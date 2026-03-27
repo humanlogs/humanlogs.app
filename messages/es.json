@@ -14,7 +14,8 @@
             "dark": "Oscuro",
             "system": "Sistema",
             "language": "Idioma",
-            "feedback": "Comentarios",
+            "feedback": "Comentarios y opiniones",
+            "featureRequest": "Solicitud de función",
             "help": "Ayuda",
             "logout": "Cerrar sesión"
         },
@@ -159,5 +160,38 @@
         "startTranscription": "Iniciar Transcripción",
         "processing": "Procesando...",
         "uploading": "Subiendo archivos..."
+    },
+    "feedback": {
+        "title": "Comentarios y Opiniones",
+        "description": "¿Qué te parece nuestra aplicación de transcripción?",
+        "ratings": {
+            "1": "😞 Muy insatisfecho",
+            "2": "😕 Insatisfecho",
+            "3": "😐 Neutral",
+            "4": "😊 Satisfecho",
+            "5": "🤩 Muy satisfecho"
+        },
+        "messageLabel": "¿Qué podemos mejorar?",
+        "messagePlaceholder": "Cuéntanos qué salió mal o qué podemos hacer mejor...",
+        "leaveReview": "Prefiero dejar una reseña",
+        "thankYou": "¡Gracias por tus comentarios!",
+        "thankYouMessage": "Nos alegra que disfrutes de nuestra aplicación. ¿Te gustaría compartir tu experiencia?",
+        "publishReview": "Publicar Reseña",
+        "close": "Cerrar",
+        "featureTitle": "Solicitud de Función",
+        "featureDescription": "¡Comparte tus ideas para ayudarnos a mejorar!",
+        "featureMessageLabel": "¿Qué función te gustaría ver?",
+        "featureMessagePlaceholder": "Describe la función o mejora que te gustaría ver...",
+        "featureSuccess": "¡Gracias por tu sugerencia!",
+        "submit": "Enviar Comentarios",
+        "submitting": "Enviando...",
+        "cancel": "Cancelar",
+        "success": "¡Gracias por tus comentarios!",
+        "errors": {
+            "ratingRequired": "Por favor selecciona una calificación",
+            "messageRequired": "Por favor cuéntanos qué podemos mejorar",
+            "featureMessageRequired": "Por favor describe la función que te gustaría ver",
+            "submitFailed": "Error al enviar comentarios"
+        }
     }
 }

@@ -36,6 +36,33 @@ const configSchema = z.object({
   elevenlabs: z.object({
     apiKey: z.string(),
   }),
+  email: z
+    .object({
+      provider: z.enum(["smtp", "ses"]).optional(),
+      from: z
+        .object({
+          name: z.string(),
+          address: z.string().email(),
+        })
+        .optional(),
+      smtp: z
+        .object({
+          host: z.string(),
+          port: z.number(),
+          secure: z.boolean(),
+          auth: z.object({
+            user: z.string(),
+            pass: z.string(),
+          }),
+        })
+        .optional(),
+      ses: z
+        .object({
+          region: z.string(),
+        })
+        .optional(),
+    })
+    .optional(),
   server: z.object({
     port: z.number(),
   }),

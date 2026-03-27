@@ -32,20 +32,26 @@ export function useShortcutsModal() {
 
 export function ShortcutsDialog() {
   const { isOpen, close } = useShortcutsModal();
-  const [customShortcuts, setCustomShortcuts] = useState<CustomShortcut[]>(() =>
-    getCustomShortcuts(),
-  );
+  const [customShortcuts, setCustomShortcuts] = useState<CustomShortcut[]>([]);
   const [newKey, setNewKey] = useState("");
   const [newText, setNewText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Refresh shortcuts when modal opens
+  // Load shortcuts when modal opens
   useEffect(() => {
     if (isOpen) {
-      // Use a timeout to avoid the setState in effect warning
-      const timeoutId = setTimeout(() => {
-        setCustomShortcuts(getCustomShortcuts());
-      }, 0);
-      return () => clearTimeout(timeoutId);
+      setIsLoading(true);
+      getCustomShortcuts()
+        .then((shortcuts) => {
+          setCustomShortcuts(shortcuts);
+        })
+        .catch((error) => {
+          console.error("Failed to load shortcuts:", error);
+          toast.error("Failed to load shortcuts");
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     }
   }, [isOpen]);
 
@@ -63,35 +69,43 @@ export function ShortcutsDialog() {
     })),
   ];
 
-  const handleAddShortcut = () => {
+  const handleAddShortcut = async () => {
     if (!newKey || !newText) {
       toast.error("Please provide both key combination and text");
       return;
     }
 
     try {
-      addCustomShortcut({
+      setIsLoading(true);
+      await addCustomShortcut({
         key: newKey,
         text: newText,
       });
-      setCustomShortcuts(getCustomShortcuts());
+      const shortcuts = await getCustomShortcuts();
+      setCustomShortcuts(shortcuts);
       setNewKey("");
       setNewText("");
       toast.success("Custom shortcut added");
     } catch (error) {
       toast.error("Failed to add shortcut");
       console.error("Add shortcut error:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleDeleteShortcut = (id: string) => {
+  const handleDeleteShortcut = async (id: string) => {
     try {
-      deleteCustomShortcut(id);
-      setCustomShortcuts(getCustomShortcuts());
+      setIsLoading(true);
+      await deleteCustomShortcut(id);
+      const shortcuts = await getCustomShortcuts();
+      setCustomShortcuts(shortcuts);
       toast.success("Shortcut deleted");
     } catch (error) {
       toast.error("Failed to delete shortcut");
       console.error("Delete shortcut error:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -201,13 +215,14 @@ export function ShortcutsDialog() {
                 </div>
                 <div className="flex-1">
                   <Input
+                    disabled={isLoading}
                     value={newText}
                     onChange={(e) => setNewText(e.target.value)}
                     placeholder="Text to insert"
                   />
                 </div>
-                <Button onClick={handleAddShortcut} size="sm">
-                  <PlusIcon className="h-4 w-4 mr-2" />
+                <Button onClick={handleAddShortcut} size="default">
+                  <PlusIcon className="h-4 w-4" />
                   Add
                 </Button>
               </div>

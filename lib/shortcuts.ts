@@ -29,67 +29,45 @@ export type CustomShortcut = {
   description?: string;
 };
 
-const STORAGE_KEY = "transcription-custom-shortcuts";
-
-export function getCustomShortcuts(): CustomShortcut[] {
-  if (typeof window === "undefined") return [];
-
+// API-based functions for managing shortcuts
+export async function getCustomShortcuts(): Promise<CustomShortcut[]> {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
+    const response = await fetch("/api/user/shortcuts");
+    if (!response.ok) {
+      throw new Error("Failed to fetch shortcuts");
+    }
+    const data = await response.json();
+    return data.shortcuts || [];
   } catch (error) {
     console.error("Failed to load custom shortcuts:", error);
     return [];
   }
 }
 
-export function saveCustomShortcuts(shortcuts: CustomShortcut[]): void {
-  if (typeof window === "undefined") return;
-
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(shortcuts));
-  } catch (error) {
-    console.error("Failed to save custom shortcuts:", error);
-  }
-}
-
-export function addCustomShortcut(
+export async function addCustomShortcut(
   shortcut: Omit<CustomShortcut, "id">,
-): CustomShortcut {
-  const shortcuts = getCustomShortcuts();
-  const newShortcut: CustomShortcut = {
-    ...shortcut,
-    id: Date.now().toString(),
-  };
+): Promise<CustomShortcut> {
+  const response = await fetch("/api/user/shortcuts", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(shortcut),
+  });
 
-  // Check if key already exists
-  const existingIndex = shortcuts.findIndex((s) => s.key === shortcut.key);
-  if (existingIndex !== -1) {
-    // Replace existing shortcut
-    shortcuts[existingIndex] = newShortcut;
-  } else {
-    shortcuts.push(newShortcut);
+  if (!response.ok) {
+    throw new Error("Failed to add shortcut");
   }
 
-  saveCustomShortcuts(shortcuts);
-  return newShortcut;
+  const data = await response.json();
+  return data.shortcut;
 }
 
-export function deleteCustomShortcut(id: string): void {
-  const shortcuts = getCustomShortcuts().filter((s) => s.id !== id);
-  saveCustomShortcuts(shortcuts);
-}
+export async function deleteCustomShortcut(id: string): Promise<void> {
+  const response = await fetch(`/api/user/shortcuts?id=${id}`, {
+    method: "DELETE",
+  });
 
-export function updateCustomShortcut(
-  id: string,
-  updates: Partial<CustomShortcut>,
-): void {
-  const shortcuts = getCustomShortcuts();
-  const index = shortcuts.findIndex((s) => s.id === id);
-
-  if (index !== -1) {
-    shortcuts[index] = { ...shortcuts[index], ...updates };
-    saveCustomShortcuts(shortcuts);
+  if (!response.ok) {
+    throw new Error("Failed to delete shortcut");
   }
 }
 

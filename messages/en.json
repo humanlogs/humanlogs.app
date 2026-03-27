@@ -14,7 +14,8 @@
             "dark": "Dark",
             "system": "System",
             "language": "Language",
-            "feedback": "Feedback",
+            "feedback": "Feedback and reviews",
+            "featureRequest": "Feature request",
             "help": "Help",
             "logout": "Logout"
         },
@@ -159,5 +160,38 @@
         "startTranscription": "Start Transcription",
         "processing": "Processing...",
         "uploading": "Uploading files..."
+    },
+    "feedback": {
+        "title": "Feedback & Reviews",
+        "description": "How do you like our transcription app?",
+        "ratings": {
+            "1": "😞 Very dissatisfied",
+            "2": "😕 Dissatisfied",
+            "3": "😐 Neutral",
+            "4": "😊 Satisfied",
+            "5": "🤩 Very satisfied"
+        },
+        "messageLabel": "What can we improve?",
+        "messagePlaceholder": "Tell us what went wrong or what we can do better...",
+        "leaveReview": "I prefer to leave a review",
+        "thankYou": "Thank you for your feedback!",
+        "thankYouMessage": "We're glad you're enjoying our app. Would you like to share your experience?",
+        "publishReview": "Publish Review",
+        "close": "Close",
+        "featureTitle": "Feature Request",
+        "featureDescription": "Share your ideas to help us improve!",
+        "featureMessageLabel": "What feature would you like to see?",
+        "featureMessagePlaceholder": "Describe the feature or improvement you'd like to see...",
+        "featureSuccess": "Thank you for your suggestion!",
+        "submit": "Submit Feedback",
+        "submitting": "Submitting...",
+        "cancel": "Cancel",
+        "success": "Thank you for your feedback!",
+        "errors": {
+            "ratingRequired": "Please select a rating",
+            "messageRequired": "Please tell us what we can improve",
+            "featureMessageRequired": "Please describe the feature you'd like to see",
+            "submitFailed": "Failed to submit feedback"
+        }
     }
 }

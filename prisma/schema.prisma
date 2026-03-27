@@ -27,8 +27,10 @@ model User {
   subscriptionPeriodEnd  DateTime?
   subscriptionStatus     String?
   lastCreditsRefill      DateTime?
+  shortcuts              Json?
   projects               Project[]
   transcriptions         Transcription[]
+  feedbacks              Feedback[]
 }
 
 model Project {
@@ -87,4 +89,23 @@ model TranscriptionHistory {
   updatedBy       String
 
   @@index([userId, transcriptionId, updatedAt])
+}
+
+model Feedback {
+  id        String       @id @default(uuid())
+  userId    String
+  type      FeedbackType @default(RATING)
+  rating    Int?
+  message   String?
+  createdAt DateTime     @default(now())
+  user      User         @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([type])
+}
+
+enum FeedbackType {
+  RATING
+  FEATURE_REQUEST
 }

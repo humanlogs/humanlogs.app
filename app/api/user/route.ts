@@ -20,6 +20,7 @@ export async function GET() {
         credits: true,
         creditsRefill: true,
         plan: true,
+        shortcuts: true,
       },
     });
 

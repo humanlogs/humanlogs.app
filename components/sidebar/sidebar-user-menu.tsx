@@ -9,15 +9,18 @@ import {
   DropdownMenuSub,
 } from "@/components/ui/dropdown-menu";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import { useFeedbackModal } from "@/components/dialogs/feedback-dialog";
 import {
   CheckIcon,
   CreditCardIcon,
-  ExternalLinkIcon,
+  HelpCircleIcon,
   LanguagesIcon,
   LogOutIcon,
   MoonIcon,
-  SunIcon,
   ShieldCheckIcon,
+  StarIcon,
+  SunIcon,
+  LightbulbIcon,
 } from "lucide-react";
 import * as React from "react";
 import { UserProfile } from "../../hooks/use-api";
@@ -40,6 +43,7 @@ export function SidebarUserMenu({
   const t = useTranslations("sidebar");
   const { locale } = useLocale();
   const { theme, setTheme } = useTheme();
+  const { open: openFeedbackModal } = useFeedbackModal();
   const [isHoveringAvatar, setIsHoveringAvatar] = React.useState(false);
 
   // Calculate credits display
@@ -212,17 +216,24 @@ export function SidebarUserMenu({
           ))}
         </DropdownMenuSub>
 
-        <DropdownMenuItem
-          onClick={() => window.open("https://feedback.example.com", "_blank")}
-        >
-          <ExternalLinkIcon className="w-4 h-4 mr-2" />
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem onClick={() => openFeedbackModal({ mode: "rating" })}>
+          <StarIcon className="w-4 h-4 mr-2" />
           {t("user.feedback")}
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() => openFeedbackModal({ mode: "feature-request" })}
+        >
+          <LightbulbIcon className="w-4 h-4 mr-2" />
+          {t("user.featureRequest")}
         </DropdownMenuItem>
 
         <DropdownMenuItem
           onClick={() => window.open("https://help.example.com", "_blank")}
         >
-          <ExternalLinkIcon className="w-4 h-4 mr-2" />
+          <HelpCircleIcon className="w-4 h-4 mr-2" />
           {t("user.help")}
         </DropdownMenuItem>
 

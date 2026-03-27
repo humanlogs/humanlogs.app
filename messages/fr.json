@@ -14,7 +14,8 @@
             "dark": "Sombre",
             "system": "Système",
             "language": "Langue",
-            "feedback": "Commentaires",
+            "feedback": "Avis",
+            "featureRequest": "Demande de fonctionnalité",
             "help": "Aide",
             "logout": "Déconnexion"
         },
@@ -159,5 +160,38 @@
         "startTranscription": "Démarrer la Transcription",
         "processing": "Traitement en cours...",
         "uploading": "Téléchargement des fichiers..."
+    },
+    "feedback": {
+        "title": "Vous aimez notre application ?",
+        "description": "Que pensez-vous de notre application de transcription ?",
+        "ratings": {
+            "1": "😞 Très insatisfait",
+            "2": "😕 Insatisfait",
+            "3": "😐 Neutre",
+            "4": "😊 Satisfait",
+            "5": "🤩 Très satisfait"
+        },
+        "messageLabel": "Que pouvons-nous améliorer ?",
+        "messagePlaceholder": "Dites-nous ce qui n'a pas fonctionné ou ce que nous pouvons améliorer...",
+        "leaveReview": "Je préfère laisser un avis",
+        "thankYou": "Merci pour vos commentaires !",
+        "thankYouMessage": "Nous sommes ravis que vous appréciez notre application. Souhaitez-vous partager votre expérience ?",
+        "publishReview": "Publier un avis",
+        "close": "Fermer",
+        "featureTitle": "Demande de Fonctionnalité",
+        "featureDescription": "Partagez vos idées pour nous aider à nous améliorer !",
+        "featureMessageLabel": "Quelle fonctionnalité aimeriez-vous voir ?",
+        "featureMessagePlaceholder": "Décrivez la fonctionnalité ou l'amélioration que vous aimeriez voir...",
+        "featureSuccess": "Merci pour votre suggestion !",
+        "submit": "Envoyer le commentaire",
+        "submitting": "Envoi en cours...",
+        "cancel": "Annuler",
+        "success": "Merci pour vos commentaires !",
+        "errors": {
+            "ratingRequired": "Veuillez sélectionner une note",
+            "messageRequired": "Veuillez nous dire ce que nous pouvons améliorer",
+            "featureMessageRequired": "Veuillez décrire la fonctionnalité que vous aimeriez voir",
+            "submitFailed": "Échec de l'envoi des commentaires"
+        }
     }
 }

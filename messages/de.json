@@ -14,7 +14,8 @@
             "dark": "Dunkel",
             "system": "System",
             "language": "Sprache",
-            "feedback": "Feedback",
+            "feedback": "Feedback und Bewertungen",
+            "featureRequest": "Feature-Anfrage",
             "help": "Hilfe",
             "logout": "Abmelden"
         },
@@ -159,5 +160,38 @@
         "startTranscription": "Transkription Starten",
         "processing": "Verarbeitung...",
         "uploading": "Dateien werden hochgeladen..."
+    },
+    "feedback": {
+        "title": "Feedback & Bewertungen",
+        "description": "Wie gefällt Ihnen unsere Transkriptions-App?",
+        "ratings": {
+            "1": "😞 Sehr unzufrieden",
+            "2": "😕 Unzufrieden",
+            "3": "😐 Neutral",
+            "4": "😊 Zufrieden",
+            "5": "🤩 Sehr zufrieden"
+        },
+        "messageLabel": "Was können wir verbessern?",
+        "messagePlaceholder": "Sagen Sie uns, was schief gelaufen ist oder was wir besser machen können...",
+        "leaveReview": "Ich möchte lieber eine Bewertung abgeben",
+        "thankYou": "Vielen Dank für Ihr Feedback!",
+        "thankYouMessage": "Wir freuen uns, dass Ihnen unsere App gefällt. Möchten Sie Ihre Erfahrung teilen?",
+        "publishReview": "Bewertung Veröffentlichen",
+        "close": "Schließen",
+        "featureTitle": "Feature-Anfrage",
+        "featureDescription": "Teilen Sie Ihre Ideen, um uns zu helfen, uns zu verbessern!",
+        "featureMessageLabel": "Welche Funktion möchten Sie sehen?",
+        "featureMessagePlaceholder": "Beschreiben Sie die Funktion oder Verbesserung, die Sie sehen möchten...",
+        "featureSuccess": "Vielen Dank für Ihren Vorschlag!",
+        "submit": "Feedback Senden",
+        "submitting": "Wird gesendet...",
+        "cancel": "Abbrechen",
+        "success": "Vielen Dank für Ihr Feedback!",
+        "errors": {
+            "ratingRequired": "Bitte wählen Sie eine Bewertung aus",
+            "messageRequired": "Bitte sagen Sie uns, was wir verbessern können",
+            "featureMessageRequired": "Bitte beschreiben Sie die Funktion, die Sie sehen möchten",
+            "submitFailed": "Feedback konnte nicht gesendet werden"
+        }
     }
 }

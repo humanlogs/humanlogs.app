@@ -18,6 +18,14 @@ export function useNavigationMode(
   const [currentIndex, setCurrentIndex] = useState<number>(-1);
   const isModalOpen = useAnyModalOpen();
   const lastNavigationTime = useRef<number>(0);
+  const [customShortcuts, setCustomShortcuts] = useState<
+    Awaited<ReturnType<typeof getCustomShortcuts>>
+  >([]);
+
+  // Load custom shortcuts on mount
+  useEffect(() => {
+    getCustomShortcuts().then(setCustomShortcuts).catch(console.error);
+  }, []);
 
   useEffect(() => {
     if (isModalOpen) {
@@ -324,7 +332,9 @@ export function useNavigationMode(
   useHotkeys(
     ["Enter", "*"],
     (event) => {
-      const replacement = handleCustomShortcut(event);
+      if (isModalOpen) return;
+
+      const replacement = handleCustomShortcut(event, customShortcuts);
 
       if (state !== "navigate" && !replacement) return;
 
@@ -373,12 +383,13 @@ export function useNavigationMode(
       enableOnContentEditable: true,
       enableOnFormTags: true,
     },
-    [state, currentIndex],
+    [isModalOpen, state, currentIndex, customShortcuts],
   );
 
   useHotkeys(
     ["Escape"],
     (event) => {
+      if (isModalOpen) return;
       if (state !== "edit") return;
       event.preventDefault();
       editorRef.current?.blur();
@@ -387,7 +398,7 @@ export function useNavigationMode(
       enableOnContentEditable: true,
       enableOnFormTags: true,
     },
-    [state],
+    [isModalOpen, state],
   );
 }
 
@@ -422,9 +433,11 @@ const ensureWord = (
 };
 
 // Check for custom shortcuts first
-const handleCustomShortcut = (event: KeyboardEvent): string | null => {
+const handleCustomShortcut = (
+  event: KeyboardEvent,
+  customShortcuts: Awaited<ReturnType<typeof getCustomShortcuts>>,
+): string | null => {
   console.log("Checking custom shortcuts");
-  const customShortcuts = getCustomShortcuts();
   const parts: string[] = [];
 
   if (event.ctrlKey) parts.push("ctrl");
