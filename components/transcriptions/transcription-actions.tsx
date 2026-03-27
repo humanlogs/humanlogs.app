@@ -22,6 +22,7 @@ import {
   FileTextIcon,
   FolderIcon,
   HistoryIcon,
+  KeyboardIcon,
   MoreVerticalIcon,
   PencilIcon,
   Settings2Icon,
@@ -31,6 +32,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSpeakerOptionsModal } from "./dialogs/speaker-options-dialog";
+import { useShortcutsModal } from "./dialogs/shortcuts-dialog";
 import { useTranscriptionDeleteModal } from "./dialogs/transcription-delete-dialog";
 import { useTranscriptionExportModal } from "./dialogs/transcription-export-dialog";
 import { useTranscriptionRenameModal } from "./dialogs/transcription-rename-dialog";
@@ -59,6 +61,7 @@ export function TranscriptionActions({
   const { openExport } = useTranscriptionExportModal();
   const { openHistory } = useTranscriptionHistoryModal();
   const { openSpeakerOptions } = useSpeakerOptionsModal();
+  const { open: openShortcuts } = useShortcutsModal();
 
   const handleRename = () => {
     openRename(transcriptionId, transcriptionName);
@@ -280,6 +283,10 @@ export function TranscriptionActions({
           <DropdownMenuItem onClick={handleSpeakerOptions}>
             <UserCogIcon className="h-4 w-4 mr-2" />
             Speaker Options
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={openShortcuts}>
+            <KeyboardIcon className="h-4 w-4 mr-2" />
+            Keyboard Shortcuts
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleDelete} className="text-destructive">

@@ -58,7 +58,7 @@ function SpeakerRenameForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="py-4 px-6 space-y-2">
+      <div className="px-6 space-y-2">
         <Label htmlFor="speaker-name">Name</Label>
         <Input
           id="speaker-name"

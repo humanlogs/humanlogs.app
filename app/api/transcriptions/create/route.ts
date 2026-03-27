@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { getStorage, generateAudioKey } from "@/lib/storage";
 import { getElevenLabsClient, isElevenLabsConfigured } from "@/lib/elevenlabs";
+import { isBillableVersion } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
 
@@ -90,31 +91,35 @@ export async function POST(request: NextRequest) {
     const totalMinutes = Math.ceil(totalSeconds / 60);
     const creditsNeeded = totalMinutes;
 
-    // Fetch user profile to check credits
-    const userProfile = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: {
-        id: true,
-        credits: true,
-        creditsRefill: true,
-        plan: true,
-      },
-    });
+    const isBillable = isBillableVersion();
 
-    if (!userProfile) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    const availableCredits = userProfile.credits;
-    if (availableCredits < creditsNeeded) {
-      return NextResponse.json(
-        {
-          error: "Insufficient credits",
-          needed: creditsNeeded,
-          available: availableCredits,
+    // Fetch user profile to check credits (only if billable)
+    if (isBillable) {
+      const userProfile = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: {
+          id: true,
+          credits: true,
+          creditsRefill: true,
+          plan: true,
         },
-        { status: 402 }, // Payment Required
-      );
+      });
+
+      if (!userProfile) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+
+      const availableCredits = userProfile.credits;
+      if (availableCredits < creditsNeeded) {
+        return NextResponse.json(
+          {
+            error: "Insufficient credits",
+            needed: creditsNeeded,
+            available: availableCredits,
+          },
+          { status: 402 }, // Payment Required
+        );
+      }
     }
 
     // Process each file and create transcriptions
@@ -174,18 +179,20 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Deduct credits
-      await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          credits: {
-            increment: -creditsNeeded,
+      // Deduct credits only if billable version
+      if (isBillable) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            credits: {
+              increment: -creditsNeeded,
+            },
+            creditsUsed: {
+              increment: creditsNeeded,
+            },
           },
-          creditsUsed: {
-            increment: creditsNeeded,
-          },
-        },
-      });
+        });
+      }
 
       return NextResponse.json({
         success: true,

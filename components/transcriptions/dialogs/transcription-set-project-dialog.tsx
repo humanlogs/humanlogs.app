@@ -114,7 +114,7 @@ export function TranscriptionSetProjectDialog() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
-            <div className="space-y-4 py-4 px-6">
+            <div className="space-y-4 px-6">
               <div className="space-y-2">
                 <Label htmlFor="project">Project</Label>
                 <div className="flex gap-2">

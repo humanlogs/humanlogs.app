@@ -95,7 +95,7 @@ export function TranscriptionExportDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4 px-6">
+        <div className="space-y-4 px-6">
           <div className="space-y-2">
             <div className="text-sm font-medium">Speakers</div>
             {/* Speaker selection - full width */}

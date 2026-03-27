@@ -144,7 +144,7 @@ export function SpeakerOptionsDialog() {
         </DialogHeader>
 
         {showConfirm ? (
-          <div className="space-y-4 py-4 px-6">
+          <div className="space-y-4 px-6">
             <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md">
               <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-500 mt-0.5 shrink-0" />
               <div className="space-y-1">
@@ -191,7 +191,7 @@ export function SpeakerOptionsDialog() {
             </div>
           </div>
         ) : (
-          <div className="space-y-4 py-4 px-6">
+          <div className="space-y-4 px-6">
             <div className="space-y-2">
               <div className="text-sm font-medium">Select Speaker</div>
               <Select

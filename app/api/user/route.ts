@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
+import { isStripeConfigured } from "@/lib/stripe";
 
 export async function GET() {
   try {
@@ -26,7 +27,10 @@ export async function GET() {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json(dbUser);
+    return NextResponse.json({
+      ...dbUser,
+      isBillingEnabled: isStripeConfigured(),
+    });
   } catch (error) {
     console.error("Error fetching user:", error);
     return NextResponse.json(
@@ -69,7 +73,10 @@ export async function PATCH(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(updatedUser);
+    return NextResponse.json({
+      ...updatedUser,
+      isBillingEnabled: isStripeConfigured(),
+    });
   } catch (error) {
     console.error("Error updating user:", error);
     return NextResponse.json(

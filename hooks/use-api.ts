@@ -50,14 +50,16 @@ export type TranscriptionSegment = {
   modifiers?: ("b" | "i" | "u" | "s")[];
 };
 
-type UserProfile = {
+export type UserProfile = {
   id: string;
   email: string;
   name?: string;
   language: string;
   credits: number;
   creditsRefill: number;
+  creditsUsed: number;
   plan: string;
+  isBillingEnabled: boolean;
 };
 
 // Module-level variables for global polling

@@ -239,7 +239,7 @@ export function TranscriptEditorContent({
         )}
 
         {/* Scrollable content area */}
-        <div className="flex flex-row px-4 gap-2 flex-1 pb-6">
+        <div className="flex flex-row px-4 gap-2 flex-1 pb-6 pt-4 pb-16">
           <SpeakerColumn
             positions={speakerPositions}
             speakers={speakers}

@@ -148,7 +148,7 @@ export function ProjectCreateModal() {
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-4 px-6">
+          <div className="space-y-4 px-6">
             <div className="space-y-2">
               <Label htmlFor="project-name">Project Name</Label>
               <Input

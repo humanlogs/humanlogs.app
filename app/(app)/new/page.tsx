@@ -557,7 +557,7 @@ export default function NewTranscriptionPage() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleRenameSubmit}>
-            <div className="py-4 px-6">
+            <div className="px-6">
               <div className="space-y-2">
                 <Label htmlFor="file-name">File Name</Label>
                 <Input

@@ -3,6 +3,8 @@
 import { RefObject, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { TranscriptionSegment } from "../../../../hooks/use-api";
+import { getCustomShortcuts } from "../../../../lib/shortcuts";
+import { useAnyModalOpen } from "../../../use-modal";
 import { AudioControls } from "../interactive-audio";
 
 export type NavigationState = "edit" | "navigate";
@@ -14,7 +16,15 @@ export function useNavigationMode(
 ) {
   const [state, setState] = useState<NavigationState>("navigate");
   const [currentIndex, setCurrentIndex] = useState<number>(-1);
+  const isModalOpen = useAnyModalOpen();
   const lastNavigationTime = useRef<number>(0);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      editorRef.current?.blur();
+      audioControls?.pause();
+    }
+  }, [isModalOpen, audioControls, editorRef]);
 
   useEffect(() => {
     if (audioControls)
@@ -42,7 +52,6 @@ export function useNavigationMode(
         const domElement = editorRef.current?.querySelector(
           `[data-index="${currentIndex}"]`,
         );
-        console.log("currentIndex", currentIndex, domElement);
         if (domElement) {
           // Scrolling strategy
           const headerHeight =
@@ -102,7 +111,7 @@ export function useNavigationMode(
     if (audioControls?.isPlaying && state !== "navigate") {
       editorRef.current?.blur();
     }
-  }, [audioControls?.isPlaying, setState, state]);
+  }, [audioControls?.isPlaying, setState, state, editorRef]);
 
   // Arrows: move into segments
   // Space = play / pause
@@ -315,44 +324,55 @@ export function useNavigationMode(
   useHotkeys(
     ["Enter", "*"],
     (event) => {
-      if (state !== "navigate") return;
+      const replacement = handleCustomShortcut(event);
 
-      // Do not trigger if it's a shortcut (e.g. cmd + b, alt + shift + f, etc.)
-      if (event.metaKey || event.altKey || event.ctrlKey) {
-        return;
-      }
+      if (state !== "navigate" && !replacement) return;
 
-      // Do not trigger for FN keys, arrows, etc.
-      if (event.key.length > 1 && event.key !== "Enter") {
-        return;
-      }
+      if (!replacement) {
+        // Do not trigger if it's a shortcut (e.g. cmd + b, alt + shift + f, etc.)
+        if (event.metaKey || event.altKey || event.ctrlKey) {
+          return;
+        }
 
-      // Do not trigger on space
-      if (event.key === " ") {
-        return;
+        // Do not trigger for FN keys, arrows, etc.
+        if (event.key.length > 1 && event.key !== "Enter") {
+          return;
+        }
+
+        // Do not trigger on space
+        if (event.key === " ") {
+          return;
+        }
       }
 
       event.preventDefault();
       editorRef.current?.focus();
 
       // Set the selection range
-      const domElement = editorRef.current?.querySelector(
-        `[data-index="${currentIndex}"]`,
-      );
-      if (domElement) {
-        const range = document.createRange();
-        range.selectNodeContents(domElement);
-        const selection = window.getSelection();
-        selection?.removeAllRanges();
-        selection?.addRange(range);
+      if (state === "navigate") {
+        const domElement = editorRef.current?.querySelector(
+          `[data-index="${currentIndex}"]`,
+        );
+        if (domElement) {
+          const range = document.createRange();
+          range.selectNodeContents(domElement);
+          const selection = window.getSelection();
+          selection?.removeAllRanges();
+          selection?.addRange(range);
+        }
       }
 
-      // If a letter was typed, then add that letter there
-      if (event.key.length === 1) {
+      // If a letter was typed or there's a custom shortcut replacement, insert that text
+      if (replacement) {
+        document.execCommand("insertText", false, replacement);
+      } else if (event.key.length === 1) {
         document.execCommand("insertText", false, event.key);
       }
     },
-    {},
+    {
+      enableOnContentEditable: true,
+      enableOnFormTags: true,
+    },
     [state, currentIndex],
   );
 
@@ -369,8 +389,6 @@ export function useNavigationMode(
     },
     [state],
   );
-
-  return {};
 }
 
 const duration = (segment: TranscriptionSegment) => {
@@ -401,4 +419,28 @@ const ensureWord = (
     }
   }
   return Math.max(0, Math.min(segments.length - 1, selection));
+};
+
+// Check for custom shortcuts first
+const handleCustomShortcut = (event: KeyboardEvent): string | null => {
+  console.log("Checking custom shortcuts");
+  const customShortcuts = getCustomShortcuts();
+  const parts: string[] = [];
+
+  if (event.ctrlKey) parts.push("ctrl");
+  if (event.altKey) parts.push("alt");
+  if (event.shiftKey) parts.push("shift");
+  if (event.metaKey) parts.push("meta");
+
+  const key = event.key.toLowerCase();
+  if (!["control", "alt", "shift", "meta"].includes(key)) {
+    parts.push(key);
+  }
+
+  const combination = parts.join("+");
+  const matchingShortcut = customShortcuts.find(
+    (s) => s.key.toLowerCase() === combination,
+  );
+
+  return matchingShortcut?.text || null;
 };

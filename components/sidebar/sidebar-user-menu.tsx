@@ -20,17 +20,7 @@ import {
   ShieldCheckIcon,
 } from "lucide-react";
 import * as React from "react";
-
-type UserProfile = {
-  id: string;
-  email: string;
-  name?: string;
-  language: string;
-  credits: number;
-  creditsRefill: number;
-  creditsUsed: number;
-  plan: string;
-};
+import { UserProfile } from "../../hooks/use-api";
 
 type SidebarUserMenuProps = {
   user: {
@@ -58,10 +48,6 @@ export function SidebarUserMenu({
   const creditsUsed = userProfile?.creditsUsed || 0;
   const creditsPercentage =
     creditsTotal > 0 ? (creditsUsed / creditsTotal) * 100 : 0;
-  const planType =
-    userProfile?.plan === "one-time"
-      ? "One-Time Plan"
-      : userProfile?.plan || "Free Plan";
 
   // Get current theme
   const currentTheme =
@@ -139,7 +125,6 @@ export function SidebarUserMenu({
         <div className="space-y-1">
           <p className="text-sm font-semibold">{user.name || "User"}</p>
           <p className="text-xs text-muted-foreground">{user.email}</p>
-          <p className="text-xs text-muted-foreground mt-2">{planType}</p>
         </div>
         <div className="mt-3 space-y-1">
           <div className="flex justify-between text-xs">
@@ -153,12 +138,14 @@ export function SidebarUserMenu({
 
       {/* Menu Items */}
       <div className="py-1">
-        <DropdownMenuItem
-          onClick={() => (window.location.href = "/account/billing")}
-        >
-          <CreditCardIcon className="w-4 h-4 mr-2" />
-          {t("user.billing")}
-        </DropdownMenuItem>
+        {userProfile?.isBillingEnabled && (
+          <DropdownMenuItem
+            onClick={() => (window.location.href = "/account/billing")}
+          >
+            <CreditCardIcon className="w-4 h-4 mr-2" />
+            {t("user.billing")}
+          </DropdownMenuItem>
+        )}
 
         <DropdownMenuItem
           onClick={() => (window.location.href = "/account/security")}

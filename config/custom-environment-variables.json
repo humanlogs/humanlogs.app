@@ -31,5 +31,14 @@
     },
     "elevenlabs": {
         "apiKey": "ELEVENLABS_API_KEY"
+    },
+    "stripe": {
+        "secretKey": "STRIPE_SECRET",
+        "webhookSecret": "STRIPE_WEBHOOK_SECRET",
+        "prices": {
+            "monthlySubscription": "STRIPE_PRICE_MONTHLY_SUBSCRIPTION",
+            "yearlySubscription": "STRIPE_PRICE_YEARLY_SUBSCRIPTION",
+            "oneTimeCredits": "STRIPE_PRICE_ONE_TIME_CREDITS"
+        }
     }
 }

@@ -14,6 +14,8 @@ import {
   SidebarHeader,
   SidebarInput,
   SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import {
   useProjects,
@@ -21,7 +23,13 @@ import {
   useUpdateUserLanguage,
   useUserProfile,
 } from "@/hooks/use-api";
-import { MicIcon, PencilIcon, SearchIcon } from "lucide-react";
+import {
+  Edit3Icon,
+  FilePlusCornerIcon,
+  MicIcon,
+  PencilIcon,
+  SearchIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
@@ -120,7 +128,7 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
       <Sidebar>
         <SidebarHeader>
           {/* Logo Section */}
-          <div className="flex items-center gap-2 px-2 py-2">
+          <div className="flex items-center gap-2 px-2 py-2 mx-auto">
             <img
               src="/logo-colors.svg"
               alt="Logo"
@@ -131,37 +139,34 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
               alt="Logo"
               className="dark:flex hidden items-center justify-center w-5 h-5"
             />
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold">Transcription</h2>
-            </div>
-          </div>
-
-          {/* New Transcription Button */}
-          <div className="px-2 py-2">
-            <Link href="/new">
-              <Button className="w-full bg-blue-500 text-white" size="lg">
-                {t("newTranscription")}
-              </Button>
-            </Link>
+            <h2 className="text-2xl font-bold">Transcription</h2>
           </div>
         </SidebarHeader>
 
-        <SidebarContent className="pt-2">
-          {/* Search only shown when there are transcriptions */}
-          {hasTranscriptions && (
-            <div className="px-4 pb-2">
+        <SidebarContent>
+          <div className="px-2">
+            <SidebarMenuItem>
+              <Link href="/new">
+                <SidebarMenuButton isActive={pathname === "/new"}>
+                  <FilePlusCornerIcon className="h-4 w-4" />
+                  {t("newTranscription")}
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
               <div className="relative">
-                <SearchIcon className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                <SearchIcon className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 pointer-events-none" />
                 <SidebarInput
                   type="search"
                   placeholder={t("search")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8"
+                  className="pl-8 h-8 border-none bg-transparent focus:ring-0 focus-visible:ring-0"
                 />
               </div>
-            </div>
-          )}
+            </SidebarMenuItem>
+          </div>
 
           {/* Projects with transcriptions */}
           {filteredProjects.map((project) => (

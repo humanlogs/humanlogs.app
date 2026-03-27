@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
-import { createCheckoutSession, createCustomer, PLANS } from "@/lib/stripe";
+import {
+  createCheckoutSession,
+  createCustomer,
+  PLANS,
+  isStripeConfigured,
+} from "@/lib/stripe";
 
 export async function POST(request: NextRequest) {
   try {
+    if (!isStripeConfigured()) {
+      return NextResponse.json(
+        { error: "Billing is not configured" },
+        { status: 503 },
+      );
+    }
+
     const user = await requireAuth();
     const body = await request.json();
     const { planType } = body; // 'monthly', 'yearly', or 'one-time'

@@ -14,6 +14,7 @@ import { TranscriptionExportDialog } from "@/components/transcriptions/dialogs/t
 import { TranscriptionHistorySheet } from "@/components/transcriptions/transcription-history-sheet";
 import { VersionComparisonModal } from "@/components/transcriptions/dialogs/version-comparison-modal";
 import { SpeakerOptionsDialog } from "@/components/transcriptions/dialogs/speaker-options-dialog";
+import { ShortcutsDialog } from "@/components/transcriptions/dialogs/shortcuts-dialog";
 
 export default async function AppLayout({
   children,
@@ -30,8 +31,8 @@ export default async function AppLayout({
     <SidebarProvider>
       <AppSidebar user={session.user}>
         <SidebarInset className="flex flex-col">
-          <header className="sticky top-0 bg-background z-10">
-            <div className="border-b px-4 flex h-14 shrink-0 items-center gap-2">
+          <header className="sticky top-0 bg-background/50 backdrop-blur-lg z-10">
+            <div className="border-b px-4 flex h-14 shrink-0 items-center gap-2 bg-background">
               <SidebarTrigger className="-ml-1" />
               <div
                 id="header-actions-portal"
@@ -51,6 +52,7 @@ export default async function AppLayout({
       <TranscriptionHistorySheet />
       <VersionComparisonModal />
       <SpeakerOptionsDialog />
+      <ShortcutsDialog />
     </SidebarProvider>
   );
 }

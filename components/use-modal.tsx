@@ -99,3 +99,21 @@ export function useModal<T>(modalId: string) {
     close,
   };
 }
+
+export const useAnyModalOpen = () => {
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkAnyModalOpen = () => {
+      const anyOpen = Object.values(modalStore).some((modal) => modal.isOpen);
+      setIsModalOpen(anyOpen);
+    };
+
+    listeners.add(checkAnyModalOpen);
+    return () => {
+      listeners.delete(checkAnyModalOpen);
+    };
+  }, []);
+
+  return isModalOpen;
+};

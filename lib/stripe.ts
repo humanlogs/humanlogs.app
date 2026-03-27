@@ -1,16 +1,45 @@
 import Stripe from "stripe";
 import config from "config";
 
-if (
-  !config.has("stripe.secretKey") ||
-  !config.get<string>("stripe.secretKey")
-) {
-  throw new Error("Stripe secret key is not configured");
+export function isStripeConfigured(): boolean {
+  return (
+    config.has("stripe.secretKey") &&
+    !!config.get<string>("stripe.secretKey") &&
+    config.has("stripe.prices.monthlySubscription") &&
+    config.has("stripe.prices.yearlySubscription") &&
+    config.has("stripe.prices.oneTimeCredits")
+  );
 }
 
-export const stripe = new Stripe(config.get<string>("stripe.secretKey"), {
-  apiVersion: "2026-03-25.dahlia",
-  typescript: true,
+/**
+ * Check if this is a billable version of the app.
+ * When false, credits are not deducted and billing features are disabled.
+ */
+export function isBillableVersion(): boolean {
+  return isStripeConfigured();
+}
+
+let stripeInstance: Stripe | null = null;
+
+export const getStripe = (): Stripe => {
+  if (!stripeInstance) {
+    if (!isStripeConfigured()) {
+      throw new Error("Stripe is not configured");
+    }
+    stripeInstance = new Stripe(config.get<string>("stripe.secretKey"), {
+      apiVersion: "2026-03-25.dahlia",
+      typescript: true,
+    });
+  }
+  return stripeInstance;
+};
+
+// For backward compatibility
+export const stripe = new Proxy({} as Stripe, {
+  get: (target, prop) => {
+    const stripeObj = getStripe();
+    return stripeObj[prop as keyof Stripe];
+  },
 });
 
 export const PLANS = {

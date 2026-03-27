@@ -112,7 +112,7 @@ export function TranscriptionRenameDialog() {
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
-          <div className="py-4 px-6">
+          <div className="px-6">
             <div className="space-y-2">
               <Label htmlFor="transcription-name">Transcription Name</Label>
               <Input

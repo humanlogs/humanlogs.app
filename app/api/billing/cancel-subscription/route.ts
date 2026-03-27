@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
-import { cancelSubscription } from "@/lib/stripe";
+import { cancelSubscription, isStripeConfigured } from "@/lib/stripe";
 
 export async function POST() {
   try {
+    if (!isStripeConfigured()) {
+      return NextResponse.json(
+        { error: "Billing is not configured" },
+        { status: 503 },
+      );
+    }
+
     const user = await requireAuth();
 
     const dbUser = await prisma.user.findUnique({
