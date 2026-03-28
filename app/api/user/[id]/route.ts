@@ -9,10 +9,13 @@ const userSelectPublic = {
   picture: true,
 };
 
-export async function GET(
-  _: NextRequest,
-  { params }: { params: { id: string } },
-) {
+type RouteParams = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+export async function GET(request: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
     await requireAuth();
