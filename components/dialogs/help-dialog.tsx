@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,8 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { Select } from "@/components/ui/select";
 import { useModal } from "@/components/use-modal";
-import { useTranslations } from "@/components/locale-provider";
-import { BookOpenIcon, MessageCircleIcon, RefreshCwIcon } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
@@ -21,13 +20,11 @@ export function useHelpModal() {
   return useModal<HelpModalData>("help-modal");
 }
 
-export function HelpDialog() {
-  const { isOpen, close } = useHelpModal();
+export const useResetTutorial = () => {
   const t = useTranslations("help");
-  const [selectedLanguage, setSelectedLanguage] = React.useState<string>("en");
   const [isResettingTutorial, setIsResettingTutorial] = React.useState(false);
 
-  const handleResetTutorial = async () => {
+  const handleResetTutorial = async (language: string) => {
     setIsResettingTutorial(true);
     try {
       const response = await fetch("/api/user/tutorial", {
@@ -36,7 +33,7 @@ export function HelpDialog() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          language: selectedLanguage,
+          language: language,
         }),
       });
 
@@ -47,10 +44,12 @@ export function HelpDialog() {
 
       toast.success(t("tutorial.resetSuccess"));
 
+      const json = await response.json();
+
       // Reload the page to show the new tutorial transcription
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      window.location.href = json?.transcription?.id
+        ? "/transcription/" + json.transcription.id
+        : "/new";
     } catch (error) {
       console.error("Error resetting tutorial:", error);
       toast.error(
@@ -60,6 +59,15 @@ export function HelpDialog() {
       setIsResettingTutorial(false);
     }
   };
+
+  return { isResettingTutorial, handleResetTutorial };
+};
+
+export function HelpDialog() {
+  const t = useTranslations("help");
+  const { isOpen, close } = useHelpModal();
+  const [selectedLanguage, setSelectedLanguage] = React.useState<string>("en");
+  const { isResettingTutorial, handleResetTutorial } = useResetTutorial();
 
   const handleOpenDocumentation = () => {
     window.open("https://docs.example.com", "_blank");
@@ -95,7 +103,7 @@ export function HelpDialog() {
                 className="flex-1 h-8"
               />
               <Button
-                onClick={handleResetTutorial}
+                onClick={() => handleResetTutorial(selectedLanguage)}
                 disabled={isResettingTutorial}
                 variant="outline"
               >

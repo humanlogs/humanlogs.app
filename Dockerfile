@@ -3,7 +3,7 @@ FROM node:22-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat openssl
+RUN apk add --no-cache libc6-compat openssl ffmpeg
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
@@ -31,6 +31,9 @@ RUN npm run build
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
+
+# Install ffmpeg for audio processing
+RUN apk add --no-cache ffmpeg
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1

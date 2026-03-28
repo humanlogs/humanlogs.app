@@ -1,7 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { isStripeConfigured } from "@/lib/stripe";
+import { NextRequest, NextResponse } from "next/server";
+
+const userSelectDefault = {
+  id: true,
+  email: true,
+  name: true,
+  language: true,
+  createdAt: true,
+  trustedDeviceSecret: true,
+  subscriptionPeriodEnd: true,
+  subscriptionStatus: true,
+  credits: true,
+  creditsRefill: true,
+  creditsUsed: true,
+  plan: true,
+  shortcuts: true,
+  isWelcomeDone: true,
+};
 
 export async function GET() {
   try {
@@ -12,16 +29,7 @@ export async function GET() {
       where: {
         id: user.id,
       },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        language: true,
-        credits: true,
-        creditsRefill: true,
-        plan: true,
-        shortcuts: true,
-      },
+      select: userSelectDefault,
     });
 
     if (!dbUser) {
@@ -55,23 +63,16 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Update allowed fields
-    const updateData: Record<string, string> = {};
+    const updateData: Record<string, string | boolean> = {};
     if (body.language) updateData.language = body.language;
+    if (body.isWelcomeDone) updateData.isWelcomeDone = true;
 
     const updatedUser = await prisma.user.update({
       where: {
         id: user.id,
       },
       data: updateData,
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        language: true,
-        credits: true,
-        creditsRefill: true,
-        plan: true,
-      },
+      select: userSelectDefault,
     });
 
     return NextResponse.json({

@@ -31,6 +31,7 @@ model User {
   projects               Project[]
   transcriptions         Transcription[]
   feedbacks              Feedback[]
+  isWelcomeDone          Boolean         @default(false)
 }
 
 model Project {
@@ -46,26 +47,27 @@ model Project {
 }
 
 model Transcription {
-  id                        String             @id @default(uuid())
+  id                        String                        @id @default(uuid())
   userId                    String
   projectId                 String?
-  title                     String             @default("")
+  title                     String                        @default("")
   audioFileKey              String
   audioFileName             String
   audioFileSize             Int
   transcription             Json?
   language                  String
   vocabulary                String[]
-  speakerCount              Int                @default(1)
-  state                     TranscriptionState @default(PENDING)
+  speakerCount              Int                           @default(1)
+  state                     TranscriptionState            @default(PENDING)
   errorMessage              String?
   elevenLabsTranscriptionId String?
-  createdAt                 DateTime           @default(now())
-  updatedAt                 DateTime           @updatedAt
-  updatedBy                 String             @default("system")
+  createdAt                 DateTime                      @default(now())
+  updatedAt                 DateTime                      @updatedAt
+  updatedBy                 String                        @default("system")
   completedAt               DateTime?
-  user                      User               @relation(fields: [userId], references: [id])
-  project                   Project?           @relation(fields: [projectId], references: [id])
+  user                      User                          @relation(fields: [userId], references: [id])
+  project                   Project?                      @relation(fields: [projectId], references: [id])
+  encryptionKeys            TranscriptionEncryptionKey[]
 
   @@index([id])
   @@index([userId, id])
@@ -78,6 +80,19 @@ enum TranscriptionState {
   PENDING
   COMPLETED
   ERROR
+}
+
+model TranscriptionEncryptionKey {
+  id                     String        @id @default(uuid())
+  transcriptionId        String
+  userId                 String
+  encryptedEncryptionKey String
+  createdAt              DateTime      @default(now())
+  transcription          Transcription @relation(fields: [transcriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([transcriptionId, userId])
+  @@index([transcriptionId])
+  @@index([userId])
 }
 
 model TranscriptionHistory {

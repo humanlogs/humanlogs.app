@@ -20,19 +20,15 @@ import {
 import {
   useProjects,
   useTranscriptions,
-  useUpdateUserLanguage,
+  useUpdateUser,
   useUserProfile,
 } from "@/hooks/use-api";
-import {
-  Edit3Icon,
-  FilePlusCornerIcon,
-  MicIcon,
-  PencilIcon,
-  SearchIcon,
-} from "lucide-react";
+import { FilePlusCornerIcon, PencilIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
+import { useWelcomeRedirect } from "../hooks/use-welcome-redirect";
+import { Locale, locales } from "../lib/i18n";
 import { useProjectModal } from "./project-create-modal";
 
 type AppSidebarProps = {
@@ -50,20 +46,18 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
   const { setLocale } = useLocale();
   const [searchQuery, setSearchQuery] = React.useState("");
   const { openRename } = useProjectModal();
+  useWelcomeRedirect();
 
   // Fetch data using React Query
   const { data: projects = [] } = useProjects();
   const { data: transcriptions = [] } = useTranscriptions();
   const { data: userProfile } = useUserProfile();
-  const updateLanguage = useUpdateUserLanguage();
+  const updateLanguage = useUpdateUser();
 
   // Sync language with locale provider when user profile loads
   React.useEffect(() => {
-    if (
-      userProfile?.language &&
-      ["en", "fr", "es", "de"].includes(userProfile.language)
-    ) {
-      setLocale(userProfile.language as "en" | "fr" | "es" | "de");
+    if (userProfile?.language && locales.includes(userProfile.language)) {
+      setLocale(userProfile.language as Locale);
     }
   }, [userProfile, setLocale]);
 
@@ -87,14 +81,11 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
   const handleLocaleChange = async (newLocale: "en" | "fr" | "es" | "de") => {
     setLocale(newLocale);
     try {
-      await updateLanguage.mutateAsync(newLocale);
+      await updateLanguage.mutateAsync({ language: newLocale });
     } catch (error) {
       console.error("Error saving language:", error);
     }
   };
-
-  // Check if there are any transcriptions
-  const hasTranscriptions = transcriptions.length > 0;
 
   // Filter projects and their transcriptions
   const filteredProjects = React.useMemo(() => {

@@ -1,32 +1,31 @@
 "use client";
 
 import { useTranslations } from "@/components/locale-provider";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  ShieldCheckIcon,
-  KeyIcon,
-  UploadIcon,
-  SmartphoneIcon,
-  AlertCircleIcon,
-  CheckCircleIcon,
-  LockIcon,
-} from "lucide-react";
-import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   createCertificate,
   downloadCertificate,
   generateDeviceSecret,
-  storePrivateKey,
   getPrivateKey,
-  removePrivateKey,
   isDeviceTrusted,
-  setDeviceTrust,
   parseCertificate,
+  removePrivateKey,
+  setDeviceTrust,
+  storePrivateKey,
 } from "@/lib/encryption";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  AlertCircleIcon,
+  CheckCircleIcon,
+  KeyIcon,
+  LockIcon,
+  SmartphoneIcon,
+  UploadIcon,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
 type EncryptionStatus = {
   hasEncryption: boolean;
@@ -217,7 +216,6 @@ export default function SecurityPage() {
     <div className="container max-w-4xl mx-auto p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-          <ShieldCheckIcon className="w-8 h-8" />
           {t("security.title")}
         </h1>
         <p className="text-muted-foreground mt-2">

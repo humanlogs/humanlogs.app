@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { UserProfile } from "../../hooks/use-api";
+import { locales } from "../../lib/i18n";
 
 type SidebarUserMenuProps = {
   user: {
@@ -206,7 +207,7 @@ export function SidebarUserMenu({
             </>
           }
         >
-          {["en", "fr", "es", "de"].map((lang) => (
+          {locales.map((lang) => (
             <DropdownMenuItem
               key={lang}
               onClick={() => onLocaleChange(lang as "en" | "fr" | "es" | "de")}

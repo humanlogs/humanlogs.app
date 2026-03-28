@@ -1,22 +1,22 @@
-import { redirect } from "next/navigation";
-import {
-  SidebarProvider,
-  SidebarTrigger,
-  SidebarInset,
-} from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import auth0 from "@/lib/auth0";
-import { ProjectCreateModal } from "@/components/project-create-modal";
-import { TranscriptionRenameDialog } from "@/components/transcriptions/dialogs/transcription-rename-dialog";
-import { TranscriptionDeleteDialog } from "@/components/transcriptions/dialogs/transcription-delete-dialog";
-import { TranscriptionSetProjectDialog } from "@/components/transcriptions/dialogs/transcription-set-project-dialog";
-import { TranscriptionExportDialog } from "@/components/transcriptions/dialogs/transcription-export-dialog";
-import { TranscriptionHistorySheet } from "@/components/transcriptions/transcription-history-sheet";
-import { VersionComparisonModal } from "@/components/transcriptions/dialogs/version-comparison-modal";
-import { SpeakerOptionsDialog } from "@/components/transcriptions/dialogs/speaker-options-dialog";
-import { ShortcutsDialog } from "@/components/transcriptions/dialogs/shortcuts-dialog";
 import { FeedbackDialog } from "@/components/dialogs/feedback-dialog";
 import { HelpDialog } from "@/components/dialogs/help-dialog";
+import { ProjectCreateModal } from "@/components/project-create-modal";
+import { ShortcutsDialog } from "@/components/transcriptions/dialogs/shortcuts-dialog";
+import { SpeakerOptionsDialog } from "@/components/transcriptions/dialogs/speaker-options-dialog";
+import { TranscriptionDeleteDialog } from "@/components/transcriptions/dialogs/transcription-delete-dialog";
+import { TranscriptionExportDialog } from "@/components/transcriptions/dialogs/transcription-export-dialog";
+import { TranscriptionRenameDialog } from "@/components/transcriptions/dialogs/transcription-rename-dialog";
+import { TranscriptionSetProjectDialog } from "@/components/transcriptions/dialogs/transcription-set-project-dialog";
+import { VersionComparisonModal } from "@/components/transcriptions/dialogs/version-comparison-modal";
+import { TranscriptionHistorySheet } from "@/components/transcriptions/transcription-history-sheet";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import auth0 from "@/lib/auth0";
+import { redirect } from "next/navigation";
 
 export default async function AppLayout({
   children,

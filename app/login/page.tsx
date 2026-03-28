@@ -50,6 +50,7 @@ export default function LoginPage() {
 
       if (response.ok) {
         toast.success("Logged in successfully!");
+        // Detect if this is a new account
         window.location.href = "/";
       } else {
         toast.error(data.error || "Login failed");

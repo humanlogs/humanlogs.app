@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-
-type Locale = "en" | "fr" | "es" | "de";
+import { Locale, locales } from "../lib/i18n";
 
 type LocaleContextType = {
   locale: Locale;
@@ -21,7 +20,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
   // Load saved locale from localStorage on mount
   React.useEffect(() => {
     const saved = localStorage.getItem("transcription-locale");
-    if (saved && ["en", "fr", "es", "de"].includes(saved)) {
+    if (saved && locales.includes(saved)) {
       setLocaleState(saved as Locale);
     }
   }, []);

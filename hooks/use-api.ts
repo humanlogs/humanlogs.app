@@ -59,6 +59,7 @@ export type UserProfile = {
   creditsRefill: number;
   creditsUsed: number;
   plan: string;
+  isWelcomeCompleted: boolean;
   isBillingEnabled: boolean;
 };
 
@@ -165,17 +166,19 @@ export function useUserProfile() {
 }
 
 // Update user language
-export function useUpdateUserLanguage() {
+export function useUpdateUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (language: string) => {
+    mutationFn: async (
+      updateData: Partial<Pick<UserProfile, "language" | "isWelcomeCompleted">>,
+    ) => {
       const response = await fetch("/api/user", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ language }),
+        body: JSON.stringify(updateData),
       });
 
       if (!response.ok) {
