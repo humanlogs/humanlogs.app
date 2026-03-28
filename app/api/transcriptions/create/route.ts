@@ -197,7 +197,9 @@ export async function POST(request: NextRequest) {
           // Generate random encryption key for this transcription
           transcriptionEncryptionKey = generateTranscriptionEncryptionKey();
 
-          console.log(`Encrypting file for transcription ${transcription.id}...`);
+          console.log(
+            `Encrypting file for transcription ${transcription.id}...`,
+          );
 
           // Encrypt the audio file with the transcription key
           fileToStore = encryptAudioBuffer(
