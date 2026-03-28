@@ -133,7 +133,6 @@ export function useNavigationMode(
   useHotkeys(
     ["space", "alt+space", "ctrl+space", "ctrl+alt+space"],
     (event) => {
-      console.log("here");
       event.preventDefault();
       if (state !== "navigate") return;
       audioControls?.togglePlayPause();
@@ -437,7 +436,6 @@ const handleCustomShortcut = (
   event: KeyboardEvent,
   customShortcuts: Awaited<ReturnType<typeof getCustomShortcuts>>,
 ): string | null => {
-  console.log("Checking custom shortcuts");
   const parts: string[] = [];
 
   if (event.ctrlKey) parts.push("ctrl");

@@ -79,6 +79,7 @@ export const TranscriptEditor = ({
         speakers={speakers}
         onChange={setSegments}
         onSpeakersChange={setSpeakers}
+        audioFileEncryption={transcription.audioFileEncryption}
       />
     </div>
   );

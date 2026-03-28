@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
 import { TranscriptionSegment } from "../../../hooks/use-transcriptions";
 import { getSpeakerColor } from "../../../lib/utils";
+import { downloadAndDecryptAudio } from "../../../lib/audio-decryption.browser";
 import { useAudio } from "./audio-context";
 import "./index.css"; // Import custom styles for canvas
 
@@ -56,7 +57,6 @@ const getSpeakerSegments = (oSegments: TranscriptionSegment[]) => {
 
   // Add final segment
   if (currentSpeaker && segments.length > 0) {
-    console.log("here", currentSpeaker, segments.length);
     const lastWord = oSegments[oSegments.length - 1];
     segments.push({
       start: segmentStart,
@@ -72,10 +72,12 @@ const getSpeakerSegments = (oSegments: TranscriptionSegment[]) => {
 export const InteractiveAudio = ({
   segments,
   id,
+  audioFileEncryption,
   onAudioControlsReady,
 }: {
   segments: TranscriptionSegment[];
   id: string;
+  audioFileEncryption?: string;
   onAudioControlsReady?: (controls: AudioControls) => void;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -272,9 +274,25 @@ export const InteractiveAudio = ({
     // Fetch and load the audio
     const loadAudio = async () => {
       try {
-        // Load audio directly from the streaming endpoint
-        const audioUrl = `/api/transcriptions/${id}/audio`;
-        await wavesurfer.load(audioUrl);
+        if (!audioFileEncryption) {
+          // No encryption, load directly
+          const audioUrl = `/api/transcriptions/${id}/audio`;
+          await wavesurfer.load(audioUrl);
+        } else {
+          // Download and decrypt the audio file
+          const decryptedBlob = await downloadAndDecryptAudio(
+            id,
+            audioFileEncryption,
+          );
+
+          // Create blob URL and load into wavesurfer
+          const blobUrl = URL.createObjectURL(decryptedBlob);
+          await wavesurfer.load(blobUrl);
+
+          // Clean up blob URL after loading (wavesurfer copies the data)
+          // We do this after a delay to ensure wavesurfer has processed the audio
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+        }
       } catch (err) {
         console.error("Error loading audio:", err);
       }

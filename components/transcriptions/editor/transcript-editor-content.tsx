@@ -26,6 +26,7 @@ interface TranscriptEditorContentProps {
   id: string;
   onChange: (segments: TranscriptionSegment[]) => void;
   onSpeakersChange: (speakers: Speaker[]) => void;
+  audioFileEncryption?: string;
 }
 
 export function TranscriptEditorContent({
@@ -34,6 +35,7 @@ export function TranscriptEditorContent({
   id,
   onChange,
   onSpeakersChange,
+  audioFileEncryption,
 }: TranscriptEditorContentProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -223,6 +225,7 @@ export function TranscriptEditorContent({
             <InteractiveAudio
               segments={segments}
               id={id}
+              audioFileEncryption={audioFileEncryption}
               onAudioControlsReady={setAudioControls}
             />
             <div className="px-4 pb-2">

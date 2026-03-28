@@ -8,6 +8,7 @@ import {
   DropdownMenuSub,
 } from "@/components/ui/dropdown-menu";
 import { TranscriptionContent } from "@/hooks/use-transcriptions";
+import { downloadAndDecryptAudio } from "@/lib/audio-decryption.browser";
 import {
   exportAsCSV,
   exportAsJSON,
@@ -23,6 +24,7 @@ import {
   FolderIcon,
   HistoryIcon,
   KeyboardIcon,
+  KeyIcon,
   MoreVerticalIcon,
   PencilIcon,
   Settings2Icon,
@@ -31,8 +33,8 @@ import {
   XCircleIcon,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useSpeakerOptionsModal } from "./dialogs/speaker-options-dialog";
 import { useShortcutsModal } from "./dialogs/shortcuts-dialog";
+import { useSpeakerOptionsModal } from "./dialogs/speaker-options-dialog";
 import { useTranscriptionDeleteModal } from "./dialogs/transcription-delete-dialog";
 import { useTranscriptionExportModal } from "./dialogs/transcription-export-dialog";
 import { useTranscriptionRenameModal } from "./dialogs/transcription-rename-dialog";
@@ -46,6 +48,7 @@ type TranscriptionActionsProps = {
   projectId?: string;
   saveStatus?: SaveStatus;
   transcription?: TranscriptionContent;
+  audioFileEncryption?: string;
 };
 
 export function TranscriptionActions({
@@ -54,6 +57,7 @@ export function TranscriptionActions({
   projectId,
   saveStatus = "idle",
   transcription,
+  audioFileEncryption,
 }: TranscriptionActionsProps) {
   const { openRename } = useTranscriptionRenameModal();
   const { openSetProject } = useTranscriptionSetProjectModal();
@@ -152,16 +156,38 @@ export function TranscriptionActions({
     }
   };
 
-  const handleDownloadAudio = () => {
+  const handleDownloadAudio = async () => {
     try {
-      // Create a link to download the audio file
+      if (!audioFileEncryption) {
+        // No encryption, download directly
+        const link = document.createElement("a");
+        link.href = `/api/transcriptions/${transcriptionId}/audio`;
+        link.download = transcriptionName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("Downloading audio file");
+        return;
+      }
+
+      // Download and decrypt the audio file
+      toast.info("Downloading and decrypting audio file...");
+      const decryptedBlob = await downloadAndDecryptAudio(
+        transcriptionId,
+        audioFileEncryption,
+      );
+
+      // Create download link for decrypted audio
+      const url = URL.createObjectURL(decryptedBlob);
       const link = document.createElement("a");
-      link.href = `/api/transcriptions/${transcriptionId}/audio`;
+      link.href = url;
       link.download = transcriptionName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      toast.success("Downloading audio file");
+      URL.revokeObjectURL(url);
+
+      toast.success("Audio file downloaded");
     } catch (error) {
       toast.error("Failed to download audio file");
       console.error("Download audio error:", error);
@@ -238,6 +264,21 @@ export function TranscriptionActions({
               </>
             )}
           </div>
+        )}
+
+        {!!audioFileEncryption && (
+          <DropdownMenu
+            trigger={
+              <Button variant={"ghost"} size="icon-sm">
+                <KeyIcon className="h-4 w-4 text-blue-500" />
+              </Button>
+            }
+            align="end"
+          >
+            <DropdownMenuItem>
+              This transcription is end-to-end encrypted.
+            </DropdownMenuItem>
+          </DropdownMenu>
         )}
 
         <DropdownMenu

@@ -7,7 +7,11 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { browserCrypto } from "../lib/encryption-entities.browser";
-import { useDecryptData } from "./use-encryption";
+import {
+  DecryptedWithRaw,
+  useDecryptData,
+  useEncryptionStatus,
+} from "./use-encryption";
 
 type Transcription = {
   id: string;
@@ -245,6 +249,7 @@ export function calculateWordChanges(
 // Save transcription mutation
 export function useSaveTranscription(transcriptionId: string) {
   const queryClient = useQueryClient();
+  const { data: encryptionStatus } = useEncryptionStatus();
 
   return useMutation({
     mutationFn: async (data: {
@@ -252,11 +257,9 @@ export function useSaveTranscription(transcriptionId: string) {
       speakers: { id: string; name?: string }[];
     }) => {
       //Get the current transcription to calculate changes and get encryption entity
-      const currentTranscription =
-        queryClient.getQueryData<TranscriptionDetail>([
-          "transcriptions",
-          transcriptionId,
-        ]);
+      const currentTranscription = queryClient.getQueryData<
+        DecryptedWithRaw<TranscriptionDetail>
+      >(["transcriptions", transcriptionId]);
 
       // Calculate change stats
       let changeStats = { additions: 0, removals: 0, changed: 0 };
@@ -274,7 +277,9 @@ export function useSaveTranscription(transcriptionId: string) {
       };
 
       // Handle encryption if current transcription is encrypted
-      const currentData = currentTranscription?.transcription as any;
+      // TODO not super elegant to retreive the original encryption status like that, could easily lead to a mistake stopping encryption
+      const currentData = (currentTranscription?._raw as any)
+        ?.transcription as EncryptedDataEntity;
       if (currentData?.privateKeys && currentData?.payload) {
         // Encrypt the new transcription data using the existing entity template
         const encryptedEntity = currentData as EncryptedDataEntity;

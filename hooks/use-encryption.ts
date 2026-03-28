@@ -31,6 +31,7 @@ export type EncryptionState = {
   deviceTrusted: boolean;
   privateKey: string | null;
   publicKey: string | null;
+  userId: string;
 };
 
 /**
@@ -63,6 +64,7 @@ export function useEncryptionStatus() {
         deviceTrusted,
         privateKey,
         publicKey: data.publicKey,
+        userId: data.userId,
       };
     },
   });
@@ -217,7 +219,7 @@ export function useDecryptData() {
   const statusRef = useRef(status);
   statusRef.current = status;
 
-  return async <T>(data: EncryptedDataEntity): Promise<T> => {
+  return async <T>(data: EncryptedDataEntity): Promise<DecryptedWithRaw<T>> => {
     const encryption = new EncryptionUtils(browserCrypto);
 
     if (!statusRef.current) {
@@ -237,8 +239,10 @@ export function useDecryptData() {
       statusRef.current?.publicKey || "",
     );
 
-    console.log(res);
-
-    return res;
+    return { ...res, _raw: data };
   };
 }
+
+export type DecryptedWithRaw<T> = T & {
+  _raw: EncryptedDataEntity | { [key: string]: EncryptedDataEntity };
+};

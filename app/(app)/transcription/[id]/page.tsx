@@ -71,6 +71,7 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
                 projectId={transcription.projectId}
                 saveStatus={saveStatus}
                 transcription={transcription.transcription}
+                audioFileEncryption={transcription.audioFileEncryption}
               />
             </div>,
             document.getElementById("header-actions-portal")!,

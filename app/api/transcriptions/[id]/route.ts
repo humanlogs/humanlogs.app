@@ -147,6 +147,24 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         changed: 0,
       };
 
+      // Check we are not disclosing encrypted data
+      if (body.transcription && !body.transcription.privateKeys.length) {
+        // Means we are sending unencrypted data
+        if (
+          (transcription.audioFileEncryption as EncryptedDataEntity)
+            ?.privateKeys?.length
+        ) {
+          // Means we should deal with encrypted data but we are sending unencrypted data, this should not happen
+          return NextResponse.json(
+            {
+              error:
+                "Cannot update transcription with unencrypted data when the original transcription is encrypted",
+            },
+            { status: 400 },
+          );
+        }
+      }
+
       // Create a history entry before updating
       if (transcription.transcription !== null) {
         await prisma.transcriptionHistory.create({

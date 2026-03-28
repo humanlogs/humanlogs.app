@@ -69,16 +69,10 @@ export function useAutoSave({
     // Schedule actual save after debounce
     saveTimeoutRef.current = setTimeout(async () => {
       try {
-        const response = await saveTranscription.mutateAsync({
+        await saveTranscription.mutateAsync({
           words: segments,
           speakers,
         });
-
-        const responseData = await response.json();
-
-        if (!response.ok) {
-          throw new Error(responseData.error || "Failed to save transcription");
-        }
 
         lastSavedRef.current = currentState;
         setSaveStatus("saved");
