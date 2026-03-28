@@ -536,7 +536,7 @@ export default function NewTranscriptionPage() {
             <Button
               type="submit"
               size="lg"
-              className={"bg-blue-500"}
+              variant={"primary"}
               disabled={
                 audioFiles.length === 0 || !hasEnoughCredits || isSubmitting
               }
@@ -577,7 +577,7 @@ export default function NewTranscriptionPage() {
               >
                 Cancel
               </Button>
-              <Button type="submit" className="bg-blue-500">
+              <Button type="submit" variant={"primary"}>
                 Rename
               </Button>
             </DialogFooter>

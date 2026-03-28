@@ -133,11 +133,7 @@ export function TranscriptionRenameDialog() {
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              className="bg-blue-500"
-              disabled={isSubmitting}
-            >
+            <Button type="submit" variant={"primary"} disabled={isSubmitting}>
               {isSubmitting ? "Renaming..." : "Rename"}
             </Button>
           </DialogFooter>

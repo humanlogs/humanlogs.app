@@ -1,8 +1,8 @@
 "use client";
 
+import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { RefObject, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { getCustomShortcuts } from "../../../../lib/shortcuts";
 import { useAnyModalOpen } from "../../../use-modal";
 import { AudioControls } from "../interactive-audio";
@@ -332,6 +332,19 @@ export function useNavigationMode(
     ["Enter", "*"],
     (event) => {
       if (isModalOpen) return;
+
+      // If something not being the editor is focused, do not trigger this shortcut, except if it's a custom shortcut
+      if (
+        // Is focussing an input, select or textarea element
+        document.activeElement &&
+        ["INPUT", "SELECT", "TEXTAREA"].includes(
+          document.activeElement.tagName,
+        ) &&
+        // Is focussing an element outside of the editor
+        document.activeElement !== editorRef.current
+      ) {
+        return;
+      }
 
       const replacement = handleCustomShortcut(event, customShortcuts);
 

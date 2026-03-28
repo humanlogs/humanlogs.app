@@ -378,6 +378,21 @@ export async function setDeviceTrust(
 }
 
 /**
+ * Removes the private key from IndexedDB if the device is not trusted.
+ * This should be called on logout to clean up non-trusted devices.
+ */
+export async function cleanupNonTrustedKeys(): Promise<void> {
+  try {
+    const isTrusted = await isDeviceTrusted();
+    if (!isTrusted) {
+      await removePrivateKey();
+    }
+  } catch (error) {
+    console.error("Failed to cleanup non-trusted keys:", error);
+  }
+}
+
+/**
  * Parses and validates a certificate file.
  */
 export function parseCertificate(content: string): EncryptionCertificate {

@@ -24,9 +24,11 @@ import {
   useTranscriptionHistory,
   useTranscriptionVersion,
   useRevertTranscription,
+  useTranscription,
   type HistoryEntry,
   type TranscriptionSegment,
 } from "@/hooks/use-transcriptions";
+import { useRouter } from "next/navigation";
 
 export type TranscriptionHistoryModalData = {
   transcriptionId: string;
@@ -48,6 +50,7 @@ export function useTranscriptionHistoryModal() {
 export function TranscriptionHistorySheet() {
   const { isOpen, data, close } = useTranscriptionHistoryModal();
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [selectedVersionIndex, setSelectedVersionIndex] = React.useState<
     number | null
   >(null);
@@ -56,16 +59,29 @@ export function TranscriptionHistorySheet() {
     (isOpen && data?.transcriptionId) || "",
   );
 
+  const isViewingCurrent = selectedVersionIndex === -1;
   const selectedVersion =
-    selectedVersionIndex !== null && history
+    selectedVersionIndex !== null && !isViewingCurrent && history
       ? history[selectedVersionIndex]
       : null;
+
+  // Fetch the current live transcription (when viewing current version at index -1)
+  const { data: currentTranscription } = useTranscription(
+    (isOpen && isViewingCurrent && data?.transcriptionId) || "",
+  );
+
+  // When viewing current, we need to fetch the most recent history entry to compare with
+  const mostRecentHistoryId = history?.[0]?.id;
+  const { data: mostRecentVersionData } = useTranscriptionVersion(
+    (isOpen && isViewingCurrent && data?.transcriptionId) || "",
+    (isOpen && isViewingCurrent && mostRecentHistoryId) || "",
+  );
 
   // Fetch the specific version data when a version is selected
   const { data: versionData, isLoading: isLoadingVersion } =
     useTranscriptionVersion(
       (isOpen && data?.transcriptionId) || "",
-      (isOpen && selectedVersion?.id) || "",
+      (isOpen && !isViewingCurrent && selectedVersion?.id) || "",
     );
 
   // Revert mutation
@@ -89,20 +105,38 @@ export function TranscriptionHistorySheet() {
     }
   }, [isOpen]);
 
-  const hasPrevious =
-    selectedVersionIndex !== null &&
-    selectedVersionIndex < (history?.length ?? 0) - 1;
-  const hasNext = selectedVersionIndex !== null && selectedVersionIndex > 0;
+  const hasPrevious = isViewingCurrent
+    ? (history?.length ?? 0) > 0
+    : selectedVersionIndex !== null &&
+      selectedVersionIndex < (history?.length ?? 0) - 1;
+  const hasNext = isViewingCurrent
+    ? false
+    : selectedVersionIndex !== null && selectedVersionIndex >= 0;
 
   const goToPrevious = () => {
-    if (hasPrevious && selectedVersionIndex !== null) {
-      setSelectedVersionIndex(selectedVersionIndex + 1);
+    if (hasPrevious && history) {
+      if (selectedVersionIndex === -1) {
+        // Going from current to most recent history entry
+        setSelectedVersionIndex(0);
+      } else if (selectedVersionIndex !== null) {
+        // Going to an older historical version
+        setSelectedVersionIndex(selectedVersionIndex + 1);
+      }
     }
   };
 
   const goToNext = () => {
-    if (hasNext && selectedVersionIndex !== null) {
-      setSelectedVersionIndex(selectedVersionIndex - 1);
+    if (hasNext && history && selectedVersionIndex !== null) {
+      if (selectedVersionIndex === -1) {
+        // Already at current, shouldn't happen
+        return;
+      } else if (selectedVersionIndex === 0) {
+        // Going from most recent history to current version
+        setSelectedVersionIndex(-1);
+      } else {
+        // Going to a newer historical version
+        setSelectedVersionIndex(selectedVersionIndex - 1);
+      }
     }
   };
 
@@ -112,12 +146,45 @@ export function TranscriptionHistorySheet() {
     }
   };
 
+  const handleOpenCurrent = () => {
+    if (data?.transcriptionId) {
+      router.push(`/transcription/${data.transcriptionId}`);
+      close();
+    }
+  };
+
   // Generate diff view
   const renderDiff = () => {
-    if (!versionData) return null;
+    let currentWords: TranscriptionSegment[] = [];
+    let previousWords: TranscriptionSegment[] = [];
 
-    const currentWords = versionData.current.words || [];
-    const previousWords = versionData.previous?.words || [];
+    if (isViewingCurrent) {
+      // For current version, compare live data with most recent history
+      if (!currentTranscription?.transcription) return null;
+      currentWords = currentTranscription.transcription.words || [];
+
+      // If there's no history yet, show current version without diff
+      if (!history || history.length === 0) {
+        return (
+          <div className="text-sm leading-relaxed whitespace-pre-wrap">
+            {currentWords.map((word, idx) => (
+              <span key={idx}>{word.text} </span>
+            ))}
+          </div>
+        );
+      }
+
+      // Use the most recent history version data for comparison
+      if (mostRecentVersionData) {
+        // The "current" field in mostRecentVersionData is actually the most recent history entry
+        previousWords = mostRecentVersionData.current.words || [];
+      }
+    } else {
+      // For historical versions, use the version data from the API
+      if (!versionData) return null;
+      currentWords = versionData.current.words || [];
+      previousWords = versionData.previous?.words || [];
+    }
 
     // Use word.start as unique identifier for accurate diffing
     const currentMap = new Map<number, TranscriptionSegment>();
@@ -275,63 +342,83 @@ export function TranscriptionHistorySheet() {
                 </div>
               )}
 
-              {!isLoading &&
-                history &&
-                history.map((entry, index) => (
+              {!isLoading && history && history.length > 0 && (
+                <>
+                  {/* Current Version Entry */}
                   <div
-                    key={entry.id}
                     className={cn(
-                      "border-b px-6 py-4 hover:bg-accent/50 transition-colors cursor-pointer",
-                      index === 0 && "border-t",
+                      "border-b border-t px-6 py-4 hover:bg-accent/50 transition-colors cursor-pointer bg-accent/20",
                     )}
-                    onClick={() => setSelectedVersionIndex(index)}
+                    onClick={() => setSelectedVersionIndex(-1)}
                   >
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="flex items-center gap-2 text-sm font-medium">
-                        <span>{formatDate(entry.updatedAt)}</span>
-                        <span className="text-muted-foreground">
-                          {formatTime(entry.updatedAt)}
-                        </span>
+                        <span>Current Version</span>
                       </div>
                     </div>
 
-                    <div className="flex-1 min-w-0 text-xs">
-                      {entry.additions > 0 ||
-                      entry.removals > 0 ||
-                      entry.changed > 0 ? (
-                        <div className="flex items-center gap-3">
-                          {entry.additions > 0 && (
-                            <span className="flex items-center gap-1 text-green-600">
-                              +{entry.additions} word
-                              {entry.additions !== 1 ? "s" : ""}
-                            </span>
-                          )}
-                          {entry.removals > 0 && (
-                            <span className="flex items-center gap-1 text-red-600">
-                              -{entry.removals} word
-                              {entry.removals !== 1 ? "s" : ""}
-                            </span>
-                          )}
-                          {entry.changed > 0 && (
-                            <span className="flex items-center gap-1 text-yellow-600">
-                              ~{entry.changed} word
-                              {entry.changed !== 1 ? "s" : ""}
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <div>No changes</div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-3">
-                      <UserAvatar user={entry.user} size="sm" />
-                      <span className="truncate">
-                        {entry.user.name || entry.user.email}
-                      </span>
+                    <div className="flex-1 min-w-0 text-xs text-muted-foreground">
+                      Latest state of the transcription
                     </div>
                   </div>
-                ))}
+
+                  {/* History Entries */}
+                  {history.map((entry, index) => (
+                    <div
+                      key={entry.id}
+                      className={cn(
+                        "border-b px-6 py-4 hover:bg-accent/50 transition-colors cursor-pointer",
+                      )}
+                      onClick={() => setSelectedVersionIndex(index)}
+                    >
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <span>{formatDate(entry.updatedAt)}</span>
+                          <span className="text-muted-foreground">
+                            {formatTime(entry.updatedAt)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 min-w-0 text-xs">
+                        {entry.additions > 0 ||
+                        entry.removals > 0 ||
+                        entry.changed > 0 ? (
+                          <div className="flex items-center gap-3">
+                            {entry.additions > 0 && (
+                              <span className="flex items-center gap-1 text-green-600">
+                                +{entry.additions} word
+                                {entry.additions !== 1 ? "s" : ""}
+                              </span>
+                            )}
+                            {entry.removals > 0 && (
+                              <span className="flex items-center gap-1 text-red-600">
+                                -{entry.removals} word
+                                {entry.removals !== 1 ? "s" : ""}
+                              </span>
+                            )}
+                            {entry.changed > 0 && (
+                              <span className="flex items-center gap-1 text-yellow-600">
+                                ~{entry.changed} word
+                                {entry.changed !== 1 ? "s" : ""}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <div>No changes</div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mt-3">
+                        <UserAvatar user={entry.user} size="sm" />
+                        <span className="truncate">
+                          {entry.user.name || entry.user.email}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
           </>
         ) : (
@@ -340,33 +427,45 @@ export function TranscriptionHistorySheet() {
               <div className="flex items-center gap-2">
                 <div className="flex-1">
                   <SheetTitle>Version Comparison</SheetTitle>
-                  {selectedVersion && (
-                    <SheetDescription className="flex items-center gap-3 mt-2">
-                      <UserAvatar user={selectedVersion.user} size="sm" />
-                      <span>
-                        {selectedVersion.user.name ||
-                          selectedVersion.user.email}{" "}
-                        • {formatDateTime(selectedVersion.updatedAt)}
-                      </span>
-                      <div className="text-sm text-muted-foreground">
-                        <span className="text-green-600">
-                          +{selectedVersion.additions}
+                  {isViewingCurrent ? (
+                    <SheetDescription className="mt-2">
+                      <span className="font-medium">Current Version</span>
+                      {history && history.length > 0 && (
+                        <span className="text-muted-foreground">
+                          {" "}
+                          • Compared with previous version
                         </span>
-                        {" / "}
-                        <span className="text-red-600">
-                          -{selectedVersion.removals}
-                        </span>
-                        {selectedVersion.changed > 0 && (
-                          <>
-                            {" / "}
-                            <span className="text-orange-600">
-                              ~{selectedVersion.changed}
-                            </span>
-                          </>
-                        )}
-                        {" words"}
-                      </div>
+                      )}
                     </SheetDescription>
+                  ) : (
+                    selectedVersion && (
+                      <SheetDescription className="flex items-center gap-3 mt-2">
+                        <UserAvatar user={selectedVersion.user} size="sm" />
+                        <span>
+                          {selectedVersion.user.name ||
+                            selectedVersion.user.email}{" "}
+                          • {formatDateTime(selectedVersion.updatedAt)}
+                        </span>
+                        <div className="text-sm text-muted-foreground">
+                          <span className="text-green-600">
+                            +{selectedVersion.additions}
+                          </span>
+                          {" / "}
+                          <span className="text-red-600">
+                            -{selectedVersion.removals}
+                          </span>
+                          {selectedVersion.changed > 0 && (
+                            <>
+                              {" / "}
+                              <span className="text-orange-600">
+                                ~{selectedVersion.changed}
+                              </span>
+                            </>
+                          )}
+                          {" words"}
+                        </div>
+                      </SheetDescription>
+                    )
                   )}
                 </div>
               </div>
@@ -393,32 +492,45 @@ export function TranscriptionHistorySheet() {
                   <ChevronRightIcon className="h-4 w-4" />
                 </Button>
               </div>
-              <Button
-                onClick={handleRevert}
-                disabled={revertMutation.isPending}
-                variant="default"
-                className={"bg-blue-500"}
-                confirm="Are you sure you want to revert to this version?"
-              >
-                <RotateCcwIcon className="h-4 w-4" />
-                Revert to this version
-              </Button>
+              {isViewingCurrent ? (
+                <Button onClick={handleOpenCurrent} variant="default">
+                  Open current version
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleRevert}
+                  disabled={revertMutation.isPending}
+                  variant="primary"
+                  confirm="Are you sure you want to revert to this version?"
+                >
+                  <RotateCcwIcon className="h-4 w-4" />
+                  Revert to this version
+                </Button>
+              )}
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 px-6">
-              {isLoadingVersion && (
+              {(isLoadingVersion ||
+                (isViewingCurrent &&
+                  (!currentTranscription ||
+                    (history &&
+                      history.length > 0 &&
+                      !mostRecentVersionData)))) && (
                 <div className="flex items-center justify-center py-8 text-muted-foreground">
                   Loading version...
                 </div>
               )}
 
-              {!isLoadingVersion && !versionData && (
+              {!isLoadingVersion && !isViewingCurrent && !versionData && (
                 <div className="flex items-center justify-center py-8 text-muted-foreground">
                   Failed to load version
                 </div>
               )}
 
-              {!isLoadingVersion && versionData && renderDiff()}
+              {!isLoadingVersion &&
+                ((isViewingCurrent && currentTranscription) ||
+                  (!isViewingCurrent && versionData)) &&
+                renderDiff()}
             </div>
           </>
         )}

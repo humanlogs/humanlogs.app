@@ -52,7 +52,6 @@ export default async function AppLayout({
       <TranscriptionSetProjectDialog />
       <TranscriptionExportDialog />
       <TranscriptionHistorySheet />
-      <VersionComparisonModal />
       <SpeakerOptionsDialog />
       <ShortcutsDialog />
       <FeedbackDialog />

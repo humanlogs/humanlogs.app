@@ -6,6 +6,7 @@ import { LocaleProvider } from "@/components/locale-provider";
 import { QueryProvider } from "@/components/query-provider";
 import { SocketProvider } from "@/components/socket-provider";
 import { Toaster } from "sonner";
+import { TrustedEncryptionKeysProvider } from "../components/trusted-encryption-keys-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,17 +39,19 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <QueryProvider>
-          <SocketProvider>
-            <LocaleProvider>
-              <ThemeProvider
-                defaultTheme="system"
-                storageKey="transcription-theme"
-              >
-                {children}
-                <Toaster richColors position="bottom-right" />
-              </ThemeProvider>
-            </LocaleProvider>
-          </SocketProvider>
+          <TrustedEncryptionKeysProvider>
+            <SocketProvider>
+              <LocaleProvider>
+                <ThemeProvider
+                  defaultTheme="system"
+                  storageKey="transcription-theme"
+                >
+                  {children}
+                  <Toaster richColors position="bottom-right" />
+                </ThemeProvider>
+              </LocaleProvider>
+            </SocketProvider>
+          </TrustedEncryptionKeysProvider>
         </QueryProvider>
       </body>
     </html>

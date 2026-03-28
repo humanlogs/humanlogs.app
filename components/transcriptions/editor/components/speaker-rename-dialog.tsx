@@ -77,7 +77,7 @@ function SpeakerRenameForm({
         <Button type="button" variant="outline" onClick={onClose}>
           Cancel
         </Button>
-        <Button type="submit" className="bg-blue-500">
+        <Button type="submit" variant={"primary"}>
           Rename
         </Button>
       </DialogFooter>
