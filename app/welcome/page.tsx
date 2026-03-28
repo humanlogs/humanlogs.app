@@ -9,7 +9,7 @@ import { Button } from "../../components/ui/button";
 import { Select } from "../../components/ui/select";
 import { SecurityStep } from "../../components/welcome/security-step";
 import { useUpdateUser, useUserProfile } from "../../hooks/use-api";
-import { Locale } from "../../lib/i18n";
+import { Locale, locales } from "../../lib/i18n";
 
 export default function WelcomePage() {
   const t = useTranslations("welcome");
@@ -56,12 +56,10 @@ export default function WelcomePage() {
                     setLoading(false);
                   }
                 }}
-                options={[
-                  { label: "English", value: "en" },
-                  { label: "Français", value: "fr" },
-                  { label: "Español", value: "es" },
-                  { label: "Deutsch", value: "de" },
-                ]}
+                options={locales.map((locale) => ({
+                  value: locale,
+                  label: t("languages." + locale),
+                }))}
               />
             </div>
 

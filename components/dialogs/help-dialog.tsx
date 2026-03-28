@@ -13,6 +13,9 @@ import { Select } from "@/components/ui/select";
 import { useModal } from "@/components/use-modal";
 import * as React from "react";
 import { toast } from "sonner";
+import { locales } from "../../lib/i18n";
+import { useUserProfile } from "../../hooks/use-api";
+import { useEffect } from "react";
 
 export type HelpModalData = Record<string, never>;
 
@@ -68,6 +71,13 @@ export function HelpDialog() {
   const { isOpen, close } = useHelpModal();
   const [selectedLanguage, setSelectedLanguage] = React.useState<string>("en");
   const { isResettingTutorial, handleResetTutorial } = useResetTutorial();
+  const { data: user } = useUserProfile();
+
+  useEffect(() => {
+    if (isOpen && user?.language) {
+      setSelectedLanguage(user.language);
+    }
+  }, [isOpen, user?.language]);
 
   const handleOpenDocumentation = () => {
     window.open("https://docs.example.com", "_blank");
@@ -96,7 +106,10 @@ export function HelpDialog() {
             </p>
             <div className="flex gap-2">
               <Select
-                options={[{ value: "en", label: t("languages.en") }]}
+                options={locales.map((locale) => ({
+                  value: locale,
+                  label: t("languages." + locale),
+                }))}
                 value={selectedLanguage}
                 onChange={setSelectedLanguage}
                 placeholder={t("languages.en")}

@@ -148,7 +148,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       };
 
       // Check we are not disclosing encrypted data
-      if (body.transcription && !body.transcription.privateKeys.length) {
+      if (body.transcription && !body.transcription.privateKeys?.length) {
         // Means we are sending unencrypted data
         if (
           (transcription.audioFileEncryption as EncryptedDataEntity)

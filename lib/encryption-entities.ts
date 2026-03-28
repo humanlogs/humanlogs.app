@@ -471,13 +471,13 @@ export class EncryptionUtils {
       (entry) => entry.userId !== userIdToRemove,
     );
 
-    if (updatedPrivateKeys.length === 0) {
+    if (!updatedPrivateKeys?.length) {
       throw new Error(
         "Cannot remove last accessor - at least one user must have access",
       );
     }
 
-    if (updatedPrivateKeys.length === encryptedEntity.privateKeys.length) {
+    if (updatedPrivateKeys?.length === encryptedEntity.privateKeys?.length) {
       // User not found, return unchanged
       return encryptedEntity;
     }
