@@ -221,5 +221,46 @@
             "es": "Español",
             "de": "Deutsch"
         }
+    },
+    "login": {
+        "title": "Willkommen",
+        "subtitle": "Melden Sie sich an, um auf Ihre Transkriptionen zuzugreifen",
+        "signInWithEmail": "Mit E-Mail anmelden",
+        "email": "E-Mail",
+        "password": "Passwort",
+        "emailPlaceholder": "sie@beispiel.com",
+        "passwordPlaceholder": "••••••••",
+        "signingIn": "Anmeldung läuft...",
+        "signIn": "Anmelden",
+        "noAccount": "Kein Konto? Registrieren",
+        "back": "Zurück",
+        "name": "Name (Optional)",
+        "namePlaceholder": "Ihr Name",
+        "createAccount": "Konto erstellen",
+        "creatingAccount": "Konto wird erstellt...",
+        "minPasswordLength": "Mindestens 8 Zeichen",
+        "alreadyHaveAccount": "Bereits ein Konto? Anmelden",
+        "termsAndConditions": "Mit der Anmeldung akzeptieren Sie unsere Nutzungsbedingungen und Datenschutzrichtlinie",
+        "loginSuccess": "Erfolgreich angemeldet!",
+        "loginFailed": "Anmeldung fehlgeschlagen",
+        "registrationFailed": "Registrierung fehlgeschlagen",
+        "accountCreated": "Konto erfolgreich erstellt!",
+        "errorOccurred": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+    },
+    "welcome": {
+        "title": "Willkommen, {name}!",
+        "titleDefault": "Willkommen!",
+        "subtitle": "Lassen Sie uns in wenigen Schritten beginnen",
+        "languageLabel": "Wählen Sie Ihre bevorzugte Sprache",
+        "continue": "Weiter",
+        "errorSavingLanguage": "Beim Speichern Ihrer Sprache ist ein Fehler aufgetreten.",
+        "allSetTitle": "Alles Bereit!",
+        "allSetSubtitle": "Lassen Sie uns Ihnen alles zeigen",
+        "accountConfigured": "Ihr Konto ist konfiguriert und einsatzbereit",
+        "firstProject": "Wir führen Sie durch die Erstellung Ihres ersten Transkriptionsprojekts",
+        "learnFeatures": "Lernen Sie in wenigen Minuten alle wichtigen Funktionen kennen",
+        "startTutorial": "Tutorial Starten",
+        "starting": "Wird gestartet...",
+        "setupError": "Beim Einrichten Ihres Kontos ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
     }
 }

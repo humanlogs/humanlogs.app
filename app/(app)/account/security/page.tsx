@@ -7,16 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  createCertificate,
-  downloadCertificate,
-  generateDeviceSecret,
-  getPrivateKey,
-  isDeviceTrusted,
-  parseCertificate,
-  removePrivateKey,
-  setDeviceTrust,
-  storePrivateKey,
-} from "@/lib/encryption";
+  useDisableEncryption,
+  useEnableEncryption,
+  useEncryptionStatus,
+  useRemoveLocalKey,
+  useToggleDeviceTrust,
+  useUploadCertificate,
+} from "@/hooks/use-encryption";
 import {
   AlertCircleIcon,
   CheckCircleIcon,
@@ -25,93 +22,32 @@ import {
   SmartphoneIcon,
   UploadIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-
-type EncryptionStatus = {
-  hasEncryption: boolean;
-  publicKey: string | null;
-  trustedDeviceSecret: string | null;
-};
+import { useState } from "react";
 
 export default function SecurityPage() {
   const t = useTranslations("account");
-  const [encryptionStatus, setEncryptionStatus] =
-    useState<EncryptionStatus | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [hasLocalKey, setHasLocalKey] = useState(false);
-  const [deviceTrusted, setDeviceTrusted] = useState(false);
-  const [generatingCertificate, setGeneratingCertificate] = useState(false);
-  const [uploadingCertificate, setUploadingCertificate] = useState(false);
+  const { data: encryptionState, isLoading } = useEncryptionStatus();
+  const enableEncryption = useEnableEncryption();
+  const disableEncryption = useDisableEncryption();
+  const uploadCertificate = useUploadCertificate();
+  const toggleDeviceTrust = useToggleDeviceTrust();
+  const removeLocalKey = useRemoveLocalKey();
 
-  // Load encryption status
-  useEffect(() => {
-    loadEncryptionStatus();
-  }, []);
+  const [uploadingFile, setUploadingFile] = useState(false);
 
-  async function loadEncryptionStatus() {
-    try {
-      setLoading(true);
-      const response = await fetch("/api/user/encryption");
-      const data = await response.json();
-      setEncryptionStatus(data);
-
-      if (data.hasEncryption && data.trustedDeviceSecret) {
-        // Check if private key is stored locally
-        const privateKey = await getPrivateKey(data.trustedDeviceSecret);
-        setHasLocalKey(!!privateKey);
-
-        // Check if device is trusted
-        const trusted = await isDeviceTrusted();
-        setDeviceTrusted(trusted);
-      }
-    } catch (error) {
-      console.error("Failed to load encryption status:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const encryptionStatus = encryptionState?.encryptionStatus ?? null;
+  const hasLocalKey = encryptionState?.hasLocalKey ?? false;
+  const deviceTrusted = encryptionState?.deviceTrusted ?? false;
 
   async function handleEnableEncryption() {
     try {
-      setGeneratingCertificate(true);
-
-      // Generate certificate
-      const certificate = await createCertificate();
-
-      // Generate device secret
-      const deviceSecret = await generateDeviceSecret();
-
-      // Store public key and device secret on server
-      const response = await fetch("/api/user/encryption", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          publicKey: certificate.publicKey,
-          trustedDeviceSecret: deviceSecret,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to enable encryption");
-      }
-
-      // Store private key locally (not trusted by default)
-      await storePrivateKey(certificate.privateKey, deviceSecret, false);
-
-      // Download certificate
-      downloadCertificate(certificate);
-
-      // Reload status
-      await loadEncryptionStatus();
-
+      await enableEncryption.mutateAsync({ trustDevice: false });
       alert(
         "Encryption enabled! Your certificate has been downloaded. Please store it securely - you can send it to yourself by email as a backup.",
       );
     } catch (error) {
       console.error("Failed to enable encryption:", error);
       alert("Failed to enable encryption. Please try again.");
-    } finally {
-      setGeneratingCertificate(false);
     }
   }
 
@@ -122,24 +58,19 @@ export default function SecurityPage() {
     if (!file || !encryptionStatus?.trustedDeviceSecret) return;
 
     try {
-      setUploadingCertificate(true);
+      setUploadingFile(true);
       const content = await file.text();
-      const certificate = parseCertificate(content);
-
-      // Store private key locally
-      await storePrivateKey(
-        certificate.privateKey,
-        encryptionStatus.trustedDeviceSecret,
-        false,
-      );
-
-      await loadEncryptionStatus();
+      await uploadCertificate.mutateAsync({
+        certificateContent: content,
+        trustedDeviceSecret: encryptionStatus.trustedDeviceSecret,
+        trustDevice: false,
+      });
       alert("Certificate loaded successfully!");
     } catch (error) {
       console.error("Failed to load certificate:", error);
       alert("Failed to load certificate. Please check the file and try again.");
     } finally {
-      setUploadingCertificate(false);
+      setUploadingFile(false);
       event.target.value = ""; // Reset input
     }
   }
@@ -149,11 +80,10 @@ export default function SecurityPage() {
 
     try {
       const newTrustSetting = !deviceTrusted;
-      await setDeviceTrust(
-        newTrustSetting,
-        encryptionStatus.trustedDeviceSecret,
-      );
-      setDeviceTrusted(newTrustSetting);
+      await toggleDeviceTrust.mutateAsync({
+        trust: newTrustSetting,
+        deviceSecret: encryptionStatus.trustedDeviceSecret,
+      });
     } catch (error) {
       console.error("Failed to update device trust:", error);
       alert("Failed to update device trust. Please try again.");
@@ -170,8 +100,7 @@ export default function SecurityPage() {
     }
 
     try {
-      await removePrivateKey();
-      await loadEncryptionStatus();
+      await removeLocalKey.mutateAsync();
     } catch (error) {
       console.error("Failed to remove local key:", error);
       alert("Failed to remove local key. Please try again.");
@@ -188,23 +117,14 @@ export default function SecurityPage() {
     }
 
     try {
-      const response = await fetch("/api/user/encryption", {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to disable encryption");
-      }
-
-      await removePrivateKey();
-      await loadEncryptionStatus();
+      await disableEncryption.mutateAsync();
     } catch (error) {
       console.error("Failed to disable encryption:", error);
       alert("Failed to disable encryption. Please try again.");
     }
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="container max-w-4xl mx-auto p-6">
         <p className="text-center text-muted-foreground">Loading...</p>
@@ -257,11 +177,11 @@ export default function SecurityPage() {
               </div>
               <Button
                 onClick={handleEnableEncryption}
-                disabled={generatingCertificate}
+                disabled={enableEncryption.isPending}
                 className="w-full"
               >
                 <KeyIcon className="w-4 h-4 mr-2" />
-                {generatingCertificate
+                {enableEncryption.isPending
                   ? t("security.generating")
                   : t("security.enable_encryption")}
               </Button>
@@ -311,7 +231,7 @@ export default function SecurityPage() {
                       >
                         <div className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
                           <UploadIcon className="w-4 h-4" />
-                          {uploadingCertificate
+                          {uploadingFile
                             ? t("security.uploading")
                             : t("security.upload_certificate")}
                         </div>
@@ -321,7 +241,7 @@ export default function SecurityPage() {
                         type="file"
                         accept=".json"
                         onChange={handleUploadCertificate}
-                        disabled={uploadingCertificate}
+                        disabled={uploadingFile}
                         className="hidden"
                       />
                     </div>

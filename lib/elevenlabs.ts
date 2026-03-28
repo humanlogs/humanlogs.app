@@ -69,6 +69,9 @@ class ElevenLabsClient {
     request: TranscriptionRequest | TranscriptionFileRequest,
   ) {
     return {
+      // Store nothing
+      enableLogging: getConfig().elevenlabs?.canDisableStorage ? false : true,
+
       modelId: "scribe_v2" as const,
       tagAudioEvents: true,
       webhook: true, // Enable async processing

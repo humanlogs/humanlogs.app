@@ -1,4 +1,4 @@
-import { TranscriptionContent } from "@/hooks/use-api";
+import { TranscriptionContent } from "@/hooks/use-transcriptions";
 
 /**
  * Export transcription as CSV format

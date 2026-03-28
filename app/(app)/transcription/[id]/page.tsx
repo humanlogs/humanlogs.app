@@ -5,7 +5,7 @@ import { TranscriptionEditor } from "@/components/transcriptions/transcription-e
 import { TranscriptionFailed } from "@/components/transcriptions/transcription-failed";
 import { TranscriptionLoading } from "@/components/transcriptions/transcription-loading";
 import { SaveStatus } from "@/components/transcriptions/editor/hooks/use-auto-save";
-import { useTranscription } from "@/hooks/use-api";
+import { useTranscription } from "@/hooks/use-transcriptions";
 import { PencilIcon } from "lucide-react";
 import { use, useEffect, useState } from "react";
 import { createPortal } from "react-dom";

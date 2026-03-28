@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { TranscriptionSegment } from "../../../hooks/use-api";
+import { TranscriptionSegment } from "../../../hooks/use-transcriptions";
 import { EditorToolbar } from "./components/editor-toolbar";
 import { SearchHighlights } from "./components/search-highlights";
 import { SpeakerColumn } from "./components/speaker-column";

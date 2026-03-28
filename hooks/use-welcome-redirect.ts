@@ -5,7 +5,7 @@ export const useWelcomeRedirect = () => {
   const { data } = useUserProfile();
 
   useEffect(() => {
-    if (data?.id && !data?.isWelcomeCompleted) {
+    if (data?.id && !data?.isWelcomeDone) {
       window.location.href = "/welcome";
     }
   }, [data]);

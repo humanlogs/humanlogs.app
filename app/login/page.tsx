@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useTranslations } from "@/components/locale-provider";
 import { useState } from "react";
 import { GoogleLoginButton } from "react-social-login-buttons";
 import { MicrosoftLoginButton } from "react-social-login-buttons";
@@ -23,6 +24,7 @@ type AuthProvider =
 const USE_LOCAL_AUTH = process.env.NEXT_PUBLIC_AUTH_MODE === "local";
 
 export default function LoginPage() {
+  const t = useTranslations("login");
   const [showEmailLogin, setShowEmailLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [email, setEmail] = useState("");
@@ -49,14 +51,14 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success("Logged in successfully!");
+        toast.success(t("loginSuccess"));
         // Detect if this is a new account
         window.location.href = "/";
       } else {
-        toast.error(data.error || "Login failed");
+        toast.error(data.error || t("loginFailed"));
       }
     } catch {
-      toast.error("An error occurred. Please try again.");
+      toast.error(t("errorOccurred"));
     } finally {
       setIsLoading(false);
     }
@@ -76,13 +78,13 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success("Account created successfully!");
+        toast.success(t("accountCreated"));
         window.location.href = "/";
       } else {
-        toast.error(data.error || "Registration failed");
+        toast.error(data.error || t("registrationFailed"));
       }
     } catch {
-      toast.error("An error occurred. Please try again.");
+      toast.error(t("errorOccurred"));
     } finally {
       setIsLoading(false);
     }
@@ -108,10 +110,10 @@ export default function LoginPage() {
             />
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            Welcome
+            {t("title")}
           </h1>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Sign in to access your transcriptions
+            {t("subtitle")}
           </p>
         </div>
 
@@ -124,16 +126,16 @@ export default function LoginPage() {
                   onClick={() => setShowEmailLogin(true)}
                   className="w-full h-11 text-base"
                 >
-                  Sign in with Email
+                  {t("signInWithEmail")}
                 </Button>
               ) : !showRegister ? (
                 <form onSubmit={handleLocalLogin} className="space-y-3">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">{t("email")}</Label>
                     <Input
                       id="email"
                       type="email"
-                      placeholder="you@example.com"
+                      placeholder={t("emailPlaceholder")}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -141,11 +143,11 @@ export default function LoginPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password">{t("password")}</Label>
                     <Input
                       id="password"
                       type="password"
-                      placeholder="••••••••"
+                      placeholder={t("passwordPlaceholder")}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -157,7 +159,7 @@ export default function LoginPage() {
                     className="w-full h-11"
                     disabled={isLoading}
                   >
-                    {isLoading ? "Signing in..." : "Sign in"}
+                    {isLoading ? t("signingIn") : t("signIn")}
                   </Button>
                   <div className="text-center text-sm">
                     <button
@@ -165,7 +167,7 @@ export default function LoginPage() {
                       onClick={() => setShowRegister(true)}
                       className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                     >
-                      Don&apos;t have an account? Register
+                      {t("noAccount")}
                     </button>
                   </div>
                   <Button
@@ -174,28 +176,28 @@ export default function LoginPage() {
                     className="w-full"
                     onClick={() => setShowEmailLogin(false)}
                   >
-                    Back
+                    {t("back")}
                   </Button>
                 </form>
               ) : (
                 <form onSubmit={handleLocalRegister} className="space-y-3">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Name (Optional)</Label>
+                    <Label htmlFor="name">{t("name")}</Label>
                     <Input
                       id="name"
                       type="text"
-                      placeholder="Your Name"
+                      placeholder={t("namePlaceholder")}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       disabled={isLoading}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="reg-email">Email</Label>
+                    <Label htmlFor="reg-email">{t("email")}</Label>
                     <Input
                       id="reg-email"
                       type="email"
-                      placeholder="you@example.com"
+                      placeholder={t("emailPlaceholder")}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -203,11 +205,11 @@ export default function LoginPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="reg-password">Password</Label>
+                    <Label htmlFor="reg-password">{t("password")}</Label>
                     <Input
                       id="reg-password"
                       type="password"
-                      placeholder="••••••••"
+                      placeholder={t("passwordPlaceholder")}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -215,7 +217,7 @@ export default function LoginPage() {
                       minLength={8}
                     />
                     <p className="text-xs text-zinc-500">
-                      At least 8 characters
+                      {t("minPasswordLength")}
                     </p>
                   </div>
                   <Button
@@ -223,7 +225,7 @@ export default function LoginPage() {
                     className="w-full h-11"
                     disabled={isLoading}
                   >
-                    {isLoading ? "Creating account..." : "Create account"}
+                    {isLoading ? t("creatingAccount") : t("createAccount")}
                   </Button>
                   <div className="text-center text-sm">
                     <button
@@ -231,7 +233,7 @@ export default function LoginPage() {
                       onClick={() => setShowRegister(false)}
                       className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                     >
-                      Already have an account? Sign in
+                      {t("alreadyHaveAccount")}
                     </button>
                   </div>
                   <Button
@@ -243,7 +245,7 @@ export default function LoginPage() {
                       setShowEmailLogin(false);
                     }}
                   >
-                    Back
+                    {t("back")}
                   </Button>
                 </form>
               )}
@@ -320,7 +322,7 @@ export default function LoginPage() {
           )}
 
           <div className="text-center text-xs text-zinc-500 dark:text-zinc-400 pt-4">
-            By signing in, you agree to our Terms of Service and Privacy Policy
+            {t("termsAndConditions")}
           </div>
         </div>
       </div>

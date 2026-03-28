@@ -1,4 +1,4 @@
-import { TranscriptionSegment } from "../../../../hooks/use-api";
+import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 
 export function escapeHtml(text: string): string {
   return text

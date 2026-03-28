@@ -1,6 +1,7 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import { rules } from "@elevenlabs/elevenlabs-js/api/resources/pronunciationDictionaries";
 
 const eslintConfig = defineConfig([
   ...nextVitals,

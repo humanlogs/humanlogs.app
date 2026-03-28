@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useModal } from "@/components/use-modal";
 import { cn } from "@/lib/utils";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -20,6 +20,13 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
+import {
+  useTranscriptionHistory,
+  useTranscriptionVersion,
+  useRevertTranscription,
+  type HistoryEntry,
+  type TranscriptionSegment,
+} from "@/hooks/use-transcriptions";
 
 export type TranscriptionHistoryModalData = {
   transcriptionId: string;
@@ -38,32 +45,6 @@ export function useTranscriptionHistoryModal() {
   };
 }
 
-type HistoryEntry = {
-  id: string;
-  updatedAt: string;
-  updatedBy: string;
-  user: {
-    id: string;
-    name: string | null;
-    email: string;
-  };
-  additions: number;
-  removals: number;
-  changed: number;
-};
-
-type Word = {
-  text: string;
-  start: number;
-  end: number;
-  speaker?: string;
-};
-
-type TranscriptionContent = {
-  words: Word[];
-  [key: string]: unknown;
-};
-
 export function TranscriptionHistorySheet() {
   const { isOpen, data, close } = useTranscriptionHistoryModal();
   const queryClient = useQueryClient();
@@ -71,20 +52,9 @@ export function TranscriptionHistorySheet() {
     number | null
   >(null);
 
-  const { data: history, isLoading } = useQuery({
-    queryKey: ["transcription-history", data?.transcriptionId],
-    queryFn: async () => {
-      if (!data?.transcriptionId) return [];
-      const response = await fetch(
-        `/api/transcriptions/${data.transcriptionId}/history`,
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch history");
-      }
-      return response.json() as Promise<HistoryEntry[]>;
-    },
-    enabled: isOpen && !!data?.transcriptionId,
-  });
+  const { data: history, isLoading } = useTranscriptionHistory(
+    (isOpen && data?.transcriptionId) || "",
+  );
 
   const selectedVersion =
     selectedVersionIndex !== null && history
@@ -92,55 +62,25 @@ export function TranscriptionHistorySheet() {
       : null;
 
   // Fetch the specific version data when a version is selected
-  const { data: versionData, isLoading: isLoadingVersion } = useQuery({
-    queryKey: [
-      "transcription-version",
-      data?.transcriptionId,
-      selectedVersion?.id,
-    ],
-    queryFn: async () => {
-      if (!data?.transcriptionId || !selectedVersion?.id) return null;
-      const response = await fetch(
-        `/api/transcriptions/${data.transcriptionId}/history/${selectedVersion.id}`,
-      );
-      if (!response.ok) throw new Error("Failed to fetch version");
-      return response.json() as Promise<{
-        current: TranscriptionContent;
-        previous: TranscriptionContent | null;
-      }>;
-    },
-    enabled: isOpen && !!data?.transcriptionId && !!selectedVersion?.id,
-  });
+  const { data: versionData, isLoading: isLoadingVersion } =
+    useTranscriptionVersion(
+      (isOpen && data?.transcriptionId) || "",
+      (isOpen && selectedVersion?.id) || "",
+    );
 
   // Revert mutation
-  const revertMutation = useMutation({
-    mutationFn: async (versionId: string) => {
-      if (!data?.transcriptionId) throw new Error("No transcription ID");
-      const response = await fetch(
-        `/api/transcriptions/${data.transcriptionId}/revert`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ versionId }),
-        },
-      );
-      if (!response.ok) throw new Error("Failed to revert");
-      return response.json();
-    },
-    onSuccess: () => {
+  const revertMutation = useRevertTranscription(data?.transcriptionId || "");
+
+  // Handle success/error
+  React.useEffect(() => {
+    if (revertMutation.isSuccess) {
       toast.success("Version restored successfully");
-      queryClient.invalidateQueries({
-        queryKey: ["transcription", data?.transcriptionId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["transcription-history", data?.transcriptionId],
-      });
       setSelectedVersionIndex(null);
-    },
-    onError: () => {
+    }
+    if (revertMutation.isError) {
       toast.error("Failed to restore version");
-    },
-  });
+    }
+  }, [revertMutation.isSuccess, revertMutation.isError]);
 
   // Reset selection when sheet closes
   React.useEffect(() => {
@@ -180,8 +120,8 @@ export function TranscriptionHistorySheet() {
     const previousWords = versionData.previous?.words || [];
 
     // Use word.start as unique identifier for accurate diffing
-    const currentMap = new Map<number, Word>();
-    const previousMap = new Map<number, Word>();
+    const currentMap = new Map<number, TranscriptionSegment>();
+    const previousMap = new Map<number, TranscriptionSegment>();
 
     for (const word of currentWords) {
       if (word.start !== undefined) {

@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Select } from "@/components/ui/select";
-import { TranscriptionContent } from "@/hooks/use-api";
+import { TranscriptionContent } from "@/hooks/use-transcriptions";
 import * as React from "react";
 import { toast } from "sonner";
 import { useModal } from "../../use-modal";

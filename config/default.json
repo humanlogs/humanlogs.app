@@ -30,7 +30,8 @@
         }
     },
     "elevenlabs": {
-        "apiKey": ""
+        "apiKey": "",
+        "canDisableStorage": false
     },
     "stripe": {
         "secretKey": "",

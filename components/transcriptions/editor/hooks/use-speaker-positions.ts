@@ -1,7 +1,7 @@
 "use client";
 
 import { RefObject, useCallback, useEffect, useState } from "react";
-import { TranscriptionSegment } from "../../../../hooks/use-api";
+import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 
 export interface SpeakerPosition {
   speakerId: string;

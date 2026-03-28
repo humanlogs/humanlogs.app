@@ -1,14 +1,18 @@
 "use client";
 
+import { CheckCircleIcon, RocketIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useResetTutorial } from "../../components/dialogs/help-dialog";
+import { useLocale, useTranslations } from "../../components/locale-provider";
 import { Button } from "../../components/ui/button";
 import { Select } from "../../components/ui/select";
+import { SecurityStep } from "../../components/welcome/security-step";
 import { useUpdateUser, useUserProfile } from "../../hooks/use-api";
 import { Locale } from "../../lib/i18n";
 
 export default function WelcomePage() {
+  const t = useTranslations("welcome");
   const { data } = useUserProfile();
   const updateLanguage = useUpdateUser();
   const [loading, setLoading] = useState(false);
@@ -16,43 +20,60 @@ export default function WelcomePage() {
     "select-language",
   );
   const { handleResetTutorial } = useResetTutorial();
+  const { setLocale } = useLocale();
 
   if (state === "select-language") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-black p-4">
-        <div className="w-full max-w-md space-y-8 rounded-2xl bg-white p-8 shadow-xl dark:bg-zinc-950">
-          <h1>Bonjour {data?.name || "there"}!</h1>
-          We'll start in a few seconds. Could you choose a language to continue
-          ?
-          <br />
-          <br />
-          <Select
-            value={data?.language as Locale}
-            onChange={async (value) => {
-              setLoading(true);
-              try {
-                await updateLanguage.mutateAsync({ language: value });
-              } catch (error) {
-                console.error("Error saving language:", error);
-                toast.error("An error occurred while saving your language.");
-              } finally {
-                setLoading(false);
-              }
-            }}
-            options={[
-              { label: "English", value: "en" },
-              { label: "Français", value: "fr" },
-              { label: "Español", value: "es" },
-              { label: "Deutsch", value: "de" },
-            ]}
-          />
-          <Button
-            disabled={loading}
-            className="mt-4"
-            onClick={() => setState("security")}
-          >
-            Continue
-          </Button>
+        <div className="w-full max-w-md space-y-6 rounded-2xl bg-white p-8 shadow-xl dark:bg-zinc-950">
+          <div className="flex items-start gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold tracking-tight">
+                {data?.name
+                  ? t("title").replace("{name}", data.name)
+                  : t("titleDefault")}
+              </h1>
+              <p className="text-muted-foreground mt-1">{t("subtitle")}</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                {t("languageLabel")}
+              </label>
+              <Select
+                value={data?.language as Locale}
+                onChange={async (value) => {
+                  setLoading(true);
+                  try {
+                    setLocale(value as Locale);
+                    await updateLanguage.mutateAsync({ language: value });
+                  } catch (error) {
+                    console.error("Error saving language:", error);
+                    toast.error(t("errorSavingLanguage"));
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                options={[
+                  { label: "English", value: "en" },
+                  { label: "Français", value: "fr" },
+                  { label: "Español", value: "es" },
+                  { label: "Deutsch", value: "de" },
+                ]}
+              />
+            </div>
+
+            <Button
+              disabled={loading}
+              className="w-full"
+              size="lg"
+              onClick={() => setState("security")}
+            >
+              {t("continue")}
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -60,62 +81,70 @@ export default function WelcomePage() {
 
   if (state === "security") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-black p-4">
-        <div className="w-full max-w-md space-y-8 rounded-2xl bg-white p-8 shadow-xl dark:bg-zinc-950">
-          <h1>Security first</h1>
-          We take your privacy seriously. All your data is encrypted end-to-end,
-          which means <strong>only you can access it.</strong> We don't have the
-          keys, not even for support.
-          <br />
-          <br />
-          Here is your unique certificate, generated by your browser. Save it
-          and send it to yourself by email. You'll need it to recover your data
-          if you lose access to your account. You will also need it to use the
-          app from another device. #TODO - create a check box for each points
-          #TODO - The user can also decide not to use encryption, they can
-          always enable it later.
-          <br />
-          <br />
-          <Button
-            disabled={loading}
-            className="mt-4"
-            onClick={() => setState("ready")}
-          >
-            All set
-          </Button>
-        </div>
-      </div>
+      <SecurityStep
+        userName={data?.name}
+        onContinue={() => setState("ready")}
+        onSkip={() => setState("ready")}
+      />
     );
   }
 
   if (state === "ready") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-black p-4">
-        <div className="w-full max-w-md space-y-8 rounded-2xl bg-white p-8 shadow-xl dark:bg-zinc-950">
-          <h1>All set!</h1>
-          You're all set to start transcribing. Click the button below to create
-          your first transcription project.
-          <br />
-          <br />
+        <div className="w-full max-w-md space-y-6 rounded-2xl bg-white p-8 shadow-xl dark:bg-zinc-950">
+          <div className="flex items-start gap-4">
+            <div className="rounded-full bg-green-100 dark:bg-green-950 p-3">
+              <RocketIcon className="h-6 w-6 text-green-600 dark:text-green-400" />
+            </div>
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold tracking-tight">
+                {t("allSetTitle")}
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                {t("allSetSubtitle")}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3 py-2">
+            <div className="flex items-start gap-3 text-sm">
+              <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+              <span className="text-muted-foreground">
+                {t("accountConfigured")}
+              </span>
+            </div>
+            <div className="flex items-start gap-3 text-sm">
+              <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+              <span className="text-muted-foreground">{t("firstProject")}</span>
+            </div>
+            <div className="flex items-start gap-3 text-sm">
+              <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+              <span className="text-muted-foreground">
+                {t("learnFeatures")}
+              </span>
+            </div>
+          </div>
+
           <Button
             disabled={loading}
-            className="mt-4"
+            className="w-full"
+            size="lg"
             onClick={async () => {
               setLoading(true);
               try {
-                await updateLanguage.mutateAsync({ isWelcomeCompleted: true });
+                await updateLanguage.mutateAsync({ isWelcomeDone: true });
                 await handleResetTutorial(data?.language || "en");
               } catch (err) {
                 console.error("Error completing welcome:", err);
-                toast.error(
-                  "An error occurred while setting up your account. Please try again.",
-                );
+                toast.error(t("setupError"));
               } finally {
                 setLoading(false);
               }
             }}
           >
-            Run the tutorial
+            <RocketIcon className="w-4 h-4 mr-2" />
+            {loading ? t("starting") : t("startTutorial")}
           </Button>
         </div>
       </div>

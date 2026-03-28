@@ -1,6 +1,7 @@
-import { prisma } from "./prisma";
+import { Transcription } from "@prisma/client";
 import * as fs from "fs/promises";
 import * as path from "path";
+import { prisma } from "./prisma";
 
 const SUPPORTED_LANGUAGES = ["en", "fr", "es", "de"] as const;
 type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
@@ -19,7 +20,7 @@ const TUTORIAL_TITLES: Record<SupportedLanguage, string> = {
 export async function createTutorialTranscription(
   userId: string,
   language: string = "en",
-): Promise<void> {
+): Promise<Transcription | null> {
   // Validate language
   const requestedLanguage = SUPPORTED_LANGUAGES.includes(
     language as SupportedLanguage,
@@ -28,16 +29,19 @@ export async function createTutorialTranscription(
     : "en";
 
   // Check if user already has a tutorial
-  const existingTutorial = await prisma.transcription.findFirst({
+  const matches = await prisma.transcription.findMany({
     where: {
       userId: userId,
-      title: { startsWith: "Tutorial" },
+      isTutorial: true,
     },
   });
-
-  if (existingTutorial) {
-    // Tutorial already exists, don't create a duplicate
-    return;
+  for (const match of matches) {
+    await prisma.transcriptionHistory.deleteMany({
+      where: { transcriptionId: match.id },
+    });
+    await prisma.transcription.delete({
+      where: { id: match.id },
+    });
   }
 
   // Try to find tutorial files for the requested language, fall back to English
@@ -51,7 +55,7 @@ export async function createTutorialTranscription(
   );
 
   try {
-    await fs.access(tutorialPath);
+    await fs.readFile(tutorialPath);
   } catch {
     // Tutorial files don't exist for this language, fall back to English
     console.log(
@@ -86,6 +90,7 @@ export async function createTutorialTranscription(
     await prisma.transcription.create({
       data: {
         userId: userId,
+        isTutorial: true,
         title: TUTORIAL_TITLES[tutorialLanguage],
         audioFileKey: `tutorial:${tutorialLanguage}:audio.mp3`,
         audioFileName: "tutorial.mp3",
@@ -107,4 +112,13 @@ export async function createTutorialTranscription(
     // Don't fail the signup if tutorial creation fails
     console.error("Failed to create tutorial transcription:", error);
   }
+
+  const createdTutorial = await prisma.transcription.findFirst({
+    where: {
+      userId: userId,
+      isTutorial: true,
+    },
+  });
+
+  return createdTutorial;
 }

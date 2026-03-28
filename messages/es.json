@@ -221,5 +221,46 @@
             "es": "Español",
             "de": "Deutsch"
         }
+    },
+    "login": {
+        "title": "Bienvenido",
+        "subtitle": "Inicia sesión para acceder a tus transcripciones",
+        "signInWithEmail": "Iniciar sesión con Email",
+        "email": "Email",
+        "password": "Contraseña",
+        "emailPlaceholder": "tu@ejemplo.com",
+        "passwordPlaceholder": "••••••••",
+        "signingIn": "Iniciando sesión...",
+        "signIn": "Iniciar sesión",
+        "noAccount": "¿No tienes cuenta? Regístrate",
+        "back": "Volver",
+        "name": "Nombre (Opcional)",
+        "namePlaceholder": "Tu Nombre",
+        "createAccount": "Crear cuenta",
+        "creatingAccount": "Creando cuenta...",
+        "minPasswordLength": "Al menos 8 caracteres",
+        "alreadyHaveAccount": "¿Ya tienes cuenta? Inicia sesión",
+        "termsAndConditions": "Al iniciar sesión, aceptas nuestros Términos de Servicio y Política de Privacidad",
+        "loginSuccess": "¡Sesión iniciada correctamente!",
+        "loginFailed": "Error al iniciar sesión",
+        "registrationFailed": "Error al registrarse",
+        "accountCreated": "¡Cuenta creada correctamente!",
+        "errorOccurred": "Ocurrió un error. Por favor, inténtalo de nuevo."
+    },
+    "welcome": {
+        "title": "¡Bienvenido, {name}!",
+        "titleDefault": "¡Bienvenido!",
+        "subtitle": "Comencemos en solo unos pasos",
+        "languageLabel": "Elige tu idioma preferido",
+        "continue": "Continuar",
+        "errorSavingLanguage": "Ocurrió un error al guardar tu idioma.",
+        "allSetTitle": "¡Todo Listo!",
+        "allSetSubtitle": "Déjanos mostrarte cómo funciona",
+        "accountConfigured": "Tu cuenta está configurada y lista para usar",
+        "firstProject": "Te guiaremos para crear tu primer proyecto de transcripción",
+        "learnFeatures": "Aprende a usar todas las funciones clave en minutos",
+        "startTutorial": "Iniciar Tutorial",
+        "starting": "Iniciando...",
+        "setupError": "Ocurrió un error al configurar tu cuenta. Por favor, inténtalo de nuevo."
     }
 }

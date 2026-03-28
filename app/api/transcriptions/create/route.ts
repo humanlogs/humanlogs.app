@@ -2,15 +2,15 @@ import {
   checkFfmpegAvailable,
   compressAudio,
   encryptAudioBuffer,
-  generateTranscriptionEncryptionKey,
-  encryptTranscriptionKey,
 } from "@/lib/audio-processing";
 import { requireAuth } from "@/lib/auth-helpers";
 import { getElevenLabsClient, isElevenLabsConfigured } from "@/lib/elevenlabs";
 import { prisma } from "@/lib/prisma";
 import { generateAudioKey, getStorage } from "@/lib/storage";
 import { isBillableVersion } from "@/lib/stripe";
+import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { EncryptionUtils } from "../../../../lib/encryption-entities";
 
 export const dynamic = "force-dynamic";
 
@@ -182,52 +182,53 @@ export async function POST(request: NextRequest) {
           unencryptedFile = originalBuffer;
         }
 
-        // Check if user has encryption enabled
-        const userWithKey = await prisma.user.findUnique({
+        const userProfile = await prisma.user.findUnique({
           where: { id: user.id },
-          select: { publicKey: true },
+          select: {
+            publicKey: true,
+          },
         });
 
-        // Generate a unique encryption key for this transcription
-        let transcriptionEncryptionKey: string | null = null;
-        let fileToStore: Buffer;
-        let contentType: string;
+        let fileToStore = unencryptedFile;
 
-        if (userWithKey?.publicKey) {
-          // Generate random encryption key for this transcription
-          transcriptionEncryptionKey = generateTranscriptionEncryptionKey();
+        const useEncryption = userProfile?.publicKey ? true : false;
 
-          console.log(
-            `Encrypting file for transcription ${transcription.id}...`,
+        if (useEncryption) {
+          const encryption = new EncryptionUtils(crypto);
+          const transcriptionDto = await encryption.createEncryptedDataEntity(
+            {},
+            [
+              await encryption.createEncryptedAccessorEntity(
+                user.id,
+                userProfile!.publicKey!,
+              ),
+            ],
           );
 
-          // Encrypt the audio file with the transcription key
-          fileToStore = encryptAudioBuffer(
-            unencryptedFile,
-            transcriptionEncryptionKey,
-          );
-          contentType = "application/octet-stream"; // Encrypted binary data
+          const audioFileSecret = crypto.randomBytes(32).toString("base64");
+          fileToStore = encryptAudioBuffer(unencryptedFile, audioFileSecret);
 
-          // Encrypt the transcription key with the user's public key
-          const encryptedEncryptionKey = encryptTranscriptionKey(
-            transcriptionEncryptionKey,
-            userWithKey.publicKey,
-          );
-
-          // Store the encrypted encryption key
-          await prisma.transcriptionEncryptionKey.create({
+          // Update transcription with storage key
+          await prisma.transcription.update({
+            where: { id: transcription.id },
             data: {
-              transcriptionId: transcription.id,
-              userId: user.id,
-              encryptedEncryptionKey,
+              transcription: transcriptionDto,
+              audioFileEncryption: await encryption.createEncryptedDataEntity(
+                audioFileSecret,
+                [
+                  await encryption.createEncryptedAccessorEntity(
+                    user.id,
+                    userProfile!.publicKey!,
+                  ),
+                ],
+              ),
             },
           });
-
-          console.log(`Encrypted file size: ${fileToStore.length} bytes`);
-        } else {
-          fileToStore = unencryptedFile;
-          contentType = "audio/opus"; // Compressed opus file
         }
+
+        // Store the compressed/unencrypted audio file for now
+        // It will be encrypted at the end of the ElevenLabs transcription step
+        const contentType = "audio/opus"; // Compressed opus file
 
         // Upload to storage
         const storageKey = generateAudioKey(

@@ -30,7 +30,8 @@
         }
     },
     "elevenlabs": {
-        "apiKey": "ELEVENLABS_API_KEY"
+        "apiKey": "ELEVENLABS_API_KEY",
+        "canDisableStorage": "ELEVENLABS_CAN_DISABLE_STORAGE"
     },
     "stripe": {
         "secretKey": "STRIPE_SECRET",

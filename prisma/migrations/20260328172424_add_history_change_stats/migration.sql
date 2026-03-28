@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "TranscriptionHistory" ADD COLUMN     "additions" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "changed" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "removals" INTEGER NOT NULL DEFAULT 0;

@@ -35,6 +35,7 @@ const configSchema = z.object({
   }),
   elevenlabs: z.object({
     apiKey: z.string(),
+    canDisableStorage: z.boolean().optional(),
   }),
   email: z
     .object({
@@ -123,4 +124,6 @@ export const awsConfig = {
 
 export const elevenlabsConfig = {
   apiKey: config.get<string>("elevenlabs.apiKey"),
+  canDisableStorage:
+    config.get<boolean>("elevenlabs.canDisableStorage") || false,
 };

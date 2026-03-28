@@ -17,16 +17,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import {
-  useProjects,
-  useTranscriptions,
-  useUpdateUser,
-  useUserProfile,
-} from "@/hooks/use-api";
+import { useProjects, useUpdateUser, useUserProfile } from "@/hooks/use-api";
 import { FilePlusCornerIcon, PencilIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
+import { useTranscriptions } from "../hooks/use-transcriptions";
 import { useWelcomeRedirect } from "../hooks/use-welcome-redirect";
 import { Locale, locales } from "../lib/i18n";
 import { useProjectModal } from "./project-create-modal";

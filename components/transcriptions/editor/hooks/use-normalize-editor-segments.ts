@@ -1,4 +1,4 @@
-import { TranscriptionSegment } from "../../../../hooks/use-api";
+import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 
 /**
  * Normalizes an array of TranscriptionSegments so that:

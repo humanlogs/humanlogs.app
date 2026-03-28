@@ -1,9 +1,11 @@
 "use client";
 
+import {
+  TranscriptionSegment,
+  useSaveTranscription,
+} from "@/hooks/use-transcriptions";
 import { useEffect, useRef, useState } from "react";
-import { TranscriptionSegment } from "../../../../hooks/use-api";
 import { Speaker } from "./use-speaker-actions";
-import { saveTranscriptionLocally } from "../../../../lib/indexeddb";
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
 
@@ -30,6 +32,7 @@ export function useAutoSave({
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedRef = useRef<string | null>(null);
   const isMountedRef = useRef(false);
+  const saveTranscription = useSaveTranscription(transcriptionId);
 
   // Track if this is the first render
   // Initialize as mounted on first render
@@ -63,30 +66,12 @@ export function useAutoSave({
     setSaveStatus("saving");
     onSaveStart?.();
 
-    // Save to IndexedDB immediately (non-blocking fallback)
-    saveTranscriptionLocally({
-      transcriptionId,
-      segments,
-      speakers,
-      serverUpdatedAt: undefined, // Will be updated after server save
-    }).catch((error) => {
-      console.error("Failed to save to IndexedDB:", error);
-    });
-
     // Schedule actual save after debounce
     saveTimeoutRef.current = setTimeout(async () => {
       try {
-        const response = await fetch(`/api/transcriptions/${transcriptionId}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            transcription: {
-              words: segments,
-              speakers,
-            },
-          }),
+        const response = await saveTranscription.mutateAsync({
+          words: segments,
+          speakers,
         });
 
         const responseData = await response.json();
@@ -98,21 +83,6 @@ export function useAutoSave({
         lastSavedRef.current = currentState;
         setSaveStatus("saved");
         onSaveComplete?.();
-
-        // Update IndexedDB with server timestamp
-        if (responseData.updatedAt) {
-          saveTranscriptionLocally({
-            transcriptionId,
-            segments,
-            speakers,
-            serverUpdatedAt: responseData.updatedAt,
-          }).catch((error) => {
-            console.error(
-              "Failed to update IndexedDB with server timestamp:",
-              error,
-            );
-          });
-        }
 
         // Reset to idle after 2 seconds
         setTimeout(() => {

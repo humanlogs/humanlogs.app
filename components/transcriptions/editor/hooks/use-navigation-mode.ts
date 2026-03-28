@@ -2,7 +2,7 @@
 
 import { RefObject, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { TranscriptionSegment } from "../../../../hooks/use-api";
+import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { getCustomShortcuts } from "../../../../lib/shortcuts";
 import { useAnyModalOpen } from "../../../use-modal";
 import { AudioControls } from "../interactive-audio";

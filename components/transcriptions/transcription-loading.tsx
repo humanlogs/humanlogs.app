@@ -2,7 +2,7 @@
 
 import { Loader } from "lucide-react";
 import { useEffect, useState } from "react";
-import { TranscriptionDetail } from "../../hooks/use-api";
+import { TranscriptionDetail } from "../../hooks/use-transcriptions";
 
 type TranscriptionLoadingProps = {
   transcription: TranscriptionDetail;

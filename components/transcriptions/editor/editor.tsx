@@ -4,17 +4,11 @@ import { useEffect, useState } from "react";
 import {
   TranscriptionDetail,
   TranscriptionSegment,
-} from "../../../hooks/use-api";
-import "./index.css";
+} from "../../../hooks/use-transcriptions";
 import { SaveStatus, useAutoSave } from "./hooks/use-auto-save";
 import { Speaker } from "./hooks/use-speaker-actions";
+import "./index.css";
 import { TranscriptEditorContent } from "./transcript-editor-content";
-import { LocalVersionModal } from "../dialogs/local-version-modal";
-import {
-  getTranscriptionLocally,
-  isLocalVersionNewer,
-  deleteTranscriptionLocally,
-} from "../../../lib/indexeddb";
 
 /**
  * Ensures every speakerId referenced in segments has a speaker entry with a name.
@@ -56,52 +50,6 @@ export const TranscriptEditor = ({
     speakers: Speaker[];
     updatedAt: number;
   } | null>(null);
-
-  // Check for local version on mount
-  useEffect(() => {
-    const checkLocalVersion = async () => {
-      const local = await getTranscriptionLocally(transcription.id);
-
-      if (local && transcription.updatedAt) {
-        if (isLocalVersionNewer(local.updatedAt, transcription.updatedAt)) {
-          // Local version is newer - show modal to let user choose
-          setLocalData(local);
-          setShowLocalVersionModal(true);
-        } else {
-          // Server version is newer or same - use server version and update local
-          // Clear outdated local data
-          await deleteTranscriptionLocally(transcription.id);
-        }
-      }
-    };
-    {
-      showLocalVersionModal && localData && transcription.updatedAt && (
-        <LocalVersionModal
-          isOpen={showLocalVersionModal}
-          onUseLocal={handleUseLocalVersion}
-          onUseServer={handleUseServerVersion}
-          localUpdatedAt={localData.updatedAt}
-          serverUpdatedAt={transcription.updatedAt}
-        />
-      );
-    }
-
-    checkLocalVersion();
-  }, [transcription.id, transcription.updatedAt]);
-
-  const handleUseLocalVersion = () => {
-    if (localData) {
-      setSegments(localData.segments);
-      setSpeakers(localData.speakers);
-    }
-    setShowLocalVersionModal(false);
-  };
-
-  const handleUseServerVersion = async () => {
-    // Clear local data and use server version
-    await deleteTranscriptionLocally(transcription.id);
-    setShowLocalVersionModal(false);
-  };
 
   // Auto-save with debounce
   const { saveStatus } = useAutoSave({

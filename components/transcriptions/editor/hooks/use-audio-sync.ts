@@ -1,7 +1,7 @@
 "use client";
 
 import { RefObject, useEffect, useRef } from "react";
-import { TranscriptionSegment } from "../../../../hooks/use-api";
+import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { useAudio } from "../audio-context";
 import { getSelectionOffsets } from "../utils/selection";
 

@@ -387,7 +387,7 @@ export default function NewTranscriptionPage() {
             onClick={() => fileInputRef.current?.click()}
           >
             <div className="border rounded-md w-12 h-12 flex items-center justify-center">
-              <UploadIcon className="w-6 h-6 text-black" />
+              <UploadIcon className="w-6 h-6 text-black dark:text-white" />
             </div>
             <div>
               <p className="text-lg font-medium">{t("dragDrop")}</p>

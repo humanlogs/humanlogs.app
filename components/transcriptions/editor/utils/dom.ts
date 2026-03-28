@@ -1,4 +1,4 @@
-import { TranscriptionSegment } from "../../../../hooks/use-api";
+import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 
 // Maps HTML tag names produced by execCommand to the modifier they represent
 const MODIFIER_TAG: Record<string, "b" | "i" | "u" | "s"> = {

@@ -10,7 +10,7 @@ import {
 import _ from "lodash";
 import { UserCog, UserRoundPen, UserRoundPlus, Users } from "lucide-react";
 import { getSpeakerColorClass } from "../../../../lib/utils";
-import { TranscriptionSegment } from "../../../../hooks/use-api";
+import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { getSpeakerLabel, Speaker } from "../hooks/use-speaker-actions";
 import { SpeakerPosition } from "../hooks/use-speaker-positions";
 import { useSpeakerRenameModal } from "./speaker-rename-dialog";

@@ -1,7 +1,7 @@
 "use client";
 
 import { RefObject, useEffect, useState } from "react";
-import { TranscriptionSegment } from "../../../../hooks/use-api";
+import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { SearchMatch } from "./use-search-replace";
 
 export interface HighlightPosition {

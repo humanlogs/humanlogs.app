@@ -1,6 +1,6 @@
 "use client";
 
-import { TranscriptionDetail } from "../../hooks/use-api";
+import { TranscriptionDetail } from "../../hooks/use-transcriptions";
 import { AudioProvider } from "./editor/audio-context";
 import { TranscriptEditor } from "./editor/editor";
 import { SaveStatus } from "./editor/hooks/use-auto-save";

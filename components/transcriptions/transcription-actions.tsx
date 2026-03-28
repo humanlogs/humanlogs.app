@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuSub,
 } from "@/components/ui/dropdown-menu";
-import { TranscriptionContent } from "@/hooks/use-api";
+import { TranscriptionContent } from "@/hooks/use-transcriptions";
 import {
   exportAsCSV,
   exportAsJSON,

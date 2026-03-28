@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
-import { TranscriptionSegment } from "../../../hooks/use-api";
+import { TranscriptionSegment } from "../../../hooks/use-transcriptions";
 import { getSpeakerColor } from "../../../lib/utils";
 import { useAudio } from "./audio-context";
 import "./index.css"; // Import custom styles for canvas

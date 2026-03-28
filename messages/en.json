@@ -221,5 +221,46 @@
             "es": "Español",
             "de": "Deutsch"
         }
+    },
+    "login": {
+        "title": "Welcome",
+        "subtitle": "Sign in to access your transcriptions",
+        "signInWithEmail": "Sign in with Email",
+        "email": "Email",
+        "password": "Password",
+        "emailPlaceholder": "you@example.com",
+        "passwordPlaceholder": "••••••••",
+        "signingIn": "Signing in...",
+        "signIn": "Sign in",
+        "noAccount": "Don't have an account? Register",
+        "back": "Back",
+        "name": "Name (Optional)",
+        "namePlaceholder": "Your Name",
+        "createAccount": "Create account",
+        "creatingAccount": "Creating account...",
+        "minPasswordLength": "At least 8 characters",
+        "alreadyHaveAccount": "Already have an account? Sign in",
+        "termsAndConditions": "By signing in, you agree to our Terms of Service and Privacy Policy",
+        "loginSuccess": "Logged in successfully!",
+        "loginFailed": "Login failed",
+        "registrationFailed": "Registration failed",
+        "accountCreated": "Account created successfully!",
+        "errorOccurred": "An error occurred. Please try again."
+    },
+    "welcome": {
+        "title": "Welcome, {name}!",
+        "titleDefault": "Welcome, there!",
+        "subtitle": "Let's get you started in just a few steps",
+        "languageLabel": "Choose your preferred language",
+        "continue": "Continue",
+        "errorSavingLanguage": "An error occurred while saving your language.",
+        "allSetTitle": "You're All Set!",
+        "allSetSubtitle": "Let's show you around",
+        "accountConfigured": "Your account is configured and ready to use",
+        "firstProject": "We'll walk you through creating your first transcription project",
+        "learnFeatures": "Learn how to use all the key features in minutes",
+        "startTutorial": "Start Tutorial",
+        "starting": "Starting...",
+        "setupError": "An error occurred while setting up your account. Please try again."
     }
 }

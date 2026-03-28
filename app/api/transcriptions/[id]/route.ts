@@ -3,8 +3,13 @@ import { getElevenLabsClient, isElevenLabsConfigured } from "@/lib/elevenlabs";
 import { prisma } from "@/lib/prisma";
 import { notifyDatabaseChange } from "@/lib/socket-helpers";
 import { Transcription } from "@prisma/client";
+import crypto from "crypto";
 import _ from "lodash";
 import { NextResponse } from "next/server";
+import {
+  EncryptedDataEntity,
+  EncryptionUtils,
+} from "../../../../lib/encryption-entities";
 import { getStorage } from "../../../../lib/storage";
 
 type RouteParams = {
@@ -135,6 +140,13 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         );
       }
 
+      // Extract change stats from request body (computed by frontend)
+      const changeStats = body.changeStats || {
+        additions: 0,
+        removals: 0,
+        changed: 0,
+      };
+
       // Create a history entry before updating
       if (transcription.transcription !== null) {
         await prisma.transcriptionHistory.create({
@@ -143,6 +155,9 @@ export async function PATCH(request: Request, { params }: RouteParams) {
             userId: user.id,
             transcription: transcription.transcription as never,
             updatedBy: user.id,
+            additions: changeStats.additions || 0,
+            removals: changeStats.removals || 0,
+            changed: changeStats.changed || 0,
           },
         });
       }
@@ -240,12 +255,18 @@ export const pollPendingTranscriptions = async (
       );
 
       if (status.status === "completed" && status.transcription) {
+        // If the transcription is an EncryptedDataEntity, we'll automatically update it with the new transcription result, encrypted with the transcription's public key
+        const encodedTranscription = await new EncryptionUtils(crypto).encrypt(
+          transcription.transcription as EncryptedDataEntity,
+          status.transcription,
+        );
+
         // Update the transcription with the result
         const updated = await prisma.transcription.update({
           where: { id: transcription.id },
           data: {
             state: "COMPLETED",
-            transcription: status.transcription as never,
+            transcription: encodedTranscription as never,
             completedAt: new Date(),
           },
         });
@@ -290,6 +311,7 @@ export const mapTransactionDetails = (transcription: Transcription) =>
     "audioFileName",
     "audioFileSize",
     "audioFileKey",
+    "audioFileEncryption",
     "language",
     "vocabulary",
     "speakerCount",

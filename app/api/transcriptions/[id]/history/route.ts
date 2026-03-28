@@ -8,11 +8,6 @@ type RouteParams = {
   }>;
 };
 
-type TranscriptionContent = {
-  words: unknown[];
-  [key: string]: unknown;
-};
-
 type HistoryEntry = {
   id: string;
   updatedAt: Date;
@@ -71,7 +66,7 @@ export async function GET(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    // Fetch history entries for this transcription
+    // Fetch history entries for this transcription with stats
     const history = await prisma.transcriptionHistory.findMany({
       where: {
         transcriptionId: id,
@@ -83,8 +78,10 @@ export async function GET(request: Request, { params }: RouteParams) {
         id: true,
         updatedAt: true,
         updatedBy: true,
-        transcription: true,
         userId: true,
+        additions: true,
+        removals: true,
+        changed: true,
       },
     });
 
@@ -108,88 +105,24 @@ export async function GET(request: Request, { params }: RouteParams) {
     // Create a map of users by ID
     const userMap = new Map(users.map((u) => [u.id, u]));
 
-    // Calculate stats for each history entry
-    const historyWithStats: HistoryEntry[] = history.map(
-      (
-        entry: {
-          id: string;
-          updatedAt: Date;
-          updatedBy: string;
-          userId: string;
-          transcription: unknown;
-        },
-        index: number,
-      ) => {
-        const userData = userMap.get(entry.userId) || {
-          id: entry.userId,
-          name: null,
-          email: "Unknown User",
-        };
+    // Map history entries with user data
+    const historyWithStats: HistoryEntry[] = history.map((entry) => {
+      const userData = userMap.get(entry.userId) || {
+        id: entry.userId,
+        name: null,
+        email: "Unknown User",
+      };
 
-        const currentWords = entry.transcription
-          ? (entry.transcription as TranscriptionContent).words || []
-          : [];
-        const previousWords =
-          index < history.length - 1 && history[index + 1].transcription
-            ? (history[index + 1].transcription as TranscriptionContent)
-                .words || []
-            : [];
-
-        // Use word.start as unique identifier
-        // Build maps for efficient lookup
-        const currentMap = new Map<number, { text?: string }>();
-        const previousMap = new Map<number, { text?: string }>();
-
-        for (const word of currentWords) {
-          const w = word as { start?: number; text?: string };
-          if (w.start !== undefined) {
-            currentMap.set(w.start, w);
-          }
-        }
-
-        for (const word of previousWords) {
-          const w = word as { start?: number; text?: string };
-          if (w.start !== undefined) {
-            previousMap.set(w.start, w);
-          }
-        }
-
-        let additions = 0;
-        let removals = 0;
-        let changed = 0;
-
-        // Check all current words
-        for (const [start, currentWord] of currentMap) {
-          if (!previousMap.has(start)) {
-            // start present in current but not in previous → addition
-            additions++;
-          } else {
-            // start present in both, check if text changed
-            const previousWord = previousMap.get(start);
-            if (currentWord.text !== previousWord?.text) {
-              changed++;
-            }
-          }
-        }
-
-        // Check for removals (in previous but not in current)
-        for (const start of previousMap.keys()) {
-          if (!currentMap.has(start)) {
-            removals++;
-          }
-        }
-
-        return {
-          id: entry.id,
-          updatedAt: entry.updatedAt,
-          updatedBy: entry.updatedBy,
-          user: userData,
-          additions,
-          removals,
-          changed,
-        };
-      },
-    );
+      return {
+        id: entry.id,
+        updatedAt: entry.updatedAt,
+        updatedBy: entry.updatedBy,
+        user: userData,
+        additions: entry.additions,
+        removals: entry.removals,
+        changed: entry.changed,
+      };
+    });
 
     // Group history entries based on age:
     // - Recent (<1 day): group every 5 minutes

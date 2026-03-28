@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef } from "react";
-import { TranscriptionSegment } from "../../../../hooks/use-api";
+import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { SelectionOffsets } from "../utils/selection";
 
 function segmentsKey(segs: TranscriptionSegment[]): string {
