@@ -8,7 +8,6 @@ import { TranscriptionDeleteDialog } from "@/components/transcriptions/dialogs/t
 import { TranscriptionExportDialog } from "@/components/transcriptions/dialogs/transcription-export-dialog";
 import { TranscriptionRenameDialog } from "@/components/transcriptions/dialogs/transcription-rename-dialog";
 import { TranscriptionSetProjectDialog } from "@/components/transcriptions/dialogs/transcription-set-project-dialog";
-import { VersionComparisonModal } from "@/components/transcriptions/dialogs/version-comparison-modal";
 import { TranscriptionHistorySheet } from "@/components/transcriptions/transcription-history-sheet";
 import {
   SidebarInset,
