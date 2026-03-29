@@ -17,18 +17,22 @@ export function useSearchReplace(
   const [searchTerm, setSearchTerm] = useState("");
   const [replaceTerm, setReplaceTerm] = useState("");
   const [caseSensitive, setCaseSensitive] = useState(false);
+  const [wholeWord, setWholeWord] = useState(false);
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
 
   // Find all matches in the segments
   const findMatches = useCallback(
-    (term: string, isCaseSensitive: boolean): SearchMatch[] => {
+    (
+      term: string,
+      isCaseSensitive: boolean,
+      isWholeWord: boolean,
+    ): SearchMatch[] => {
       if (!term) return [];
 
       const matches: SearchMatch[] = [];
-      const searchRegex = new RegExp(
-        term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-        isCaseSensitive ? "g" : "gi",
-      );
+      const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const pattern = isWholeWord ? `\\b${escapedTerm}\\b` : escapedTerm;
+      const searchRegex = new RegExp(pattern, isCaseSensitive ? "g" : "gi");
 
       segments.forEach((segment, segmentIndex) => {
         if (segment.type !== "word") return;
@@ -52,8 +56,8 @@ export function useSearchReplace(
 
   // Get all matches
   const matches = useMemo(
-    () => (searchTerm ? findMatches(searchTerm, caseSensitive) : []),
-    [searchTerm, caseSensitive, findMatches],
+    () => (searchTerm ? findMatches(searchTerm, caseSensitive, wholeWord) : []),
+    [searchTerm, caseSensitive, wholeWord, findMatches],
   );
   const matchCount = matches.length;
 
@@ -79,15 +83,14 @@ export function useSearchReplace(
   const replaceAll = useCallback(() => {
     if (!searchTerm) return;
 
-    const allMatches = findMatches(searchTerm, caseSensitive);
+    const allMatches = findMatches(searchTerm, caseSensitive, wholeWord);
     if (allMatches.length === 0) return;
 
     // Create new segments array with replacements
     const newSegments = [...segments];
-    const searchRegex = new RegExp(
-      searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-      caseSensitive ? "g" : "gi",
-    );
+    const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = wholeWord ? `\\b${escapedTerm}\\b` : escapedTerm;
+    const searchRegex = new RegExp(pattern, caseSensitive ? "g" : "gi");
 
     allMatches.forEach(({ segmentIndex }) => {
       const segment = newSegments[segmentIndex];
@@ -100,7 +103,15 @@ export function useSearchReplace(
     });
 
     onChange(newSegments);
-  }, [searchTerm, replaceTerm, caseSensitive, segments, onChange, findMatches]);
+  }, [
+    searchTerm,
+    replaceTerm,
+    caseSensitive,
+    wholeWord,
+    segments,
+    onChange,
+    findMatches,
+  ]);
 
   // Replace current occurrence
   const replaceCurrent = useCallback(() => {
@@ -148,6 +159,8 @@ export function useSearchReplace(
     setReplaceTerm,
     caseSensitive,
     setCaseSensitive,
+    wholeWord,
+    setWholeWord,
     matches,
     matchCount,
     currentMatchIndex: effectiveCurrentIndex,

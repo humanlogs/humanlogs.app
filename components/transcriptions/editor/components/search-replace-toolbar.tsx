@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "../../../ui/button";
 import { Input } from "../../../ui/input";
 import { Label } from "../../../ui/label";
-import { DropdownMenu, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Checkbox } from "../../../ui/checkbox";
 
 export interface SearchReplaceToolbarProps {
   searchTerm: string;
@@ -14,6 +14,8 @@ export interface SearchReplaceToolbarProps {
   onReplaceTermChange: (value: string) => void;
   caseSensitive: boolean;
   onCaseSensitiveChange: (value: boolean) => void;
+  wholeWord: boolean;
+  onWholeWordChange: (value: boolean) => void;
   matchCount: number;
   currentMatchIndex: number;
   onNextMatch: () => void;
@@ -32,6 +34,8 @@ export function SearchReplaceToolbar({
   onReplaceTermChange,
   caseSensitive,
   onCaseSensitiveChange,
+  wholeWord,
+  onWholeWordChange,
   matchCount,
   currentMatchIndex,
   onNextMatch,
@@ -43,6 +47,7 @@ export function SearchReplaceToolbar({
   searchInputRef,
 }: SearchReplaceToolbarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showReplaceInput, setShowReplaceInput] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -69,94 +74,108 @@ export function SearchReplaceToolbar({
       className="relative items-center gap-1 ml-auto flex"
     >
       {/* Search Input with Navigation */}
-      <DropdownMenu
-        trigger={
-          <div className="relative">
-            <SearchIcon className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-            <Input
-              ref={searchInputRef}
-              type="text"
-              value={searchTerm}
-              autoComplete="off"
-              onChange={(e) => onSearchTermChange(e.target.value)}
-              onFocus={() => setIsExpanded(true)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  if (e.shiftKey) {
-                    onPreviousMatch();
-                  } else {
-                    onNextMatch();
-                  }
-                } else if (e.key === "Escape") {
-                  e.currentTarget.blur();
-                  setIsExpanded(false);
+      <div className="relative">
+        <div className="relative">
+          <SearchIcon className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <Input
+            ref={searchInputRef}
+            type="text"
+            value={searchTerm}
+            autoComplete="off"
+            onChange={(e) => onSearchTermChange(e.target.value)}
+            onFocus={() => setIsExpanded(true)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (e.shiftKey) {
+                  onPreviousMatch();
+                } else {
+                  onNextMatch();
                 }
-              }}
-              placeholder="Find..."
-              className="pl-7 pr-8"
-            />
-            {searchTerm && (
-              <span className="text-xs text-gray-500 whitespace-nowrap absolute right-2 top-1/2 -translate-y-1/2">
-                {matchCount > 0
-                  ? `${currentMatchIndex + 1}/${matchCount}`
-                  : "0"}
-              </span>
-            )}
-          </div>
-        }
-        align="end"
-        position="bottom"
-      >
-        <DropdownMenuItem>
-          <div
-            className=""
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
+              } else if (e.key === "Escape") {
+                e.currentTarget.blur();
+                setIsExpanded(false);
+              }
             }}
-          >
+            placeholder="Find..."
+            className="pl-7 pr-8"
+          />
+          {searchTerm && (
+            <span className="text-xs text-gray-500 whitespace-nowrap absolute right-2 top-1/2 -translate-y-1/2">
+              {matchCount > 0 ? `${currentMatchIndex + 1}/${matchCount}` : "0"}
+            </span>
+          )}
+        </div>
+
+        {/* Search/Replace Options Panel */}
+        {isExpanded && (
+          <div className="absolute right-0 top-full mt-2 w-60 rounded-md border bg-popover p-3 shadow-md z-50">
             <div className="space-y-3">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="case-sensitive-toolbar"
+                    checked={caseSensitive}
+                    onCheckedChange={(value) => onCaseSensitiveChange(!!value)}
+                  />
+                  <Label
+                    htmlFor="case-sensitive-toolbar"
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    Match case
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="whole-word-toolbar"
+                    checked={wholeWord}
+                    onCheckedChange={(value) => onWholeWordChange(!!value)}
+                  />
+                  <Label
+                    htmlFor="whole-word-toolbar"
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    Whole word
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="replace-toggle-toolbar"
+                    checked={showReplaceInput}
+                    onCheckedChange={(value) => setShowReplaceInput(!!value)}
+                  />
+                  <Label
+                    htmlFor="replace-toggle-toolbar"
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    Replace
+                  </Label>
+                </div>
+              </div>
+
               {/* Replace Input */}
-
-              <div>
-                <Label htmlFor="replace-input" className="text-xs mb-1 block">
-                  Replace with
-                </Label>
-                <Input
-                  id="replace-input"
-                  type="text"
-                  value={replaceTerm}
-                  onChange={(e) => onReplaceTermChange(e.target.value)}
-                  placeholder="Replace..."
-                  className="h-7 text-sm"
-                />
-              </div>
-
-              {/* Options */}
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="case-sensitive-toolbar"
-                  checked={caseSensitive}
-                  onChange={(e) => onCaseSensitiveChange(e.target.checked)}
-                  className="h-3.5 w-3.5 rounded border-gray-300"
-                />
-                <Label
-                  htmlFor="case-sensitive-toolbar"
-                  className="text-xs cursor-pointer"
-                >
-                  Match case
-                </Label>
-              </div>
+              {showReplaceInput && (
+                <div>
+                  <Label htmlFor="replace-input" className="text-xs mb-1 block">
+                    Replace with
+                  </Label>
+                  <Input
+                    id="replace-input"
+                    type="text"
+                    value={replaceTerm}
+                    onChange={(e) => onReplaceTermChange(e.target.value)}
+                    placeholder="Replace..."
+                    className="h-7 text-sm"
+                  />
+                </div>
+              )}
 
               {/* Replace Actions */}
-              {showReplace && (
+              {showReplaceInput && (
                 <div className="flex gap-2">
                   <Button
                     onClick={() => {
                       onReplaceCurrent();
-                      setIsExpanded(false);
                     }}
                     disabled={matchCount === 0}
                     variant="outline"
@@ -168,7 +187,6 @@ export function SearchReplaceToolbar({
                   <Button
                     onClick={() => {
                       onReplaceAll();
-                      setIsExpanded(false);
                     }}
                     disabled={matchCount === 0}
                     variant="outline"
@@ -181,8 +199,8 @@ export function SearchReplaceToolbar({
               )}
             </div>
           </div>
-        </DropdownMenuItem>
-      </DropdownMenu>
+        )}
+      </div>
 
       {/* Navigation Buttons */}
       <div className="space-x-0">
@@ -205,16 +223,6 @@ export function SearchReplaceToolbar({
           title="Next (Enter)"
         >
           <ChevronDown className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onToggleReplace}
-          className="h-7 w-7 p-0"
-          title="Toggle Replace"
-          disabled={!searchTerm}
-        >
-          <ReplaceIcon className="h-3.5 w-3.5" />
         </Button>
       </div>
     </div>

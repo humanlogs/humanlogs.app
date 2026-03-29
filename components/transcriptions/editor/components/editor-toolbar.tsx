@@ -25,6 +25,8 @@ interface EditorToolbarProps {
     setReplaceTerm: (value: string) => void;
     caseSensitive: boolean;
     setCaseSensitive: (value: boolean) => void;
+    wholeWord: boolean;
+    setWholeWord: (value: boolean) => void;
     matchCount: number;
     currentMatchIndex: number;
     nextMatch: () => void;
@@ -158,6 +160,8 @@ export function EditorToolbar({
         onReplaceTermChange={searchReplace.setReplaceTerm}
         caseSensitive={searchReplace.caseSensitive}
         onCaseSensitiveChange={searchReplace.setCaseSensitive}
+        wholeWord={searchReplace.wholeWord}
+        onWholeWordChange={searchReplace.setWholeWord}
         matchCount={searchReplace.matchCount}
         currentMatchIndex={searchReplace.currentMatchIndex}
         onNextMatch={searchReplace.nextMatch}

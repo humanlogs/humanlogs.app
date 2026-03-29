@@ -45,10 +45,10 @@ export default async function AppLayout({
           <main className="flex-1 overflow-y-auto">{children}</main>
         </SidebarInset>
       </AppSidebar>
-      <ProjectCreateModal />
       <TranscriptionRenameDialog />
       <TranscriptionDeleteDialog />
       <TranscriptionSetProjectDialog />
+      <ProjectCreateModal />
       <TranscriptionExportDialog />
       <TranscriptionHistorySheet />
       <SpeakerOptionsDialog />

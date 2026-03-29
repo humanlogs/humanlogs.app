@@ -6,6 +6,7 @@
         "user": {
             "plan": "Tarif",
             "credits": "Credits",
+            "account": "Konto",
             "renewal": "Erneuerung",
             "billing": "Abrechnung",
             "security": "Sicherheit",

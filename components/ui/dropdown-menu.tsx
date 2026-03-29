@@ -94,22 +94,46 @@ export function DropdownMenu({
         let maxHeight = "none";
         let top = 0;
 
-        if (spaceAbove >= contentRect.height + gap) {
-          vertical = "top";
-          top = triggerRect.top - contentRect.height - gap;
-        } else if (spaceBelow >= contentRect.height + gap) {
-          vertical = "bottom";
-          top = triggerRect.bottom + gap;
-        } else {
-          // Not enough space in either direction - choose the larger space
-          if (spaceAbove > spaceBelow) {
+        if (initialPosition === "auto") {
+          // Auto positioning based on available space
+          if (spaceAbove >= contentRect.height + gap) {
             vertical = "top";
-            maxHeight = `${spaceAbove - gap - 16}px`; // 16px extra padding
-            top = gap;
-          } else {
+            top = triggerRect.top - contentRect.height - gap;
+          } else if (spaceBelow >= contentRect.height + gap) {
             vertical = "bottom";
-            maxHeight = `${spaceBelow - gap - 16}px`;
             top = triggerRect.bottom + gap;
+          } else {
+            // Not enough space in either direction - choose the larger space
+            if (spaceAbove > spaceBelow) {
+              vertical = "top";
+              maxHeight = `${spaceAbove - gap - 16}px`; // 16px extra padding
+              top = gap;
+            } else {
+              vertical = "bottom";
+              maxHeight = `${spaceBelow - gap - 16}px`;
+              top = triggerRect.bottom + gap;
+            }
+          }
+        } else {
+          // Use the specified position
+          vertical = initialPosition;
+          if (initialPosition === "top") {
+            if (spaceAbove >= contentRect.height + gap) {
+              top = triggerRect.top - contentRect.height - gap;
+            } else {
+              // Not enough space, constrain height
+              maxHeight = `${spaceAbove - gap - 16}px`;
+              top = gap;
+            }
+          } else {
+            // bottom
+            if (spaceBelow >= contentRect.height + gap) {
+              top = triggerRect.bottom + gap;
+            } else {
+              // Not enough space, constrain height
+              maxHeight = `${spaceBelow - gap - 16}px`;
+              top = triggerRect.bottom + gap;
+            }
           }
         }
 

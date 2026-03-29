@@ -10,14 +10,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
-import { useProjects } from "@/hooks/use-api";
+import { ProjectSelector } from "@/components/project-selector";
 import { useQueryClient } from "@tanstack/react-query";
-import { PlusIcon } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 import { useModal } from "../../use-modal";
-import { useProjectModal } from "../../project-create-modal";
 
 export type TranscriptionSetProjectModalData = {
   transcriptionId: string;
@@ -42,8 +39,6 @@ export function TranscriptionSetProjectDialog() {
   const [projectId, setProjectId] = React.useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const queryClient = useQueryClient();
-  const { data: projects, isLoading: projectsLoading } = useProjects();
-  const { openCreate } = useProjectModal();
 
   // Update the project ID when modal opens
   React.useEffect(() => {
@@ -117,38 +112,7 @@ export function TranscriptionSetProjectDialog() {
             <div className="space-y-4 px-6">
               <div className="space-y-2">
                 <Label htmlFor="project">Project</Label>
-                <div className="flex gap-2">
-                  <Select
-                    options={[
-                      { label: "No Project", value: "none" },
-                      ...(projects?.map((project) => ({
-                        label: project.name,
-                        value: project.id,
-                      })) || []),
-                    ]}
-                    value={projectId || "none"}
-                    onChange={(value) =>
-                      setProjectId(value === "none" ? undefined : value)
-                    }
-                    disabled={projectsLoading}
-                    placeholder="Select a project..."
-                    searchPlaceholder="Search projects..."
-                    className="flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => {
-                      openCreate((newProjectId) => {
-                        setProjectId(newProjectId);
-                      });
-                    }}
-                    title="Create new project"
-                  >
-                    <PlusIcon className="h-4 w-4" />
-                  </Button>
-                </div>
+                <ProjectSelector value={projectId} onChange={setProjectId} />
               </div>
             </div>
             <DialogFooter>
