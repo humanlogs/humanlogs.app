@@ -26,6 +26,7 @@ export function DropdownMenu({
 }: DropdownMenuProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isMounted, setIsMounted] = React.useState(false);
+  const [isPositioned, setIsPositioned] = React.useState(false);
   const [position, setPosition] = React.useState({
     vertical:
       initialPosition !== "auto"
@@ -43,6 +44,12 @@ export function DropdownMenu({
   React.useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  React.useEffect(() => {
+    if (!isOpen) {
+      setIsPositioned(false);
+    }
+  }, [isOpen]);
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -157,6 +164,7 @@ export function DropdownMenu({
         }
 
         setPosition({ vertical, horizontal, maxHeight, top, left });
+        setIsPositioned(true);
       };
 
       // Update position immediately
@@ -186,8 +194,9 @@ export function DropdownMenu({
               ref={contentRef}
               data-dropdown-menu
               className={cn(
-                "fixed w-60 rounded-md border bg-popover p-1 shadow-md z-50",
+                "fixed w-60 rounded-md border bg-popover p-1 shadow-md z-50 transition-opacity duration-75",
                 position.maxHeight !== "none" && "overflow-y-auto",
+                !isPositioned && "opacity-0",
               )}
               style={{
                 top: `${position.top}px`,
@@ -250,6 +259,7 @@ type DropdownMenuSubProps = {
 export function DropdownMenuSub({ trigger, children }: DropdownMenuSubProps) {
   const [isSubOpen, setIsSubOpen] = React.useState(false);
   const [isMounted, setIsMounted] = React.useState(false);
+  const [isPositioned, setIsPositioned] = React.useState(false);
   const [position, setPosition] = React.useState({
     horizontal: "right" as "left" | "right",
     vertical: "top" as "top" | "bottom" | "center",
@@ -265,6 +275,12 @@ export function DropdownMenuSub({ trigger, children }: DropdownMenuSubProps) {
   React.useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  React.useEffect(() => {
+    if (!isSubOpen) {
+      setIsPositioned(false);
+    }
+  }, [isSubOpen]);
 
   const clearCloseTimeout = React.useCallback(() => {
     if (closeTimeoutRef.current) {
@@ -365,6 +381,7 @@ export function DropdownMenuSub({ trigger, children }: DropdownMenuSubProps) {
         }
 
         setPosition({ horizontal, vertical, maxHeight, top, left });
+        setIsPositioned(true);
       };
 
       // Update position immediately
@@ -427,8 +444,9 @@ export function DropdownMenuSub({ trigger, children }: DropdownMenuSubProps) {
               ref={contentRef}
               data-dropdown-menu
               className={cn(
-                "w-48 rounded-md border bg-popover p-1 shadow-md",
+                "w-48 rounded-md border bg-popover p-1 shadow-md transition-opacity duration-75",
                 position.maxHeight !== "none" && "overflow-y-auto",
+                !isPositioned && "opacity-0",
               )}
               style={{
                 maxHeight:

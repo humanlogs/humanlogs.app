@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { HighlightPosition } from "../hooks/use-search-highlights";
 
 interface SearchHighlightsProps {
@@ -10,16 +10,22 @@ interface SearchHighlightsProps {
 export function SearchHighlights({ highlights }: SearchHighlightsProps) {
   const currentHighlightRef = useRef<HTMLDivElement>(null);
 
+  // Find the current highlight index
+  const currentIndex = useMemo(
+    () => highlights.findIndex((h) => h.isCurrent),
+    [highlights],
+  );
+
   // Scroll to current highlight when it changes
   useEffect(() => {
-    if (currentHighlightRef.current) {
+    if (currentHighlightRef.current && currentIndex !== -1) {
       currentHighlightRef.current.scrollIntoView({
         behavior: "smooth",
         block: "center",
         inline: "nearest",
       });
     }
-  }, [highlights.findIndex((h) => h.isCurrent)]);
+  }, [currentIndex, highlights.length]);
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
