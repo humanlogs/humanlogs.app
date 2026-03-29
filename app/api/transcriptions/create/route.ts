@@ -212,8 +212,8 @@ export async function POST(request: NextRequest) {
           await prisma.transcription.update({
             where: { id: transcription.id },
             data: {
-              transcription: transcriptionDto,
-              audioFileEncryption: await encryption.createEncryptedDataEntity(
+              transcription: transcriptionDto as never,
+              audioFileEncryption: (await encryption.createEncryptedDataEntity(
                 audioFileSecret,
                 [
                   await encryption.createEncryptedAccessorEntity(
@@ -221,7 +221,7 @@ export async function POST(request: NextRequest) {
                     userProfile!.publicKey!,
                   ),
                 ],
-              ),
+              )) as never,
             },
           });
         }
