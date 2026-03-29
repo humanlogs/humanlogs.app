@@ -4,7 +4,7 @@
  *
  * EncryptedAccessorEntity: This is the users that can access the encrypted data
  * - publicKey: a public key, usable to encrypt data for this user
- * - publicKeyHash: a hash of the public key, used to identify the key without exposing it directly
+ * - metadata
  *
  * EncryptedDataEntity: This is the encrypted data stored in the database, it can be any JSON object
  * {
@@ -15,6 +15,7 @@
  *        "publicKey": "Public key of the user",
  *        "publicKeyHash": "Hash of the public key for identification",
  *        "aesKeyEncrypted": "Encrypted AES key used to decrypt/encrypt the data"
+ *        "metadata": { // Optional metadata about the key, e.g. when it was added, etc. }
  *     }
  *   ],
  *   "payload": "The actual encrypted data (encrypted with AES key)"
@@ -79,6 +80,7 @@ export interface CryptoCompat {
 export type EncryptedAccessorEntity = {
   userId: string;
   publicKey: string; // PEM format
+  metadata?: Record<string, unknown>; // Optional metadata about the accessor
 };
 
 export type EncryptedDataEntity = {
@@ -87,6 +89,7 @@ export type EncryptedDataEntity = {
     userId: string;
     publicKey: string; // PEM format
     aesKeyEncrypted: string; // AES key encrypted with user's public key
+    metadata: Record<string, unknown>; // Optional metadata about the accessor
   }>;
   payload: string; // Encrypted data (encrypted with AES key)
 };
@@ -165,10 +168,12 @@ export class EncryptionUtils {
   public async createEncryptedAccessorEntity(
     userId: string,
     publicKeyPem: string,
+    metadata?: Record<string, unknown>,
   ): Promise<EncryptedAccessorEntity> {
     return {
       userId,
       publicKey: publicKeyPem,
+      metadata: metadata || {}, // You can add default metadata here if needed
     };
   }
 
@@ -265,6 +270,7 @@ export class EncryptionUtils {
           aesKey,
           accessor.publicKey,
         ),
+        metadata: accessor.metadata || {},
       })),
     );
 
@@ -319,6 +325,7 @@ export class EncryptionUtils {
           aesKey,
           entry.publicKey,
         ),
+        metadata: entry.metadata || {},
       })),
     );
 
@@ -408,6 +415,28 @@ export class EncryptionUtils {
     currentUserPrivateKey: string,
     currentUserPublicKey: string,
   ): Promise<EncryptedDataEntity> {
+    if (typeof encryptedEntity !== "object" || encryptedEntity === null) {
+      // If it's not an object, we assume it's not encrypted and return as is
+      return encryptedEntity;
+    }
+
+    // Automatically handle encrypted part lower in the object structure
+    if (!encryptedEntity || !encryptedEntity.privateKeys) {
+      const sharedObject: any = {};
+      for (const [key, value] of Object.entries(encryptedEntity as any)) {
+        sharedObject[key] =
+          typeof value === "object" && (value as any)?.privateKeys
+            ? await this.share(
+                value as unknown as EncryptedDataEntity,
+                newAccessor,
+                currentUserPrivateKey,
+                currentUserPublicKey,
+              )
+            : value;
+      }
+      return sharedObject;
+    }
+
     // Check if the user already has access
     const existingEntry = encryptedEntity.privateKeys.find(
       (entry) => entry.publicKey === newAccessor.publicKey,
@@ -447,6 +476,7 @@ export class EncryptionUtils {
         aesKey,
         newAccessor.publicKey,
       ),
+      metadata: newAccessor.metadata || {},
     };
 
     // Return updated entity with new accessor
@@ -463,10 +493,30 @@ export class EncryptionUtils {
    * @param userIdToRemove - The ID of the user to remove
    * @returns Updated EncryptedDataEntity with the user removed
    */
-  public unshare(
+  public async unshare(
     encryptedEntity: EncryptedDataEntity,
     userIdToRemove: string,
-  ): EncryptedDataEntity {
+  ): Promise<EncryptedDataEntity> {
+    if (typeof encryptedEntity !== "object" || encryptedEntity === null) {
+      // If it's not an object, we assume it's not encrypted and return as is
+      return encryptedEntity;
+    }
+
+    // Automatically handle encrypted part lower in the object structure
+    if (!encryptedEntity || !encryptedEntity.privateKeys) {
+      const sharedObject: any = {};
+      for (const [key, value] of Object.entries(encryptedEntity as any)) {
+        sharedObject[key] =
+          typeof value === "object" && (value as any)?.privateKeys
+            ? await this.unshare(
+                value as unknown as EncryptedDataEntity,
+                userIdToRemove,
+              )
+            : value;
+      }
+      return sharedObject;
+    }
+
     const updatedPrivateKeys = encryptedEntity.privateKeys.filter(
       (entry) => entry.userId !== userIdToRemove,
     );
