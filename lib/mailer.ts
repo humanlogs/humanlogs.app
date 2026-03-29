@@ -2,7 +2,7 @@ import nodemailer, { Transporter } from "nodemailer";
 import { SESClient, SendRawEmailCommand } from "@aws-sdk/client-ses";
 import { getConfig } from "./config";
 
-export interface EmailOptions {
+interface EmailOptions {
   to: string | string[];
   subject: string;
   text?: string;
@@ -15,12 +15,6 @@ export interface EmailOptions {
     content: string | Buffer;
     contentType?: string;
   }>;
-}
-
-export interface EmailTemplate {
-  subject: string;
-  text: string;
-  html: string;
 }
 
 class Mailer {
@@ -315,7 +309,7 @@ class Mailer {
 }
 
 // Export singleton instance
-export const mailer = Mailer.getInstance();
+const mailer = Mailer.getInstance();
 
 // Export helper function
 export async function sendEmail(options: EmailOptions): Promise<void> {

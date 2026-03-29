@@ -5,7 +5,7 @@
         "auth0": {
             "secret": "",
             "baseUrl": "http://localhost:3000",
-            "issuerBaseUrl": "",
+            "issuerBaseUrl": "http://localhost:3000",
             "clientId": "",
             "clientSecret": ""
         },
@@ -40,6 +40,25 @@
             "monthlySubscription": "",
             "yearlySubscription": "",
             "oneTimeCredits": ""
+        }
+    },
+    "email": {
+        "provider": "smtp",
+        "from": {
+            "name": "",
+            "address": "hello@transcrire.app"
+        },
+        "smtp": {
+            "host": "",
+            "port": 587,
+            "secure": false,
+            "auth": {
+                "user": "",
+                "pass": ""
+            }
+        },
+        "ses": {
+            "region": "us-east-1"
         }
     },
     "server": {

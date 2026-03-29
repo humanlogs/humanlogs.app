@@ -1,4 +1,8 @@
-import { EmailTemplate } from "./mailer";
+export interface EmailTemplate {
+  subject: string;
+  text: string;
+  html: string;
+}
 
 export interface TemplateData {
   [key: string]: string | number | boolean | undefined;

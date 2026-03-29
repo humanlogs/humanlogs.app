@@ -6,24 +6,24 @@ const configSchema = z.object({
   auth: z.object({
     mode: z.enum(["auth0", "local"]),
     sessionSecret: z.string().optional(),
+    auth0: z.object({
+      secret: z.string(),
+      baseUrl: z.string().url(),
+      issuerBaseUrl: z.string().url(),
+      clientId: z.string(),
+      clientSecret: z.string(),
+    }),
+    ldap: z
+      .object({
+        enabled: z.boolean(),
+        url: z.string(),
+        bindDN: z.string(),
+        bindPassword: z.string(),
+        searchBase: z.string(),
+        searchFilter: z.string(),
+      })
+      .optional(),
   }),
-  auth0: z.object({
-    secret: z.string(),
-    baseUrl: z.string().url(),
-    issuerBaseUrl: z.string().url(),
-    clientId: z.string(),
-    clientSecret: z.string(),
-  }),
-  ldap: z
-    .object({
-      enabled: z.boolean(),
-      url: z.string(),
-      bindDN: z.string(),
-      bindPassword: z.string(),
-      searchBase: z.string(),
-      searchFilter: z.string(),
-    })
-    .optional(),
   database: z.object({
     url: z.string(),
   }),
