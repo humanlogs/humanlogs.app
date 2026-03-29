@@ -81,7 +81,7 @@ export default function ConfirmDeletionPage() {
               delete your account, please request a new deletion link from your
               account settings.
             </p>
-            <Button onClick={() => router.push("/account")}>
+            <Button onClick={() => router.push("/app/account")}>
               Go to Account Settings
             </Button>
           </CardContent>
@@ -156,7 +156,7 @@ export default function ConfirmDeletionPage() {
           <div className="flex gap-4">
             <Button
               variant="outline"
-              onClick={() => router.push("/account")}
+              onClick={() => router.push("/app/account")}
               disabled={isDeleting}
               className="flex-1"
             >

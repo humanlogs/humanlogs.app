@@ -53,7 +53,7 @@ export default function LoginPage() {
       if (response.ok) {
         toast.success(t("loginSuccess"));
         // Detect if this is a new account
-        window.location.href = "/";
+        window.location.href = "/app";
       } else {
         toast.error(data.error || t("loginFailed"));
       }
@@ -79,7 +79,7 @@ export default function LoginPage() {
 
       if (response.ok) {
         toast.success(t("accountCreated"));
-        window.location.href = "/";
+        window.location.href = "/app";
       } else {
         toast.error(data.error || t("registrationFailed"));
       }

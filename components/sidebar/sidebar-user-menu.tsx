@@ -146,14 +146,16 @@ export function SidebarUserMenu({
 
       {/* Menu Items */}
       <div className="py-1">
-        <DropdownMenuItem onClick={() => (window.location.href = "/account")}>
+        <DropdownMenuItem
+          onClick={() => (window.location.href = "/app/account")}
+        >
           <UserIcon className="w-4 h-4 mr-2" />
           {t("user.account")}
         </DropdownMenuItem>
 
         {userProfile?.isBillingEnabled && (
           <DropdownMenuItem
-            onClick={() => (window.location.href = "/account/billing")}
+            onClick={() => (window.location.href = "/app/account/billing")}
           >
             <CreditCardIcon className="w-4 h-4 mr-2" />
             {t("user.billing")}
@@ -161,7 +163,7 @@ export function SidebarUserMenu({
         )}
 
         <DropdownMenuItem
-          onClick={() => (window.location.href = "/account/security")}
+          onClick={() => (window.location.href = "/app/account/security")}
         >
           <ShieldCheckIcon className="w-4 h-4 mr-2" />
           {t("user.security")}
@@ -254,10 +256,10 @@ export function SidebarUserMenu({
             if (authMode === "local") {
               try {
                 await fetch("/api/local-auth/logout", { method: "POST" });
-                window.location.href = "/login";
+                window.location.href = "/app/login";
               } catch (error) {
                 console.error("Logout failed:", error);
-                window.location.href = "/login";
+                window.location.href = "/app/login";
               }
             } else {
               window.location.href = "/api/auth/logout";

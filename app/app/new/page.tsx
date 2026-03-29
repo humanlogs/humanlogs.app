@@ -352,9 +352,9 @@ export default function NewTranscriptionPage() {
 
       // Redirect to the first transcription or home
       if (result.transcriptions && result.transcriptions.length > 0) {
-        router.push(`/transcription/${result.transcriptions[0]}`);
+        router.push(`/app/transcription/${result.transcriptions[0]}`);
       } else {
-        router.push("/");
+        router.push("/app/");
       }
     } catch (error) {
       console.error("Error creating transcription:", error);

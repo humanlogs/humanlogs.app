@@ -3,13 +3,16 @@
 import { CheckCircleIcon, RocketIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useResetTutorial } from "../../components/dialogs/help-dialog";
-import { useLocale, useTranslations } from "../../components/locale-provider";
-import { Button } from "../../components/ui/button";
-import { Select } from "../../components/ui/select";
-import { SecurityStep } from "../../components/welcome/security-step";
-import { useUpdateUser, useUserProfile } from "../../hooks/use-api";
-import { languagesNames, Locale, locales } from "../../lib/i18n";
+import { useResetTutorial } from "../../../components/dialogs/help-dialog";
+import {
+  useLocale,
+  useTranslations,
+} from "../../../components/locale-provider";
+import { Button } from "../../../components/ui/button";
+import { Select } from "../../../components/ui/select";
+import { SecurityStep } from "../../../components/welcome/security-step";
+import { useUpdateUser, useUserProfile } from "../../../hooks/use-api";
+import { languagesNames, Locale, locales } from "../../../lib/i18n";
 
 export default function WelcomePage() {
   const t = useTranslations("welcome");

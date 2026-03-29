@@ -74,7 +74,7 @@ export function TranscriptionDeleteDialog() {
 
       // Redirect if requested (e.g., when deleting from detail page)
       if (data.redirectAfterDelete) {
-        router.push("/");
+        router.push("/app/");
       }
     } catch (error) {
       console.error("Error deleting transcription:", error);

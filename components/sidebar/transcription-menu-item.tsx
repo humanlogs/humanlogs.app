@@ -58,7 +58,7 @@ export function TranscriptionMenuItem({
 
   return (
     <SidebarMenuItem>
-      <Link href={`/transcription/${transcription.id}`}>
+      <Link href={`/app/transcription/${transcription.id}`}>
         <SidebarMenuButton isActive={isActive}>
           {getStatusIcon()}
           <span>{transcription.title}</span>

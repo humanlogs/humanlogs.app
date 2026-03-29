@@ -6,7 +6,7 @@ export const useWelcomeRedirect = () => {
 
   useEffect(() => {
     if (data?.id && !data?.isWelcomeDone) {
-      window.location.href = "/welcome";
+      window.location.href = "/app/welcome";
     }
   }, [data]);
 };

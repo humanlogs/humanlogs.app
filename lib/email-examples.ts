@@ -65,7 +65,7 @@ export async function sendTranscriptionCompleteEmail(
   fileName: string,
   durationMinutes: number,
 ) {
-  const transcriptionUrl = `${process.env.NEXT_PUBLIC_APP_URL}/transcription/${transcriptionId}`;
+  const transcriptionUrl = `${process.env.NEXT_PUBLIC_APP_URL}/app/transcription/${transcriptionId}`;
   const duration = `${durationMinutes} minute${durationMinutes !== 1 ? "s" : ""}`;
 
   const template = getTranscriptionCompletedEmailTemplate({

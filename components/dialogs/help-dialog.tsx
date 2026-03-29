@@ -51,8 +51,8 @@ export const useResetTutorial = () => {
 
       // Reload the page to show the new tutorial transcription
       window.location.href = json?.transcription?.id
-        ? "/transcription/" + json.transcription.id
-        : "/new";
+        ? "/app/transcription/" + json.transcription.id
+        : "/app/new";
     } catch (error) {
       console.error("Error resetting tutorial:", error);
       toast.error(

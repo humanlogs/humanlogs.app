@@ -297,7 +297,7 @@ ${includeAudio ? "- **audio file**: Original audio file (decrypted if it was enc
           </CardHeader>
           <CardContent>
             <Button
-              onClick={() => router.push("/account/security")}
+              onClick={() => router.push("/app/account/security")}
               variant="outline"
             >
               <ShieldCheckIcon className="w-4 h-4 mr-2" />
@@ -320,7 +320,7 @@ ${includeAudio ? "- **audio file**: Original audio file (decrypted if it was enc
             </CardHeader>
             <CardContent>
               <Button
-                onClick={() => router.push("/account/billing")}
+                onClick={() => router.push("/app/account/billing")}
                 variant="outline"
               >
                 <CreditCardIcon className="w-4 h-4 mr-2" />

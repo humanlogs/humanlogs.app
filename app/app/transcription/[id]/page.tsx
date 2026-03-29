@@ -43,7 +43,7 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
 
   // Handle navigation to import certificate
   function handleImportCertificate() {
-    router.push("/account/security");
+    router.push("/app/account/security");
   }
 
   // Show encryption error state

@@ -150,7 +150,7 @@ export function TranscriptionHistorySheet() {
 
   const handleOpenCurrent = () => {
     if (data?.transcriptionId) {
-      router.push(`/transcription/${data.transcriptionId}`);
+      router.push(`/app/transcription/${data.transcriptionId}`);
       close();
     }
   };

@@ -135,7 +135,7 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
         <SidebarContent>
           <div className="px-2">
             <SidebarMenuItem>
-              <Link href="/new">
+              <Link href="/app/new">
                 <SidebarMenuButton isActive={pathname === "/new"}>
                   <FilePlusCornerIcon className="h-4 w-4" />
                   {t("newTranscription")}
@@ -220,7 +220,8 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
                           key={transcription.id}
                           transcription={transcription}
                           isActive={
-                            pathname === `/transcription/${transcription.id}`
+                            pathname ===
+                            `/app/transcription/${transcription.id}`
                           }
                         />
                       ))}
@@ -240,7 +241,8 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
                           key={transcription.id}
                           transcription={transcription}
                           isActive={
-                            pathname === `/transcription/${transcription.id}`
+                            pathname ===
+                            `/app/transcription/${transcription.id}`
                           }
                         />
                       ))}

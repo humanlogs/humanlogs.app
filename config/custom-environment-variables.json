@@ -60,5 +60,9 @@
         "ses": {
             "region": "SES_REGION"
         }
+    },
+    "server": {
+        "publicUrl": "NEXT_PUBLIC_APP_URL",
+        "port": "SERVER_PORT"
     }
 }
