@@ -330,7 +330,7 @@ export function DropdownMenuSub({ trigger, children }: DropdownMenuSubProps) {
         const spaceAbove = triggerRect.top;
         const spaceBelow = viewportHeight - triggerRect.bottom;
 
-        const menuWidth = 192; // w-48 = 12rem = 192px
+        const menuWidth = 240; // w-60  = 15rem = 240px
         const overlap = 8; // Increase overlap for smoother navigation
 
         // Determine horizontal position (prefer right)
@@ -444,7 +444,7 @@ export function DropdownMenuSub({ trigger, children }: DropdownMenuSubProps) {
               ref={contentRef}
               data-dropdown-menu
               className={cn(
-                "w-48 rounded-md border bg-popover p-1 shadow-md transition-opacity duration-75",
+                "w-60 rounded-md border bg-popover p-1 shadow-md transition-opacity duration-75",
                 position.maxHeight !== "none" && "overflow-y-auto",
                 !isPositioned && "opacity-0",
               )}

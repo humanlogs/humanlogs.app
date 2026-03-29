@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useModal } from "@/components/use-modal";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "@/components/locale-provider";
 import * as React from "react";
 import { toast } from "sonner";
 
@@ -49,6 +50,7 @@ export function ProjectCreateModal() {
   const [projectName, setProjectName] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const queryClient = useQueryClient();
+  const t = useTranslations("dialog.project");
 
   const isRenameMode = data?.mode === "rename";
 
@@ -65,7 +67,7 @@ export function ProjectCreateModal() {
     e.preventDefault();
 
     if (!projectName.trim()) {
-      toast.error("Please enter a project name");
+      toast.error(t("errorEmpty"));
       return;
     }
 
@@ -84,11 +86,11 @@ export function ProjectCreateModal() {
 
         if (!response.ok) {
           const error = await response.json();
-          throw new Error(error.error || "Failed to rename project");
+          throw new Error(error.error || t("errorRename"));
         }
 
         const project = await response.json();
-        toast.success("Project renamed successfully!");
+        toast.success(t("successRename"));
 
         // Invalidate queries to refresh
         queryClient.invalidateQueries({ queryKey: ["projects"] });
@@ -107,11 +109,11 @@ export function ProjectCreateModal() {
 
         if (!response.ok) {
           const error = await response.json();
-          throw new Error(error.error || "Failed to create project");
+          throw new Error(error.error || t("errorCreate"));
         }
 
         const project = await response.json();
-        toast.success("Project created successfully!");
+        toast.success(t("successCreate"));
 
         // Invalidate projects query to refresh the list
         queryClient.invalidateQueries({ queryKey: ["projects"] });
@@ -127,7 +129,9 @@ export function ProjectCreateModal() {
       toast.error(
         error instanceof Error
           ? error.message
-          : `Failed to ${isRenameMode ? "rename" : "create"} project`,
+          : isRenameMode
+            ? t("errorRename")
+            : t("errorCreate"),
       );
     } finally {
       setIsSubmitting(false);
@@ -139,23 +143,21 @@ export function ProjectCreateModal() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {isRenameMode ? "Rename Project" : "Create New Project"}
+            {isRenameMode ? t("renameTitle") : t("createTitle")}
           </DialogTitle>
           <DialogDescription>
-            {isRenameMode
-              ? "Enter a new name for your project."
-              : "Enter a name for your new project. You can organize your transcriptions by project."}
+            {isRenameMode ? t("renameDescription") : t("createDescription")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 px-6">
             <div className="space-y-2">
-              <Label htmlFor="project-name">Project Name</Label>
+              <Label htmlFor="project-name">{t("label")}</Label>
               <Input
                 id="project-name"
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
-                placeholder="e.g., Marketing Videos"
+                placeholder={t("placeholder")}
                 autoFocus
               />
             </div>
@@ -167,16 +169,16 @@ export function ProjectCreateModal() {
               onClick={close}
               disabled={isSubmitting}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting
                 ? isRenameMode
-                  ? "Renaming..."
-                  : "Creating..."
+                  ? t("renaming")
+                  : t("creating")
                 : isRenameMode
-                  ? "Rename Project"
-                  : "Create Project"}
+                  ? t("rename")
+                  : t("create")}
             </Button>
           </DialogFooter>
         </form>

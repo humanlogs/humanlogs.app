@@ -18,6 +18,7 @@ import {
   RotateCcwIcon,
   ArrowLeftIcon,
 } from "lucide-react";
+import { useTranslations } from "@/components/locale-provider";
 import * as React from "react";
 import { toast } from "sonner";
 import {
@@ -51,6 +52,7 @@ export function TranscriptionHistorySheet() {
   const { isOpen, data, close } = useTranscriptionHistoryModal();
   const queryClient = useQueryClient();
   const router = useRouter();
+  const t = useTranslations("dialog.history");
   const [selectedVersionIndex, setSelectedVersionIndex] = React.useState<
     number | null
   >(null);
@@ -90,11 +92,11 @@ export function TranscriptionHistorySheet() {
   // Handle success/error
   React.useEffect(() => {
     if (revertMutation.isSuccess) {
-      toast.success("Version restored successfully");
+      toast.success(t("revertSuccess"));
       setSelectedVersionIndex(null);
     }
     if (revertMutation.isError) {
-      toast.error("Failed to restore version");
+      toast.error(t("revertError"));
     }
   }, [revertMutation.isSuccess, revertMutation.isError]);
 
@@ -283,16 +285,22 @@ export function TranscriptionHistorySheet() {
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
     if (diffInSeconds < 60) {
-      return "Just now";
+      return t("justNow");
     } else if (diffInSeconds < 3600) {
       const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+      return minutes === 1
+        ? t("minuteAgo", { count: minutes })
+        : t("minutesAgo", { count: minutes });
     } else if (diffInSeconds < 86400) {
       const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+      return hours === 1
+        ? t("hourAgo", { count: hours })
+        : t("hoursAgo", { count: hours });
     } else if (diffInSeconds < 604800) {
       const days = Math.floor(diffInSeconds / 86400);
-      return `${days} day${days > 1 ? "s" : ""} ago`;
+      return days === 1
+        ? t("dayAgo", { count: days })
+        : t("daysAgo", { count: days });
     } else {
       return date.toLocaleDateString("en-US", {
         month: "short",
@@ -323,22 +331,20 @@ export function TranscriptionHistorySheet() {
         {selectedVersionIndex === null ? (
           <>
             <SheetHeader>
-              <SheetTitle>Version History</SheetTitle>
-              <SheetDescription>
-                View all changes made to this transcription
-              </SheetDescription>
+              <SheetTitle>{t("title")}</SheetTitle>
+              <SheetDescription>{t("description")}</SheetDescription>
             </SheetHeader>
 
             <div className="flex-1 overflow-y-auto">
               {isLoading && (
                 <div className="flex items-center justify-center py-8 text-muted-foreground px-6">
-                  Loading history...
+                  {t("loadingHistory")}
                 </div>
               )}
 
               {!isLoading && history && history.length === 0 && (
                 <div className="flex items-center justify-center py-8 text-muted-foreground px-6">
-                  No history available
+                  {t("noHistory")}
                 </div>
               )}
 
@@ -353,12 +359,12 @@ export function TranscriptionHistorySheet() {
                   >
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="flex items-center gap-2 text-sm font-medium">
-                        <span>Current Version</span>
+                        <span>{t("currentVersion")}</span>
                       </div>
                     </div>
 
                     <div className="flex-1 min-w-0 text-xs text-muted-foreground">
-                      Latest state of the transcription
+                      {t("currentDescription")}
                     </div>
                   </div>
 
@@ -387,25 +393,25 @@ export function TranscriptionHistorySheet() {
                           <div className="flex items-center gap-3">
                             {entry.additions > 0 && (
                               <span className="flex items-center gap-1 text-green-600">
-                                +{entry.additions} word
-                                {entry.additions !== 1 ? "s" : ""}
+                                +{entry.additions}{" "}
+                                {entry.additions !== 1 ? t("words") : t("word")}
                               </span>
                             )}
                             {entry.removals > 0 && (
                               <span className="flex items-center gap-1 text-red-600">
-                                -{entry.removals} word
-                                {entry.removals !== 1 ? "s" : ""}
+                                -{entry.removals}{" "}
+                                {entry.removals !== 1 ? t("words") : t("word")}
                               </span>
                             )}
                             {entry.changed > 0 && (
                               <span className="flex items-center gap-1 text-yellow-600">
-                                ~{entry.changed} word
-                                {entry.changed !== 1 ? "s" : ""}
+                                ~{entry.changed}{" "}
+                                {entry.changed !== 1 ? t("words") : t("word")}
                               </span>
                             )}
                           </div>
                         ) : (
-                          <div>No changes</div>
+                          <div>{t("noChanges")}</div>
                         )}
                       </div>
 
@@ -426,14 +432,14 @@ export function TranscriptionHistorySheet() {
             <SheetHeader>
               <div className="flex items-center gap-2">
                 <div className="flex-1">
-                  <SheetTitle>Version Comparison</SheetTitle>
+                  <SheetTitle>{t("comparisonTitle")}</SheetTitle>
                   {isViewingCurrent ? (
                     <SheetDescription className="mt-2">
-                      <span className="font-medium">Current Version</span>
+                      <span className="font-medium">{t("currentVersion")}</span>
                       {history && history.length > 0 && (
                         <span className="text-muted-foreground">
                           {" "}
-                          • Compared with previous version
+                          • {t("comparedWith")}
                         </span>
                       )}
                     </SheetDescription>
@@ -461,8 +467,8 @@ export function TranscriptionHistorySheet() {
                                 ~{selectedVersion.changed}
                               </span>
                             </>
-                          )}
-                          {" words"}
+                          )}{" "}
+                          {t("words")}
                         </div>
                       </SheetDescription>
                     )
@@ -480,7 +486,7 @@ export function TranscriptionHistorySheet() {
                   disabled={!hasPrevious}
                 >
                   <ChevronLeftIcon className="h-4 w-4" />
-                  Older
+                  {t("older")}
                 </Button>
                 <Button
                   variant="outline"
@@ -488,23 +494,23 @@ export function TranscriptionHistorySheet() {
                   onClick={goToNext}
                   disabled={!hasNext}
                 >
-                  Newer
+                  {t("newer")}
                   <ChevronRightIcon className="h-4 w-4" />
                 </Button>
               </div>
               {isViewingCurrent ? (
                 <Button onClick={handleOpenCurrent} variant="default">
-                  Open current version
+                  {t("openCurrent")}
                 </Button>
               ) : (
                 <Button
                   onClick={handleRevert}
                   disabled={revertMutation.isPending}
                   variant="primary"
-                  confirm="Are you sure you want to revert to this version?"
+                  confirm={t("revertConfirm")}
                 >
                   <RotateCcwIcon className="h-4 w-4" />
-                  Revert to this version
+                  {t("revertButton")}
                 </Button>
               )}
             </div>
@@ -517,13 +523,13 @@ export function TranscriptionHistorySheet() {
                       history.length > 0 &&
                       !mostRecentVersionData)))) && (
                 <div className="flex items-center justify-center py-8 text-muted-foreground">
-                  Loading version...
+                  {t("loadingVersion")}
                 </div>
               )}
 
               {!isLoadingVersion && !isViewingCurrent && !versionData && (
                 <div className="flex items-center justify-center py-8 text-muted-foreground">
-                  Failed to load version
+                  {t("failedToLoad")}
                 </div>
               )}
 

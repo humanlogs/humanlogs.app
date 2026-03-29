@@ -43,6 +43,7 @@ import { useTranscriptionSetProjectModal } from "./dialogs/transcription-set-pro
 import { SaveStatus } from "./editor/hooks/use-auto-save";
 import { useTranscriptionHistoryModal } from "./transcription-history-sheet";
 import { useOptionalEditorState } from "./editor/editor-state-context";
+import { useTranslations } from "@/components/locale-provider";
 
 type TranscriptionActionsProps = {
   transcriptionId: string;
@@ -61,6 +62,7 @@ export function TranscriptionActions({
   transcription,
   audioFileEncryption,
 }: TranscriptionActionsProps) {
+  const t = useTranslations("editor");
   const { openRename } = useTranscriptionRenameModal();
   const { openSetProject } = useTranscriptionSetProjectModal();
   const { openDelete } = useTranscriptionDeleteModal();
@@ -108,14 +110,14 @@ export function TranscriptionActions({
   const handleExportCSV = () => {
     const content = getTranscriptionContent();
     if (!content) {
-      toast.error("No transcription data available");
+      toast.error(t("actions.noDataAvailable"));
       return;
     }
     try {
       exportAsCSV(content, transcriptionName);
-      toast.success("Exported as CSV");
+      toast.success(t("actions.exportedCSV"));
     } catch (error) {
-      toast.error("Failed to export CSV");
+      toast.error(t("actions.failedExportCSV"));
       console.error("Export CSV error:", error);
     }
   };
@@ -123,7 +125,7 @@ export function TranscriptionActions({
   const handleExportTXT = () => {
     const content = getTranscriptionContent();
     if (!content) {
-      toast.error("No transcription data available");
+      toast.error(t("actions.noDataAvailable"));
       return;
     }
     try {
@@ -136,9 +138,9 @@ export function TranscriptionActions({
         showSpeakerNames: true,
         keepLineBreaks: true,
       });
-      toast.success("Exported as TXT");
+      toast.success(t("actions.exportedTXT"));
     } catch (error) {
-      toast.error("Failed to export TXT");
+      toast.error(t("actions.failedExportTXT"));
       console.error("Export TXT error:", error);
     }
   };
@@ -146,7 +148,7 @@ export function TranscriptionActions({
   const handleExportAdvanced = () => {
     const content = getTranscriptionContent();
     if (!content) {
-      toast.error("No transcription data available");
+      toast.error(t("actions.noDataAvailable"));
       return;
     }
     // Open the advanced export dialog
@@ -156,14 +158,14 @@ export function TranscriptionActions({
   const handleExportWord = async () => {
     const content = getTranscriptionContent();
     if (!content) {
-      toast.error("No transcription data available");
+      toast.error(t("actions.noDataAvailable"));
       return;
     }
     try {
       await exportAsWord(content, transcriptionName);
-      toast.success("Exported as Word document");
+      toast.success(t("actions.exportedWord"));
     } catch (error) {
-      toast.error("Failed to export Word document");
+      toast.error(t("actions.failedExportWord"));
       console.error("Export Word error:", error);
     }
   };
@@ -171,14 +173,14 @@ export function TranscriptionActions({
   const handleExportJSON = () => {
     const content = getTranscriptionContent();
     if (!content) {
-      toast.error("No transcription data available");
+      toast.error(t("actions.noDataAvailable"));
       return;
     }
     try {
       exportAsJSON(content, transcriptionName);
-      toast.success("Exported as JSON");
+      toast.success(t("actions.exportedJSON"));
     } catch (error) {
-      toast.error("Failed to export JSON");
+      toast.error(t("actions.failedExportJSON"));
       console.error("Export JSON error:", error);
     }
   };
@@ -193,12 +195,12 @@ export function TranscriptionActions({
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        toast.success("Downloading audio file");
+        toast.success(t("actions.downloadingAudio"));
         return;
       }
 
       // Download and decrypt the audio file
-      toast.info("Downloading and decrypting audio file...");
+      toast.info(t("actions.downloadingDecryptingAudio"));
       const decryptedBlob = await downloadAndDecryptAudio(
         transcriptionId,
         audioFileEncryption,
@@ -214,9 +216,9 @@ export function TranscriptionActions({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      toast.success("Audio file downloaded");
+      toast.success(t("actions.audioDownloaded"));
     } catch (error) {
-      toast.error("Failed to download audio file");
+      toast.error(t("actions.failedDownloadAudio"));
       console.error("Download audio error:", error);
     }
   };
@@ -227,7 +229,7 @@ export function TranscriptionActions({
 
       if (!audioFileEncryption) {
         // No encryption, fetch directly
-        toast.info("Downloading audio file...");
+        toast.info(t("actions.downloadingAudio"));
         const response = await fetch(
           `/api/transcriptions/${transcriptionId}/audio`,
         );
@@ -237,7 +239,7 @@ export function TranscriptionActions({
         audioBlob = await response.blob();
       } else {
         // Download and decrypt the audio file
-        toast.info("Downloading and decrypting audio file...");
+        toast.info(t("actions.downloadingDecryptingAudio"));
         audioBlob = await downloadAndDecryptAudio(
           transcriptionId,
           audioFileEncryption,
@@ -247,7 +249,7 @@ export function TranscriptionActions({
       // Convert to MP3 and download (ffmpeg lazy loaded inside)
       await downloadAsMP3(audioBlob, transcriptionName, "opus");
     } catch (error) {
-      toast.error("Failed to convert and download MP3");
+      toast.error(t("actions.failedConvertMP3"));
       console.error("Download MP3 error:", error);
     }
   };
@@ -255,7 +257,7 @@ export function TranscriptionActions({
   const handleSpeakerOptions = () => {
     const content = getTranscriptionContent();
     if (!content) {
-      toast.error("No transcription data available");
+      toast.error(t("actions.noDataAvailable"));
       return;
     }
     // Map TranscriptionContent speakers to Speaker type
@@ -267,7 +269,7 @@ export function TranscriptionActions({
       // TODO: Implement speaker options application logic
       // This would need to call an API endpoint to update the transcription
       console.log("Speaker options to apply:", options);
-      toast.info("Speaker options feature - implementation in progress");
+      toast.info(t("actions.speakerOptionsInProgress"));
     });
   };
 
@@ -275,33 +277,33 @@ export function TranscriptionActions({
     <>
       <DropdownMenuItem onClick={handleExportCSV}>
         <FileTextIcon className="h-4 w-4 mr-2" />
-        CSV
+        {t("actions.csv")}
       </DropdownMenuItem>
       <DropdownMenuItem onClick={handleExportTXT}>
         <FileTextIcon className="h-4 w-4 mr-2" />
-        TXT
+        {t("actions.txt")}
       </DropdownMenuItem>
       <DropdownMenuItem onClick={handleExportWord}>
         <FileIcon className="h-4 w-4 mr-2" />
-        Word
+        {t("actions.word")}
       </DropdownMenuItem>
       <DropdownMenuItem onClick={handleExportJSON}>
         <FileJsonIcon className="h-4 w-4 mr-2" />
-        JSON
+        {t("actions.json")}
       </DropdownMenuItem>
       <DropdownMenuItem onClick={handleExportAdvanced}>
         <Settings2Icon className="h-4 w-4 mr-2" />
-        Advanced
+        {t("actions.advanced")}
       </DropdownMenuItem>
 
       <DropdownMenuSeparator />
       <DropdownMenuItem onClick={handleDownloadAudio}>
         <FileAudio2Icon className="h-4 w-4 mr-2" />
-        Download original audio
+        {t("actions.downloadOriginalAudio")}
       </DropdownMenuItem>
       <DropdownMenuItem onClick={handleDownloadAudioAsMP3}>
         <FileAudio2Icon className="h-4 w-4 mr-2" />
-        Download as MP3
+        {t("actions.downloadAsMP3")}
       </DropdownMenuItem>
     </>
   );
@@ -312,13 +314,13 @@ export function TranscriptionActions({
         {/* Save status indicator */}
         {saveStatus !== "idle" && (
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground mr-4">
-            {saveStatus === "saving" && <>Saving...</>}
-            {saveStatus === "saved" && <>Saved</>}
+            {saveStatus === "saving" && <>{t("actions.saving")}</>}
+            {saveStatus === "saved" && <>{t("actions.saved")}</>}
             {saveStatus === "error" && (
               <>
                 {" "}
                 <XCircleIcon className="h-3.5 w-3.5 text-destructive" />{" "}
-                <span className="text-destructive">You are offline</span>
+                <span className="text-destructive">{t("actions.offline")}</span>
               </>
             )}
           </div>
@@ -333,9 +335,7 @@ export function TranscriptionActions({
             }
             align="end"
           >
-            <DropdownMenuItem>
-              This transcription is end-to-end encrypted.
-            </DropdownMenuItem>
+            <DropdownMenuItem>{t("actions.encrypted")}</DropdownMenuItem>
           </DropdownMenu>
         )}
 
@@ -362,17 +362,17 @@ export function TranscriptionActions({
         >
           <DropdownMenuItem onClick={handleRename}>
             <PencilIcon className="h-4 w-4 mr-2" />
-            Rename
+            {t("actions.rename")}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleSetProject}>
             <FolderIcon className="h-4 w-4 mr-2" />
-            Set Project
+            {t("actions.setProject")}
           </DropdownMenuItem>
           <DropdownMenuSub
             trigger={
               <>
                 <DownloadIcon className="h-4 w-4 mr-2" />
-                Download as...
+                {t("actions.downloadAs")}
               </>
             }
           >
@@ -381,16 +381,16 @@ export function TranscriptionActions({
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleSpeakerOptions}>
             <UserCogIcon className="h-4 w-4 mr-2" />
-            Speaker Options
+            {t("actions.speakerOptions")}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={openShortcuts}>
             <KeyboardIcon className="h-4 w-4 mr-2" />
-            Keyboard Shortcuts
+            {t("actions.keyboardShortcuts")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleDelete} className="text-destructive">
             <TrashIcon className="h-4 w-4 mr-2" />
-            Delete
+            {t("actions.delete")}
           </DropdownMenuItem>
         </DropdownMenu>
       </div>
