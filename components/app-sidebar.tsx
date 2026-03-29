@@ -151,7 +151,7 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
                   placeholder={t("search")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 h-8 border-none bg-transparent focus:ring-0 focus-visible:ring-0"
+                  className="pl-8 h-8 border-none bg-transparent! focus:ring-0 focus-visible:ring-0"
                 />
               </div>
             </SidebarMenuItem>

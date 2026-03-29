@@ -4,6 +4,12 @@ import { getRequestConfig } from "next-intl/server";
 export const locales = ["en", "fr", "es", "de"];
 export type Locale = "en" | "fr" | "es" | "de";
 export const i18nFiles = ["common", "dialog", "editor"];
+export const languagesNames = {
+  en: "English",
+  fr: "Français",
+  es: "Español",
+  de: "Deutsch",
+};
 
 export default getRequestConfig(async ({ requestLocale }) => {
   // This typically corresponds to the `[locale]` segment

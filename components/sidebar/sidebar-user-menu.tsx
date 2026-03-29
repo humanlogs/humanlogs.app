@@ -1,5 +1,7 @@
 "use client";
 
+import { useFeedbackModal } from "@/components/dialogs/feedback-dialog";
+import { useHelpModal } from "@/components/dialogs/help-dialog";
 import { useLocale, useTranslations } from "@/components/locale-provider";
 import { useTheme } from "@/components/theme-provider";
 import {
@@ -9,24 +11,22 @@ import {
   DropdownMenuSub,
 } from "@/components/ui/dropdown-menu";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import { useFeedbackModal } from "@/components/dialogs/feedback-dialog";
-import { useHelpModal } from "@/components/dialogs/help-dialog";
 import {
   CheckIcon,
   CreditCardIcon,
   HelpCircleIcon,
   LanguagesIcon,
+  LightbulbIcon,
   LogOutIcon,
   MoonIcon,
   ShieldCheckIcon,
   StarIcon,
   SunIcon,
-  LightbulbIcon,
   UserIcon,
 } from "lucide-react";
 import * as React from "react";
 import { UserProfile } from "../../hooks/use-api";
-import { locales } from "../../lib/i18n";
+import { languagesNames, locales } from "../../lib/i18n";
 
 type SidebarUserMenuProps = {
   user: {
@@ -219,7 +219,7 @@ export function SidebarUserMenu({
               onClick={() => onLocaleChange(lang as "en" | "fr" | "es" | "de")}
               className="justify-between"
             >
-              <span>{t(`languages.${lang}`)}</span>
+              <span>{(languagesNames as any)[lang]}</span>
               {locale === lang && <CheckIcon className="w-4 h-4" />}
             </DropdownMenuItem>
           ))}

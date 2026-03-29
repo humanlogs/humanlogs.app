@@ -28,7 +28,7 @@ export function SecurityStep({ onContinue, onSkip }: SecurityStepProps) {
   const status = useEncryptionStatus();
 
   useEffect(() => {
-    if (status?.isEnabled) {
+    if (status?.data?.publicKey) {
       onContinue();
     }
   }, [status]);

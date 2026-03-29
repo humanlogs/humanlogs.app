@@ -4,9 +4,6 @@ import { useLocale, useTranslations } from "@/components/locale-provider";
 import { PageLayout } from "@/components/page-layout";
 import { ProjectSelector } from "@/components/project-selector";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +13,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
   FileIcon,
   PauseIcon,
@@ -27,6 +27,7 @@ import {
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
+import { languagesNames, locales } from "../../../lib/i18n";
 
 type AudioFile = {
   id: string;
@@ -38,7 +39,6 @@ type AudioFile = {
 
 export default function NewTranscriptionPage() {
   const t = useTranslations("newTranscription");
-  const tLang = useTranslations("sidebar.languages");
   const { locale } = useLocale();
   const router = useRouter();
 
@@ -478,12 +478,10 @@ export default function NewTranscriptionPage() {
               <Select
                 size="sm"
                 className="w-max inline-flex"
-                options={[
-                  { label: tLang("en"), value: "en" },
-                  { label: tLang("fr"), value: "fr" },
-                  { label: tLang("es"), value: "es" },
-                  { label: tLang("de"), value: "de" },
-                ]}
+                options={locales.map((lang) => ({
+                  label: (languagesNames as any)[lang],
+                  value: lang,
+                }))}
                 value={language}
                 onChange={setLanguage}
                 placeholder={t("language")}

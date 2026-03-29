@@ -12,10 +12,10 @@ import {
 import { Select } from "@/components/ui/select";
 import { useModal } from "@/components/use-modal";
 import * as React from "react";
-import { toast } from "sonner";
-import { locales } from "../../lib/i18n";
-import { useUserProfile } from "../../hooks/use-api";
 import { useEffect } from "react";
+import { toast } from "sonner";
+import { useUserProfile } from "../../hooks/use-api";
+import { languagesNames, locales } from "../../lib/i18n";
 
 export type HelpModalData = Record<string, never>;
 
@@ -108,7 +108,7 @@ export function HelpDialog() {
               <Select
                 options={locales.map((locale) => ({
                   value: locale,
-                  label: t("languages." + locale),
+                  label: (languagesNames as any)[locale],
                 }))}
                 value={selectedLanguage}
                 onChange={setSelectedLanguage}
