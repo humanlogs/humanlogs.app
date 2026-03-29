@@ -6,6 +6,7 @@ import { TranscriptionEditor } from "@/components/transcriptions/transcription-e
 import { TranscriptionFailed } from "@/components/transcriptions/transcription-failed";
 import { TranscriptionLoading } from "@/components/transcriptions/transcription-loading";
 import { SaveStatus } from "@/components/transcriptions/editor/hooks/use-auto-save";
+import { EditorStateProvider } from "@/components/transcriptions/editor/editor-state-context";
 import { useEncryptionStatus } from "@/hooks/use-encryption";
 import { useTranscription } from "@/hooks/use-transcriptions";
 import { PencilIcon } from "lucide-react";
@@ -67,7 +68,7 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
   }
 
   return (
-    <>
+    <EditorStateProvider>
       {transcription && (
         <>
           {createPortal(
@@ -130,6 +131,6 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
           onSaveStatusChange={setSaveStatus}
         />
       )}
-    </>
+    </EditorStateProvider>
   );
 }

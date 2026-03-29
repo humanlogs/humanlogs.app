@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   TranscriptionDetail,
   TranscriptionSegment,
@@ -9,6 +9,7 @@ import { SaveStatus, useAutoSave } from "./hooks/use-auto-save";
 import { Speaker } from "./hooks/use-speaker-actions";
 import "./index.css";
 import { TranscriptEditorContent } from "./transcript-editor-content";
+import { useEditorStateRegister } from "./editor-state-context";
 
 /**
  * Ensures every speakerId referenced in segments has a speaker entry with a name.
@@ -56,6 +57,13 @@ export const TranscriptEditor = ({
   useEffect(() => {
     onSaveStatusChange?.(saveStatus);
   }, [saveStatus, onSaveStatusChange]);
+
+  // Provide getter for current editor state and register with context
+  const getState = useCallback(() => {
+    return { segments, speakers };
+  }, [segments, speakers]);
+
+  useEditorStateRegister(getState);
 
   if (!transcription.transcription) {
     return (

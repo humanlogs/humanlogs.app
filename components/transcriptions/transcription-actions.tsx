@@ -42,6 +42,7 @@ import { useTranscriptionRenameModal } from "./dialogs/transcription-rename-dial
 import { useTranscriptionSetProjectModal } from "./dialogs/transcription-set-project-dialog";
 import { SaveStatus } from "./editor/hooks/use-auto-save";
 import { useTranscriptionHistoryModal } from "./transcription-history-sheet";
+import { useOptionalEditorState } from "./editor/editor-state-context";
 
 type TranscriptionActionsProps = {
   transcriptionId: string;
@@ -68,6 +69,26 @@ export function TranscriptionActions({
   const { openSpeakerOptions } = useSpeakerOptionsModal();
   const { open: openShortcuts } = useShortcutsModal();
 
+  // Get live editor state if available, otherwise use the original transcription
+  const editorStateContext = useOptionalEditorState();
+
+  /**
+   * Get the current transcription content to export.
+   * Prefers live editor state if available, falls back to original transcription.
+   */
+  const getTranscriptionContent = (): TranscriptionContent | undefined => {
+    if (editorStateContext) {
+      const state = editorStateContext.getState();
+      if (state) {
+        return {
+          words: state.segments,
+          speakers: state.speakers,
+        };
+      }
+    }
+    return transcription;
+  };
+
   const handleRename = () => {
     openRename(transcriptionId, transcriptionName);
   };
@@ -85,12 +106,13 @@ export function TranscriptionActions({
   };
 
   const handleExportCSV = () => {
-    if (!transcription) {
+    const content = getTranscriptionContent();
+    if (!content) {
       toast.error("No transcription data available");
       return;
     }
     try {
-      exportAsCSV(transcription, transcriptionName);
+      exportAsCSV(content, transcriptionName);
       toast.success("Exported as CSV");
     } catch (error) {
       toast.error("Failed to export CSV");
@@ -99,14 +121,15 @@ export function TranscriptionActions({
   };
 
   const handleExportTXT = () => {
-    if (!transcription) {
+    const content = getTranscriptionContent();
+    if (!content) {
       toast.error("No transcription data available");
       return;
     }
     try {
       // Use basic export with default options
-      exportAsTXTWithOptions(transcription, transcriptionName, {
-        speakerIds: transcription.speakers.map((s) => s.id),
+      exportAsTXTWithOptions(content, transcriptionName, {
+        speakerIds: content.speakers.map((s) => s.id),
         toLowerCase: false,
         removeAccents: false,
         removePunctuation: false,
@@ -121,21 +144,23 @@ export function TranscriptionActions({
   };
 
   const handleExportAdvanced = () => {
-    if (!transcription) {
+    const content = getTranscriptionContent();
+    if (!content) {
       toast.error("No transcription data available");
       return;
     }
     // Open the advanced export dialog
-    openExport(transcription, transcriptionName);
+    openExport(content, transcriptionName);
   };
 
   const handleExportWord = async () => {
-    if (!transcription) {
+    const content = getTranscriptionContent();
+    if (!content) {
       toast.error("No transcription data available");
       return;
     }
     try {
-      await exportAsWord(transcription, transcriptionName);
+      await exportAsWord(content, transcriptionName);
       toast.success("Exported as Word document");
     } catch (error) {
       toast.error("Failed to export Word document");
@@ -144,12 +169,13 @@ export function TranscriptionActions({
   };
 
   const handleExportJSON = () => {
-    if (!transcription) {
+    const content = getTranscriptionContent();
+    if (!content) {
       toast.error("No transcription data available");
       return;
     }
     try {
-      exportAsJSON(transcription, transcriptionName);
+      exportAsJSON(content, transcriptionName);
       toast.success("Exported as JSON");
     } catch (error) {
       toast.error("Failed to export JSON");
@@ -227,26 +253,22 @@ export function TranscriptionActions({
   };
 
   const handleSpeakerOptions = () => {
-    if (!transcription) {
+    const content = getTranscriptionContent();
+    if (!content) {
       toast.error("No transcription data available");
       return;
     }
     // Map TranscriptionContent speakers to Speaker type
-    const speakers = transcription.speakers.map((s) => ({
+    const speakers = content.speakers.map((s) => ({
       id: s.id,
       name: s.name,
     }));
-    openSpeakerOptions(
-      transcription,
-      speakers,
-      transcription.words,
-      (options) => {
-        // TODO: Implement speaker options application logic
-        // This would need to call an API endpoint to update the transcription
-        console.log("Speaker options to apply:", options);
-        toast.info("Speaker options feature - implementation in progress");
-      },
-    );
+    openSpeakerOptions(content, speakers, content.words, (options) => {
+      // TODO: Implement speaker options application logic
+      // This would need to call an API endpoint to update the transcription
+      console.log("Speaker options to apply:", options);
+      toast.info("Speaker options feature - implementation in progress");
+    });
   };
 
   const downloadMenu = (

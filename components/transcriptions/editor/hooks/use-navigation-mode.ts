@@ -72,6 +72,7 @@ export function useNavigationMode(
           const visibleTop = headerHeight + topMargin;
           const visibleBottom = bottomMargin;
           if (!(rect.top >= visibleTop && rect.bottom <= visibleBottom)) {
+            console.log("Scrolling to segment", currentIndex, rect);
             const targetY =
               rect.top + window.pageYOffset - headerHeight - topMargin;
             window.scrollTo({
@@ -335,7 +336,6 @@ export function useNavigationMode(
       event.preventDefault();
 
       event.preventDefault();
-      editorRef.current?.focus();
 
       // Set the selection range
       const domElement = editorRef.current?.querySelector(
@@ -348,6 +348,9 @@ export function useNavigationMode(
         selection?.removeAllRanges();
         selection?.addRange(range);
       }
+
+      // Focus after selection to avoid scroll messing up the position of the segment in the viewport
+      editorRef.current?.focus();
 
       // If a letter was typed or there's a custom shortcut replacement, insert that text
       document.execCommand("delete");
@@ -415,7 +418,6 @@ export function useNavigationMode(
       }
 
       event.preventDefault();
-      editorRef.current?.focus();
 
       // Set the selection range
       if (state === "navigate") {
@@ -430,6 +432,9 @@ export function useNavigationMode(
           selection?.addRange(range);
         }
       }
+
+      // Focus after selection to avoid scroll messing up the position of the segment in the viewport
+      editorRef.current?.focus();
 
       // If a letter was typed or there's a custom shortcut replacement, insert that text
       if (replacement) {

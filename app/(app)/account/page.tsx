@@ -29,15 +29,20 @@ import {
 } from "lucide-react";
 import { useUserProfile } from "@/hooks/use-api";
 import { useTranscriptions } from "@/hooks/use-transcriptions";
+import { useDecryptData } from "@/hooks/use-encryption";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import JSZip from "jszip";
+import { downloadAndDecryptAudio } from "@/lib/audio-decryption.browser";
+import type { TranscriptionDetail } from "@/hooks/use-transcriptions";
 
 export default function AccountPage() {
   const t = useTranslations("account");
   const router = useRouter();
   const { data: userProfile } = useUserProfile();
   const { data: transcriptions = [] } = useTranscriptions();
+  const decrypt = useDecryptData();
 
   const [includeAudio, setIncludeAudio] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -51,19 +56,190 @@ export default function AccountPage() {
     }
 
     setIsDownloading(true);
-    try {
-      const response = await fetch("/api/user/download-data", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ includeAudio }),
-      });
+    const toastId = toast.loading("Preparing download...");
 
-      if (!response.ok) {
-        throw new Error("Failed to download data");
+    try {
+      const zip = new JSZip();
+
+      // Helper function to convert transcription data to text
+      const transcriptionToText = (data: any): string => {
+        if (!data || !data.words) return "";
+
+        let text = "";
+        let currentSpeaker = "";
+
+        for (const word of data.words) {
+          const speaker = word.speaker || "Unknown";
+
+          if (speaker !== currentSpeaker) {
+            if (text) text += "\n\n";
+            text += `[${speaker}]\n`;
+            currentSpeaker = speaker;
+          }
+
+          text += word.text + (word.text.match(/[.!?]$/) ? " " : "");
+        }
+
+        return text;
+      };
+
+      let processedCount = 0;
+
+      // Process each transcription
+      for (const basicTranscription of transcriptions) {
+        processedCount++;
+        toast.loading(
+          `Processing ${processedCount}/${transcriptions.length}...`,
+          { id: toastId },
+        );
+
+        try {
+          // Fetch full transcription details
+          const response = await fetch(
+            `/api/transcriptions/${basicTranscription.id}`,
+          );
+          if (!response.ok) {
+            console.error(
+              `Failed to fetch transcription ${basicTranscription.id}`,
+            );
+            continue;
+          }
+
+          const rawData = await response.json();
+          // Decrypt the transcription data (handles encrypted content automatically)
+          const transcription = await decrypt<TranscriptionDetail>(rawData);
+
+          // Create a safe folder name
+          const folderName = `${transcription.title.replace(/[/\\?%*:|"<>]/g, "-")}-${transcription.id.substring(0, 8)}`;
+
+          // Prepare metadata
+          const metadata: any = {
+            id: transcription.id,
+            title: transcription.title,
+            language: transcription.language,
+            vocabulary: transcription.vocabulary,
+            speakerCount: transcription.speakerCount,
+            state: transcription.state,
+            projectName: transcription.projectName,
+            createdAt: transcription.createdAt,
+            updatedAt: transcription.updatedAt,
+            completedAt: transcription.completedAt,
+            audioFileName: transcription.audioFileName,
+            audioFileSize: transcription.audioFileSize,
+            transcription: transcription.transcription,
+          };
+
+          // Add metadata.json
+          zip.file(
+            `${folderName}/metadata.json`,
+            JSON.stringify(metadata, null, 2),
+          );
+
+          // Add transcript.txt if available
+          if (
+            transcription.transcription &&
+            transcription.state === "COMPLETED"
+          ) {
+            try {
+              const textContent = transcriptionToText(
+                transcription.transcription,
+              );
+              if (textContent) {
+                zip.file(`${folderName}/transcript.txt`, textContent);
+              }
+            } catch (error) {
+              console.error(
+                `Failed to process transcript for ${transcription.id}:`,
+                error,
+              );
+            }
+          }
+
+          // Add audio file if requested
+          if (includeAudio && transcription.audioFileKey) {
+            try {
+              if (transcription.audioFileEncryption) {
+                // Audio is encrypted - decrypt it
+                const decryptedBlob = await downloadAndDecryptAudio(
+                  transcription.id,
+                  transcription.audioFileEncryption,
+                );
+                zip.file(
+                  `${folderName}/${transcription.audioFileName}`,
+                  decryptedBlob,
+                );
+              } else {
+                // Audio is not encrypted - fetch directly
+                const audioResponse = await fetch(
+                  `/api/transcriptions/${transcription.id}/audio`,
+                );
+                if (audioResponse.ok) {
+                  const audioBlob = await audioResponse.blob();
+                  zip.file(
+                    `${folderName}/${transcription.audioFileName}.ogg`,
+                    audioBlob,
+                  );
+                } else {
+                  console.error(
+                    `Failed to fetch audio for ${transcription.id}`,
+                  );
+                  zip.file(
+                    `${folderName}/audio-error.txt`,
+                    `Failed to retrieve audio file: ${audioResponse.statusText}`,
+                  );
+                }
+              }
+            } catch (error) {
+              console.error(
+                `Failed to add audio for ${transcription.id}:`,
+                error,
+              );
+              zip.file(
+                `${folderName}/audio-error.txt`,
+                `Failed to retrieve audio file: ${error instanceof Error ? error.message : "Unknown error"}`,
+              );
+            }
+          }
+        } catch (error) {
+          console.error(
+            `Error processing transcription ${basicTranscription.id}:`,
+            error,
+          );
+          // Continue with next transcription
+        }
       }
 
-      // Get the blob from response
-      const blob = await response.blob();
+      // Add README
+      const readme = `# Your Transcription Data Export
+
+Exported on: ${new Date().toISOString()}
+Total transcriptions: ${transcriptions.length}
+User: ${userProfile?.email || "Unknown"}${userProfile?.name ? ` (${userProfile.name})` : ""}
+
+## Contents
+
+Each folder contains:
+- **metadata.json**: Complete transcription metadata and raw data
+- **transcript.txt**: Human-readable transcript (when available)
+${includeAudio ? "- **audio file**: Original audio file (decrypted if it was encrypted)\n" : ""}
+## Important Notes
+
+**End-to-End Encryption**: If transcriptions were encrypted, they have been automatically decrypted using your local encryption keys before being included in this export.
+
+## Additional Information
+
+- Timestamps in metadata are in ISO 8601 format
+- Each transcription is in its own folder for easy organization
+- Encrypted content has been decrypted in your browser before export
+`;
+
+      zip.file("README.md", readme);
+
+      // Generate the ZIP file
+      toast.loading("Generating ZIP file...", { id: toastId });
+      const blob = await zip.generateAsync({ type: "blob" });
+
+      // Download the ZIP file
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -73,10 +249,10 @@ export default function AccountPage() {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      toast.success("Data downloaded successfully");
+      toast.success("Data downloaded successfully", { id: toastId });
     } catch (error) {
       console.error("Download error:", error);
-      toast.error("Failed to download data");
+      toast.error("Failed to download data", { id: toastId });
     } finally {
       setIsDownloading(false);
     }
