@@ -27,7 +27,7 @@ import {
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
-import { languagesNames, locales } from "../../../lib/i18n";
+import { languagesNames, locales } from "../../../../lib/i18n";
 
 type AudioFile = {
   id: string;

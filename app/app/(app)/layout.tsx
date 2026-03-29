@@ -25,7 +25,7 @@ export default async function AppLayout({
   const session = await auth0.getSession();
 
   if (!session?.user) {
-    redirect("/login");
+    redirect("/app/login");
   }
 
   return (

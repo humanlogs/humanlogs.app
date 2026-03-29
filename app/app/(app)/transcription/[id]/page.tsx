@@ -14,8 +14,8 @@ import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
-import { useTranscriptionRenameModal } from "../../../../components/transcriptions/dialogs/transcription-rename-dialog";
-import { Button } from "../../../../components/ui/button";
+import { useTranscriptionRenameModal } from "../../../../../components/transcriptions/dialogs/transcription-rename-dialog";
+import { Button } from "../../../../../components/ui/button";
 
 type TranscriptionPageProps = {
   params: Promise<{
