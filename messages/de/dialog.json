@@ -1,0 +1,121 @@
+{
+    "dialog": {
+        "localVersion": {
+            "title": "Lokale Änderungen gefunden",
+            "description": "Wir haben nicht gespeicherte Änderungen auf Ihrem Gerät gefunden, die neuer sind als die Version auf dem Server. Welche Version möchten Sie verwenden?",
+            "localVersion": "Lokale Version",
+            "serverVersion": "Server-Version",
+            "savedOnDevice": "Auf diesem Gerät gespeichert (noch nicht synchronisiert)",
+            "lastSynced": "Zuletzt in der Cloud synchronisiert",
+            "useServer": "Server-Version verwenden",
+            "useLocal": "Lokale Version verwenden"
+        },
+        "shortcuts": {
+            "title": "Tastaturkürzel",
+            "description": "Standard-Tastenkombinationen anzeigen und benutzerdefinierte Text-Shortcuts erstellen",
+            "defaultShortcuts": "Standard-Tastenkombinationen",
+            "custom": "Benutzerdefiniert",
+            "shortcutsSection": "Tastenkombinationen",
+            "shortcutsDescription": "Erstellen Sie benutzerdefinierte Shortcuts, um häufig verwendeten Text an der Cursorposition im Bearbeitungsmodus einzufügen.",
+            "selectKey": "Taste auswählen...",
+            "searchKeys": "Tasten durchsuchen...",
+            "textToInsert": "Einzufügender Text",
+            "add": "Hinzufügen",
+            "close": "Schließen",
+            "errors": {
+                "provideBoth": "Bitte geben Sie sowohl die Tastenkombination als auch den Text an",
+                "loadFailed": "Fehler beim Laden der Shortcuts",
+                "addFailed": "Fehler beim Hinzufügen des Shortcuts",
+                "deleteFailed": "Fehler beim Löschen des Shortcuts"
+            },
+            "success": {
+                "added": "Benutzerdefinierter Shortcut hinzugefügt",
+                "deleted": "Shortcut gelöscht"
+            }
+        },
+        "speakerOptions": {
+            "title": "Sprecher-Optionen",
+            "description": "Sprecher-Inhalte ändern, zusammenführen oder entfernen",
+            "confirmTitle": "Bitte bestätigen Sie diese Aktion",
+            "selectSpeaker": "Sprecher auswählen",
+            "speaker": "Sprecher",
+            "wordCount": "Wort",
+            "wordCountPlural": "Wörter",
+            "modification": "Änderung",
+            "modificationNone": "Keine Änderung",
+            "modificationUppercase": "In GROSSBUCHSTABEN konvertieren",
+            "modificationLowercase": "In kleinbuchstaben konvertieren",
+            "modificationCapitalize": "Jeden Anfangsbuchstaben Großschreiben",
+            "mergeSpeaker": "Sprecher zusammenführen",
+            "noMerge": "Nicht zusammenführen",
+            "mergeWith": "Zusammenführen mit",
+            "removeContent": "Inhalt entfernen",
+            "removeContentLabel": "Alle Inhalte dieses Sprechers entfernen",
+            "removeWarning": "Dies wird den gesamten Text dieses Sprechers dauerhaft löschen",
+            "cancel": "Abbrechen",
+            "back": "Zurück",
+            "confirm": "Bestätigen",
+            "apply": "Anwenden",
+            "confirmWarning": "Sie sind dabei,",
+            "confirmMerge": "{from} mit {to} zusammenzuführen",
+            "confirmRemove": "alle Inhalte von {speaker} zu entfernen",
+            "confirmAffected": "Dies betrifft {count} Wort.",
+            "confirmAffectedPlural": "Dies betrifft {count} Wörter.",
+            "success": "Sprecher-Optionen angewendet",
+            "searchSpeakers": "Sprecher durchsuchen..."
+        },
+        "delete": {
+            "title": "Transkription löschen",
+            "description": "Sind Sie sicher, dass Sie {name} löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+            "cancel": "Abbrechen",
+            "delete": "Löschen",
+            "deleting": "Wird gelöscht...",
+            "success": "Transkription erfolgreich gelöscht!",
+            "error": "Fehler beim Löschen der Transkription"
+        },
+        "export": {
+            "title": "Erweiterter Export",
+            "description": "Exportoptionen für Ihre Transkription konfigurieren",
+            "speakers": "Sprecher",
+            "allSpeakers": "Alle Sprecher",
+            "selectSpeaker": "Sprecher auswählen",
+            "searchSpeakers": "Sprecher durchsuchen...",
+            "textFormat": "Textformat",
+            "original": "Originaltext",
+            "lowercase": "Kleinbuchstaben",
+            "lowercaseNoAccents": "Kleinbuchstaben, ohne Akzente",
+            "lowercaseNoAccentsNoPunctuation": "Kleinbuchstaben, ohne Akzente, ohne Satzzeichen",
+            "showSpeakerNames": "Sprechernamen anzeigen",
+            "hideSpeakerNames": "Sprechernamen ausblenden",
+            "keepLinebreaks": "Zeilenumbrüche beibehalten",
+            "removeLinebreaks": "Zeilenumbrüche entfernen",
+            "cancel": "Abbrechen",
+            "exportTxt": "TXT exportieren",
+            "success": "Export erfolgreich",
+            "error": "Export fehlgeschlagen"
+        },
+        "rename": {
+            "title": "Transkription umbenennen",
+            "description": "Geben Sie einen neuen Namen für Ihre Transkription ein.",
+            "label": "Transkriptionsname",
+            "placeholder": "z.B. Interview mit Jane Doe",
+            "cancel": "Abbrechen",
+            "rename": "Umbenennen",
+            "renaming": "Wird umbenannt...",
+            "errorEmpty": "Bitte geben Sie einen Transkriptionsnamen ein",
+            "success": "Transkription erfolgreich umbenannt!",
+            "error": "Fehler beim Umbenennen der Transkription"
+        },
+        "setProject": {
+            "title": "Projekt festlegen",
+            "description": "Weisen Sie diese Transkription einem Projekt zu, um Ihre Arbeit organisiert zu halten.",
+            "label": "Projekt",
+            "cancel": "Abbrechen",
+            "save": "Speichern",
+            "saving": "Wird gespeichert...",
+            "successUpdated": "Projekt erfolgreich aktualisiert!",
+            "successRemoved": "Projekt entfernt",
+            "error": "Fehler beim Aktualisieren des Projekts"
+        }
+    }
+}

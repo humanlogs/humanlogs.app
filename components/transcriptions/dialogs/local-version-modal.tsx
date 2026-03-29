@@ -15,7 +15,7 @@ import {
   HardDriveIcon,
   CloudIcon,
 } from "lucide-react";
-import * as React from "react";
+import { useTranslations } from "@/components/locale-provider";
 
 type LocalVersionModalProps = {
   isOpen: boolean;
@@ -32,6 +32,8 @@ export function LocalVersionModal({
   localUpdatedAt,
   serverUpdatedAt,
 }: LocalVersionModalProps) {
+  const t = useTranslations("dialog.localVersion");
+
   const formatDate = (timestamp: number | string) => {
     const date =
       typeof timestamp === "number" ? new Date(timestamp) : new Date(timestamp);
@@ -50,25 +52,22 @@ export function LocalVersionModal({
         <DialogHeader>
           <div className="flex items-center gap-2">
             <AlertTriangleIcon className="h-5 w-5 text-amber-500" />
-            <DialogTitle>Local Changes Found</DialogTitle>
+            <DialogTitle>{t("title")}</DialogTitle>
           </div>
-          <DialogDescription>
-            We found unsaved changes on your device that are newer than the
-            version on the server. Which version would you like to use?
-          </DialogDescription>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 py-4">
           <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/50">
             <HardDriveIcon className="h-5 w-5 mt-0.5 text-muted-foreground" />
             <div className="flex-1">
-              <div className="font-medium">Local Version</div>
+              <div className="font-medium">{t("localVersion")}</div>
               <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                 <ClockIcon className="h-3.5 w-3.5" />
                 {localDate}
               </div>
               <div className="text-sm text-amber-600 dark:text-amber-500 mt-1">
-                Saved on this device (not yet synced)
+                {t("savedOnDevice")}
               </div>
             </div>
           </div>
@@ -76,13 +75,13 @@ export function LocalVersionModal({
           <div className="flex items-start gap-3 p-3 rounded-lg border">
             <CloudIcon className="h-5 w-5 mt-0.5 text-muted-foreground" />
             <div className="flex-1">
-              <div className="font-medium">Server Version</div>
+              <div className="font-medium">{t("serverVersion")}</div>
               <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                 <ClockIcon className="h-3.5 w-3.5" />
                 {serverDate}
               </div>
               <div className="text-sm text-muted-foreground mt-1">
-                Last synced to the cloud
+                {t("lastSynced")}
               </div>
             </div>
           </div>
@@ -94,9 +93,9 @@ export function LocalVersionModal({
             onClick={onUseServer}
             className="sm:mr-auto"
           >
-            Use Server Version
+            {t("useServer")}
           </Button>
-          <Button onClick={onUseLocal}>Use Local Version</Button>
+          <Button onClick={onUseLocal}>{t("useLocal")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

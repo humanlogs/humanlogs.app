@@ -1,0 +1,121 @@
+{
+    "dialog": {
+        "localVersion": {
+            "title": "Modifications locales trouvées",
+            "description": "Nous avons trouvé des modifications non sauvegardées sur votre appareil qui sont plus récentes que la version sur le serveur. Quelle version souhaitez-vous utiliser ?",
+            "localVersion": "Version locale",
+            "serverVersion": "Version serveur",
+            "savedOnDevice": "Enregistré sur cet appareil (pas encore synchronisé)",
+            "lastSynced": "Dernière synchronisation dans le cloud",
+            "useServer": "Utiliser la version serveur",
+            "useLocal": "Utiliser la version locale"
+        },
+        "shortcuts": {
+            "title": "Raccourcis clavier",
+            "description": "Voir les raccourcis par défaut et créer des raccourcis texte personnalisés",
+            "defaultShortcuts": "Raccourcis par défaut",
+            "custom": "Personnalisé",
+            "shortcutsSection": "Raccourcis",
+            "shortcutsDescription": "Créez des raccourcis personnalisés pour insérer du texte fréquemment utilisé à la position du curseur en mode édition.",
+            "selectKey": "Sélectionner une touche...",
+            "searchKeys": "Rechercher des touches...",
+            "textToInsert": "Texte à insérer",
+            "add": "Ajouter",
+            "close": "Fermer",
+            "errors": {
+                "provideBoth": "Veuillez fournir à la fois la combinaison de touches et le texte",
+                "loadFailed": "Échec du chargement des raccourcis",
+                "addFailed": "Échec de l'ajout du raccourci",
+                "deleteFailed": "Échec de la suppression du raccourci"
+            },
+            "success": {
+                "added": "Raccourci personnalisé ajouté",
+                "deleted": "Raccourci supprimé"
+            }
+        },
+        "speakerOptions": {
+            "title": "Options de l'intervenant",
+            "description": "Modifier, fusionner ou supprimer le contenu de l'intervenant",
+            "confirmTitle": "Veuillez confirmer cette action",
+            "selectSpeaker": "Sélectionner un intervenant",
+            "speaker": "Intervenant",
+            "wordCount": "mot",
+            "wordCountPlural": "mots",
+            "modification": "Modification",
+            "modificationNone": "Aucune modification",
+            "modificationUppercase": "Convertir en MAJUSCULES",
+            "modificationLowercase": "Convertir en minuscules",
+            "modificationCapitalize": "Mettre en majuscule chaque mot",
+            "mergeSpeaker": "Fusionner l'intervenant",
+            "noMerge": "Ne pas fusionner",
+            "mergeWith": "Fusionner avec",
+            "removeContent": "Supprimer le contenu",
+            "removeContentLabel": "Supprimer tout le contenu de cet intervenant",
+            "removeWarning": "Cela supprimera définitivement tout le texte de cet intervenant",
+            "cancel": "Annuler",
+            "back": "Retour",
+            "confirm": "Confirmer",
+            "apply": "Appliquer",
+            "confirmWarning": "Vous êtes sur le point de",
+            "confirmMerge": "fusionner {from} dans {to}",
+            "confirmRemove": "supprimer tout le contenu de {speaker}",
+            "confirmAffected": "Cela affectera {count} mot.",
+            "confirmAffectedPlural": "Cela affectera {count} mots.",
+            "success": "Options de l'intervenant appliquées",
+            "searchSpeakers": "Rechercher des intervenants..."
+        },
+        "delete": {
+            "title": "Supprimer la transcription",
+            "description": "Êtes-vous sûr de vouloir supprimer {name} ? Cette action ne peut pas être annulée.",
+            "cancel": "Annuler",
+            "delete": "Supprimer",
+            "deleting": "Suppression...",
+            "success": "Transcription supprimée avec succès !",
+            "error": "Échec de la suppression de la transcription"
+        },
+        "export": {
+            "title": "Export avancé",
+            "description": "Configurer les options d'export pour votre transcription",
+            "speakers": "Intervenants",
+            "allSpeakers": "Tous les intervenants",
+            "selectSpeaker": "Sélectionner un intervenant",
+            "searchSpeakers": "Rechercher des intervenants...",
+            "textFormat": "Format du texte",
+            "original": "Texte original",
+            "lowercase": "Minuscules",
+            "lowercaseNoAccents": "Minuscules, sans accents",
+            "lowercaseNoAccentsNoPunctuation": "Minuscules, sans accents, sans ponctuation",
+            "showSpeakerNames": "Afficher les noms des intervenants",
+            "hideSpeakerNames": "Masquer les noms des intervenants",
+            "keepLinebreaks": "Conserver les sauts de ligne",
+            "removeLinebreaks": "Supprimer les sauts de ligne",
+            "cancel": "Annuler",
+            "exportTxt": "Exporter TXT",
+            "success": "Export réussi",
+            "error": "Erreur lors de l'export"
+        },
+        "rename": {
+            "title": "Renommer la transcription",
+            "description": "Entrez un nouveau nom pour votre transcription.",
+            "label": "Nom de la transcription",
+            "placeholder": "ex : Entretien avec Jane Doe",
+            "cancel": "Annuler",
+            "rename": "Renommer",
+            "renaming": "Renommage...",
+            "errorEmpty": "Veuillez saisir un nom de transcription",
+            "success": "Transcription renommée avec succès !",
+            "error": "Échec du renommage de la transcription"
+        },
+        "setProject": {
+            "title": "Définir le projet",
+            "description": "Assignez cette transcription à un projet pour garder votre travail organisé.",
+            "label": "Projet",
+            "cancel": "Annuler",
+            "save": "Enregistrer",
+            "saving": "Enregistrement...",
+            "successUpdated": "Projet mis à jour avec succès !",
+            "successRemoved": "Projet supprimé",
+            "error": "Échec de la mise à jour du projet"
+        }
+    }
+}

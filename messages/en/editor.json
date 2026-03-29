@@ -1,0 +1,89 @@
+{
+    "editor": {
+        "toolbar": {
+            "playPause": "Play / Pause (Alt+Space)",
+            "playbackSpeed": "Playback Speed (Alt+Ctrl)",
+            "bold": "Bold (⌘B)",
+            "italic": "Italic (⌘I)",
+            "underline": "Underline (⌘U)",
+            "strikethrough": "Strikethrough (⌘⇧X)"
+        },
+        "search": {
+            "findPlaceholder": "Find...",
+            "replacePlaceholder": "Replace...",
+            "previous": "Previous (Shift+Enter)",
+            "next": "Next (Enter)",
+            "matchCase": "Match case",
+            "wholeWord": "Whole word",
+            "replace": "Replace",
+            "replaceWith": "Replace with",
+            "replaceAll": "All ({count})"
+        },
+        "speaker": {
+            "renameSpeaker": "Rename speaker",
+            "speakerOptions": "Speaker Options",
+            "changeSpeaker": "Change speaker",
+            "newSpeaker": "New speaker",
+            "renameTitle": "Rename Speaker",
+            "nameLabel": "Name",
+            "cancel": "Cancel",
+            "rename": "Rename"
+        },
+        "status": {
+            "failed": {
+                "title": "Transcription Failed",
+                "unknownError": "An unknown error occurred during transcription",
+                "whatCanIDo": "What can I do?",
+                "checkFormat": "Check that your audio file is in a supported format",
+                "checkCorrupted": "Ensure the audio file is not corrupted",
+                "tryAgain": "Try uploading the file again",
+                "contactSupport": "Contact support if the problem persists"
+            },
+            "loading": {
+                "title": "Your transcription is being processed",
+                "description": "This usually takes about 10 minutes per hour of audio.",
+                "lessThanMinute": "Less than a minute...",
+                "aboutOneMinute": "About 1 minute remaining",
+                "aboutMinutes": "About {minutes} minutes remaining",
+                "aboutHours": "About {hours}h {minutes}m remaining"
+            }
+        },
+        "content": {
+            "noContentAvailable": "No transcription content available"
+        },
+        "actions": {
+            "noDataAvailable": "No transcription data available",
+            "exportedCSV": "Exported as CSV",
+            "failedExportCSV": "Failed to export CSV",
+            "exportedTXT": "Exported as TXT",
+            "failedExportTXT": "Failed to export TXT",
+            "exportedWord": "Exported as Word document",
+            "failedExportWord": "Failed to export Word document",
+            "exportedJSON": "Exported as JSON",
+            "failedExportJSON": "Failed to export JSON",
+            "downloadingAudio": "Downloading audio file",
+            "downloadingDecryptingAudio": "Downloading and decrypting audio file...",
+            "audioDownloaded": "Audio file downloaded",
+            "failedDownloadAudio": "Failed to download audio file",
+            "failedConvertMP3": "Failed to convert and download MP3",
+            "speakerOptionsInProgress": "Speaker options feature - implementation in progress",
+            "saving": "Saving...",
+            "saved": "Saved",
+            "offline": "You are offline",
+            "encrypted": "This transcription is end-to-end encrypted.",
+            "rename": "Rename",
+            "setProject": "Set Project",
+            "downloadAs": "Download as...",
+            "downloadOriginalAudio": "Download original audio",
+            "downloadAsMP3": "Download as MP3",
+            "speakerOptions": "Speaker Options",
+            "keyboardShortcuts": "Keyboard Shortcuts",
+            "delete": "Delete",
+            "csv": "CSV",
+            "txt": "TXT",
+            "word": "Word",
+            "json": "JSON",
+            "advanced": "Advanced"
+        }
+    }
+}

@@ -14,6 +14,7 @@ import {
   TranscriptionContent,
   TranscriptionSegment,
 } from "@/hooks/use-transcriptions";
+import { useTranslations } from "@/components/locale-provider";
 import * as React from "react";
 import { toast } from "sonner";
 import { useModal } from "../../use-modal";
@@ -65,6 +66,7 @@ export function SpeakerOptionsDialog() {
   const [mergeTo, setMergeTo] = React.useState("no-merge");
   const [removeContent, setRemoveContent] = React.useState(false);
   const [showConfirm, setShowConfirm] = React.useState(false);
+  const t = useTranslations("dialog.speakerOptions");
 
   // Initialize when modal opens
   React.useEffect(() => {
@@ -110,7 +112,7 @@ export function SpeakerOptionsDialog() {
     };
 
     data.onApply(options);
-    toast.success("Speaker options applied");
+    toast.success(t("success"));
     close();
   };
 
@@ -138,11 +140,9 @@ export function SpeakerOptionsDialog() {
     <Dialog open={isOpen} onOpenChange={(open) => !open && close()}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Speaker Options</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            {showConfirm
-              ? "Please confirm this action"
-              : "Modify, merge, or remove speaker content"}
+            {showConfirm ? t("confirmTitle") : t("description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -152,28 +152,26 @@ export function SpeakerOptionsDialog() {
               <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-500 mt-0.5 shrink-0" />
               <div className="space-y-1">
                 <div className="font-medium text-sm text-amber-900 dark:text-amber-100">
-                  Confirm your action
+                  {t("confirmWarning")}
                 </div>
                 <div className="text-sm text-amber-800 dark:text-amber-200">
                   {removeContent && (
                     <p>
-                      You are about to remove approximately{" "}
-                      <strong>{wordCount} words</strong> from{" "}
-                      <strong>{selectedSpeakerLabel}</strong>.
+                      {t("confirmRemove", {
+                        speaker: selectedSpeakerLabel,
+                      })}
                     </p>
                   )}
                   {mergeTo !== "no-merge" && !removeContent && (
                     <p>
-                      You are about to merge{" "}
-                      <strong>{selectedSpeakerLabel}</strong> into{" "}
-                      <strong>
-                        {getSpeakerLabel(
+                      {t("confirmMerge", {
+                        from: selectedSpeakerLabel,
+                        to: getSpeakerLabel(
                           mergeTo,
                           data?.speakers || [],
                           data?.segments || [],
-                        )}
-                      </strong>
-                      .
+                        ),
+                      })}
                     </p>
                   )}
                   {removeContent && mergeTo !== "no-merge" && (
@@ -189,6 +187,11 @@ export function SpeakerOptionsDialog() {
                       .
                     </p>
                   )}
+                  <p className="mt-2">
+                    {wordCount === 1
+                      ? t("confirmAffected", { count: wordCount })
+                      : t("confirmAffectedPlural", { count: wordCount })}
+                  </p>
                 </div>
               </div>
             </div>
@@ -196,7 +199,7 @@ export function SpeakerOptionsDialog() {
         ) : (
           <div className="space-y-4 px-6">
             <div className="space-y-2">
-              <div className="text-sm font-medium">Select Speaker</div>
+              <div className="text-sm font-medium">{t("selectSpeaker")}</div>
               <Select
                 size="md"
                 className="w-full"
@@ -212,20 +215,20 @@ export function SpeakerOptionsDialog() {
                 }
                 value={selectedSpeaker}
                 onChange={setSelectedSpeaker}
-                placeholder="Select speaker"
-                searchPlaceholder="Search speakers..."
+                placeholder={t("speaker")}
+                searchPlaceholder={t("searchSpeakers")}
               />
             </div>
 
             <div className="space-y-2">
-              <div className="text-sm font-medium">Modifications to Apply</div>
+              <div className="text-sm font-medium">{t("modification")}</div>
               <Select
                 size="md"
                 className="w-full"
                 options={[
-                  { label: "No modifications", value: "none" },
-                  { label: "Uppercase", value: "uppercase" },
-                  { label: "Lowercase", value: "lowercase" },
+                  { label: t("modificationNone"), value: "none" },
+                  { label: t("modificationUppercase"), value: "uppercase" },
+                  { label: t("modificationLowercase"), value: "lowercase" },
                   { label: "Bold", value: "bold" },
                   { label: "Italic", value: "italic" },
                   { label: "Underline", value: "underline" },
@@ -233,17 +236,17 @@ export function SpeakerOptionsDialog() {
                 ]}
                 value={modification}
                 onChange={setModification}
-                placeholder="Select modification"
+                placeholder={t("modification")}
               />
             </div>
 
             <div className="space-y-2">
-              <div className="text-sm font-medium">Merge Speaker</div>
+              <div className="text-sm font-medium">{t("mergeSpeaker")}</div>
               <Select
                 size="md"
                 className="w-full"
                 options={[
-                  { label: "Do not merge", value: "no-merge" },
+                  { label: t("noMerge"), value: "no-merge" },
                   ...availableMergeSpeakers.map((speaker) => ({
                     label: getSpeakerLabel(
                       speaker.id,
@@ -255,13 +258,13 @@ export function SpeakerOptionsDialog() {
                 ]}
                 value={mergeTo}
                 onChange={setMergeTo}
-                placeholder="Select speaker to merge into"
-                searchPlaceholder="Search speakers..."
+                placeholder={t("mergeSpeaker")}
+                searchPlaceholder={t("searchSpeakers")}
               />
             </div>
 
             <div className="pt-4 border-t space-y-3">
-              <div className="text-sm font-medium">Remove Content</div>
+              <div className="text-sm font-medium">{t("removeContent")}</div>
               <div className="flex items-start gap-3">
                 <input
                   type="checkbox"
@@ -274,11 +277,17 @@ export function SpeakerOptionsDialog() {
                   htmlFor="remove-content"
                   className="text-sm text-muted-foreground cursor-pointer flex-1"
                 >
-                  Remove all content from this speaker
+                  {t("removeContentLabel")}
                   {removeContent && wordCount > 0 && (
                     <span className="block mt-1 text-xs">
-                      Approximately <strong>{wordCount} words</strong> will be
-                      removed
+                      Approximately{" "}
+                      <strong>
+                        {wordCount}{" "}
+                        {wordCount === 1
+                          ? t("wordCount")
+                          : t("wordCountPlural")}
+                      </strong>{" "}
+                      will be removed
                     </span>
                   )}
                 </label>
@@ -289,10 +298,10 @@ export function SpeakerOptionsDialog() {
 
         <DialogFooter>
           <Button variant="outline" onClick={handleCancel}>
-            {showConfirm ? "Back" : "Cancel"}
+            {showConfirm ? t("back") : t("cancel")}
           </Button>
           <Button onClick={handleApply} disabled={!selectedSpeaker}>
-            {showConfirm ? "Confirm & Apply" : "Apply"}
+            {showConfirm ? t("confirm") : t("apply")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -3,6 +3,7 @@ import { getRequestConfig } from "next-intl/server";
 // Can be imported from a shared config
 export const locales = ["en", "fr", "es", "de"];
 export type Locale = "en" | "fr" | "es" | "de";
+export const i18nFiles = ["common", "dialog", "editor"];
 
 export default getRequestConfig(async ({ requestLocale }) => {
   // This typically corresponds to the `[locale]` segment
@@ -13,8 +14,16 @@ export default getRequestConfig(async ({ requestLocale }) => {
     locale = "en";
   }
 
+  // Load and merge all translation files for the locale
+  const all = await Promise.all(
+    i18nFiles.map(
+      async (file) =>
+        (await import(`../messages/${locale}/${file}.json`)).default,
+    ),
+  );
+
   return {
     locale,
-    messages: (await import(`../messages/${locale}.json`)).default,
+    messages: Object.assign({}, ...all),
   };
 });

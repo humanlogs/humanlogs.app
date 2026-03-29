@@ -6,6 +6,7 @@ import { Button } from "../../../ui/button";
 import { Input } from "../../../ui/input";
 import { Label } from "../../../ui/label";
 import { Checkbox } from "../../../ui/checkbox";
+import { useTranslations } from "@/components/locale-provider";
 
 export interface SearchReplaceToolbarProps {
   searchTerm: string;
@@ -46,6 +47,7 @@ export function SearchReplaceToolbar({
   onToggleReplace,
   searchInputRef,
 }: SearchReplaceToolbarProps) {
+  const t = useTranslations("editor");
   const [isExpanded, setIsExpanded] = useState(false);
   const [showReplaceInput, setShowReplaceInput] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -97,7 +99,7 @@ export function SearchReplaceToolbar({
                 setIsExpanded(false);
               }
             }}
-            placeholder="Find..."
+            placeholder={t("search.findPlaceholder")}
             className="pl-7 pr-8"
           />
           {searchTerm && (
@@ -122,7 +124,7 @@ export function SearchReplaceToolbar({
                     htmlFor="case-sensitive-toolbar"
                     className="text-sm font-normal cursor-pointer"
                   >
-                    Match case
+                    {t("search.matchCase")}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -135,7 +137,7 @@ export function SearchReplaceToolbar({
                     htmlFor="whole-word-toolbar"
                     className="text-sm font-normal cursor-pointer"
                   >
-                    Whole word
+                    {t("search.wholeWord")}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -148,7 +150,7 @@ export function SearchReplaceToolbar({
                     htmlFor="replace-toggle-toolbar"
                     className="text-sm font-normal cursor-pointer"
                   >
-                    Replace
+                    {t("search.replace")}
                   </Label>
                 </div>
               </div>
@@ -157,14 +159,14 @@ export function SearchReplaceToolbar({
               {showReplaceInput && (
                 <div>
                   <Label htmlFor="replace-input" className="text-xs mb-1 block">
-                    Replace with
+                    {t("search.replaceWith")}
                   </Label>
                   <Input
                     id="replace-input"
                     type="text"
                     value={replaceTerm}
                     onChange={(e) => onReplaceTermChange(e.target.value)}
-                    placeholder="Replace..."
+                    placeholder={t("search.replacePlaceholder")}
                     className="h-7 text-sm"
                   />
                 </div>
@@ -182,7 +184,7 @@ export function SearchReplaceToolbar({
                     size="sm"
                     className="flex-1 h-7 text-xs"
                   >
-                    Replace
+                    {t("search.replace")}
                   </Button>
                   <Button
                     onClick={() => {
@@ -193,7 +195,7 @@ export function SearchReplaceToolbar({
                     size="sm"
                     className="flex-1 h-7 text-xs"
                   >
-                    All ({matchCount})
+                    {t("search.replaceAll", { count: matchCount })}
                   </Button>
                 </div>
               )}
@@ -210,7 +212,7 @@ export function SearchReplaceToolbar({
           onClick={onPreviousMatch}
           disabled={matchCount === 0 || !searchTerm}
           className="h-7 w-7 p-0"
-          title="Previous (Shift+Enter)"
+          title={t("search.previous")}
         >
           <ChevronUp className="h-3.5 w-3.5" />
         </Button>
@@ -220,7 +222,7 @@ export function SearchReplaceToolbar({
           onClick={onNextMatch}
           disabled={matchCount === 0 || !searchTerm}
           className="h-7 w-7 p-0"
-          title="Next (Enter)"
+          title={t("search.next")}
         >
           <ChevronDown className="h-3.5 w-3.5" />
         </Button>

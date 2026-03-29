@@ -3,6 +3,7 @@
 import { Loader } from "lucide-react";
 import { useEffect, useState } from "react";
 import { TranscriptionDetail } from "../../hooks/use-transcriptions";
+import { useTranslations } from "@/components/locale-provider";
 
 type TranscriptionLoadingProps = {
   transcription: TranscriptionDetail;
@@ -11,6 +12,8 @@ type TranscriptionLoadingProps = {
 export function TranscriptionLoading({
   transcription,
 }: TranscriptionLoadingProps) {
+  const t = useTranslations("editor");
+
   const calculateTimeRemaining = () => {
     const now = new Date();
     const startTime = new Date(transcription.createdAt);
@@ -32,15 +35,17 @@ export function TranscriptionLoading({
     );
 
     if (remainingMinutes < 1) {
-      return "Less than a minute...";
+      return t("status.loading.lessThanMinute");
     } else if (remainingMinutes < 2) {
-      return "About 1 minute remaining";
+      return t("status.loading.aboutOneMinute");
     } else if (remainingMinutes < 60) {
-      return `About ${Math.round(remainingMinutes)} minutes remaining`;
+      return t("status.loading.aboutMinutes", {
+        minutes: Math.round(remainingMinutes),
+      });
     } else {
       const hours = Math.floor(remainingMinutes / 60);
       const mins = Math.round(remainingMinutes % 60);
-      return `About ${hours}h ${mins}m remaining`;
+      return t("status.loading.aboutHours", { hours, minutes: mins });
     }
   };
 
@@ -69,11 +74,9 @@ export function TranscriptionLoading({
           />
         </div>
         <div className="space-y-2 text-center">
-          <p className="text-xl font-medium">
-            Your transcription is being processed
-          </p>
+          <p className="text-xl font-medium">{t("status.loading.title")}</p>
           <p className="text-sm text-muted-foreground">
-            This usually takes about 10 minutes per hour of audio.
+            {t("status.loading.description")}
           </p>
           {timeRemaining && (
             <div className="mt-4 p-3 bg-primary/10 rounded-lg">

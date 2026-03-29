@@ -1,0 +1,89 @@
+{
+    "editor": {
+        "toolbar": {
+            "playPause": "Reproducir / Pausa (Alt+Espacio)",
+            "playbackSpeed": "Velocidad de reproducción (Alt+Ctrl)",
+            "bold": "Negrita (⌘B)",
+            "italic": "Cursiva (⌘I)",
+            "underline": "Subrayado (⌘U)",
+            "strikethrough": "Tachado (⌘⇧X)"
+        },
+        "search": {
+            "findPlaceholder": "Buscar...",
+            "replacePlaceholder": "Reemplazar...",
+            "previous": "Anterior (Shift+Enter)",
+            "next": "Siguiente (Enter)",
+            "matchCase": "Distinguir mayúsculas",
+            "wholeWord": "Palabra completa",
+            "replace": "Reemplazar",
+            "replaceWith": "Reemplazar con",
+            "replaceAll": "Todos ({count})"
+        },
+        "speaker": {
+            "renameSpeaker": "Renombrar interlocutor",
+            "speakerOptions": "Opciones del interlocutor",
+            "changeSpeaker": "Cambiar interlocutor",
+            "newSpeaker": "Nuevo interlocutor",
+            "renameTitle": "Renombrar interlocutor",
+            "nameLabel": "Nombre",
+            "cancel": "Cancelar",
+            "rename": "Renombrar"
+        },
+        "status": {
+            "failed": {
+                "title": "Transcripción fallida",
+                "unknownError": "Ocurrió un error desconocido durante la transcripción",
+                "whatCanIDo": "¿Qué puedo hacer?",
+                "checkFormat": "Verifique que su archivo de audio esté en un formato compatible",
+                "checkCorrupted": "Asegúrese de que el archivo de audio no esté dañado",
+                "tryAgain": "Intente cargar el archivo nuevamente",
+                "contactSupport": "Contacte al soporte si el problema persiste"
+            },
+            "loading": {
+                "title": "Su transcripción se está procesando",
+                "description": "Esto suele tardar unos 10 minutos por hora de audio.",
+                "lessThanMinute": "Menos de un minuto...",
+                "aboutOneMinute": "Aproximadamente 1 minuto restante",
+                "aboutMinutes": "Aproximadamente {minutes} minutos restantes",
+                "aboutHours": "Aproximadamente {hours}h {minutes}m restantes"
+            }
+        },
+        "content": {
+            "noContentAvailable": "No hay contenido de transcripción disponible"
+        },
+        "actions": {
+            "noDataAvailable": "No hay datos de transcripción disponibles",
+            "exportedCSV": "Exportado como CSV",
+            "failedExportCSV": "Error al exportar CSV",
+            "exportedTXT": "Exportado como TXT",
+            "failedExportTXT": "Error al exportar TXT",
+            "exportedWord": "Exportado como documento Word",
+            "failedExportWord": "Error al exportar documento Word",
+            "exportedJSON": "Exportado como JSON",
+            "failedExportJSON": "Error al exportar JSON",
+            "downloadingAudio": "Descargando archivo de audio",
+            "downloadingDecryptingAudio": "Descargando y descifrando archivo de audio...",
+            "audioDownloaded": "Archivo de audio descargado",
+            "failedDownloadAudio": "Error al descargar archivo de audio",
+            "failedConvertMP3": "Error al convertir y descargar MP3",
+            "speakerOptionsInProgress": "Opciones de interlocutor - implementación en progreso",
+            "saving": "Guardando...",
+            "saved": "Guardado",
+            "offline": "Estás sin conexión",
+            "encrypted": "Esta transcripción está cifrada de extremo a extremo.",
+            "rename": "Renombrar",
+            "setProject": "Establecer proyecto",
+            "downloadAs": "Descargar como...",
+            "downloadOriginalAudio": "Descargar audio original",
+            "downloadAsMP3": "Descargar como MP3",
+            "speakerOptions": "Opciones del interlocutor",
+            "keyboardShortcuts": "Atajos de teclado",
+            "delete": "Eliminar",
+            "csv": "CSV",
+            "txt": "TXT",
+            "word": "Word",
+            "json": "JSON",
+            "advanced": "Avanzado"
+        }
+    }
+}

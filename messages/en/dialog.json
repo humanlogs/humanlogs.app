@@ -1,0 +1,121 @@
+{
+    "dialog": {
+        "localVersion": {
+            "title": "Local Changes Found",
+            "description": "We found unsaved changes on your device that are newer than the version on the server. Which version would you like to use?",
+            "localVersion": "Local Version",
+            "serverVersion": "Server Version",
+            "savedOnDevice": "Saved on this device (not yet synced)",
+            "lastSynced": "Last synced to the cloud",
+            "useServer": "Use Server Version",
+            "useLocal": "Use Local Version"
+        },
+        "shortcuts": {
+            "title": "Keyboard Shortcuts",
+            "description": "View default shortcuts and create custom text shortcuts",
+            "defaultShortcuts": "Default Shortcuts",
+            "custom": "Custom",
+            "shortcutsSection": "Shortcuts",
+            "shortcutsDescription": "Create custom shortcuts to insert frequently used text at the cursor position in edit mode.",
+            "selectKey": "Select key...",
+            "searchKeys": "Search keys...",
+            "textToInsert": "Text to insert",
+            "add": "Add",
+            "close": "Close",
+            "errors": {
+                "provideBoth": "Please provide both key combination and text",
+                "loadFailed": "Failed to load shortcuts",
+                "addFailed": "Failed to add shortcut",
+                "deleteFailed": "Failed to delete shortcut"
+            },
+            "success": {
+                "added": "Custom shortcut added",
+                "deleted": "Shortcut deleted"
+            }
+        },
+        "speakerOptions": {
+            "title": "Speaker Options",
+            "description": "Modify, merge, or remove speaker content",
+            "confirmTitle": "Please confirm this action",
+            "selectSpeaker": "Select Speaker",
+            "speaker": "Speaker",
+            "wordCount": "word",
+            "wordCountPlural": "words",
+            "modification": "Modification",
+            "modificationNone": "No modification",
+            "modificationUppercase": "Convert to UPPERCASE",
+            "modificationLowercase": "Convert to lowercase",
+            "modificationCapitalize": "Capitalize Each Word",
+            "mergeSpeaker": "Merge Speaker",
+            "noMerge": "Do not merge",
+            "mergeWith": "Merge with",
+            "removeContent": "Remove Content",
+            "removeContentLabel": "Remove all content from this speaker",
+            "removeWarning": "This will permanently delete all text from this speaker",
+            "cancel": "Cancel",
+            "back": "Back",
+            "confirm": "Confirm",
+            "apply": "Apply",
+            "confirmWarning": "You are about to",
+            "confirmMerge": "merge {from} into {to}",
+            "confirmRemove": "remove all content from {speaker}",
+            "confirmAffected": "This will affect {count} word.",
+            "confirmAffectedPlural": "This will affect {count} words.",
+            "success": "Speaker options applied",
+            "searchSpeakers": "Search speakers..."
+        },
+        "delete": {
+            "title": "Delete Transcription",
+            "description": "Are you sure you want to delete {name}? This action cannot be undone.",
+            "cancel": "Cancel",
+            "delete": "Delete",
+            "deleting": "Deleting...",
+            "success": "Transcription deleted successfully!",
+            "error": "Failed to delete transcription"
+        },
+        "export": {
+            "title": "Advanced Export",
+            "description": "Configure export options for your transcription",
+            "speakers": "Speakers",
+            "allSpeakers": "All speakers",
+            "selectSpeaker": "Select speaker",
+            "searchSpeakers": "Search speakers...",
+            "textFormat": "Text Format",
+            "original": "Original text",
+            "lowercase": "Lowercase",
+            "lowercaseNoAccents": "Lowercase, no accents",
+            "lowercaseNoAccentsNoPunctuation": "Lowercase, no accents, no punctuation",
+            "showSpeakerNames": "Show speaker names",
+            "hideSpeakerNames": "Hide speaker names",
+            "keepLinebreaks": "Keep linebreaks",
+            "removeLinebreaks": "Remove linebreaks",
+            "cancel": "Cancel",
+            "exportTxt": "Export TXT",
+            "success": "Export successful",
+            "error": "Export failed"
+        },
+        "rename": {
+            "title": "Rename Transcription",
+            "description": "Enter a new name for your transcription.",
+            "label": "Transcription Name",
+            "placeholder": "e.g., Interview with Jane Doe",
+            "cancel": "Cancel",
+            "rename": "Rename",
+            "renaming": "Renaming...",
+            "errorEmpty": "Please enter a transcription name",
+            "success": "Transcription renamed successfully!",
+            "error": "Failed to rename transcription"
+        },
+        "setProject": {
+            "title": "Set Project",
+            "description": "Assign this transcription to a project to keep your work organized.",
+            "label": "Project",
+            "cancel": "Cancel",
+            "save": "Save",
+            "saving": "Saving...",
+            "successUpdated": "Project updated successfully!",
+            "successRemoved": "Project removed",
+            "error": "Failed to update project"
+        }
+    }
+}

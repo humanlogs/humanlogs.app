@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Locale, locales } from "../lib/i18n";
+import { Locale, locales, i18nFiles } from "../lib/i18n";
 
 type LocaleContextType = {
   locale: Locale;
@@ -16,6 +16,7 @@ const LocaleContext = React.createContext<LocaleContextType | null>(null);
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = React.useState<Locale>("en");
   const [messages, setMessages] = React.useState<Messages>({});
+  const [loaded, setLoaded] = React.useState(false);
 
   // Load saved locale from localStorage on mount
   React.useEffect(() => {
@@ -27,8 +28,12 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
 
   // Load messages when locale changes
   React.useEffect(() => {
-    import(`@/messages/${locale}.json`).then((mod) => {
-      setMessages(mod.default);
+    Promise.all(
+      i18nFiles.map((file) => import(`@/messages/${locale}/${file}.json`)),
+    ).then((modules) => {
+      const merged = Object.assign({}, ...modules.map((mod) => mod.default));
+      setMessages(merged);
+      setLoaded(true);
     });
   }, [locale]);
 
@@ -52,6 +57,10 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     return typeof value === "string" ? value : key;
   };
 
+  if (!loaded) {
+    return null; // or a loading spinner
+  }
+
   return (
     <LocaleContext.Provider value={{ locale, setLocale, t }}>
       {children}
@@ -70,7 +79,16 @@ export function useLocale() {
 export function useTranslations(namespace: string) {
   const { t } = useLocale();
 
-  return (key: string) => {
-    return t(`${namespace}.${key}`);
+  return (key: string, params?: Record<string, string | number>) => {
+    let translation = t(`${namespace}.${key}`);
+
+    // Replace placeholders with actual values
+    if (params) {
+      Object.entries(params).forEach(([paramKey, value]) => {
+        translation = translation.replace(`{${paramKey}}`, String(value));
+      });
+    }
+
+    return translation;
   };
 }

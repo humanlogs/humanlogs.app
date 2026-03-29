@@ -18,6 +18,7 @@ import {
   useSpeakerOptionsModal,
   SpeakerOptionsData,
 } from "../../dialogs/speaker-options-dialog";
+import { useTranslations } from "@/components/locale-provider";
 
 /** Shared badge chip — used for interactive badges and the invisible decoy row. */
 export function SpeakerBadgeChip({
@@ -65,6 +66,7 @@ function SpeakerBadge({
   onChangeSpeakerForTurn,
   onApplySpeakerOptions,
 }: SpeakerBadgeProps) {
+  const t = useTranslations("editor");
   const { speakerId, index, top } = position;
   const { openRename } = useSpeakerRenameModal();
   const { openSpeakerOptions } = useSpeakerOptionsModal();
@@ -113,12 +115,12 @@ function SpeakerBadge({
           }
         >
           <UserRoundPen className="mr-2 h-3.5 w-3.5" />
-          Rename speaker
+          {t("speaker.renameSpeaker")}
         </DropdownMenuItem>
 
         <DropdownMenuItem onClick={handleOpenSpeakerOptions}>
           <UserCog className="mr-2 h-3.5 w-3.5" />
-          Speaker Options
+          {t("speaker.speakerOptions")}
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
@@ -127,7 +129,7 @@ function SpeakerBadge({
           trigger={
             <span className="flex items-center gap-2">
               <Users className="h-3.5 w-3.5" />
-              Change speaker
+              {t("speaker.changeSpeaker")}
             </span>
           }
         >
@@ -142,7 +144,7 @@ function SpeakerBadge({
           {otherSpeakers.length > 0 && <DropdownMenuSeparator />}
           <DropdownMenuItem onClick={() => onChangeSpeakerForTurn(index, null)}>
             <UserRoundPlus className="mr-2 h-3.5 w-3.5" />
-            New speaker
+            {t("speaker.newSpeaker")}
           </DropdownMenuItem>
         </DropdownMenuSub>
       </DropdownMenu>

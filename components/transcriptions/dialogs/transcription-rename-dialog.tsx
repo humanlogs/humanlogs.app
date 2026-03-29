@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "@/components/locale-provider";
 import * as React from "react";
 import { toast } from "sonner";
 import { useModal } from "../../use-modal";
@@ -39,6 +40,7 @@ export function TranscriptionRenameDialog() {
   const [name, setName] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const queryClient = useQueryClient();
+  const t = useTranslations("dialog.rename");
 
   // Update the name when modal opens
   React.useEffect(() => {
@@ -53,7 +55,7 @@ export function TranscriptionRenameDialog() {
     if (!data) return;
 
     if (!name.trim()) {
-      toast.error("Please enter a transcription name");
+      toast.error(t("errorEmpty"));
       return;
     }
 
@@ -78,10 +80,10 @@ export function TranscriptionRenameDialog() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to rename transcription");
+        throw new Error(error.error || t("error"));
       }
 
-      toast.success("Transcription renamed successfully!");
+      toast.success(t("success"));
 
       // Invalidate queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ["transcriptions"] });
@@ -92,11 +94,7 @@ export function TranscriptionRenameDialog() {
       close();
     } catch (error) {
       console.error("Error renaming transcription:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to rename transcription",
-      );
+      toast.error(error instanceof Error ? error.message : t("error"));
     } finally {
       setIsSubmitting(false);
     }
@@ -106,20 +104,18 @@ export function TranscriptionRenameDialog() {
     <Dialog open={isOpen} onOpenChange={close}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Rename Transcription</DialogTitle>
-          <DialogDescription>
-            Enter a new name for your transcription.
-          </DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="px-6">
             <div className="space-y-2">
-              <Label htmlFor="transcription-name">Transcription Name</Label>
+              <Label htmlFor="transcription-name">{t("label")}</Label>
               <Input
                 id="transcription-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., Interview with Jane Doe"
+                placeholder={t("placeholder")}
                 autoFocus
               />
             </div>
@@ -131,10 +127,10 @@ export function TranscriptionRenameDialog() {
               onClick={close}
               disabled={isSubmitting}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button type="submit" variant={"primary"} disabled={isSubmitting}>
-              {isSubmitting ? "Renaming..." : "Rename"}
+              {isSubmitting ? t("renaming") : t("rename")}
             </Button>
           </DialogFooter>
         </form>

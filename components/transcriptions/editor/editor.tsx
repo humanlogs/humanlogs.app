@@ -10,6 +10,7 @@ import { Speaker } from "./hooks/use-speaker-actions";
 import "./index.css";
 import { TranscriptEditorContent } from "./transcript-editor-content";
 import { useEditorStateRegister } from "./editor-state-context";
+import { useTranslations } from "@/components/locale-provider";
 
 /**
  * Ensures every speakerId referenced in segments has a speaker entry with a name.
@@ -36,6 +37,7 @@ export const TranscriptEditor = ({
   transcription: TranscriptionDetail;
   onSaveStatusChange?: (status: SaveStatus) => void;
 }) => {
+  const t = useTranslations("editor");
   const [segments, setSegments] = useState<TranscriptionSegment[]>(
     transcription.transcription?.words ?? [],
   );
@@ -68,7 +70,7 @@ export const TranscriptEditor = ({
   if (!transcription.transcription) {
     return (
       <div className="p-8 text-center text-muted-foreground">
-        No transcription content available
+        {t("content.noContentAvailable")}
       </div>
     );
   }

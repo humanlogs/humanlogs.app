@@ -1,0 +1,121 @@
+{
+    "dialog": {
+        "localVersion": {
+            "title": "Cambios locales encontrados",
+            "description": "Encontramos cambios no guardados en tu dispositivo que son más recientes que la versión en el servidor. ¿Qué versión te gustaría usar?",
+            "localVersion": "Versión local",
+            "serverVersion": "Versión del servidor",
+            "savedOnDevice": "Guardado en este dispositivo (aún no sincronizado)",
+            "lastSynced": "Última sincronización en la nube",
+            "useServer": "Usar versión del servidor",
+            "useLocal": "Usar versión local"
+        },
+        "shortcuts": {
+            "title": "Atajos de teclado",
+            "description": "Ver atajos predeterminados y crear atajos de texto personalizados",
+            "defaultShortcuts": "Atajos predeterminados",
+            "custom": "Personalizado",
+            "shortcutsSection": "Atajos",
+            "shortcutsDescription": "Crea atajos personalizados para insertar texto de uso frecuente en la posición del cursor en modo edición.",
+            "selectKey": "Seleccionar tecla...",
+            "searchKeys": "Buscar teclas...",
+            "textToInsert": "Texto a insertar",
+            "add": "Añadir",
+            "close": "Cerrar",
+            "errors": {
+                "provideBoth": "Por favor proporciona tanto la combinación de teclas como el texto",
+                "loadFailed": "Error al cargar los atajos",
+                "addFailed": "Error al añadir el atajo",
+                "deleteFailed": "Error al eliminar el atajo"
+            },
+            "success": {
+                "added": "Atajo personalizado añadido",
+                "deleted": "Atajo eliminado"
+            }
+        },
+        "speakerOptions": {
+            "title": "Opciones del hablante",
+            "description": "Modificar, fusionar o eliminar contenido del hablante",
+            "confirmTitle": "Por favor confirma esta acción",
+            "selectSpeaker": "Seleccionar hablante",
+            "speaker": "Hablante",
+            "wordCount": "palabra",
+            "wordCountPlural": "palabras",
+            "modification": "Modificación",
+            "modificationNone": "Sin modificación",
+            "modificationUppercase": "Convertir a MAYÚSCULAS",
+            "modificationLowercase": "Convertir a minúsculas",
+            "modificationCapitalize": "Capitalizar cada palabra",
+            "mergeSpeaker": "Fusionar hablante",
+            "noMerge": "No fusionar",
+            "mergeWith": "Fusionar con",
+            "removeContent": "Eliminar contenido",
+            "removeContentLabel": "Eliminar todo el contenido de este hablante",
+            "removeWarning": "Esto eliminará permanentemente todo el texto de este hablante",
+            "cancel": "Cancelar",
+            "back": "Atrás",
+            "confirm": "Confirmar",
+            "apply": "Aplicar",
+            "confirmWarning": "Estás a punto de",
+            "confirmMerge": "fusionar {from} en {to}",
+            "confirmRemove": "eliminar todo el contenido de {speaker}",
+            "confirmAffected": "Esto afectará {count} palabra.",
+            "confirmAffectedPlural": "Esto afectará {count} palabras.",
+            "success": "Opciones del hablante aplicadas",
+            "searchSpeakers": "Buscar hablantes..."
+        },
+        "delete": {
+            "title": "Eliminar transcripción",
+            "description": "¿Estás seguro de que quieres eliminar {name}? Esta acción no se puede deshacer.",
+            "cancel": "Cancelar",
+            "delete": "Eliminar",
+            "deleting": "Eliminando...",
+            "success": "¡Transcripción eliminada correctamente!",
+            "error": "Error al eliminar la transcripción"
+        },
+        "export": {
+            "title": "Exportación avanzada",
+            "description": "Configura las opciones de exportación para tu transcripción",
+            "speakers": "Hablantes",
+            "allSpeakers": "Todos los hablantes",
+            "selectSpeaker": "Seleccionar hablante",
+            "searchSpeakers": "Buscar hablantes...",
+            "textFormat": "Formato de texto",
+            "original": "Texto original",
+            "lowercase": "Minúsculas",
+            "lowercaseNoAccents": "Minúsculas, sin acentos",
+            "lowercaseNoAccentsNoPunctuation": "Minúsculas, sin acentos, sin puntuación",
+            "showSpeakerNames": "Mostrar nombres de hablantes",
+            "hideSpeakerNames": "Ocultar nombres de hablantes",
+            "keepLinebreaks": "Mantener saltos de línea",
+            "removeLinebreaks": "Eliminar saltos de línea",
+            "cancel": "Cancelar",
+            "exportTxt": "Exportar TXT",
+            "success": "Exportación exitosa",
+            "error": "Error en la exportación"
+        },
+        "rename": {
+            "title": "Renombrar transcripción",
+            "description": "Ingresa un nuevo nombre para tu transcripción.",
+            "label": "Nombre de la transcripción",
+            "placeholder": "ej: Entrevista con Jane Doe",
+            "cancel": "Cancelar",
+            "rename": "Renombrar",
+            "renaming": "Renombrando...",
+            "errorEmpty": "Por favor ingresa un nombre de transcripción",
+            "success": "¡Transcripción renombrada correctamente!",
+            "error": "Error al renombrar la transcripción"
+        },
+        "setProject": {
+            "title": "Establecer proyecto",
+            "description": "Asigna esta transcripción a un proyecto para mantener tu trabajo organizado.",
+            "label": "Proyecto",
+            "cancel": "Cancelar",
+            "save": "Guardar",
+            "saving": "Guardando...",
+            "successUpdated": "¡Proyecto actualizado correctamente!",
+            "successRemoved": "Proyecto eliminado",
+            "error": "Error al actualizar el proyecto"
+        }
+    }
+}

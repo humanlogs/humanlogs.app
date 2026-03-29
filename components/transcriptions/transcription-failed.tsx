@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle } from "lucide-react";
+import { useTranslations } from "@/components/locale-provider";
 
 type TranscriptionFailedProps = {
   transcription: {
@@ -14,6 +15,8 @@ type TranscriptionFailedProps = {
 export function TranscriptionFailed({
   transcription,
 }: TranscriptionFailedProps) {
+  const t = useTranslations("editor");
+
   return (
     <div className="space-y-6 h-[50vh] flex flex-col items-center justify-center">
       {/* Error Message */}
@@ -22,11 +25,10 @@ export function TranscriptionFailed({
           <AlertCircle className="h-6 w-6 text-destructive mt-0.5" />
           <div>
             <h3 className="font-semibold text-destructive mb-2 text-lg">
-              Transcription Failed
+              {t("status.failed.title")}
             </h3>
             <p className="text-sm text-destructive/90">
-              {transcription.errorMessage ||
-                "An unknown error occurred during transcription"}
+              {transcription.errorMessage || t("status.failed.unknownError")}
             </p>
           </div>
         </div>
@@ -34,12 +36,12 @@ export function TranscriptionFailed({
 
       {/* Help Section */}
       <div className="bg-card rounded-lg border p-6">
-        <h3 className="font-semibold mb-3">What can I do?</h3>
+        <h3 className="font-semibold mb-3">{t("status.failed.whatCanIDo")}</h3>
         <ul className="space-y-2 text-sm text-muted-foreground">
-          <li>• Check that your audio file is in a supported format</li>
-          <li>• Ensure the audio file is not corrupted</li>
-          <li>• Try uploading the file again</li>
-          <li>• Contact support if the problem persists</li>
+          <li>• {t("status.failed.checkFormat")}</li>
+          <li>• {t("status.failed.checkCorrupted")}</li>
+          <li>• {t("status.failed.tryAgain")}</li>
+          <li>• {t("status.failed.contactSupport")}</li>
         </ul>
       </div>
     </div>

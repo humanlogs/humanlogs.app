@@ -26,7 +26,7 @@ import * as React from "react";
 import { useTranscriptions } from "../hooks/use-transcriptions";
 import { useWelcomeRedirect } from "../hooks/use-welcome-redirect";
 import { Locale, locales } from "../lib/i18n";
-import { useProjectModal } from "./project-create-modal";
+import { useProjectModal } from "./dialogs/project-create-modal";
 
 type AppSidebarProps = {
   user: {

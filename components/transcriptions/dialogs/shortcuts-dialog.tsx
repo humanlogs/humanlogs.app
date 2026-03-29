@@ -23,6 +23,7 @@ import {
   getCustomShortcuts,
 } from "@/lib/shortcuts";
 import { PlusIcon, TrashIcon } from "lucide-react";
+import { useTranslations } from "@/components/locale-provider";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -36,6 +37,7 @@ export function ShortcutsDialog() {
   const [newKey, setNewKey] = useState("");
   const [newText, setNewText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const t = useTranslations("dialog.shortcuts");
 
   // Load shortcuts when modal opens
   useEffect(() => {
@@ -47,7 +49,7 @@ export function ShortcutsDialog() {
         })
         .catch((error) => {
           console.error("Failed to load shortcuts:", error);
-          toast.error("Failed to load shortcuts");
+          toast.error(t("errors.loadFailed"));
         })
         .finally(() => {
           setIsLoading(false);
@@ -71,7 +73,7 @@ export function ShortcutsDialog() {
 
   const handleAddShortcut = async () => {
     if (!newKey || !newText) {
-      toast.error("Please provide both key combination and text");
+      toast.error(t("errors.provideBoth"));
       return;
     }
 
@@ -85,9 +87,9 @@ export function ShortcutsDialog() {
       setCustomShortcuts(shortcuts);
       setNewKey("");
       setNewText("");
-      toast.success("Custom shortcut added");
+      toast.success(t("success.added"));
     } catch (error) {
-      toast.error("Failed to add shortcut");
+      toast.error(t("errors.addFailed"));
       console.error("Add shortcut error:", error);
     } finally {
       setIsLoading(false);
@@ -100,9 +102,9 @@ export function ShortcutsDialog() {
       await deleteCustomShortcut(id);
       const shortcuts = await getCustomShortcuts();
       setCustomShortcuts(shortcuts);
-      toast.success("Shortcut deleted");
+      toast.success(t("success.deleted"));
     } catch (error) {
-      toast.error("Failed to delete shortcut");
+      toast.error(t("errors.deleteFailed"));
       console.error("Delete shortcut error:", error);
     } finally {
       setIsLoading(false);
@@ -113,17 +115,17 @@ export function ShortcutsDialog() {
     <Dialog open={isOpen} onOpenChange={(open) => !open && close()}>
       <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Keyboard Shortcuts</DialogTitle>
-          <DialogDescription>
-            View default shortcuts and create custom text shortcuts
-          </DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="flex-1 pr-4 p-4 px-6">
           <div className="space-y-6">
             {/* Default Shortcuts */}
             <div>
-              <h3 className="text-sm font-semibold mb-3">Default Shortcuts</h3>
+              <h3 className="text-sm font-semibold mb-3">
+                {t("defaultShortcuts")}
+              </h3>
               {defaultShortcuts.map((category) => (
                 <div key={category.category} className="mb-4">
                   <h4 className="text-xs font-medium text-muted-foreground mb-2">
@@ -157,7 +159,7 @@ export function ShortcutsDialog() {
               {customShortcuts.length > 0 && (
                 <div className="mb-4">
                   <h4 className="text-xs font-medium text-muted-foreground mb-2">
-                    Custom
+                    {t("custom")}
                   </h4>
                   <div className="space-y-2">
                     {customShortcuts.map((shortcut) => (
@@ -195,10 +197,11 @@ export function ShortcutsDialog() {
 
             {/* Shortcuts Management */}
             <div>
-              <h3 className="text-sm font-semibold mb-3">Shortcuts</h3>
+              <h3 className="text-sm font-semibold mb-3">
+                {t("shortcutsSection")}
+              </h3>
               <p className="text-xs text-muted-foreground mb-4">
-                Create custom shortcuts to insert frequently used text at the
-                cursor position in edit mode.
+                {t("shortcutsDescription")}
               </p>
 
               {/* Add new shortcut - single line */}
@@ -209,8 +212,8 @@ export function ShortcutsDialog() {
                     options={shortcutOptions}
                     value={newKey}
                     onChange={setNewKey}
-                    placeholder="Select key..."
-                    searchPlaceholder="Search keys..."
+                    placeholder={t("selectKey")}
+                    searchPlaceholder={t("searchKeys")}
                   />
                 </div>
                 <div className="flex-1">
@@ -218,12 +221,12 @@ export function ShortcutsDialog() {
                     disabled={isLoading}
                     value={newText}
                     onChange={(e) => setNewText(e.target.value)}
-                    placeholder="Text to insert"
+                    placeholder={t("textToInsert")}
                   />
                 </div>
                 <Button onClick={handleAddShortcut} size="default">
                   <PlusIcon className="h-4 w-4" />
-                  Add
+                  {t("add")}
                 </Button>
               </div>
             </div>
@@ -232,7 +235,7 @@ export function ShortcutsDialog() {
 
         <DialogFooter>
           <Button variant="outline" onClick={close}>
-            Close
+            {t("close")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,7 +1,7 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { FeedbackDialog } from "@/components/dialogs/feedback-dialog";
 import { HelpDialog } from "@/components/dialogs/help-dialog";
-import { ProjectCreateModal } from "@/components/project-create-modal";
+import { ProjectCreateModal } from "@/components/dialogs/project-create-modal";
 import { ShortcutsDialog } from "@/components/transcriptions/dialogs/shortcuts-dialog";
 import { SpeakerOptionsDialog } from "@/components/transcriptions/dialogs/speaker-options-dialog";
 import { TranscriptionDeleteDialog } from "@/components/transcriptions/dialogs/transcription-delete-dialog";

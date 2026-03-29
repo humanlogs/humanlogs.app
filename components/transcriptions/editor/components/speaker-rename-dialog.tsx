@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useModal } from "@/components/use-modal";
+import { useTranslations } from "@/components/locale-provider";
 
 type SpeakerRenameModalData = {
   speakerId: string;
@@ -44,6 +45,7 @@ function SpeakerRenameForm({
   onRename: (name: string) => void;
   onClose: () => void;
 }) {
+  const t = useTranslations("editor");
   // Initialised from prop at mount — Dialog returns null when closed so this
   // component remounts fresh on every open, no useEffect needed.
   const [name, setName] = useState(currentName);
@@ -59,7 +61,7 @@ function SpeakerRenameForm({
   return (
     <form onSubmit={handleSubmit}>
       <div className="px-6 space-y-2">
-        <Label htmlFor="speaker-name">Name</Label>
+        <Label htmlFor="speaker-name">{t("speaker.nameLabel")}</Label>
         <Input
           id="speaker-name"
           value={name}
@@ -75,10 +77,10 @@ function SpeakerRenameForm({
       </div>
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose}>
-          Cancel
+          {t("speaker.cancel")}
         </Button>
         <Button type="submit" variant={"primary"}>
-          Rename
+          {t("speaker.rename")}
         </Button>
       </DialogFooter>
     </form>
@@ -86,13 +88,14 @@ function SpeakerRenameForm({
 }
 
 export function SpeakerRenameDialog() {
+  const t = useTranslations("editor");
   const { isOpen, data, close } = useSpeakerRenameModal();
 
   return (
     <Dialog open={isOpen} onOpenChange={close}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Rename Speaker</DialogTitle>
+          <DialogTitle>{t("speaker.renameTitle")}</DialogTitle>
         </DialogHeader>
         {/* Mount a fresh form each open so state initialises from currentName without an effect */}
         {isOpen && data && (

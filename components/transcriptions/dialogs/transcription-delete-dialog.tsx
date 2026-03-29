@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { AlertTriangleIcon } from "lucide-react";
+import { useTranslations } from "@/components/locale-provider";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
@@ -44,6 +45,7 @@ export function TranscriptionDeleteDialog() {
   const [isDeleting, setIsDeleting] = React.useState(false);
   const queryClient = useQueryClient();
   const router = useRouter();
+  const t = useTranslations("dialog.delete");
 
   const handleDelete = async () => {
     if (!data) return;
@@ -60,10 +62,10 @@ export function TranscriptionDeleteDialog() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to delete transcription");
+        throw new Error(error.error || t("error"));
       }
 
-      toast.success("Transcription deleted successfully!");
+      toast.success(t("success"));
 
       // Invalidate queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ["transcriptions"] });
@@ -76,11 +78,7 @@ export function TranscriptionDeleteDialog() {
       }
     } catch (error) {
       console.error("Error deleting transcription:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to delete transcription",
-      );
+      toast.error(error instanceof Error ? error.message : t("error"));
     } finally {
       setIsDeleting(false);
     }
@@ -94,12 +92,10 @@ export function TranscriptionDeleteDialog() {
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
               <AlertTriangleIcon className="h-5 w-5 text-destructive" />
             </div>
-            <DialogTitle>Delete Transcription</DialogTitle>
+            <DialogTitle>{t("title")}</DialogTitle>
           </div>
           <DialogDescription>
-            Are you sure you want to delete{" "}
-            <span className="font-semibold">{data?.transcriptionName}</span>?{" "}
-            This action cannot be undone.
+            {t("description", { name: data?.transcriptionName || "-" })}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -109,7 +105,7 @@ export function TranscriptionDeleteDialog() {
             onClick={close}
             disabled={isDeleting}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             type="button"
@@ -117,7 +113,7 @@ export function TranscriptionDeleteDialog() {
             onClick={handleDelete}
             disabled={isDeleting}
           >
-            {isDeleting ? "Deleting..." : "Delete"}
+            {isDeleting ? t("deleting") : t("delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,0 +1,89 @@
+{
+    "editor": {
+        "toolbar": {
+            "playPause": "Abspielen / Pause (Alt+Leertaste)",
+            "playbackSpeed": "Wiedergabegeschwindigkeit (Alt+Strg)",
+            "bold": "Fett (⌘B)",
+            "italic": "Kursiv (⌘I)",
+            "underline": "Unterstrichen (⌘U)",
+            "strikethrough": "Durchgestrichen (⌘⇧X)"
+        },
+        "search": {
+            "findPlaceholder": "Suchen...",
+            "replacePlaceholder": "Ersetzen...",
+            "previous": "Vorheriges (Umschalt+Eingabe)",
+            "next": "Nächstes (Eingabe)",
+            "matchCase": "Groß-/Kleinschreibung beachten",
+            "wholeWord": "Ganzes Wort",
+            "replace": "Ersetzen",
+            "replaceWith": "Ersetzen durch",
+            "replaceAll": "Alle ({count})"
+        },
+        "speaker": {
+            "renameSpeaker": "Sprecher umbenennen",
+            "speakerOptions": "Sprecher-Optionen",
+            "changeSpeaker": "Sprecher wechseln",
+            "newSpeaker": "Neuer Sprecher",
+            "renameTitle": "Sprecher umbenennen",
+            "nameLabel": "Name",
+            "cancel": "Abbrechen",
+            "rename": "Umbenennen"
+        },
+        "status": {
+            "failed": {
+                "title": "Transkription fehlgeschlagen",
+                "unknownError": "Bei der Transkription ist ein unbekannter Fehler aufgetreten",
+                "whatCanIDo": "Was kann ich tun?",
+                "checkFormat": "Überprüfen Sie, ob Ihre Audiodatei in einem unterstützten Format vorliegt",
+                "checkCorrupted": "Stellen Sie sicher, dass die Audiodatei nicht beschädigt ist",
+                "tryAgain": "Versuchen Sie, die Datei erneut hochzuladen",
+                "contactSupport": "Kontaktieren Sie den Support, wenn das Problem weiterhin besteht"
+            },
+            "loading": {
+                "title": "Ihre Transkription wird verarbeitet",
+                "description": "Dies dauert normalerweise etwa 10 Minuten pro Stunde Audio.",
+                "lessThanMinute": "Weniger als eine Minute...",
+                "aboutOneMinute": "Etwa 1 Minute verbleibend",
+                "aboutMinutes": "Etwa {minutes} Minuten verbleibend",
+                "aboutHours": "Etwa {hours}h {minutes}m verbleibend"
+            }
+        },
+        "content": {
+            "noContentAvailable": "Kein Transkriptionsinhalt verfügbar"
+        },
+        "actions": {
+            "noDataAvailable": "Keine Transkriptionsdaten verfügbar",
+            "exportedCSV": "Als CSV exportiert",
+            "failedExportCSV": "CSV-Export fehlgeschlagen",
+            "exportedTXT": "Als TXT exportiert",
+            "failedExportTXT": "TXT-Export fehlgeschlagen",
+            "exportedWord": "Als Word-Dokument exportiert",
+            "failedExportWord": "Word-Export fehlgeschlagen",
+            "exportedJSON": "Als JSON exportiert",
+            "failedExportJSON": "JSON-Export fehlgeschlagen",
+            "downloadingAudio": "Audiodatei wird heruntergeladen",
+            "downloadingDecryptingAudio": "Audiodatei wird heruntergeladen und entschlüsselt...",
+            "audioDownloaded": "Audiodatei heruntergeladen",
+            "failedDownloadAudio": "Download der Audiodatei fehlgeschlagen",
+            "failedConvertMP3": "MP3-Konvertierung und Download fehlgeschlagen",
+            "speakerOptionsInProgress": "Sprecher-Optionen - Implementierung in Arbeit",
+            "saving": "Speichern...",
+            "saved": "Gespeichert",
+            "offline": "Sie sind offline",
+            "encrypted": "Diese Transkription ist Ende-zu-Ende verschlüsselt.",
+            "rename": "Umbenennen",
+            "setProject": "Projekt festlegen",
+            "downloadAs": "Herunterladen als...",
+            "downloadOriginalAudio": "Original-Audio herunterladen",
+            "downloadAsMP3": "Als MP3 herunterladen",
+            "speakerOptions": "Sprecher-Optionen",
+            "keyboardShortcuts": "Tastaturkürzel",
+            "delete": "Löschen",
+            "csv": "CSV",
+            "txt": "TXT",
+            "word": "Word",
+            "json": "JSON",
+            "advanced": "Erweitert"
+        }
+    }
+}

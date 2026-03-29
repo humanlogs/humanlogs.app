@@ -14,6 +14,7 @@ import { Button } from "../../../ui/button";
 import { useAudio } from "../audio-context";
 import { AudioControls } from "../interactive-audio";
 import { SearchReplaceToolbar } from "./search-replace-toolbar";
+import { useTranslations } from "@/components/locale-provider";
 
 interface EditorToolbarProps {
   applyFormat: (modifier: "b" | "i" | "u" | "s") => void;
@@ -47,6 +48,8 @@ export function EditorToolbar({
   searchInputRef,
   audioControls,
 }: EditorToolbarProps) {
+  const t = useTranslations("editor");
+
   return (
     <div className="flex items-center gap-0 shrink-0">
       <Button
@@ -57,7 +60,7 @@ export function EditorToolbar({
           audioControls?.togglePlayPause();
         }}
         className="h-7 w-7 p-0 font-bold"
-        title="Play / Pause (Alt+Space)"
+        title={t("toolbar.playPause")}
       >
         {audioControls?.isPlaying ? (
           <PauseIcon
@@ -77,7 +80,7 @@ export function EditorToolbar({
             variant="ghost"
             size="sm"
             className="h-7 w-7 p-0"
-            title="Playback Speed (Alt+Ctrl)"
+            title={t("toolbar.playbackSpeed")}
           >
             {`${audioControls?.playbackSpeed || 1}`.replace(/^0+/, "")}x
           </Button>
@@ -112,7 +115,7 @@ export function EditorToolbar({
           applyFormat("b");
         }}
         className="h-7 w-7 p-0 font-bold"
-        title="Bold (⌘B)"
+        title={t("toolbar.bold")}
       >
         <Bold className="h-3.5 w-3.5" />
       </Button>
@@ -124,7 +127,7 @@ export function EditorToolbar({
           applyFormat("i");
         }}
         className="h-7 w-7 p-0 italic"
-        title="Italic (⌘I)"
+        title={t("toolbar.italic")}
       >
         <Italic className="h-3.5 w-3.5" />
       </Button>
@@ -136,7 +139,7 @@ export function EditorToolbar({
           applyFormat("u");
         }}
         className="h-7 w-7 p-0 underline"
-        title="Underline (⌘U)"
+        title={t("toolbar.underline")}
       >
         <Underline className="h-3.5 w-3.5" />
       </Button>
@@ -148,7 +151,7 @@ export function EditorToolbar({
           applyFormat("s");
         }}
         className="h-7 w-7 p-0"
-        title="Strikethrough (⌘⇧X)"
+        title={t("toolbar.strikethrough")}
       >
         <Strikethrough className="h-3.5 w-3.5" />
       </Button>

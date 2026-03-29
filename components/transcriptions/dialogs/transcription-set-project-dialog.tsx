@@ -12,6 +12,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { ProjectSelector } from "@/components/project-selector";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "@/components/locale-provider";
 import * as React from "react";
 import { toast } from "sonner";
 import { useModal } from "../../use-modal";
@@ -39,6 +40,7 @@ export function TranscriptionSetProjectDialog() {
   const [projectId, setProjectId] = React.useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const queryClient = useQueryClient();
+  const t = useTranslations("dialog.setProject");
 
   // Update the project ID when modal opens
   React.useEffect(() => {
@@ -73,12 +75,10 @@ export function TranscriptionSetProjectDialog() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to update project");
+        throw new Error(error.error || t("error"));
       }
 
-      toast.success(
-        projectId ? "Project updated successfully!" : "Project removed",
-      );
+      toast.success(projectId ? t("successUpdated") : t("successRemoved"));
 
       // Invalidate queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ["transcriptions"] });
@@ -89,9 +89,7 @@ export function TranscriptionSetProjectDialog() {
       close();
     } catch (error) {
       console.error("Error updating project:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update project",
-      );
+      toast.error(error instanceof Error ? error.message : t("error"));
     } finally {
       setIsSubmitting(false);
     }
@@ -102,16 +100,13 @@ export function TranscriptionSetProjectDialog() {
       <Dialog open={isOpen} onOpenChange={close}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Set Project</DialogTitle>
-            <DialogDescription>
-              Assign this transcription to a project to keep your work
-              organized.
-            </DialogDescription>
+            <DialogTitle>{t("title")}</DialogTitle>
+            <DialogDescription>{t("description")}</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 px-6">
               <div className="space-y-2">
-                <Label htmlFor="project">Project</Label>
+                <Label htmlFor="project">{t("label")}</Label>
                 <ProjectSelector value={projectId} onChange={setProjectId} />
               </div>
             </div>
@@ -122,10 +117,10 @@ export function TranscriptionSetProjectDialog() {
                 onClick={close}
                 disabled={isSubmitting}
               >
-                Cancel
+                {t("cancel")}
               </Button>
               <Button type="submit" variant={"primary"} disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : "Save"}
+                {isSubmitting ? t("saving") : t("save")}
               </Button>
             </DialogFooter>
           </form>

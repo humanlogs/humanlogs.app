@@ -2,7 +2,7 @@
 
 import { Select } from "@/components/ui/select";
 import { useProjects } from "@/hooks/use-api";
-import { useProjectModal } from "./project-create-modal";
+import { useProjectModal } from "./dialogs/project-create-modal";
 
 type ProjectSelectorProps = {
   size?: "sm" | "md" | "lg";
