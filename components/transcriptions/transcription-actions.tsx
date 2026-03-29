@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { TranscriptionContent } from "@/hooks/use-transcriptions";
 import { downloadAndDecryptAudio } from "@/lib/audio-decryption.browser";
+import { downloadAsMP3 } from "@/lib/audio-conversion.browser";
 import {
   exportAsCSV,
   exportAsJSON,
@@ -162,7 +163,7 @@ export function TranscriptionActions({
         // No encryption, download directly
         const link = document.createElement("a");
         link.href = `/api/transcriptions/${transcriptionId}/audio`;
-        link.download = transcriptionName;
+        link.download = transcriptionName + ".ogg";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -191,6 +192,37 @@ export function TranscriptionActions({
     } catch (error) {
       toast.error("Failed to download audio file");
       console.error("Download audio error:", error);
+    }
+  };
+
+  const handleDownloadAudioAsMP3 = async () => {
+    try {
+      let audioBlob: Blob;
+
+      if (!audioFileEncryption) {
+        // No encryption, fetch directly
+        toast.info("Downloading audio file...");
+        const response = await fetch(
+          `/api/transcriptions/${transcriptionId}/audio`,
+        );
+        if (!response.ok) {
+          throw new Error("Failed to download audio file");
+        }
+        audioBlob = await response.blob();
+      } else {
+        // Download and decrypt the audio file
+        toast.info("Downloading and decrypting audio file...");
+        audioBlob = await downloadAndDecryptAudio(
+          transcriptionId,
+          audioFileEncryption,
+        );
+      }
+
+      // Convert to MP3 and download (ffmpeg lazy loaded inside)
+      await downloadAsMP3(audioBlob, transcriptionName, "opus");
+    } catch (error) {
+      toast.error("Failed to convert and download MP3");
+      console.error("Download MP3 error:", error);
     }
   };
 
@@ -243,7 +275,11 @@ export function TranscriptionActions({
       <DropdownMenuSeparator />
       <DropdownMenuItem onClick={handleDownloadAudio}>
         <FileAudio2Icon className="h-4 w-4 mr-2" />
-        Download audio file
+        Download original audio
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={handleDownloadAudioAsMP3}>
+        <FileAudio2Icon className="h-4 w-4 mr-2" />
+        Download as MP3
       </DropdownMenuItem>
     </>
   );

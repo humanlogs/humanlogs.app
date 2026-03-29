@@ -17,6 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useProjects, useUpdateUser, useUserProfile } from "@/hooks/use-api";
 import { FilePlusCornerIcon, PencilIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
@@ -45,8 +46,9 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
   useWelcomeRedirect();
 
   // Fetch data using React Query
-  const { data: projects = [] } = useProjects();
-  const { data: transcriptions = [] } = useTranscriptions();
+  const { data: projects = [], isLoading: isLoadingProjects } = useProjects();
+  const { data: transcriptions = [], isLoading: isLoadingTranscriptions } =
+    useTranscriptions();
   const { data: userProfile } = useUserProfile();
   const updateLanguage = useUpdateUser();
 
@@ -156,57 +158,97 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
           </div>
 
           {/* Projects with transcriptions */}
-          {filteredProjects.map((project) => (
-            <SidebarGroup key={project.id}>
-              <SidebarGroupLabel className="group/label">
-                <span className="">{project.name}</span>
-                <Button
-                  type="button"
-                  className="opacity-0 group-hover/label:opacity-100 transition-opacity"
-                  variant={"ghost"}
-                  size={"icon-xs"}
-                  onClick={() => {
-                    openRename(project.id, project.name);
-                  }}
-                  aria-label="Edit project name"
-                >
-                  <PencilIcon className="h-3 w-3" />
-                </Button>
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {project.transcriptions.map((transcription) => (
-                    <TranscriptionMenuItem
-                      key={transcription.id}
-                      transcription={transcription}
-                      isActive={
-                        pathname === `/transcription/${transcription.id}`
-                      }
-                    />
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          ))}
+          {isLoadingProjects || isLoadingTranscriptions ? (
+            // Skeleton loading state
+            <>
+              <SidebarGroup>
+                <SidebarGroupLabel>
+                  <Skeleton className="h-4 w-24" />
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {[1, 2, 3].map((i) => (
+                      <SidebarMenuItem key={i}>
+                        <SidebarMenuButton>
+                          <Skeleton className="h-4 w-full" />
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+              <SidebarGroup>
+                <SidebarGroupLabel>
+                  <Skeleton className="h-4 w-32" />
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {[1, 2].map((i) => (
+                      <SidebarMenuItem key={i}>
+                        <SidebarMenuButton>
+                          <Skeleton className="h-4 w-full" />
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            </>
+          ) : (
+            <>
+              {filteredProjects.map((project) => (
+                <SidebarGroup key={project.id}>
+                  <SidebarGroupLabel className="group/label">
+                    <span className="">{project.name}</span>
+                    <Button
+                      type="button"
+                      className="opacity-0 group-hover/label:opacity-100 transition-opacity"
+                      variant={"ghost"}
+                      size={"icon-xs"}
+                      onClick={() => {
+                        openRename(project.id, project.name);
+                      }}
+                      aria-label="Edit project name"
+                    >
+                      <PencilIcon className="h-3 w-3" />
+                    </Button>
+                  </SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {project.transcriptions.map((transcription) => (
+                        <TranscriptionMenuItem
+                          key={transcription.id}
+                          transcription={transcription}
+                          isActive={
+                            pathname === `/transcription/${transcription.id}`
+                          }
+                        />
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              ))}
 
-          {/* No Projects section */}
-          {filteredUnassigned.length > 0 && (
-            <SidebarGroup>
-              <SidebarGroupLabel>No Projects</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {filteredUnassigned.map((transcription) => (
-                    <TranscriptionMenuItem
-                      key={transcription.id}
-                      transcription={transcription}
-                      isActive={
-                        pathname === `/transcription/${transcription.id}`
-                      }
-                    />
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+              {/* No Projects section */}
+              {filteredUnassigned.length > 0 && (
+                <SidebarGroup>
+                  <SidebarGroupLabel>No Projects</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {filteredUnassigned.map((transcription) => (
+                        <TranscriptionMenuItem
+                          key={transcription.id}
+                          transcription={transcription}
+                          isActive={
+                            pathname === `/transcription/${transcription.id}`
+                          }
+                        />
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              )}
+            </>
           )}
         </SidebarContent>
 

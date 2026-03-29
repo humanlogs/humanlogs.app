@@ -153,7 +153,12 @@ export function useTranscription(id: string) {
         }
         throw new Error("Failed to fetch transcription");
       }
-      return await decrypt<TranscriptionDetail>(await response.json());
+      try {
+        return await decrypt<TranscriptionDetail>(await response.json());
+      } catch (error) {
+        console.error("Decryption error", error);
+        throw new Error("error_encrypted");
+      }
     },
     enabled: !!id,
   });

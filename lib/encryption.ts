@@ -249,7 +249,7 @@ export function downloadCertificate(certificate: EncryptionCertificate): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `encryption-certificate-${Date.now()}.json`;
+  a.download = `transcription-app-private-key-${Date.now()}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "@/components/locale-provider";
+import { PageLayout } from "@/components/page-layout";
 import {
   Card,
   CardContent,
@@ -95,11 +96,16 @@ export default function BillingPage() {
 
   if (isLoading) {
     return (
-      <div className="container max-w-6xl mx-auto p-6">
+      <PageLayout
+        title={t("billing.title")}
+        description={t("billing.description")}
+        maxWidth="max-w-6xl"
+        className="p-6"
+      >
         <div className="h-96 flex items-center justify-center">
           <p className="text-muted-foreground">{t("billing.loading")}</p>
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
@@ -161,14 +167,12 @@ export default function BillingPage() {
   ];
 
   return (
-    <div className="container max-w-6xl mx-auto p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          {t("billing.title")}
-        </h1>
-        <p className="text-muted-foreground mt-2">{t("billing.description")}</p>
-      </div>
-
+    <PageLayout
+      title={t("billing.title")}
+      description={t("billing.description")}
+      maxWidth="max-w-6xl"
+      className="p-6"
+    >
       {/* Current Plan & Credits */}
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
@@ -346,6 +350,6 @@ export default function BillingPage() {
           </Card>
         </div>
       )}
-    </div>
+    </PageLayout>
   );
 }

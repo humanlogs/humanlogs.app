@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "@/components/locale-provider";
+import { PageLayout } from "@/components/page-layout";
 import { ProjectSelector } from "@/components/project-selector";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -368,12 +369,9 @@ export default function NewTranscriptionPage() {
   };
 
   return (
-    <div className="flex flex-col flex-1 p-8">
-      <div className="w-full max-w-5xl mx-auto">
+    <div className="flex flex-col flex-1">
+      <PageLayout title={t("audioFiles")}>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Audio Files Section */}
-          <h2 className="text-xl font-semibold mb-4">{t("audioFiles")}</h2>
-
           {/* Drag & Drop Zone */}
           <div
             className={`border-2 border-dashed rounded-lg p-8 flex items-center justify-center space-x-4 text-left transition-colors ${
@@ -545,7 +543,7 @@ export default function NewTranscriptionPage() {
             </Button>
           </div>
         </form>
-      </div>
+      </PageLayout>
 
       {/* Rename File Modal */}
       <Dialog open={renameModalOpen} onOpenChange={setRenameModalOpen}>

@@ -284,5 +284,11 @@ export function normalizeEditorSegments(
     }
   }
 
-  return result;
+  const cleaned = result.map((seg) =>
+    seg.type === "spacing"
+      ? { ...seg, text: seg.text.replace(/ +/gm, " ") }
+      : seg,
+  );
+
+  return cleaned;
 }

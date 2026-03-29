@@ -7,6 +7,7 @@
             "plan": "Plan",
             "credits": "Usage",
             "renewal": "Renewal",
+            "account": "Account",
             "billing": "Billing",
             "security": "Security",
             "theme": "Theme",
@@ -27,6 +28,8 @@
         }
     },
     "account": {
+        "title": "Account Settings",
+        "description": "Manage your account, data, and preferences",
         "billing": {
             "title": "Billing & Subscription",
             "description": "Manage your subscription and credits",

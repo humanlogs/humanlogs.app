@@ -44,12 +44,6 @@ export const TranscriptEditor = ({
       transcription.transcription?.words ?? [],
     ),
   );
-  const [showLocalVersionModal, setShowLocalVersionModal] = useState(false);
-  const [localData, setLocalData] = useState<{
-    segments: TranscriptionSegment[];
-    speakers: Speaker[];
-    updatedAt: number;
-  } | null>(null);
 
   // Auto-save with debounce
   const { saveStatus } = useAutoSave({

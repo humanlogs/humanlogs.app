@@ -1,12 +1,15 @@
 "use client";
 
+import { CannotAccessTranscription } from "@/components/encryption";
 import { TranscriptionActions } from "@/components/transcriptions/transcription-actions";
 import { TranscriptionEditor } from "@/components/transcriptions/transcription-editor";
 import { TranscriptionFailed } from "@/components/transcriptions/transcription-failed";
 import { TranscriptionLoading } from "@/components/transcriptions/transcription-loading";
 import { SaveStatus } from "@/components/transcriptions/editor/hooks/use-auto-save";
+import { useEncryptionStatus } from "@/hooks/use-encryption";
 import { useTranscription } from "@/hooks/use-transcriptions";
 import { PencilIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
@@ -22,16 +25,42 @@ type TranscriptionPageProps = {
 export default function TranscriptionPage({ params }: TranscriptionPageProps) {
   const { id } = use(params);
   const { data: transcription, isLoading, error } = useTranscription(id);
+  const { data: encryptionState } = useEncryptionStatus();
   const { openRename } = useTranscriptionRenameModal();
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const router = useRouter();
+
+  const isEncryptionError = error?.message === "error_encrypted";
 
   useEffect(() => {
-    if (error) {
+    if (error && !isEncryptionError) {
       toast.error(
         error.message || "An error occurred while fetching the transcription.",
       );
     }
-  }, [error]);
+  }, [error, isEncryptionError]);
+
+  // Handle navigation to import certificate
+  function handleImportCertificate() {
+    router.push("/account/security");
+  }
+
+  // Show encryption error state
+  if (isEncryptionError) {
+    const hasLocalKey = encryptionState?.hasLocalKey ?? false;
+    const reason = hasLocalKey ? "certificate-mismatch" : "no-certificate";
+
+    return (
+      <div className="flex flex-col flex-1 p-8">
+        <div className="w-full max-w-4xl mx-auto">
+          <CannotAccessTranscription
+            reason={reason}
+            onImportCertificate={handleImportCertificate}
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading || error) {
     return <></>;

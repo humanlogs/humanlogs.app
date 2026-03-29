@@ -326,6 +326,53 @@ export function useNavigationMode(
     [state, audioControls, segments, currentIndex],
   );
 
+  useHotkeys(
+    ["Delete", "Backspace"],
+
+    (event) => {
+      if (isModalOpen) return;
+      if (state !== "navigate") return;
+      event.preventDefault();
+
+      event.preventDefault();
+      editorRef.current?.focus();
+
+      // Set the selection range
+      const domElement = editorRef.current?.querySelector(
+        `[data-index="${currentIndex}"]`,
+      );
+      if (domElement) {
+        const range = document.createRange();
+        range.selectNodeContents(domElement);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      }
+
+      // If a letter was typed or there's a custom shortcut replacement, insert that text
+      document.execCommand("delete");
+
+      const nextDomElement =
+        editorRef.current?.querySelector(
+          `[data-index="${currentIndex - 1}"]`,
+        ) ||
+        editorRef.current?.querySelector(`[data-index="${currentIndex + 1}"]`);
+      if (nextDomElement) {
+        const range = document.createRange();
+        range.selectNodeContents(nextDomElement);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        if (event.key === "Delete") {
+          selection?.setPosition(range.endContainer);
+        } else {
+          selection?.setPosition(range.startContainer);
+        }
+      }
+    },
+    {},
+    [isModalOpen, state, segments, currentIndex],
+  );
+
   // "Enter" key enters in focus mode and select the current word
   // Any letter or shift+letter or number, or accent also trigger the focus mode, but also add that letter there
   useHotkeys(

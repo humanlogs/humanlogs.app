@@ -347,3 +347,83 @@ The Transcription App Team
     text,
   };
 }
+
+/**
+ * Create an account deletion confirmation email template
+ */
+export function getAccountDeletionEmailTemplate(data: {
+  userName: string;
+  confirmationUrl: string;
+  expiresIn?: string;
+}): EmailTemplate {
+  const expiresIn = data.expiresIn || "24 hours";
+
+  const content = `
+    <h2 style="color: #dc2626;">Account Deletion Request</h2>
+    <p>Hi ${data.userName},</p>
+    <p>We received a request to permanently delete your account and all associated data.</p>
+    
+    <p><strong>This action cannot be undone.</strong> Once confirmed, the following will be permanently deleted:</p>
+    <ul style="color: #6b7280; line-height: 1.8;">
+      <li>All your transcriptions</li>
+      <li>All audio files</li>
+      <li>Your account settings</li>
+      <li>All project data</li>
+      <li>Your encryption keys</li>
+    </ul>
+
+    <p>If you want to proceed with the deletion, click the button below:</p>
+    <p style="text-align: center;">
+      <a href="${data.confirmationUrl}" class="button" style="background: #dc2626;">
+        Confirm Account Deletion
+      </a>
+    </p>
+
+    <p style="color: #6b7280; font-size: 14px;">
+      <strong>Note:</strong> This link will expire in ${expiresIn}. If you did not request this deletion, 
+      you can safely ignore this email and your account will remain active.
+    </p>
+
+    <p>If you have any questions or concerns, please contact our support team.</p>
+
+    <p>Best regards,<br>The Transcription App Team</p>
+  `;
+
+  const html = getBaseTemplate(content, {
+    title: "Account Deletion Request",
+    preheader: "Confirm your account deletion request",
+  });
+
+  const text = `
+Account Deletion Request
+
+Hi ${data.userName},
+
+We received a request to permanently delete your account and all associated data.
+
+**This action cannot be undone.** Once confirmed, the following will be permanently deleted:
+
+- All your transcriptions
+- All audio files
+- Your account settings
+- All project data
+- Your encryption keys
+
+If you want to proceed with the deletion, click the link below:
+${data.confirmationUrl}
+
+Note: This link will expire in ${expiresIn}. If you did not request this deletion, 
+you can safely ignore this email and your account will remain active.
+
+If you have any questions or concerns, please contact our support team.
+
+Best regards,
+The Transcription App Team
+  `.trim();
+
+  return {
+    subject: "Confirm Account Deletion",
+    html,
+    text,
+  };
+}

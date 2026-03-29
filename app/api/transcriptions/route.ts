@@ -3,6 +3,7 @@ import { isElevenLabsConfigured } from "@/lib/elevenlabs";
 import { prisma } from "@/lib/prisma";
 import { Transcription } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { EncryptedDataEntity } from "../../../lib/encryption-entities";
 import { pollPendingTranscriptions } from "./[id]/route";
 
 export async function GET() {
@@ -74,5 +75,8 @@ const formatTranscriptionList = (t: Transcription) => {
     projectId: t.projectId,
     state: t.state,
     errorMessage: t.errorMessage,
+    isEncrypted: (t.audioFileEncryption as EncryptedDataEntity)?.privateKeys
+      ? true
+      : false,
   };
 };

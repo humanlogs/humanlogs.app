@@ -22,6 +22,7 @@ import {
   StarIcon,
   SunIcon,
   LightbulbIcon,
+  UserIcon,
 } from "lucide-react";
 import * as React from "react";
 import { UserProfile } from "../../hooks/use-api";
@@ -145,6 +146,11 @@ export function SidebarUserMenu({
 
       {/* Menu Items */}
       <div className="py-1">
+        <DropdownMenuItem onClick={() => (window.location.href = "/account")}>
+          <UserIcon className="w-4 h-4 mr-2" />
+          {t("user.account")}
+        </DropdownMenuItem>
+
         {userProfile?.isBillingEnabled && (
           <DropdownMenuItem
             onClick={() => (window.location.href = "/account/billing")}
