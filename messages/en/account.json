@@ -1,5 +1,112 @@
 {
     "account": {
+        "title": "Account Settings",
+        "description": "Manage your account, data, and preferences",
+        "billing": {
+            "title": "Billing & Subscription",
+            "description": "Manage your subscription and credits",
+            "current_plan": "Current Plan",
+            "credits": "Credits",
+            "available_credits": "Available Credits",
+            "credits_refill": "Monthly Refill",
+            "credits_used": "Credits Used",
+            "next_renewal": "Next Renewal",
+            "subscription_status": "Status",
+            "cancel_subscription": "Cancel Subscription",
+            "manage_subscription": "Manage Subscription",
+            "manage_subscription_description": "Update payment method, view invoices, and manage your subscription",
+            "upgrade_plan": "Upgrade Plan",
+            "plans": {
+                "title": "Available Plans",
+                "free": {
+                    "name": "Free",
+                    "price": "Free",
+                    "features": [
+                        "100 minutes per month",
+                        "Unlimited collaboration",
+                        "All features included"
+                    ]
+                },
+                "monthly": {
+                    "name": "Pro Monthly",
+                    "price": "€15/month",
+                    "features": [
+                        "1200 minutes (20 hours) per month",
+                        "Unlimited collaboration",
+                        "All features included"
+                    ]
+                },
+                "yearly": {
+                    "name": "Pro Yearly",
+                    "price": "€13.75/month",
+                    "billed": "Billed €165 yearly",
+                    "features": [
+                        "1200 minutes (20 hours) per month",
+                        "Unlimited collaboration",
+                        "All features included",
+                        "Save €15/year"
+                    ]
+                },
+                "one_time": {
+                    "name": "One-Time Purchase",
+                    "price": "€20",
+                    "features": [
+                        "1200 minutes (20 hours)",
+                        "Single use credits",
+                        "No expiration"
+                    ]
+                }
+            },
+            "subscribe": "Subscribe",
+            "purchase": "Purchase",
+            "current": "Current Plan",
+            "cancel_confirm_title": "Cancel Subscription?",
+            "cancel_confirm_description": "Your subscription will remain active until the end of the billing period. You'll still have access to your credits.",
+            "cancel_confirm": "Yes, Cancel",
+            "canceling": "Canceling...",
+            "loading": "Loading...",
+            "active": "Active",
+            "canceled": "Canceled",
+            "minutes": "minutes",
+            "no_renewal": "No active subscription"
+        },
+        "security": {
+            "title": "Security",
+            "description": "Manage end-to-end encryption and device trust settings",
+            "encryption_status": "End-to-End Encryption",
+            "encryption_disabled_title": "Encryption is not enabled",
+            "encryption_disabled_description": "Enable end-to-end encryption to secure your data. A certificate will be generated and you'll need to store it securely.",
+            "encryption_enabled_title": "End-to-end encryption is active",
+            "encryption_enabled_description": "Your data is protected with end-to-end encryption. Keep your certificate safe.",
+            "enable_encryption": "Enable Encryption",
+            "disable_encryption": "Disable Encryption",
+            "generating": "Generating...",
+            "key_loaded": "Encryption key is loaded on this device",
+            "key_loaded_description": "You can access encrypted data from this device.",
+            "key_required": "Encryption key required",
+            "key_required_description": "Please upload your certificate to access encrypted data on this device.",
+            "upload_certificate": "Upload Certificate",
+            "uploading": "Uploading...",
+            "device_trust": "Device Trust",
+            "device_trusted_description": "This device is trusted. Your encryption key will remain stored even after logout.",
+            "device_not_trusted_description": "This device is not trusted. Your encryption key will be removed when you logout.",
+            "trusted": "Trusted Device",
+            "not_trusted": "Untrusted Device",
+            "key_persists": "Key remains after logout",
+            "key_removed_on_logout": "Key removed on logout",
+            "trust_device": "Trust This Device",
+            "untrust_device": "Untrust This Device",
+            "remove_key_from_device": "Remove Key from Device",
+            "how_it_works": "How It Works",
+            "step_1_title": "1. Certificate Generation",
+            "step_1_description": "A certificate containing a public and private key pair is generated in your browser. The public key is stored on our servers, while the private key stays with you.",
+            "step_2_title": "2. Secure Storage",
+            "step_2_description": "The private key is encrypted and stored in your browser's secure storage. You can download the certificate as a backup.",
+            "step_3_title": "3. Device Trust",
+            "step_3_description": "Choose whether to keep the encryption key on this device after logout. Untrusted devices will require you to upload your certificate again.",
+            "tip_title": "Tip: Keep your certificate safe!",
+            "tip_description": "Send your certificate to yourself by email or store it in a secure location. You'll need it to access your encrypted data from new devices."
+        },
         "encryption": {
             "cannotAccess": {
                 "title": "Cannot Access Transcription",
