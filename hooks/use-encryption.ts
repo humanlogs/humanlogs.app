@@ -214,6 +214,27 @@ export function useRemoveLocalKey() {
   });
 }
 
+/**
+ * Download existing certificate
+ */
+export function useDownloadCertificate() {
+  return useMutation({
+    mutationFn: async ({
+      privateKey,
+      publicKey,
+    }: {
+      privateKey: string;
+      publicKey: string;
+    }) => {
+      downloadCertificate({
+        privateKey,
+        publicKey,
+        createdAt: new Date().toISOString(),
+      });
+    },
+  });
+}
+
 export function useDecryptData() {
   const { data: status } = useEncryptionStatus();
   const statusRef = useRef(status);

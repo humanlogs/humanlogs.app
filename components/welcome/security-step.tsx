@@ -3,11 +3,20 @@
 import {
   useEnableEncryption,
   useEncryptionStatus,
+  useToggleDeviceTrust,
 } from "@/hooks/use-encryption";
 import { CheckCircleIcon, KeyIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
 import { Label } from "../ui/label";
 
 interface SecurityStepProps {
@@ -18,12 +27,14 @@ interface SecurityStepProps {
 
 export function SecurityStep({ onContinue, onSkip }: SecurityStepProps) {
   const [certificateDownloaded, setCertificateDownloaded] = useState(false);
+  const [showTrustDialog, setShowTrustDialog] = useState(false);
   const [checklist, setChecklist] = useState({
     saved: false,
     emailed: false,
     understood: false,
   });
 
+  const toggleDeviceTrust = useToggleDeviceTrust();
   const enableEncryption = useEnableEncryption();
   const status = useEncryptionStatus();
 
@@ -39,7 +50,7 @@ export function SecurityStep({ onContinue, onSkip }: SecurityStepProps) {
 
   async function handleEnableEncryption() {
     try {
-      await enableEncryption.mutateAsync({ trustDevice: true });
+      await enableEncryption.mutateAsync({ trustDevice: false });
       setCertificateDownloaded(true);
       toast.success(
         "Encryption enabled! Your certificate has been downloaded. Please save it securely.",
@@ -47,6 +58,27 @@ export function SecurityStep({ onContinue, onSkip }: SecurityStepProps) {
     } catch (error) {
       console.error("Failed to enable encryption:", error);
       toast.error("Failed to enable encryption. Please try again.");
+    }
+  }
+
+  async function handleContinue() {
+    // Show dialog to ask about device trust
+    setShowTrustDialog(true);
+  }
+
+  async function handleDeviceTrustDecision(trustDevice: boolean) {
+    try {
+      if (status.data?.encryptionStatus?.trustedDeviceSecret) {
+        await toggleDeviceTrust.mutateAsync({
+          trust: trustDevice,
+          deviceSecret: status.data.encryptionStatus.trustedDeviceSecret,
+        });
+      }
+      setShowTrustDialog(false);
+      onContinue();
+    } catch (error) {
+      console.error("Failed to set device trust:", error);
+      toast.error("Failed to save device trust preference. Please try again.");
     }
   }
 
@@ -201,7 +233,7 @@ export function SecurityStep({ onContinue, onSkip }: SecurityStepProps) {
               Download Again
             </Button>
             <Button
-              onClick={onContinue}
+              onClick={handleContinue}
               disabled={!canContinue || enableEncryption.isPending}
               className="flex-1"
               size="lg"
@@ -211,6 +243,53 @@ export function SecurityStep({ onContinue, onSkip }: SecurityStepProps) {
           </div>
         )}
       </div>
+
+      {/* Trust Device Dialog */}
+      <Dialog open={showTrustDialog} onOpenChange={setShowTrustDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Do you trust this computer?</DialogTitle>
+            <DialogDescription>
+              If you trust this computer, we&apos;ll store your encryption
+              certificate securely in your browser. You won&apos;t need to
+              upload it again when you log in.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 p-4">
+              <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                Trusted Device
+              </p>
+              <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                Your certificate will remain stored after logout. Only use this
+                on your personal devices.
+              </p>
+            </div>
+            <div className="rounded-lg bg-muted p-4">
+              <p className="text-sm font-medium">Untrusted Device</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Your certificate will be removed when you logout. Use this on
+                shared or public computers.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => handleDeviceTrustDecision(false)}
+              disabled={toggleDeviceTrust.isPending}
+            >
+              Don&apos;t Trust
+            </Button>
+            <Button
+              onClick={() => handleDeviceTrustDecision(true)}
+              disabled={toggleDeviceTrust.isPending}
+            >
+              Trust This Computer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
