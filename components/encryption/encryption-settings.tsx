@@ -403,7 +403,7 @@ export function EncryptionSettings({
               only.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="py-4 px-6">
             <div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 p-4 space-y-2">
               <p className="text-sm font-medium flex items-center gap-2">
                 <AlertCircleIcon className="w-4 h-4" />

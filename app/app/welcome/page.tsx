@@ -67,7 +67,7 @@ export default function WelcomePage() {
             </div>
 
             <Button
-              disabled={loading}
+              disabled={loading || !data?.language}
               className="w-full"
               size="lg"
               onClick={() => setState("security")}

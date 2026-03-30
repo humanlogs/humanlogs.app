@@ -3,6 +3,7 @@
 import {
   useEnableEncryption,
   useEncryptionStatus,
+  useGenerateCertificate,
   useToggleDeviceTrust,
 } from "@/hooks/use-encryption";
 import { CheckCircleIcon, KeyIcon } from "lucide-react";
@@ -32,12 +33,18 @@ export function SetupEncryption({
 }: SetupEncryptionProps) {
   const [certificateDownloaded, setCertificateDownloaded] = useState(false);
   const [showTrustDialog, setShowTrustDialog] = useState(false);
+  const [certificateData, setCertificateData] = useState<{
+    publicKey: string;
+    privateKey: string;
+    deviceSecret: string;
+  } | null>(null);
   const [checklist, setChecklist] = useState({
     saved: false,
     emailed: false,
     understood: false,
   });
 
+  const generateCertificate = useGenerateCertificate();
   const enableEncryption = useEnableEncryption();
   const status = useEncryptionStatus();
   const toggleDeviceTrust = useToggleDeviceTrust();
@@ -46,16 +53,21 @@ export function SetupEncryption({
     checklist.saved && checklist.emailed && checklist.understood;
   const canContinue = certificateDownloaded && allChecked;
 
-  async function handleEnableEncryption() {
+  async function handleGenerateCertificate() {
     try {
-      await enableEncryption.mutateAsync({ trustDevice: false });
+      const result = await generateCertificate.mutateAsync();
+      setCertificateData({
+        publicKey: result.certificate.publicKey,
+        privateKey: result.certificate.privateKey,
+        deviceSecret: result.deviceSecret,
+      });
       setCertificateDownloaded(true);
       toast.success(
-        "Encryption enabled! Your certificate has been downloaded. Please save it securely.",
+        "Certificate generated and downloaded! Please save it securely.",
       );
     } catch (error) {
-      console.error("Failed to enable encryption:", error);
-      toast.error("Failed to enable encryption. Please try again.");
+      console.error("Failed to generate certificate:", error);
+      toast.error("Failed to generate certificate. Please try again.");
     }
   }
 
@@ -70,17 +82,23 @@ export function SetupEncryption({
 
   async function handleDeviceTrustDecision(trustDevice: boolean) {
     try {
-      if (status.data?.encryptionStatus?.trustedDeviceSecret) {
-        await toggleDeviceTrust.mutateAsync({
-          trust: trustDevice,
-          deviceSecret: status.data.encryptionStatus.trustedDeviceSecret,
-        });
+      if (!certificateData) {
+        throw new Error("No certificate data available");
       }
+
+      // Upload public key to server and enable encryption
+      await enableEncryption.mutateAsync({
+        publicKey: certificateData.publicKey,
+        privateKey: certificateData.privateKey,
+        deviceSecret: certificateData.deviceSecret,
+        trustDevice,
+      });
+
       setShowTrustDialog(false);
       onComplete();
     } catch (error) {
-      console.error("Failed to set device trust:", error);
-      toast.error("Failed to save device trust preference. Please try again.");
+      console.error("Failed to enable encryption:", error);
+      toast.error("Failed to enable encryption. Please try again.");
     }
   }
 
@@ -129,15 +147,15 @@ export function SetupEncryption({
                   <li>Recover your account if you lose access</li>
                 </ul>
                 <Button
-                  onClick={handleEnableEncryption}
-                  disabled={enableEncryption.isPending}
+                  onClick={handleGenerateCertificate}
+                  disabled={generateCertificate.isPending}
                   className="w-full"
                   size="lg"
                 >
                   <KeyIcon className="w-4 h-4 mr-2" />
-                  {enableEncryption.isPending
+                  {generateCertificate.isPending
                     ? "Generating Certificate..."
-                    : "Enable Encryption & Download Certificate"}
+                    : "Generate & Download Certificate"}
                 </Button>
               </div>
             ) : (
@@ -211,7 +229,7 @@ export function SetupEncryption({
               <Button
                 variant="outline"
                 onClick={onSkip}
-                disabled={enableEncryption.isPending}
+                disabled={generateCertificate.isPending}
                 className="w-full"
               >
                 Continue Without Encryption
@@ -224,15 +242,15 @@ export function SetupEncryption({
           <div className="flex gap-3 pt-4">
             <Button
               variant="outline"
-              onClick={() => handleEnableEncryption()}
-              disabled={enableEncryption.isPending}
+              onClick={() => handleGenerateCertificate()}
+              disabled={generateCertificate.isPending}
               className="flex-1"
             >
               Download Again
             </Button>
             <Button
               onClick={handleContinue}
-              disabled={!canContinue || enableEncryption.isPending}
+              disabled={!canContinue || generateCertificate.isPending}
               className="flex-1"
               size="lg"
             >
@@ -250,10 +268,11 @@ export function SetupEncryption({
             <DialogDescription>
               If you trust this computer, we&apos;ll store your encryption
               certificate securely in your browser. You won&apos;t need to
-              upload it again when you log in.
+              upload it again when you log in (but this is not a reason not to
+              keep a backup!).
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4 space-y-4">
+          <div className="py-4 space-y-4 px-6">
             <div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 p-4">
               <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
                 Trusted Device
@@ -275,13 +294,13 @@ export function SetupEncryption({
             <Button
               variant="outline"
               onClick={() => handleDeviceTrustDecision(false)}
-              disabled={toggleDeviceTrust.isPending}
+              disabled={enableEncryption.isPending}
             >
               Don&apos;t Trust
             </Button>
             <Button
               onClick={() => handleDeviceTrustDecision(true)}
-              disabled={toggleDeviceTrust.isPending}
+              disabled={enableEncryption.isPending}
             >
               Trust This Computer
             </Button>

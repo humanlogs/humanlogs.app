@@ -21,6 +21,7 @@ export const LandingFooter = () => {
           </div>
 
           {/* Use Cases */}
+          <div />
           {false && (
             <div>
               <h3 className="mb-4 text-sm font-semibold text-white">

@@ -71,26 +71,45 @@ export function useEncryptionStatus() {
 }
 
 /**
- * Enable encryption and generate certificate
+ * Generate and download certificate (without uploading to server)
  */
-export function useEnableEncryption() {
-  const queryClient = useQueryClient();
-
+export function useGenerateCertificate() {
   return useMutation({
-    mutationFn: async (options?: { trustDevice?: boolean }) => {
+    mutationFn: async () => {
       // Generate certificate
       const certificate = await createCertificate();
 
       // Generate device secret
       const deviceSecret = await generateDeviceSecret();
 
+      // Download certificate
+      downloadCertificate(certificate);
+
+      return { certificate, deviceSecret };
+    },
+  });
+}
+
+/**
+ * Upload public key to server and enable encryption
+ */
+export function useEnableEncryption() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: {
+      publicKey: string;
+      privateKey: string;
+      deviceSecret: string;
+      trustDevice?: boolean;
+    }) => {
       // Store public key and device secret on server
       const response = await fetch("/api/user/encryption", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          publicKey: certificate.publicKey,
-          trustedDeviceSecret: deviceSecret,
+          publicKey: params.publicKey,
+          trustedDeviceSecret: params.deviceSecret,
         }),
       });
 
@@ -98,17 +117,14 @@ export function useEnableEncryption() {
         throw new Error("Failed to enable encryption");
       }
 
-      // Store private key locally (trusted by default for welcome flow, not trusted for settings)
+      // Store private key locally
       await storePrivateKey(
-        certificate.privateKey,
-        deviceSecret,
-        options?.trustDevice ?? false,
+        params.privateKey,
+        params.deviceSecret,
+        params.trustDevice ?? false,
       );
 
-      // Download certificate
-      downloadCertificate(certificate);
-
-      return { certificate, deviceSecret };
+      return { success: true };
     },
     onSuccess: () => {
       // Invalidate encryption status to refetch
