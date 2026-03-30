@@ -1,5 +1,5 @@
-import { LandingHeader } from "./components/landing-header";
 import { LandingFooter } from "./components/landing-footer";
+import { LandingHeader } from "./components/landing-header";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   return (

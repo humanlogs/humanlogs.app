@@ -1,21 +1,23 @@
 "use client";
 
+import { useTranslations } from "@/components/locale-provider";
+import { ChevronDown } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ChevronDown, Github } from "lucide-react";
-import Image from "next/image";
-import { useTranslations } from "@/components/locale-provider";
-import { LanguageSelector } from "./language-selector";
-import { cn } from "../../../lib/utils";
 import {
   DropdownMenu,
   DropdownMenuItem,
 } from "../../../components/ui/dropdown-menu";
+import { cn } from "../../../lib/utils";
+import { LanguageSelector } from "./language-selector";
 
 export const LandingHeader = () => {
   const t = useTranslations("header");
-  const [isUseCasesOpen, setIsUseCasesOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  const root = window.document.documentElement;
+  root.classList.remove("light", "dark");
 
   // Handle scroll to change header style
   useEffect(() => {
