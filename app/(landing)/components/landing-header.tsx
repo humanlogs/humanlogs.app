@@ -41,7 +41,7 @@ export const LandingHeader = () => {
             height={32}
             className="inline-block"
           />
-          <span>humanlogs</span>
+          <span className="hidden md:inline-block">humanlogs</span>
         </Link>
 
         {/* Navigation */}

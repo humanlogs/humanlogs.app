@@ -135,12 +135,12 @@ export function FeedbackDialog() {
   };
 
   const handlePublishReview = () => {
-    window.open("http://trustpilot.com/", "_blank");
+    window.open("https://trustpilot.com/evaluate/humanlogs.app", "_blank");
     close();
   };
 
   const handleLeaveReview = () => {
-    window.open("http://trustpilot.com/", "_blank");
+    window.open("https://trustpilot.com/evaluate/humanlogs.app", "_blank");
     close();
   };
 

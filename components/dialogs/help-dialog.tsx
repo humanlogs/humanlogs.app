@@ -80,11 +80,11 @@ export function HelpDialog() {
   }, [isOpen, user?.language]);
 
   const handleOpenDocumentation = () => {
-    window.open("https://docs.example.com", "_blank");
+    window.open("https://humanlogs.app", "_blank");
   };
 
   const handleOpenForum = () => {
-    window.open("https://forum.example.com", "_blank");
+    window.open("https://humanlogsapp.featurebase.app/", "_blank");
   };
 
   return (
