@@ -29,7 +29,6 @@ const SUPPORTED_FORMATS = [
 
 export const POST = withAuthRateLimit(async (request, user) => {
   try {
-
     // Parse multipart form data
     const formData = await request.formData();
 
@@ -298,7 +297,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
       { status: 500 },
     );
   }
-}
+});
 
 /**
  * Process a transcription asynchronously

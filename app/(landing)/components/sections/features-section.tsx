@@ -1,20 +1,21 @@
 "use client";
 
 import { useTranslations } from "@/components/locale-provider";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import {
-  Zap,
-  Languages,
+  FileDown,
+  FolderKanban,
+  MessageSquareHeart,
   PenLine,
-  Users,
   Shield,
   UserCog,
-  FolderKanban,
-  FileDown,
-  Server,
-  MessageSquareHeart,
+  Users,
+  Zap,
 } from "lucide-react";
 import { AnimatedSectionTitle } from "../animated-section-title";
-import { Badge } from "@/components/ui/badge";
+import { FakeBrowser } from "./fake-browser";
+import Link from "next/link";
 
 // Feature color palette
 const FEATURE_COLORS = [
@@ -90,6 +91,7 @@ interface FeatureCardProps {
   description: string;
   badge?: string;
   colorIndex: number;
+  centered?: boolean;
 }
 
 const FeatureCard = ({
@@ -98,16 +100,25 @@ const FeatureCard = ({
   description,
   badge,
   colorIndex,
+  centered,
 }: FeatureCardProps) => {
   const color = FEATURE_COLORS[colorIndex % FEATURE_COLORS.length];
 
   return (
-    <div className="relative group">
+    <div
+      className={cn(
+        "relative group",
+        centered ? "text-center max-w-3xl mx-auto" : "",
+      )}
+    >
       <div
-        className={`border ${color.border} rounded-xl p-6 hover:shadow-lg transition-all bg-white h-full flex flex-col`}
+        className={`rounded-xl p-6 transition-all bg-white h-full flex flex-col`}
       >
         <div
-          className={`rounded-lg ${color.iconBg} p-3 w-fit mb-4 transition-colors`}
+          className={cn(
+            `rounded-lg ${color.iconBg} ${color.badgeBorder} border p-3 w-fit mb-4 transition-colors`,
+            centered ? "mx-auto" : "",
+          )}
         >
           <div className={color.iconText}>{icon}</div>
         </div>
@@ -130,7 +141,7 @@ export const FeaturesSection = () => {
   const t = useTranslations("features");
 
   return (
-    <section className="py-24 bg-white">
+    <section className="pt-24 bg-white border-b overflow-hidden">
       <div className="container mx-auto px-4 md:px-6">
         <AnimatedSectionTitle className="text-black" subtitle={t("subtitle")}>
           {t("title")}
@@ -188,30 +199,37 @@ export const FeaturesSection = () => {
             icon={<Shield className="h-6 w-6" />}
             title={t("privacy.title")}
             description={t("privacy.description")}
-            badge={t("privacy.badge")}
             colorIndex={6}
           />
         </div>
 
-        {/* Row 4: H (1 column full width) */}
-        <div className="grid grid-cols-1 gap-6 mb-6 max-w-6xl mx-auto">
-          <FeatureCard
-            icon={<Server className="h-6 w-6" />}
-            title={t("selfHost.title")}
-            description={t("selfHost.description")}
-            colorIndex={7}
-          />
-        </div>
-
         {/* Row 5: I (1 column full width) */}
-        <div className="grid grid-cols-1 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 gap-6 max-w-6xl mx-auto mb-12">
           <FeatureCard
+            centered
             icon={<MessageSquareHeart className="h-6 w-6" />}
             title={t("feedback.title")}
             description={t("feedback.description")}
             colorIndex={0}
           />
         </div>
+
+        {/* Demo Video - Half covered by next section */}
+        <Link href="/app">
+          <div className="relative max-w-5xl mx-auto z-10 -mt-[200px] bottom-[-300px] hover:bottom-[-200px] transition-all">
+            <FakeBrowser />
+            <div className="bg-gray-900 rounded-b-xl border border-gray-200 border-t-0 overflow-hidden shadow-2xl">
+              <video className="w-full" autoPlay loop muted playsInline>
+                <source src="/landing/demo-humanlogs.webm" type="video/webm" />
+                <source
+                  src="/landing/demo-humanlogs.mov"
+                  type="video/quicktime"
+                />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </div>
+        </Link>
       </div>
     </section>
   );

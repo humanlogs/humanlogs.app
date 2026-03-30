@@ -206,9 +206,8 @@
             "description": "Partagez vos transcriptions et travaillez ensemble sur leur amélioration. Parfait pour les équipes de recherche, les rédactions et les projets collaboratifs."
         },
         "privacy": {
-            "title": "Confidentialité par conception",
-            "description": "Travaillez avec des données sensibles en toute confiance. Le chiffrement de bout en bout garantit que vos transcriptions ne quittent jamais votre ordinateur sans être chiffrées. Vous détenez les clés.",
-            "badge": "Chiffrement E2E"
+            "title": "Conçu pour la confidentialité",
+            "description": "Travaillez avec des données sensibles en toute confiance. Le chiffrement de bout en bout garantit que vos transcriptions ne quittent jamais votre ordinateur sans être chiffrées. Vous détenez les clés."
         },
         "selfHost": {
             "title": "Transparent et auto-hébergeable",
