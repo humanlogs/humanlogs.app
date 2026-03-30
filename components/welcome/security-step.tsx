@@ -203,7 +203,7 @@ export function SecurityStep({ onContinue, onSkip }: SecurityStepProps) {
 
           {/* Skip Option */}
           {!certificateDownloaded && (
-            <div className="rounded-lg border border-gray-200 dark:border-gray-800 p-6 space-y-3">
+            <div className="rounded-lg border border-gray-200 dark:border-black p-6 space-y-3">
               <h3 className="font-semibold">Skip Encryption</h3>
               <p className="text-sm text-muted-foreground">
                 You can set up encryption later in your account settings. Your
