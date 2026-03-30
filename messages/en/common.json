@@ -42,6 +42,7 @@
             "subscription_status": "Status",
             "cancel_subscription": "Cancel Subscription",
             "manage_subscription": "Manage Subscription",
+            "manage_subscription_description": "Update payment method, view invoices, and manage your subscription",
             "upgrade_plan": "Upgrade Plan",
             "plans": {
                 "title": "Available Plans",

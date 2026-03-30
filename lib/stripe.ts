@@ -89,12 +89,14 @@ export async function createCheckoutSession({
   mode,
   successUrl,
   cancelUrl,
+  allowPromotionCodes = true,
 }: {
   customerId?: string;
   priceId: string;
   mode: "subscription" | "payment";
   successUrl: string;
   cancelUrl: string;
+  allowPromotionCodes?: boolean;
 }) {
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
@@ -107,6 +109,7 @@ export async function createCheckoutSession({
     ],
     success_url: successUrl,
     cancel_url: cancelUrl,
+    allow_promotion_codes: allowPromotionCodes,
   });
 
   return session;
@@ -129,4 +132,16 @@ export async function cancelSubscription(subscriptionId: string) {
 export async function getSubscription(subscriptionId: string) {
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   return subscription;
+}
+
+export async function createCustomerPortalSession(
+  customerId: string,
+  returnUrl: string,
+) {
+  const session = await stripe.billingPortal.sessions.create({
+    customer: customerId,
+    return_url: returnUrl,
+  });
+
+  return session;
 }

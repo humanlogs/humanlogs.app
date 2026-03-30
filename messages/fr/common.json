@@ -40,6 +40,7 @@
             "subscription_status": "Statut",
             "cancel_subscription": "Annuler l'Abonnement",
             "manage_subscription": "Gérer l'Abonnement",
+            "manage_subscription_description": "Mettre à jour le mode de paiement, consulter les factures et gérer votre abonnement",
             "upgrade_plan": "Améliorer le Forfait",
             "plans": {
                 "title": "Forfaits Disponibles",

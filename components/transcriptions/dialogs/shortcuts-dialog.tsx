@@ -15,10 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useModal } from "@/components/use-modal";
-import {
-  CustomShortcut,
-  defaultShortcuts,
-} from "@/lib/shortcuts";
+import { CustomShortcut, defaultShortcuts } from "@/lib/shortcuts";
 import {
   useCustomShortcuts,
   useAddCustomShortcut,
@@ -35,14 +32,16 @@ export function useShortcutsModal() {
 
 export function ShortcutsDialog() {
   const { isOpen, close } = useShortcutsModal();
-  const { data: customShortcuts = [], isLoading: isLoadingShortcuts } = useCustomShortcuts();
+  const { data: customShortcuts = [], isLoading: isLoadingShortcuts } =
+    useCustomShortcuts();
   const addShortcut = useAddCustomShortcut();
   const deleteShortcut = useDeleteCustomShortcut();
   const [newKey, setNewKey] = useState("");
   const [newText, setNewText] = useState("");
   const t = useTranslations("dialog.shortcuts");
 
-  const isLoading = isLoadingShortcuts || addShortcut.isPending || deleteShortcut.isPending;
+  const isLoading =
+    isLoadingShortcuts || addShortcut.isPending || deleteShortcut.isPending;
 
   // Predefined shortcut options
   const shortcutOptions = [

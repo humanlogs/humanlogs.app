@@ -40,6 +40,7 @@
             "subscription_status": "Estado",
             "cancel_subscription": "Cancelar Suscripción",
             "manage_subscription": "Gestionar Suscripción",
+            "manage_subscription_description": "Actualizar método de pago, ver facturas y gestionar su suscripción",
             "upgrade_plan": "Mejorar Plan",
             "plans": {
                 "title": "Planes Disponibles",

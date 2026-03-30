@@ -13,6 +13,7 @@ import { downloadAsMP3 } from "@/lib/audio-conversion.browser";
 import {
   exportAsCSV,
   exportAsJSON,
+  exportAsPDF,
   exportAsTXTWithOptions,
   exportAsWord,
 } from "@/lib/export-utils";
@@ -185,6 +186,21 @@ export function TranscriptionActions({
     }
   };
 
+  const handleExportPDF = async () => {
+    const content = getTranscriptionContent();
+    if (!content) {
+      toast.error(t("actions.noDataAvailable"));
+      return;
+    }
+    try {
+      await exportAsPDF(content, transcriptionName);
+      toast.success(t("actions.exportedPDF"));
+    } catch (error) {
+      toast.error(t("actions.failedExportPDF"));
+      console.error("Export PDF error:", error);
+    }
+  };
+
   const handleDownloadAudio = async () => {
     try {
       if (!audioFileEncryption) {
@@ -286,6 +302,10 @@ export function TranscriptionActions({
       <DropdownMenuItem onClick={handleExportWord}>
         <FileIcon className="h-4 w-4 mr-2" />
         {t("actions.word")}
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={handleExportPDF}>
+        <FileIcon className="h-4 w-4 mr-2" />
+        {t("actions.pdf")}
       </DropdownMenuItem>
       <DropdownMenuItem onClick={handleExportJSON}>
         <FileJsonIcon className="h-4 w-4 mr-2" />

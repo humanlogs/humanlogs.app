@@ -86,12 +86,33 @@ export default function BillingPage() {
     },
   });
 
+  const portalMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/billing/customer-portal", {
+        method: "POST",
+      });
+      if (!response.ok) {
+        throw new Error("Failed to create portal session");
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    },
+  });
+
   const handleCheckout = (planType: string) => {
     checkoutMutation.mutate(planType);
   };
 
   const handleCancelSubscription = () => {
     cancelMutation.mutate();
+  };
+
+  const handleManageSubscription = () => {
+    portalMutation.mutate();
   };
 
   if (isLoading) {
@@ -210,10 +231,20 @@ export default function BillingPage() {
             )}
 
             {billing.subscription.isActive && billing.plan !== "free" && (
-              <div className="pt-4 border-t">
+              <div className="pt-4 border-t space-y-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={handleManageSubscription}
+                  disabled={portalMutation.isPending}
+                >
+                  {t("billing.manage_subscription")}
+                </Button>
                 <Button
                   variant="destructive"
                   size="sm"
+                  className="w-full"
                   onClick={() => setShowCancelConfirm(true)}
                   disabled={cancelMutation.isPending}
                 >

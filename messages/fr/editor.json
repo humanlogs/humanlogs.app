@@ -59,6 +59,8 @@
             "failedExportTXT": "Échec de l'export TXT",
             "exportedWord": "Exporté en document Word",
             "failedExportWord": "Échec de l'export Word",
+            "exportedPDF": "Exporté au format PDF",
+            "failedExportPDF": "Échec de l'export PDF",
             "exportedJSON": "Exporté au format JSON",
             "failedExportJSON": "Échec de l'export JSON",
             "downloadingAudio": "Téléchargement du fichier audio",
@@ -82,6 +84,7 @@
             "csv": "CSV",
             "txt": "TXT",
             "word": "Word",
+            "pdf": "PDF",
             "json": "JSON",
             "advanced": "Avancé"
         }

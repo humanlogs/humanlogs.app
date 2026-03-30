@@ -58,8 +58,8 @@
             "exportedTXT": "Exportado como TXT",
             "failedExportTXT": "Error al exportar TXT",
             "exportedWord": "Exportado como documento Word",
-            "failedExportWord": "Error al exportar documento Word",
-            "exportedJSON": "Exportado como JSON",
+            "failedExportWord": "Error al exportar documento Word",            "exportedPDF": "Exportado como PDF",
+            "failedExportPDF": "Error al exportar PDF",            "exportedJSON": "Exportado como JSON",
             "failedExportJSON": "Error al exportar JSON",
             "downloadingAudio": "Descargando archivo de audio",
             "downloadingDecryptingAudio": "Descargando y descifrando archivo de audio...",
@@ -82,6 +82,7 @@
             "csv": "CSV",
             "txt": "TXT",
             "word": "Word",
+            "pdf": "PDF",
             "json": "JSON",
             "advanced": "Avanzado"
         }

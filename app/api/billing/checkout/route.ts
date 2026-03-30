@@ -73,8 +73,8 @@ export async function POST(request: NextRequest) {
       customerId,
       priceId,
       mode,
-      successUrl: `${request.headers.get("origin")}/account/billing?success=true`,
-      cancelUrl: `${request.headers.get("origin")}/account/billing?canceled=true`,
+      successUrl: `${request.headers.get("origin")}/app/account/billing?success=true`,
+      cancelUrl: `${request.headers.get("origin")}/app/account/billing?canceled=true`,
     });
 
     return NextResponse.json({ url: session.url });

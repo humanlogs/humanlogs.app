@@ -381,3 +381,134 @@ function downloadBlob(blob: Blob, fileName: string): void {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+
+/**
+ * Export transcription as PDF format
+ * Similar format to Word/TXT but in PDF
+ */
+export async function exportAsPDF(
+  transcription: TranscriptionContent,
+  fileName: string,
+): Promise<void> {
+  // Dynamic import of jsPDF
+  const jsPDF = (await import("jspdf/dist/jspdf.umd.min.js")).jsPDF;
+  // Create a new PDF document (A4 size)
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+  });
+
+  // Set up document properties
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 20;
+  const maxLineWidth = pageWidth - 2 * margin;
+  let yPosition = margin;
+
+  // Helper to add a new page when needed
+  const checkPageBreak = (requiredSpace: number) => {
+    if (yPosition + requiredSpace > pageHeight - margin) {
+      doc.addPage();
+      yPosition = margin;
+    }
+  };
+
+  // Process transcription into speaker segments
+  let currentSpeaker: string | undefined;
+  let currentText: string[] = [];
+
+  const addParagraph = (speakerName: string, text: string) => {
+    // Set speaker name in bold
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+
+    const speakerLabel = `${speakerName}: `;
+    const speakerWidth = doc.getTextWidth(speakerLabel);
+
+    // Check if we need a new page
+    checkPageBreak(15);
+
+    // Add speaker label
+    doc.text(speakerLabel, margin, yPosition);
+
+    // Set normal font for content
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+
+    // Split text into lines that fit the page width
+    // Account for the speaker label on the first line
+    const firstLineWidth = maxLineWidth - speakerWidth;
+    const words = text.split(" ");
+    const lines: string[] = [];
+    let currentLine = "";
+    let isFirstLine = true;
+
+    words.forEach((word) => {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const lineWidth = isFirstLine ? firstLineWidth : maxLineWidth;
+      const testWidth = doc.getTextWidth(testLine);
+
+      if (testWidth > lineWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+        isFirstLine = false;
+      } else {
+        currentLine = testLine;
+      }
+    });
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+
+    // Add first line next to speaker name
+    if (lines.length > 0) {
+      doc.text(lines[0], margin + speakerWidth, yPosition);
+      yPosition += 5;
+
+      // Add remaining lines
+      for (let i = 1; i < lines.length; i++) {
+        checkPageBreak(5);
+        doc.text(lines[i], margin, yPosition);
+        yPosition += 5;
+      }
+    }
+
+    // Add spacing between paragraphs
+    yPosition += 3;
+  };
+
+  // Process all segments
+  transcription.words.forEach((segment) => {
+    if (segment.type === "word") {
+      const speakerId = segment.speakerId;
+
+      // If speaker changed, save the previous paragraph and start a new one
+      if (currentSpeaker !== undefined && speakerId !== currentSpeaker) {
+        const speakerName = getSpeakerName(transcription, currentSpeaker);
+        const text = currentText.join("").trim();
+        if (text) {
+          addParagraph(speakerName, text);
+        }
+        currentText = [];
+      }
+
+      currentSpeaker = speakerId;
+      currentText.push(segment.text);
+    } else if (segment.type === "spacing") {
+      currentText.push(segment.text);
+    }
+  });
+
+  // Add the last paragraph if there's any text
+  if (currentText.length > 0 && currentSpeaker !== undefined) {
+    const speakerName = getSpeakerName(transcription, currentSpeaker);
+    const text = currentText.join("").trim();
+    if (text) {
+      addParagraph(speakerName, text);
+    }
+  }
+
+  // Save the PDF
+  doc.save(`${fileName}.pdf`);
+}

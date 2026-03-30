@@ -40,6 +40,7 @@
             "subscription_status": "Status",
             "cancel_subscription": "Abonnement kündigen",
             "manage_subscription": "Abonnement verwalten",
+            "manage_subscription_description": "Zahlungsmethode aktualisieren, Rechnungen anzeigen und Ihr Abonnement verwalten",
             "upgrade_plan": "Tarif upgraden",
             "plans": {
                 "title": "Verfügbare Tarife",
