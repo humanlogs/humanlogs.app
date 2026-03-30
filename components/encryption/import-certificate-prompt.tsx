@@ -30,7 +30,7 @@ export function ImportCertificatePrompt({
   onSuccess,
   compact = false,
 }: ImportCertificatePromptProps) {
-  const t = useTranslations("encryption.import");
+  const t = useTranslations("account.encryption.import");
   const { data: encryptionState } = useEncryptionStatus();
   const uploadCertificate = useUploadCertificate();
   const toggleDeviceTrust = useToggleDeviceTrust();

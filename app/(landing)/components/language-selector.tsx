@@ -25,7 +25,7 @@ export const LanguageSelector = () => {
       trigger={
         <button className="flex items-center gap-1 text-sm font-medium text-black transition-colors hover:text-black">
           <Globe className="h-4 w-4" />
-          {languagesNames[locale]}
+          <span className="hidden md:inline">{languagesNames[locale]}</span>
           <ChevronDown className="h-4 w-4" />
         </button>
       }

@@ -37,7 +37,7 @@ export function EncryptionSettings({
   onDisabled,
   compact = false,
 }: EncryptionSettingsProps) {
-  const t = useTranslations("encryption.settings");
+  const t = useTranslations("account.encryption.settings");
   const { data: encryptionState, isLoading } = useEncryptionStatus();
   const toggleDeviceTrust = useToggleDeviceTrust();
   const disableEncryption = useDisableEncryption();

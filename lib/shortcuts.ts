@@ -29,7 +29,9 @@ export type CustomShortcut = {
   description?: string;
 };
 
-// API-based functions for managing shortcuts
+/**
+ * @deprecated Use useCustomShortcuts from hooks/use-shortcuts.ts instead
+ */
 export async function getCustomShortcuts(): Promise<CustomShortcut[]> {
   try {
     const response = await fetch("/api/user/shortcuts");
@@ -44,6 +46,9 @@ export async function getCustomShortcuts(): Promise<CustomShortcut[]> {
   }
 }
 
+/**
+ * @deprecated Use useAddCustomShortcut from hooks/use-shortcuts.ts instead
+ */
 export async function addCustomShortcut(
   shortcut: Omit<CustomShortcut, "id">,
 ): Promise<CustomShortcut> {
@@ -61,6 +66,9 @@ export async function addCustomShortcut(
   return data.shortcut;
 }
 
+/**
+ * @deprecated Use useDeleteCustomShortcut from hooks/use-shortcuts.ts instead
+ */
 export async function deleteCustomShortcut(id: string): Promise<void> {
   const response = await fetch(`/api/user/shortcuts?id=${id}`, {
     method: "DELETE",

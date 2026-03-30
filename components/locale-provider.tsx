@@ -39,6 +39,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     ).then((modules) => {
       const merged = Object.assign({}, ...modules.map((mod) => mod.default));
       setMessages(merged);
+      console.log(merged);
       setLoaded(true);
     });
   }, [locale]);

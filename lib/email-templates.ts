@@ -62,7 +62,6 @@ export function getBaseTemplate(
       background-color: #ffffff;
       border-radius: 8px;
       overflow: hidden;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     .email-header {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -130,10 +129,8 @@ export function getBaseTemplate(
   <span class="preheader">${preheader}</span>
   <div class="email-wrapper">
     <div class="email-container">
-      <div class="email-header">
-        <h1>${title}</h1>
-      </div>
       <div class="email-body">
+        <h1>${title}</h1>
         ${content}
       </div>
       <div class="email-footer">

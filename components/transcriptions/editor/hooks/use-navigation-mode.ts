@@ -3,7 +3,8 @@
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { RefObject, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { getCustomShortcuts } from "../../../../lib/shortcuts";
+import { useCustomShortcuts } from "@/hooks/use-shortcuts";
+import { CustomShortcut } from "@/lib/shortcuts";
 import { useAnyModalOpen } from "../../../use-modal";
 import { AudioControls } from "../interactive-audio";
 
@@ -18,14 +19,7 @@ export function useNavigationMode(
   const [currentIndex, setCurrentIndex] = useState<number>(-1);
   const isModalOpen = useAnyModalOpen();
   const lastNavigationTime = useRef<number>(0);
-  const [customShortcuts, setCustomShortcuts] = useState<
-    Awaited<ReturnType<typeof getCustomShortcuts>>
-  >([]);
-
-  // Load custom shortcuts on mount
-  useEffect(() => {
-    getCustomShortcuts().then(setCustomShortcuts).catch(console.error);
-  }, []);
+  const { data: customShortcuts = [] } = useCustomShortcuts();
 
   useEffect(() => {
     if (isModalOpen) {
@@ -499,7 +493,7 @@ const ensureWord = (
 // Check for custom shortcuts first
 const handleCustomShortcut = (
   event: KeyboardEvent,
-  customShortcuts: Awaited<ReturnType<typeof getCustomShortcuts>>,
+  customShortcuts: CustomShortcut[],
 ): string | null => {
   const parts: string[] = [];
 
@@ -513,9 +507,14 @@ const handleCustomShortcut = (
     parts.push(key);
   }
 
-  const combination = parts.join("+");
-  const matchingShortcut = customShortcuts.find(
-    (s) => s.key.toLowerCase() === combination,
+  const combination = [parts.join("+")];
+
+  if (combination[0].match(/ctrl\+shift\+[0-9]/)) {
+    combination.push(combination[0].replace("+shift", ""));
+  }
+
+  const matchingShortcut = customShortcuts.find((s) =>
+    combination.includes(s.key.toLowerCase()),
   );
 
   return matchingShortcut?.text || null;

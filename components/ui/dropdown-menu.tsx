@@ -34,6 +34,7 @@ export function DropdownMenu({
         : ("top" as "top" | "bottom"),
     horizontal: align,
     maxHeight: "none" as string,
+    maxWidth: "none" as string,
     top: 0,
     left: 0,
   });
@@ -95,6 +96,10 @@ export function DropdownMenu({
 
         const menuWidth = 240; // w-60 = 15rem = 240px
         const gap = 8; // mb-2 = 0.5rem = 8px
+        const minMargin = 8; // Minimum margin from viewport edge
+
+        // Calculate max width (constrain to viewport width - margins)
+        const maxWidth = Math.min(menuWidth, viewportWidth - minMargin * 2);
 
         // Determine vertical position
         let vertical: "top" | "bottom" = "top";
@@ -148,22 +153,36 @@ export function DropdownMenu({
         let horizontal: "start" | "end" = align;
         let left = 0;
 
-        if (align === "start" && spaceRight < menuWidth) {
+        if (align === "start" && spaceRight < maxWidth) {
           // Not enough space on the right, align to end
           horizontal = "end";
-          left = triggerRect.right - menuWidth;
-        } else if (align === "end" && spaceLeft < menuWidth) {
+          left = triggerRect.right - maxWidth;
+        } else if (align === "end" && spaceLeft < maxWidth) {
           // Not enough space on the left, align to start
           horizontal = "start";
           left = triggerRect.left;
         } else {
           left =
-            align === "start"
-              ? triggerRect.left
-              : triggerRect.right - menuWidth;
+            align === "start" ? triggerRect.left : triggerRect.right - maxWidth;
         }
 
-        setPosition({ vertical, horizontal, maxHeight, top, left });
+        // Clamp left position to prevent going off-screen
+        left = Math.max(
+          minMargin,
+          Math.min(left, viewportWidth - maxWidth - minMargin),
+        );
+
+        // Clamp top position to prevent going off-screen
+        top = Math.max(minMargin, top);
+
+        setPosition({
+          vertical,
+          horizontal,
+          maxHeight,
+          maxWidth: `${maxWidth}px`,
+          top,
+          left,
+        });
         setIsPositioned(true);
       };
 
@@ -194,17 +213,23 @@ export function DropdownMenu({
               ref={contentRef}
               data-dropdown-menu
               className={cn(
-                "fixed w-60 rounded-md border bg-popover p-1 shadow-md z-50 transition-opacity duration-75",
-                position.maxHeight !== "none" && "overflow-y-auto",
+                "fixed rounded-md border bg-popover p-1 shadow-md z-50 transition-opacity duration-75",
+                (position.maxHeight !== "none" ||
+                  position.maxWidth !== "none") &&
+                  "overflow-auto",
                 !isPositioned && "opacity-0",
               )}
               style={{
                 top: `${position.top}px`,
                 left: `${position.left}px`,
+                width:
+                  position.maxWidth !== "none" ? position.maxWidth : "15rem",
                 maxHeight:
                   position.maxHeight !== "none"
                     ? position.maxHeight
                     : undefined,
+                maxWidth:
+                  position.maxWidth !== "none" ? position.maxWidth : undefined,
               }}
             >
               {children}
@@ -264,6 +289,7 @@ export function DropdownMenuSub({ trigger, children }: DropdownMenuSubProps) {
     horizontal: "right" as "left" | "right",
     vertical: "top" as "top" | "bottom" | "center",
     maxHeight: "none" as string,
+    maxWidth: "none" as string,
     top: 0,
     left: 0,
   });
@@ -332,20 +358,24 @@ export function DropdownMenuSub({ trigger, children }: DropdownMenuSubProps) {
 
         const menuWidth = 240; // w-60  = 15rem = 240px
         const overlap = 8; // Increase overlap for smoother navigation
+        const minMargin = 8; // Minimum margin from viewport edge
+
+        // Calculate max width (constrain to viewport width - margins)
+        const maxWidth = Math.min(menuWidth, viewportWidth - minMargin * 2);
 
         // Determine horizontal position (prefer right)
         let horizontal: "left" | "right" = "right";
         let left = 0;
 
-        if (spaceRight >= menuWidth + overlap) {
+        if (spaceRight >= maxWidth + overlap) {
           horizontal = "right";
           left = triggerRect.right - overlap;
-        } else if (spaceLeft >= menuWidth + overlap) {
+        } else if (spaceLeft >= maxWidth + overlap) {
           horizontal = "left";
-          left = triggerRect.left - menuWidth + overlap;
+          left = triggerRect.left - maxWidth + overlap;
         } else if (spaceLeft > spaceRight) {
           horizontal = "left";
-          left = triggerRect.left - menuWidth + overlap;
+          left = triggerRect.left - maxWidth + overlap;
         } else {
           horizontal = "right";
           left = triggerRect.right - overlap;
@@ -380,7 +410,23 @@ export function DropdownMenuSub({ trigger, children }: DropdownMenuSubProps) {
           }
         }
 
-        setPosition({ horizontal, vertical, maxHeight, top, left });
+        // Clamp left position to prevent going off-screen
+        left = Math.max(
+          minMargin,
+          Math.min(left, viewportWidth - maxWidth - minMargin),
+        );
+
+        // Clamp top position to prevent going off-screen
+        top = Math.max(minMargin, top);
+
+        setPosition({
+          horizontal,
+          vertical,
+          maxHeight,
+          maxWidth: `${maxWidth}px`,
+          top,
+          left,
+        });
         setIsPositioned(true);
       };
 
@@ -444,15 +490,21 @@ export function DropdownMenuSub({ trigger, children }: DropdownMenuSubProps) {
               ref={contentRef}
               data-dropdown-menu
               className={cn(
-                "w-60 rounded-md border bg-popover p-1 shadow-md transition-opacity duration-75",
-                position.maxHeight !== "none" && "overflow-y-auto",
+                "rounded-md border bg-popover p-1 shadow-md transition-opacity duration-75",
+                (position.maxHeight !== "none" ||
+                  position.maxWidth !== "none") &&
+                  "overflow-auto",
                 !isPositioned && "opacity-0",
               )}
               style={{
+                width:
+                  position.maxWidth !== "none" ? position.maxWidth : "15rem",
                 maxHeight:
                   position.maxHeight !== "none"
                     ? position.maxHeight
                     : undefined,
+                maxWidth:
+                  position.maxWidth !== "none" ? position.maxWidth : undefined,
               }}
             >
               {children}

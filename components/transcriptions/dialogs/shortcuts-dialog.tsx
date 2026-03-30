@@ -16,15 +16,17 @@ import { Select } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useModal } from "@/components/use-modal";
 import {
-  addCustomShortcut,
   CustomShortcut,
   defaultShortcuts,
-  deleteCustomShortcut,
-  getCustomShortcuts,
 } from "@/lib/shortcuts";
+import {
+  useCustomShortcuts,
+  useAddCustomShortcut,
+  useDeleteCustomShortcut,
+} from "@/hooks/use-shortcuts";
 import { PlusIcon, TrashIcon } from "lucide-react";
 import { useTranslations } from "@/components/locale-provider";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export function useShortcutsModal() {
@@ -33,29 +35,14 @@ export function useShortcutsModal() {
 
 export function ShortcutsDialog() {
   const { isOpen, close } = useShortcutsModal();
-  const [customShortcuts, setCustomShortcuts] = useState<CustomShortcut[]>([]);
+  const { data: customShortcuts = [], isLoading: isLoadingShortcuts } = useCustomShortcuts();
+  const addShortcut = useAddCustomShortcut();
+  const deleteShortcut = useDeleteCustomShortcut();
   const [newKey, setNewKey] = useState("");
   const [newText, setNewText] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const t = useTranslations("dialog.shortcuts");
 
-  // Load shortcuts when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      setIsLoading(true);
-      getCustomShortcuts()
-        .then((shortcuts) => {
-          setCustomShortcuts(shortcuts);
-        })
-        .catch((error) => {
-          console.error("Failed to load shortcuts:", error);
-          toast.error(t("errors.loadFailed"));
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    }
-  }, [isOpen]);
+  const isLoading = isLoadingShortcuts || addShortcut.isPending || deleteShortcut.isPending;
 
   // Predefined shortcut options
   const shortcutOptions = [
@@ -71,44 +58,41 @@ export function ShortcutsDialog() {
     })),
   ];
 
-  const handleAddShortcut = async () => {
+  const handleAddShortcut = () => {
     if (!newKey || !newText) {
       toast.error(t("errors.provideBoth"));
       return;
     }
 
-    try {
-      setIsLoading(true);
-      await addCustomShortcut({
+    addShortcut.mutate(
+      {
         key: newKey,
         text: newText,
-      });
-      const shortcuts = await getCustomShortcuts();
-      setCustomShortcuts(shortcuts);
-      setNewKey("");
-      setNewText("");
-      toast.success(t("success.added"));
-    } catch (error) {
-      toast.error(t("errors.addFailed"));
-      console.error("Add shortcut error:", error);
-    } finally {
-      setIsLoading(false);
-    }
+      },
+      {
+        onSuccess: () => {
+          setNewKey("");
+          setNewText("");
+          toast.success(t("success.added"));
+        },
+        onError: (error) => {
+          toast.error(t("errors.addFailed"));
+          console.error("Add shortcut error:", error);
+        },
+      },
+    );
   };
 
-  const handleDeleteShortcut = async (id: string) => {
-    try {
-      setIsLoading(true);
-      await deleteCustomShortcut(id);
-      const shortcuts = await getCustomShortcuts();
-      setCustomShortcuts(shortcuts);
-      toast.success(t("success.deleted"));
-    } catch (error) {
-      toast.error(t("errors.deleteFailed"));
-      console.error("Delete shortcut error:", error);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleDeleteShortcut = (id: string) => {
+    deleteShortcut.mutate(id, {
+      onSuccess: () => {
+        toast.success(t("success.deleted"));
+      },
+      onError: (error) => {
+        toast.error(t("errors.deleteFailed"));
+        console.error("Delete shortcut error:", error);
+      },
+    });
   };
 
   return (

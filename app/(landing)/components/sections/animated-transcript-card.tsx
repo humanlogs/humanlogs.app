@@ -35,6 +35,10 @@ const SPEAKERS = [
   { name: "Speaker 1", color: "bg-blue-100 text-blue-900 border-blue-300" },
 ];
 
+interface AnimatedTranscriptCardProps {
+  showHoverOverlay?: boolean;
+}
+
 // Parse text into words with their positions
 interface WordData {
   text: string;
@@ -96,7 +100,9 @@ const findSynonym = (word: string): string | null => {
   return null;
 };
 
-export const AnimatedTranscriptCard = () => {
+export const AnimatedTranscriptCard = ({
+  showHoverOverlay = true,
+}: AnimatedTranscriptCardProps) => {
   const t = useTranslations("transcriptCard");
   const [wordStates, setWordStates] = useState<Map<number, string>>(new Map());
   const [activeWordIndex, setActiveWordIndex] = useState(0);
@@ -196,15 +202,17 @@ export const AnimatedTranscriptCard = () => {
   return (
     <div className="relative group bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
       {/* Hover Overlay */}
-      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex items-center justify-center">
-        <Link
-          href="/app/login"
-          className="flex items-center gap-2 bg-white text-black px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
-        >
-          {t("tryItYourself")}
-          <ArrowRight className="h-4 w-4" />
-        </Link>
-      </div>
+      {showHoverOverlay && (
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex items-center justify-center">
+          <Link
+            href="/app/login"
+            className="flex items-center gap-2 bg-white text-black px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+          >
+            {t("tryItYourself")}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      )}
 
       <FakeToolbar />
       <div className="p-6 space-y-4">

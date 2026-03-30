@@ -1,175 +1,177 @@
 {
-    "encryption": {
-        "cannotAccess": {
-            "title": "Impossible d'accéder à la transcription",
-            "noCertificate": {
-                "badge": "Certificat de chiffrement requis",
-                "description": "Cette transcription est chiffrée. Vous devez importer votre certificat de chiffrement pour y accéder.",
-                "steps": {
-                    "title": "Ce que vous devez faire :",
-                    "step1": "Localisez votre fichier de certificat de chiffrement (téléchargé lors de l'activation du chiffrement)",
-                    "step2": "Cliquez sur le bouton ci-dessous pour l'importer",
-                    "step3": "Vos transcriptions chiffrées seront alors accessibles"
+    "account": {
+        "encryption": {
+            "cannotAccess": {
+                "title": "Impossible d'accéder à la transcription",
+                "noCertificate": {
+                    "badge": "Certificat de chiffrement requis",
+                    "description": "Cette transcription est chiffrée. Vous devez importer votre certificat de chiffrement pour y accéder.",
+                    "steps": {
+                        "title": "Ce que vous devez faire :",
+                        "step1": "Localisez votre fichier de certificat de chiffrement (téléchargé lors de l'activation du chiffrement)",
+                        "step2": "Cliquez sur le bouton ci-dessous pour l'importer",
+                        "step3": "Vos transcriptions chiffrées seront alors accessibles"
+                    },
+                    "button": "Importer le certificat"
                 },
-                "button": "Importer le certificat"
-            },
-            "certificateMismatch": {
-                "badge": "Certificat incompatible",
-                "description": "Cette transcription a été chiffrée avec un certificat différent. Le certificat chargé sur cet appareil ne peut pas la déchiffrer.",
-                "reasons": {
-                    "title": "Raisons possibles :",
-                    "reason1": "Cette transcription a été créée par un autre utilisateur",
-                    "reason2": "Vous avez réinitialisé votre chiffrement et il s'agit d'une ancienne transcription",
-                    "reason3": "Vous utilisez un certificat de chiffrement différent"
-                },
-                "note": "Si vous avez le certificat original utilisé pour chiffrer cette transcription, vous pouvez essayer de l'importer.",
-                "button": "Essayer un autre certificat"
-            }
-        },
-        "settings": {
-            "loading": "Chargement...",
-            "activeStatus": {
-                "title": "Chiffrement actif",
-                "description": "Vos transcriptions sont protégées par un chiffrement de bout en bout.",
-                "button": "Télécharger le certificat"
-            },
-            "deviceTrust": {
-                "title": "Confiance de l'appareil",
-                "description": "Lorsque vous faites confiance à un appareil, votre certificat de chiffrement reste stocké dans votre navigateur même après la déconnexion. Ne faites confiance qu'à vos appareils personnels.",
-                "label": "Faire confiance à cet appareil",
-                "enabled": "Cet appareil est de confiance",
-                "disabled": "Cet appareil n'est pas de confiance",
-                "removeButton": "Supprimer la clé de cet appareil"
-            },
-            "dangerZone": {
-                "title": "Zone dangereuse",
-                "description": "La désactivation du chiffrement supprimera toutes les clés de chiffrement et vous perdrez l'accès aux données précédemment chiffrées.",
-                "button": "Désactiver le chiffrement de bout en bout"
-            },
-            "disableDialog": {
-                "title": "Désactiver le chiffrement de bout en bout ?",
-                "description": "Cette action supprimera toutes les clés et paramètres de chiffrement.",
-                "warning": {
-                    "title": "Attention : Cette action est irréversible",
-                    "point1": "Toutes vos clés de chiffrement seront définitivement supprimées",
-                    "point2": "Vous perdrez l'accès à toutes les transcriptions précédemment chiffrées",
-                    "point3": "Cela ne peut pas être annulé"
-                },
-                "confirmation": "Êtes-vous absolument sûr de vouloir désactiver le chiffrement ?",
-                "cancel": "Annuler",
-                "confirm": "Oui, désactiver le chiffrement"
-            },
-            "removeKeyDialog": {
-                "title": "Supprimer la clé de chiffrement de cet appareil ?",
-                "description": "Votre certificat de chiffrement sera supprimé de ce navigateur.",
-                "warning": {
-                    "title": "Avant de continuer :",
-                    "point1": "Assurez-vous d'avoir votre certificat de chiffrement sauvegardé ailleurs",
-                    "point2": "Vous devrez réimporter votre certificat pour accéder aux transcriptions chiffrées sur cet appareil",
-                    "point3": "Cela n'affecte que cet appareil - vos paramètres de chiffrement restent actifs"
-                },
-                "cancel": "Annuler",
-                "confirm": "Supprimer la clé"
-            }
-        },
-        "import": {
-            "compact": {
-                "badge": "Certificat de chiffrement requis",
-                "description": "Téléchargez votre certificat pour accéder aux données chiffrées sur cet appareil.",
-                "button": "Télécharger le certificat",
-                "uploading": "Téléchargement en cours..."
-            },
-            "full": {
-                "title": "Importer le certificat de chiffrement",
-                "subtitle": "Accéder à vos transcriptions chiffrées",
-                "description": "Pour accéder à vos transcriptions chiffrées, veuillez importer votre certificat de chiffrement. Il s'agit du fichier que vous avez téléchargé lors de l'activation du chiffrement.",
-                "howToFind": {
-                    "title": "Comment trouver votre certificat :",
-                    "point1": "Recherchez dans votre dossier Téléchargements un fichier nommé comme encryption-certificate-*.json",
-                    "point2": "Vérifiez l'emplacement de sauvegarde sécurisé où vous l'avez enregistré",
-                    "point3": "Si vous utilisez plusieurs appareils, vous l'avez peut-être sur un autre ordinateur"
-                },
-                "button": "Choisir le fichier de certificat",
-                "uploading": "Téléchargement du certificat...",
-                "lostCertificate": {
-                    "title": "Certificat perdu ?",
-                    "description": "Si vous avez perdu votre certificat de chiffrement, vous ne pourrez pas accéder aux données précédemment chiffrées. Vous pouvez désactiver et réactiver le chiffrement pour recommencer, mais les anciennes données seront inaccessibles."
+                "certificateMismatch": {
+                    "badge": "Certificat incompatible",
+                    "description": "Cette transcription a été chiffrée avec un certificat différent. Le certificat chargé sur cet appareil ne peut pas la déchiffrer.",
+                    "reasons": {
+                        "title": "Raisons possibles :",
+                        "reason1": "Cette transcription a été créée par un autre utilisateur",
+                        "reason2": "Vous avez réinitialisé votre chiffrement et il s'agit d'une ancienne transcription",
+                        "reason3": "Vous utilisez un certificat de chiffrement différent"
+                    },
+                    "note": "Si vous avez le certificat original utilisé pour chiffrer cette transcription, vous pouvez essayer de l'importer.",
+                    "button": "Essayer un autre certificat"
                 }
             },
-            "trustDialog": {
-                "title": "Faites-vous confiance à cet ordinateur ?",
-                "description": "Devons-nous conserver votre certificat de chiffrement stocké sur cet appareil ?",
-                "trusted": {
-                    "title": "Appareil de confiance",
-                    "description": "Votre certificat restera stocké après la déconnexion. N'utilisez cela que sur vos appareils personnels."
+            "settings": {
+                "loading": "Chargement...",
+                "activeStatus": {
+                    "title": "Chiffrement actif",
+                    "description": "Vos transcriptions sont protégées par un chiffrement de bout en bout.",
+                    "button": "Télécharger le certificat"
                 },
-                "untrusted": {
-                    "title": "Appareil non fiable",
-                    "description": "Votre certificat sera supprimé lorsque vous vous déconnecterez. Utilisez cela sur les ordinateurs partagés ou publics."
+                "deviceTrust": {
+                    "title": "Confiance de l'appareil",
+                    "description": "Lorsque vous faites confiance à un appareil, votre certificat de chiffrement reste stocké dans votre navigateur même après la déconnexion. Ne faites confiance qu'à vos appareils personnels.",
+                    "label": "Faire confiance à cet appareil",
+                    "enabled": "Cet appareil est de confiance",
+                    "disabled": "Cet appareil n'est pas de confiance",
+                    "removeButton": "Supprimer la clé de cet appareil"
                 },
-                "dontTrust": "Ne pas faire confiance",
-                "trust": "Faire confiance à cet ordinateur"
-            },
-            "success": "Certificat chargé avec succès !",
-            "error": "Échec du chargement du certificat. Veuillez vérifier le fichier et réessayer."
-        },
-        "setup": {
-            "title": "Protégez votre vie privée",
-            "subtitle": "Choisissez comment sécuriser vos transcriptions",
-            "enabled": {
-                "title": "Chiffrement de bout en bout",
-                "badge": "Recommandé",
-                "description": "Vos données sont chiffrées sur votre appareil avant d'être envoyées à nos serveurs. Vous seul pouvez déchiffrer vos données — même nous ne pouvons pas lire vos transcriptions.",
-                "generate": {
-                    "intro": "Nous générerons un certificat de chiffrement unique pour vous. Vous aurez besoin de ce certificat pour :",
-                    "point1": "Accéder à vos transcriptions chiffrées",
-                    "point2": "Utiliser l'application sur d'autres appareils",
-                    "point3": "Récupérer vos données en cas de perte d'accès à cet appareil",
-                    "button": "Générer le certificat",
-                    "generating": "Génération..."
+                "dangerZone": {
+                    "title": "Zone dangereuse",
+                    "description": "La désactivation du chiffrement supprimera toutes les clés de chiffrement et vous perdrez l'accès aux données précédemment chiffrées.",
+                    "button": "Désactiver le chiffrement de bout en bout"
                 },
-                "downloaded": {
-                    "success": "Certificat téléchargé !",
-                    "instruction": "Votre certificat de chiffrement a été enregistré dans votre dossier de téléchargements. Gardez-le en sécurité !"
+                "disableDialog": {
+                    "title": "Désactiver le chiffrement de bout en bout ?",
+                    "description": "Cette action supprimera toutes les clés et paramètres de chiffrement.",
+                    "warning": {
+                        "title": "Attention : Cette action est irréversible",
+                        "point1": "Toutes vos clés de chiffrement seront définitivement supprimées",
+                        "point2": "Vous perdrez l'accès à toutes les transcriptions précédemment chiffrées",
+                        "point3": "Cela ne peut pas être annulé"
+                    },
+                    "confirmation": "Êtes-vous absolument sûr de vouloir désactiver le chiffrement ?",
+                    "cancel": "Annuler",
+                    "confirm": "Oui, désactiver le chiffrement"
                 },
-                "checklist": {
-                    "title": "Avant de continuer, veuillez confirmer :",
-                    "saved": "J'ai enregistré mon certificat dans un endroit sécurisé (gestionnaire de mots de passe, stockage cloud chiffré, etc.)",
-                    "emailed": "Je comprends que je dois sauvegarder mon certificat (me l'envoyer par e-mail, le stocker sur un autre appareil, etc.)",
-                    "understood": "Je comprends que si je perds mon certificat, je perdrai définitivement l'accès à mes transcriptions chiffrées"
+                "removeKeyDialog": {
+                    "title": "Supprimer la clé de chiffrement de cet appareil ?",
+                    "description": "Votre certificat de chiffrement sera supprimé de ce navigateur.",
+                    "warning": {
+                        "title": "Avant de continuer :",
+                        "point1": "Assurez-vous d'avoir votre certificat de chiffrement sauvegardé ailleurs",
+                        "point2": "Vous devrez réimporter votre certificat pour accéder aux transcriptions chiffrées sur cet appareil",
+                        "point3": "Cela n'affecte que cet appareil - vos paramètres de chiffrement restent actifs"
+                    },
+                    "cancel": "Annuler",
+                    "confirm": "Supprimer la clé"
                 }
             },
-            "skip": {
-                "title": "Ignorer le chiffrement",
-                "description": "Vous pourrez configurer le chiffrement plus tard dans les paramètres de votre compte. Vos données seront stockées sur nos serveurs sans chiffrement de bout en bout.",
-                "button": "Continuer sans chiffrement"
-            },
-            "actions": {
-                "downloadAgain": "Télécharger à nouveau",
-                "continue": "Continuer"
-            },
-            "trustDialog": {
-                "title": "Faites-vous confiance à cet ordinateur ?",
-                "description": "Si vous faites confiance à cet ordinateur, nous stockerons votre certificat de chiffrement en toute sécurité dans votre navigateur. Vous n'aurez pas besoin de le télécharger à nouveau lorsque vous vous connecterez (mais ce n'est pas une raison pour ne pas conserver une sauvegarde !).",
-                "trusted": {
-                    "title": "Appareil de confiance",
-                    "description": "Votre certificat restera stocké après la déconnexion. N'utilisez cela que sur vos appareils personnels."
+            "import": {
+                "compact": {
+                    "badge": "Certificat de chiffrement requis",
+                    "description": "Téléchargez votre certificat pour accéder aux données chiffrées sur cet appareil.",
+                    "button": "Télécharger le certificat",
+                    "uploading": "Téléchargement en cours..."
                 },
-                "untrusted": {
-                    "title": "Appareil non fiable",
-                    "description": "Votre certificat sera supprimé lorsque vous vous déconnecterez. Utilisez cela sur les ordinateurs partagés ou publics."
+                "full": {
+                    "title": "Importer le certificat de chiffrement",
+                    "subtitle": "Accéder à vos transcriptions chiffrées",
+                    "description": "Pour accéder à vos transcriptions chiffrées, veuillez importer votre certificat de chiffrement. Il s'agit du fichier que vous avez téléchargé lors de l'activation du chiffrement.",
+                    "howToFind": {
+                        "title": "Comment trouver votre certificat :",
+                        "point1": "Recherchez dans votre dossier Téléchargements un fichier nommé comme encryption-certificate-*.json",
+                        "point2": "Vérifiez l'emplacement de sauvegarde sécurisé où vous l'avez enregistré",
+                        "point3": "Si vous utilisez plusieurs appareils, vous l'avez peut-être sur un autre ordinateur"
+                    },
+                    "button": "Choisir le fichier de certificat",
+                    "uploading": "Téléchargement du certificat...",
+                    "lostCertificate": {
+                        "title": "Certificat perdu ?",
+                        "description": "Si vous avez perdu votre certificat de chiffrement, vous ne pourrez pas accéder aux données précédemment chiffrées. Vous pouvez désactiver et réactiver le chiffrement pour recommencer, mais les anciennes données seront inaccessibles."
+                    }
                 },
-                "dontTrust": "Ne pas faire confiance",
-                "trust": "Faire confiance à cet ordinateur"
+                "trustDialog": {
+                    "title": "Faites-vous confiance à cet ordinateur ?",
+                    "description": "Devons-nous conserver votre certificat de chiffrement stocké sur cet appareil ?",
+                    "trusted": {
+                        "title": "Appareil de confiance",
+                        "description": "Votre certificat restera stocké après la déconnexion. N'utilisez cela que sur vos appareils personnels."
+                    },
+                    "untrusted": {
+                        "title": "Appareil non fiable",
+                        "description": "Votre certificat sera supprimé lorsque vous vous déconnecterez. Utilisez cela sur les ordinateurs partagés ou publics."
+                    },
+                    "dontTrust": "Ne pas faire confiance",
+                    "trust": "Faire confiance à cet ordinateur"
+                },
+                "success": "Certificat chargé avec succès !",
+                "error": "Échec du chargement du certificat. Veuillez vérifier le fichier et réessayer."
             },
-            "errors": {
-                "generate": "Échec de la génération du certificat. Veuillez réessayer.",
-                "enable": "Échec de l'activation du chiffrement. Veuillez réessayer."
-            },
-            "success": {
-                "generate": "Certificat généré et téléchargé ! Veuillez l'enregistrer en toute sécurité.",
-                "deviceTrust": "L'appareil est maintenant de confiance",
-                "deviceUntrust": "L'appareil n'est plus de confiance"
+            "setup": {
+                "title": "Protégez votre vie privée",
+                "subtitle": "Choisissez comment sécuriser vos transcriptions",
+                "enabled": {
+                    "title": "Chiffrement de bout en bout",
+                    "badge": "Recommandé",
+                    "description": "Vos données sont chiffrées sur votre appareil avant d'être envoyées à nos serveurs. Vous seul pouvez déchiffrer vos données — même nous ne pouvons pas lire vos transcriptions.",
+                    "generate": {
+                        "intro": "Nous générerons un certificat de chiffrement unique pour vous. Vous aurez besoin de ce certificat pour :",
+                        "point1": "Accéder à vos transcriptions chiffrées",
+                        "point2": "Utiliser l'application sur d'autres appareils",
+                        "point3": "Récupérer vos données en cas de perte d'accès à cet appareil",
+                        "button": "Générer le certificat",
+                        "generating": "Génération..."
+                    },
+                    "downloaded": {
+                        "success": "Certificat téléchargé !",
+                        "instruction": "Votre certificat de chiffrement a été enregistré dans votre dossier de téléchargements. Gardez-le en sécurité !"
+                    },
+                    "checklist": {
+                        "title": "Avant de continuer, veuillez confirmer :",
+                        "saved": "J'ai enregistré mon certificat dans un endroit sécurisé (gestionnaire de mots de passe, stockage cloud chiffré, etc.)",
+                        "emailed": "Je comprends que je dois sauvegarder mon certificat (me l'envoyer par e-mail, le stocker sur un autre appareil, etc.)",
+                        "understood": "Je comprends que si je perds mon certificat, je perdrai définitivement l'accès à mes transcriptions chiffrées"
+                    }
+                },
+                "skip": {
+                    "title": "Ignorer le chiffrement",
+                    "description": "Vous pourrez configurer le chiffrement plus tard dans les paramètres de votre compte. Vos données seront stockées sur nos serveurs sans chiffrement de bout en bout.",
+                    "button": "Continuer sans chiffrement"
+                },
+                "actions": {
+                    "downloadAgain": "Télécharger à nouveau",
+                    "continue": "Continuer"
+                },
+                "trustDialog": {
+                    "title": "Faites-vous confiance à cet ordinateur ?",
+                    "description": "Si vous faites confiance à cet ordinateur, nous stockerons votre certificat de chiffrement en toute sécurité dans votre navigateur. Vous n'aurez pas besoin de le télécharger à nouveau lorsque vous vous connecterez (mais ce n'est pas une raison pour ne pas conserver une sauvegarde !).",
+                    "trusted": {
+                        "title": "Appareil de confiance",
+                        "description": "Votre certificat restera stocké après la déconnexion. N'utilisez cela que sur vos appareils personnels."
+                    },
+                    "untrusted": {
+                        "title": "Appareil non fiable",
+                        "description": "Votre certificat sera supprimé lorsque vous vous déconnecterez. Utilisez cela sur les ordinateurs partagés ou publics."
+                    },
+                    "dontTrust": "Ne pas faire confiance",
+                    "trust": "Faire confiance à cet ordinateur"
+                },
+                "errors": {
+                    "generate": "Échec de la génération du certificat. Veuillez réessayer.",
+                    "enable": "Échec de l'activation du chiffrement. Veuillez réessayer."
+                },
+                "success": {
+                    "generate": "Certificat généré et téléchargé ! Veuillez l'enregistrer en toute sécurité.",
+                    "deviceTrust": "L'appareil est maintenant de confiance",
+                    "deviceUntrust": "L'appareil n'est plus de confiance"
+                }
             }
         }
     }

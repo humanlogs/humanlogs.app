@@ -7,7 +7,7 @@ import {
   useToggleDeviceTrust,
 } from "@/hooks/use-encryption";
 import { CheckCircleIcon, KeyIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "@/components/locale-provider";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
@@ -32,7 +32,7 @@ export function SetupEncryption({
   onSkip,
   hideSkipOption = false,
 }: SetupEncryptionProps) {
-  const t = useTranslations("encryption.setup");
+  const t = useTranslations("account.encryption.setup");
   const [certificateDownloaded, setCertificateDownloaded] = useState(false);
   const [showTrustDialog, setShowTrustDialog] = useState(false);
   const [certificateData, setCertificateData] = useState<{

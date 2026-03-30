@@ -10,6 +10,10 @@ import { MicrosoftLoginButton } from "react-social-login-buttons";
 import { LinkedInLoginButton } from "react-social-login-buttons";
 import { FacebookLoginButton } from "react-social-login-buttons";
 import { toast } from "sonner";
+import { AnimatedWave } from "@/app/(landing)/components/sections/animated-wave";
+import { AnimatedTranscriptCard } from "@/app/(landing)/components/sections/animated-transcript-card";
+import { TestimonialsSection } from "../../(landing)/components/sections";
+import { TestimonialCard } from "../../(landing)/components/sections/testimonials-section";
 
 type AuthProvider =
   | "google-oauth2"
@@ -91,229 +95,248 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-black p-4">
-      <div className="w-full max-w-md space-y-8 rounded-2xl bg-white p-8 shadow-xl dark:bg-zinc-950">
-        {/* Logo and Header */}
-        <div className="text-center space-y-4">
-          <div className="flex items-center justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.svg" alt="Logo" className="flex w-16 h-16" />
+    <div className="flex min-h-screen">
+      {/* Left Side - Login Form */}
+      <div className="flex-1 flex items-center justify-center bg-white dark:bg-black p-4 lg:p-8">
+        <div className="w-full max-w-md space-y-8 rounded-2xl p-8">
+          {/* Logo and Header */}
+          <div className="text-center space-y-4">
+            <div className="flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.svg" alt="Logo" className="flex w-16 h-16" />
+            </div>
+            <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+              {t("title")}
+            </h1>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              {t("subtitle")}
+            </p>
           </div>
-          <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            {t("title")}
-          </h1>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            {t("subtitle")}
-          </p>
+
+          <div className="mt-8 space-y-4">
+            {/* Local Auth - Simple Email/Password */}
+            {USE_LOCAL_AUTH ? (
+              <>
+                {!showEmailLogin ? (
+                  <Button
+                    onClick={() => setShowEmailLogin(true)}
+                    className="w-full h-11 text-base"
+                  >
+                    {t("signInWithEmail")}
+                  </Button>
+                ) : !showRegister ? (
+                  <form onSubmit={handleLocalLogin} className="space-y-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">{t("email")}</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder={t("emailPlaceholder")}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        disabled={isLoading}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="password">{t("password")}</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder={t("passwordPlaceholder")}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        disabled={isLoading}
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full h-11"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? t("signingIn") : t("signIn")}
+                    </Button>
+                    <div className="text-center text-sm">
+                      <button
+                        type="button"
+                        onClick={() => setShowRegister(true)}
+                        className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                      >
+                        {t("noAccount")}
+                      </button>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="w-full"
+                      onClick={() => setShowEmailLogin(false)}
+                    >
+                      {t("back")}
+                    </Button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleLocalRegister} className="space-y-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">{t("name")}</Label>
+                      <Input
+                        id="name"
+                        type="text"
+                        placeholder={t("namePlaceholder")}
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        disabled={isLoading}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reg-email">{t("email")}</Label>
+                      <Input
+                        id="reg-email"
+                        type="email"
+                        placeholder={t("emailPlaceholder")}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        disabled={isLoading}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reg-password">{t("password")}</Label>
+                      <Input
+                        id="reg-password"
+                        type="password"
+                        placeholder={t("passwordPlaceholder")}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        disabled={isLoading}
+                        minLength={8}
+                      />
+                      <p className="text-xs text-zinc-500">
+                        {t("minPasswordLength")}
+                      </p>
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full h-11"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? t("creatingAccount") : t("createAccount")}
+                    </Button>
+                    <div className="text-center text-sm">
+                      <button
+                        type="button"
+                        onClick={() => setShowRegister(false)}
+                        className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                      >
+                        {t("alreadyHaveAccount")}
+                      </button>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="w-full"
+                      onClick={() => {
+                        setShowRegister(false);
+                        setShowEmailLogin(false);
+                      }}
+                    >
+                      {t("back")}
+                    </Button>
+                  </form>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Auth0 Social Login Buttons */}
+                <div className="space-y-3">
+                  <div>
+                    <GoogleLoginButton
+                      onClick={() => handleSocialLogin("google-oauth2")}
+                      text="Continue with Google"
+                      style={{
+                        fontSize: "14px",
+                        height: "44px",
+                        borderRadius: "8px",
+                        boxShadow: "none",
+                        border: "1px solid #E5E7EB",
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <MicrosoftLoginButton
+                      onClick={() => handleSocialLogin("windowslive")}
+                      text="Continue with Microsoft"
+                      style={{
+                        fontSize: "14px",
+                        height: "44px",
+                        borderRadius: "8px",
+                        boxShadow: "none",
+                        border: "1px solid #444",
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <LinkedInLoginButton
+                      onClick={() => handleSocialLogin("linkedin")}
+                      text="Continue with LinkedIn"
+                      style={{
+                        fontSize: "14px",
+                        height: "44px",
+                        borderRadius: "8px",
+                        boxShadow: "none",
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <FacebookLoginButton
+                      onClick={() => handleSocialLogin("facebook")}
+                      text="Continue with Facebook"
+                      style={{
+                        fontSize: "14px",
+                        height: "44px",
+                        borderRadius: "8px",
+                        boxShadow: "none",
+                      }}
+                    />
+                  </div>
+
+                  <Button
+                    onClick={() =>
+                      handleSocialLogin("Username-Password-Authentication")
+                    }
+                    variant="link"
+                    className={"w-full mt-4"}
+                  >
+                    Continue with an email
+                  </Button>
+                </div>
+              </>
+            )}
+
+            <div className="text-center text-xs text-zinc-500 dark:text-zinc-400 pt-4">
+              {t("termsAndConditions")}
+            </div>
+          </div>
         </div>
+      </div>
 
-        <div className="mt-8 space-y-4">
-          {/* Local Auth - Simple Email/Password */}
-          {USE_LOCAL_AUTH ? (
-            <>
-              {!showEmailLogin ? (
-                <Button
-                  onClick={() => setShowEmailLogin(true)}
-                  className="w-full h-11 text-base"
-                >
-                  {t("signInWithEmail")}
-                </Button>
-              ) : !showRegister ? (
-                <form onSubmit={handleLocalLogin} className="space-y-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">{t("email")}</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder={t("emailPlaceholder")}
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">{t("password")}</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder={t("passwordPlaceholder")}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full h-11"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? t("signingIn") : t("signIn")}
-                  </Button>
-                  <div className="text-center text-sm">
-                    <button
-                      type="button"
-                      onClick={() => setShowRegister(true)}
-                      className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-                    >
-                      {t("noAccount")}
-                    </button>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="w-full"
-                    onClick={() => setShowEmailLogin(false)}
-                  >
-                    {t("back")}
-                  </Button>
-                </form>
-              ) : (
-                <form onSubmit={handleLocalRegister} className="space-y-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">{t("name")}</Label>
-                    <Input
-                      id="name"
-                      type="text"
-                      placeholder={t("namePlaceholder")}
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-email">{t("email")}</Label>
-                    <Input
-                      id="reg-email"
-                      type="email"
-                      placeholder={t("emailPlaceholder")}
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-password">{t("password")}</Label>
-                    <Input
-                      id="reg-password"
-                      type="password"
-                      placeholder={t("passwordPlaceholder")}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      disabled={isLoading}
-                      minLength={8}
-                    />
-                    <p className="text-xs text-zinc-500">
-                      {t("minPasswordLength")}
-                    </p>
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full h-11"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? t("creatingAccount") : t("createAccount")}
-                  </Button>
-                  <div className="text-center text-sm">
-                    <button
-                      type="button"
-                      onClick={() => setShowRegister(false)}
-                      className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-                    >
-                      {t("alreadyHaveAccount")}
-                    </button>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="w-full"
-                    onClick={() => {
-                      setShowRegister(false);
-                      setShowEmailLogin(false);
-                    }}
-                  >
-                    {t("back")}
-                  </Button>
-                </form>
-              )}
-            </>
-          ) : (
-            <>
-              {/* Auth0 Social Login Buttons */}
-              <div className="space-y-3">
-                <div>
-                  <GoogleLoginButton
-                    onClick={() => handleSocialLogin("google-oauth2")}
-                    text="Continue with Google"
-                    style={{
-                      fontSize: "14px",
-                      height: "44px",
-                      borderRadius: "8px",
-                      boxShadow: "none",
-                      border: "1px solid #E5E7EB",
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <MicrosoftLoginButton
-                    onClick={() => handleSocialLogin("windowslive")}
-                    text="Continue with Microsoft"
-                    style={{
-                      fontSize: "14px",
-                      height: "44px",
-                      borderRadius: "8px",
-                      boxShadow: "none",
-                      border: "1px solid #444",
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <LinkedInLoginButton
-                    onClick={() => handleSocialLogin("linkedin")}
-                    text="Continue with LinkedIn"
-                    style={{
-                      fontSize: "14px",
-                      height: "44px",
-                      borderRadius: "8px",
-                      boxShadow: "none",
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <FacebookLoginButton
-                    onClick={() => handleSocialLogin("facebook")}
-                    text="Continue with Facebook"
-                    style={{
-                      fontSize: "14px",
-                      height: "44px",
-                      borderRadius: "8px",
-                      boxShadow: "none",
-                    }}
-                  />
-                </div>
-
-                <Button
-                  onClick={() =>
-                    handleSocialLogin("Username-Password-Authentication")
-                  }
-                  variant="link"
-                  className={"w-full mt-4"}
-                >
-                  Continue with an email
-                </Button>
-              </div>
-            </>
-          )}
-
-          <div className="text-center text-xs text-zinc-500 dark:text-zinc-400 pt-4">
-            {t("termsAndConditions")}
+      {/* Right Side - Hero Animations */}
+      <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-zinc-50 to-zinc-100 border-l dark:from-gray-900 dark:to-black p-8 items-center justify-center">
+        <div className="w-full max-w-2xl space-y-8">
+          {/* Animated Wave */}
+          <div className="mb-8">
+            <AnimatedWave />
           </div>
+
+          {/* Animated Transcript Card */}
+          <div>
+            <AnimatedTranscriptCard showHoverOverlay={false} />
+          </div>
+          <TestimonialCard short />
         </div>
       </div>
     </div>

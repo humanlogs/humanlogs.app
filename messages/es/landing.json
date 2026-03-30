@@ -152,6 +152,30 @@
             }
         }
     },
+    "testimonials": {
+        "title": "Con la confianza de investigadores de todo el mundo",
+        "subtitle": "Descubre lo que los doctorandos e investigadores dicen sobre Humanlogs",
+        "items": {
+            "researcher1": {
+                "quote": "El editor basado en audio es revolucionario. Ahora puedo revisar y corregir mis transcripciones de entrevistas en una fracción del tiempo. El cifrado de extremo a extremo me da tranquilidad al trabajar con datos sensibles de participantes.",
+                "author": "Dra. Sarah Chen",
+                "role": "Candidata a Doctorado en Sociología",
+                "institution": "Universidad de Ámsterdam"
+            },
+            "researcher2": {
+                "quote": "Como investigador cualitativo que realiza cientos de entrevistas, Humanlogs ha transformado mi flujo de trabajo. La diarización de hablantes es increíblemente precisa, y me encanta mantener el control completo sobre mis datos de investigación.",
+                "author": "Prof. Marcus Williams",
+                "role": "Profesor Asociado de Antropología",
+                "institution": "Sciences Po París"
+            },
+            "researcher3": {
+                "quote": "Por fin, una herramienta de transcripción construida con GDPR en mente desde el principio. La política de cero retención y el cifrado del lado del cliente la hacen perfecta para manejar entrevistas de investigación médica sensible. Absolutamente esencial para mi trabajo.",
+                "author": "Dra. Emma Schmidt",
+                "role": "Investigadora Postdoctoral",
+                "institution": "Charité Berlín"
+            }
+        }
+    },
     "faq": {
         "title": "Preguntas frecuentes",
         "subtitle": "Todo lo que necesitas saber sobre los precios y funciones de Humanlogs",
