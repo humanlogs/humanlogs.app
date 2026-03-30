@@ -11,7 +11,7 @@ export const HeroSection = () => {
   return (
     <section className="container mx-auto px-4 pt-8 md:px-6 md:pt-6 pb-24">
       {/* Animated Wave */}
-      <div className="mb-12 sticky" style={{ top: 10 }}>
+      <div className="mb-12 sticky z-10" style={{ top: 10 }}>
         <AnimatedWave />
       </div>
 

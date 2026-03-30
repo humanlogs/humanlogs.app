@@ -118,7 +118,7 @@ export const databaseConfig = {
 export const awsConfig = {
   region: config.get<string>("aws.region"),
   accessKeyId: config.get<string>("aws.accessKeyId"),
-  secretAccessKey: config.get<string>("aws.accessKeySecret"),
+  secretAccessKey: config.get<string>("aws.secretAccessKey"),
   s3: {
     bucketName: config.get<string>("aws.s3.bucketName"),
   },

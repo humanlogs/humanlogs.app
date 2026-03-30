@@ -6,7 +6,7 @@ export const LandingFooter = () => {
   return (
     <footer className="border-t border-gray-800 bg-black">
       <div className="container mx-auto px-4 py-12 md:px-6">
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           {/* Logo */}
           <div>
             <Link href="/" className="text-3xl font-semibold text-white">
@@ -21,21 +21,25 @@ export const LandingFooter = () => {
           </div>
 
           {/* Use Cases */}
-          <div>
-            <h3 className="mb-4 text-sm font-semibold text-white">Use Cases</h3>
-            <ul className="space-y-3">
-              <li>
-                <Link
-                  href="/use-cases/research"
-                  className="text-sm text-gray-400 hover:text-white"
-                >
-                  Research
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {false && (
+            <div>
+              <h3 className="mb-4 text-sm font-semibold text-white">
+                Use Cases
+              </h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link
+                    href="/use-cases/research"
+                    className="text-sm text-gray-400 hover:text-white"
+                  >
+                    Research
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          )}
 
-          {/* Product */}
+          {/* Product / Contact / Open Source */}
           <div>
             <h3 className="mb-4 text-sm font-semibold text-white">Product</h3>
             <ul className="space-y-3">
@@ -47,13 +51,14 @@ export const LandingFooter = () => {
                   Pricing
                 </Link>
               </li>
-            </ul>
-          </div>
-
-          {/* Contact */}
-          <div>
-            <h3 className="mb-4 text-sm font-semibold text-white">Contact</h3>
-            <ul className="space-y-3">
+              <li>
+                <Link
+                  href="/#faq"
+                  className="text-sm text-gray-400 hover:text-white"
+                >
+                  FAQ
+                </Link>
+              </li>
               <li>
                 <Link
                   href="/contact"
@@ -62,63 +67,64 @@ export const LandingFooter = () => {
                   Contact Sales
                 </Link>
               </li>
-            </ul>
-          </div>
-
-          {/* Open Source */}
-          <div>
-            <h3 className="mb-4 text-sm font-semibold text-white">
-              Open Source
-            </h3>
-            <ul className="space-y-3">
               <li>
                 <a
-                  href="https://github.com/your-repo"
+                  href="https://github.com/humanlogs/humanlogs.app"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-sm text-gray-400 hover:text-white"
                 >
-                  <Github className="h-4 w-4" />
                   GitHub
                 </a>
               </li>
             </ul>
           </div>
-        </div>
 
-        {/* Legal Section */}
-        <div className="mt-12 border-t border-gray-800 pt-8">
-          <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <Link
-              href="/legal/privacy"
-              className="text-sm text-gray-400 hover:text-white"
-            >
-              Privacy Policy
-            </Link>
-            <Link
-              href="/legal/terms"
-              className="text-sm text-gray-400 hover:text-white"
-            >
-              Terms of Service
-            </Link>
-            <Link
-              href="/legal/cookies"
-              className="text-sm text-gray-400 hover:text-white"
-            >
-              Cookie Policy
-            </Link>
-            <Link
-              href="/legal/dpa"
-              className="text-sm text-gray-400 hover:text-white"
-            >
-              DPA
-            </Link>
-            <Link
-              href="/legal/subprocessors"
-              className="text-sm text-gray-400 hover:text-white"
-            >
-              Subprocessors
-            </Link>
+          {/* Legal */}
+          <div>
+            <h3 className="mb-4 text-sm font-semibold text-white">Legal</h3>
+            <ul className="space-y-3">
+              <li>
+                <Link
+                  href="/legal/privacy"
+                  className="text-sm text-gray-400 hover:text-white"
+                >
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/legal/terms"
+                  className="text-sm text-gray-400 hover:text-white"
+                >
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/legal/cookies"
+                  className="text-sm text-gray-400 hover:text-white"
+                >
+                  Cookie Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/legal/dpa"
+                  className="text-sm text-gray-400 hover:text-white"
+                >
+                  DPA
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/legal/subprocessors"
+                  className="text-sm text-gray-400 hover:text-white"
+                >
+                  Subprocessors
+                </Link>
+              </li>
+            </ul>
           </div>
         </div>
 

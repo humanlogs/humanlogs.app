@@ -1,0 +1,5 @@
+export { HeroSection } from "./hero-section";
+export { LogoSection } from "./logo-section";
+export { PricingSection } from "./pricing-section";
+export { EncryptionSection } from "./encryption-section";
+export { FAQSection } from "./faq-section";

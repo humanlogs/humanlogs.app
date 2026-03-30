@@ -22,8 +22,8 @@
         "url": ""
     },
     "aws": {
-        "accessKeyId": "yo",
-        "accessKeySecret": "yes",
+        "accessKeyId": "",
+        "secretAccessKey": "",
         "region": "us-east-1",
         "s3": {
             "bucketName": "ah"

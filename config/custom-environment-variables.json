@@ -23,7 +23,7 @@
     },
     "aws": {
         "accessKeyId": "AWS_ACCESS_KEY_ID",
-        "accessKeySecret": "AWS_ACCESS_KEY_SECRET",
+        "secretAccessKey": "AWS_ACCESS_KEY_SECRET",
         "region": "AWS_REGION",
         "s3": {
             "bucketName": "S3_BUCKET_NAME"

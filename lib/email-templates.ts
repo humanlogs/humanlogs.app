@@ -431,3 +431,129 @@ The Transcription App Team
     text,
   };
 }
+
+/**
+ * Create a contact form email template (for admin notification)
+ */
+export function getContactEmailTemplate(data: {
+  fullName: string;
+  email: string;
+  organization: string;
+  useCase: string;
+  message: string;
+}): EmailTemplate {
+  const useCaseLabels: Record<string, string> = {
+    journalism: "Journalism",
+    legal: "Legal",
+    government: "Government",
+    research: "Research",
+  };
+
+  const useCaseLabel = useCaseLabels[data.useCase] || data.useCase;
+
+  const content = `
+    <h2>New Contact Form Submission</h2>
+    <p>You have received a new message from the contact form:</p>
+    
+    <div style="background-color: #f9fafb; border-left: 4px solid #667eea; padding: 20px; margin: 20px 0; border-radius: 4px;">
+      <p style="margin: 8px 0;"><strong>Name:</strong> ${data.fullName}</p>
+      <p style="margin: 8px 0;"><strong>Email:</strong> <a href="mailto:${data.email}" style="color: #667eea;">${data.email}</a></p>
+      <p style="margin: 8px 0;"><strong>Organization:</strong> ${data.organization}</p>
+      <p style="margin: 8px 0;"><strong>Use Case:</strong> ${useCaseLabel}</p>
+    </div>
+
+    <div style="background-color: #ffffff; border: 1px solid #e5e7eb; padding: 20px; margin: 20px 0; border-radius: 4px;">
+      <p style="margin: 0 0 10px 0;"><strong>Message:</strong></p>
+      <p style="margin: 0; color: #374151; white-space: pre-wrap;">${data.message}</p>
+    </div>
+
+    <p style="color: #6b7280; font-size: 14px;">
+      Reply directly to this email to respond to ${data.fullName}.
+    </p>
+  `;
+
+  const html = getBaseTemplate(content, {
+    title: "New Contact Form Submission",
+    preheader: `New message from ${data.fullName}`,
+    footerText: "This is an automated notification from your contact form.",
+  });
+
+  const text = `
+New Contact Form Submission
+
+You have received a new message from the contact form:
+
+Name: ${data.fullName}
+Email: ${data.email}
+Organization: ${data.organization}
+Use Case: ${useCaseLabel}
+
+Message:
+${data.message}
+
+---
+Reply directly to this email to respond to ${data.fullName}.
+  `.trim();
+
+  return {
+    subject: `Contact Form: ${data.fullName} - ${useCaseLabel}`,
+    html,
+    text,
+  };
+}
+
+/**
+ * Create a contact confirmation email template (for user)
+ */
+export function getContactConfirmationTemplate(data: {
+  fullName: string;
+}): EmailTemplate {
+  const content = `
+    <h2>We've Received Your Message</h2>
+    <p>Hi ${data.fullName},</p>
+    <p>Thank you for contacting us! We've received your message and our team will review it shortly.</p>
+    <p>We typically respond within 1-2 business days. In the meantime, feel free to explore our resources:</p>
+    
+    <ul style="color: #374151; line-height: 1.8; margin: 20px 0;">
+      <li><a href="https://humanlogs.app" style="color: #667eea; text-decoration: none;">Visit our website</a></li>
+      <li><a href="https://github.com/humanlogs" style="color: #667eea; text-decoration: none;">Check out our GitHub</a></li>
+      <li><a href="https://humanlogs.app/pricing" style="color: #667eea; text-decoration: none;">View pricing plans</a></li>
+    </ul>
+
+    <p>If you have any urgent questions, you can reply directly to this email.</p>
+    
+    <p>Best regards,<br>The Humanlogs Team</p>
+  `;
+
+  const html = getBaseTemplate(content, {
+    title: "Message Received",
+    preheader: "We've received your message and will be in touch soon",
+    footerText:
+      "You're receiving this email because you contacted us through our website.",
+  });
+
+  const text = `
+We've Received Your Message
+
+Hi ${data.fullName},
+
+Thank you for contacting us! We've received your message and our team will review it shortly.
+
+We typically respond within 1-2 business days. In the meantime, feel free to explore our resources:
+
+- Visit our website: https://humanlogs.app
+- Check out our GitHub: https://github.com/humanlogs
+- View pricing plans: https://humanlogs.app/pricing
+
+If you have any urgent questions, you can reply directly to this email.
+
+Best regards,
+The Humanlogs Team
+  `.trim();
+
+  return {
+    subject: "Thank you for contacting Humanlogs",
+    html,
+    text,
+  };
+}

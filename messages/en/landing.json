@@ -34,5 +34,178 @@
     },
     "transcriptCard": {
         "tryItYourself": "Try it yourself"
+    },
+    "pricing": {
+        "title": "Simple, transparent pricing",
+        "subtitle": "Choose the plan that works best for you. All plans include all features.",
+        "tabs": {
+            "cloud": "Cloud",
+            "selfHosted": "Self-Hosted"
+        },
+        "cloud": {
+            "free": {
+                "name": "Free",
+                "price": "€0",
+                "minutes": "100 minutes per month",
+                "cta": "Get Started",
+                "noCreditCard": "No credit card required",
+                "transcriptionsPerMonth": "3 transcriptions per month (100 minutes)",
+                "advancedFeatures": "Advanced features"
+            },
+            "subscription": {
+                "name": "Subscription",
+                "badge": "Most popular",
+                "price": "€15",
+                "perMonth": "/month",
+                "yearly": "or €165/year",
+                "minutes": "1,200 minutes per month (20h)",
+                "cta": "Subscribe Now",
+                "transcriptionsPerMonth": "20 transcriptions per month (1,200 minutes = 20 hours)",
+                "advancedFeatures": "Advanced features",
+                "priorityTranscriptions": "Priority transcriptions"
+            },
+            "oneTime": {
+                "name": "One-Time Pack",
+                "price": "€20",
+                "minutes": "1,200 minutes (20h)",
+                "cta": "Buy Now",
+                "transcriptions": "1,200 minutes (20 hours)",
+                "advancedFeatures": "Advanced features"
+            }
+        },
+        "selfHosted": {
+            "personal": {
+                "name": "Personal Use",
+                "price": "Free",
+                "description": "Free for personal use. Bring your own ElevenLabs or Whisper API key.",
+                "cta": "View on GitHub"
+            },
+            "enterprise": {
+                "name": "Universities & Companies",
+                "price": "Custom",
+                "description": "Usage-based licensing with our zero-retention API keys included.",
+                "cta": "Contact Sales"
+            }
+        },
+        "features": {
+            "title": "All features included",
+            "feature": "Feature",
+            "bulkUpload": "Bulk upload",
+            "customVocabulary": "Custom vocabulary",
+            "speakerDiarization": "Speaker diarization",
+            "languages": "32+ languages",
+            "audioPlayback": "Audio playback",
+            "audioEditor": "Audio-based text editor",
+            "euProcessors": "EU-based sub processors",
+            "zeroRetention": "Zero retention policy",
+            "e2eEncryption": "End-to-end encryption",
+            "gdprCompliant": "GDPR compliant",
+            "longTranscripts": "Up to 4h transcripts",
+            "speakerLabels": "Speaker labels",
+            "speakerOptions": "Speaker options",
+            "projects": "Projects",
+            "collaboration": "Collaboration",
+            "dpa": "DPA available",
+            "support": "Support"
+        },
+        "viewPricingPage": "View pricing page"
+    },
+    "encryption": {
+        "badge": "Bank-level security",
+        "title": "Your data stays yours. Forever.",
+        "subtitle": "We've built end-to-end encryption into every layer of our platform. From transcription to storage, you maintain complete control over your sensitive research data.",
+        "steps": {
+            "transcription": {
+                "title": "Zero-Retention Transcription",
+                "description": "Audio is transcribed by our processors in strict zero-retention mode. No data is stored on external servers."
+            },
+            "encryption": {
+                "title": "Instant Encryption",
+                "description": "Transcripts are immediately encrypted using your frontend certificate before leaving your browser."
+            },
+            "yourControl": {
+                "title": "You Hold the Keys",
+                "description": "Only you have the certificate to decrypt your data. Not even we can access your transcripts."
+            },
+            "zeroKnowledge": {
+                "title": "Zero-Knowledge Architecture",
+                "description": "We designed our system so that we can never access your data, even if we wanted to."
+            }
+        },
+        "keyPoints": {
+            "title": "What this means for you",
+            "zeroRetention": {
+                "title": "Zero data retention",
+                "description": "Transcription processors delete audio immediately after processing."
+            },
+            "clientSide": {
+                "title": "Client-side encryption",
+                "description": "All encryption happens in your browser before upload."
+            },
+            "gdpr": {
+                "title": "GDPR & DPA compliant",
+                "description": "Built for sensitive research data and personal information."
+            },
+            "euServers": {
+                "title": "EU-based infrastructure",
+                "description": "All servers and sub-processors are located in the European Union."
+            }
+        }
+    },
+    "faq": {
+        "title": "Frequently Asked Questions",
+        "subtitle": "Everything you need to know about Humanlogs pricing and features",
+        "stillHaveQuestions": "Still have questions?",
+        "contactUs": "Contact Us",
+        "questions": {
+            "cancel": {
+                "question": "Can I cancel anytime?",
+                "answer": "Yes, you can cancel your subscription at any time with no questions asked. If you cancel, you'll continue to have access to your plan until the end of your current billing period, and you won't be charged again."
+            },
+            "downgrade": {
+                "question": "Can I downgrade my plan later?",
+                "answer": "Yes, you can downgrade to any plan at any time. The change will take effect at the start of your next billing cycle, and you'll be charged the new rate going forward. Your current plan benefits remain active until the end of the billing period."
+            },
+            "freeVersion": {
+                "question": "Is there a free version of Humanlogs?",
+                "answer": "Yes! Our free plan includes 100 minutes of transcription per month (approximately 3 transcriptions) with full access to all advanced features including end-to-end encryption, our unique audio editor, and speaker diarization. No credit card required."
+            },
+            "invoices": {
+                "question": "Can you send me invoices automatically?",
+                "answer": "Yes, invoices are automatically generated and sent to your email after each payment. This is handled through our payment partner Stripe, and all invoices include your billing details and can be customized with your company information."
+            },
+            "extraHours": {
+                "question": "Can I buy extra hours if I run out?",
+                "answer": "Yes, you can purchase additional transcription minutes at any time if you exceed your plan's monthly allowance. Extra hours never expire and can be used whenever needed, even after your subscription ends."
+            },
+            "rollover": {
+                "question": "Do unused hours roll over to the next month?",
+                "answer": "No, your plan's included minutes are reset to the plan's limit at the start of each billing cycle. However, any extra hours you've purchased separately do carry over indefinitely and never expire."
+            },
+            "overLimit": {
+                "question": "What happens if I go over my included Pro hours?",
+                "answer": "You won't be locked out of the service. Instead, you'll be prompted to purchase additional transcription minutes as needed. Your work is never interrupted, and you maintain full access to all features and your existing transcriptions."
+            },
+            "paymentMethods": {
+                "question": "What payment methods do you accept?",
+                "answer": "We accept all major payment methods through Stripe, including credit cards (Visa, Mastercard, American Express), debit cards, and PayPal. All transactions are secure and encrypted."
+            },
+            "enterprise": {
+                "question": "Do you offer enterprise or custom pricing?",
+                "answer": "Yes, we offer custom enterprise plans for organizations with specific needs. Contact our sales team to discuss volume pricing, dedicated support, custom integrations, and service level agreements tailored to your requirements."
+            },
+            "university": {
+                "question": "Can I get Humanlogs for my university or school?",
+                "answer": "Yes! Institutions can contact us for special academic licensing. Individual students and researchers can also use Humanlogs immediately with our free or paid personal plans. All plans include end-to-end encryption to protect sensitive research data and participant privacy."
+            },
+            "security": {
+                "question": "How is my data made secure?",
+                "answer": "Your data passes through our transcription processors in zero-retention mode, meaning nothing is kept after processing is complete. After transcription, everything is end-to-end encrypted in your browser using a certificate that only you control. We cannot access or recover your encrypted data even if you lose your certificate—you have complete control and privacy."
+            },
+            "selfHosted": {
+                "question": "Can I use the self-hosted version for free?",
+                "answer": "Yes, the self-hosted version is free for personal use. However, to deploy Humanlogs within your company, university, or school network, you'll need an institutional license. This includes our zero-retention API keys and professional support."
+            }
+        }
     }
 }

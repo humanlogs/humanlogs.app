@@ -34,5 +34,178 @@
     },
     "transcriptCard": {
         "tryItYourself": "Essayez par vous-même"
+    },
+    "pricing": {
+        "title": "Tarifs simples et transparents",
+        "subtitle": "Choisissez le plan qui vous convient. Toutes les fonctionnalités sont incluses dans tous les plans.",
+        "tabs": {
+            "cloud": "Cloud",
+            "selfHosted": "Auto-hébergé"
+        },
+        "cloud": {
+            "free": {
+                "name": "Gratuit",
+                "price": "0€",
+                "minutes": "100 minutes par mois",
+                "cta": "Commencer",
+                "noCreditCard": "Aucune carte bancaire requise",
+                "transcriptionsPerMonth": "3 transcriptions par mois (100 minutes)",
+                "advancedFeatures": "Fonctionnalités avancées"
+            },
+            "subscription": {
+                "name": "Abonnement",
+                "badge": "Le plus populaire",
+                "price": "15€",
+                "perMonth": "/mois",
+                "yearly": "ou 165€/an",
+                "minutes": "1 200 minutes par mois (20h)",
+                "cta": "S'abonner",
+                "transcriptionsPerMonth": "20 transcriptions par mois (1 200 minutes = 20 heures)",
+                "advancedFeatures": "Fonctionnalités avancées",
+                "priorityTranscriptions": "Transcriptions prioritaires"
+            },
+            "oneTime": {
+                "name": "Pack unique",
+                "price": "20€",
+                "minutes": "1 200 minutes (20h)",
+                "cta": "Acheter",
+                "transcriptions": "1 200 minutes (20 heures)",
+                "advancedFeatures": "Fonctionnalités avancées"
+            }
+        },
+        "selfHosted": {
+            "personal": {
+                "name": "Usage personnel",
+                "price": "Gratuit",
+                "description": "Gratuit pour un usage personnel. Utilisez votre propre clé API ElevenLabs ou Whisper.",
+                "cta": "Voir sur GitHub"
+            },
+            "enterprise": {
+                "name": "Universités et entreprises",
+                "price": "Sur mesure",
+                "description": "Licence basée sur l'usage avec nos clés API sans rétention incluses.",
+                "cta": "Contacter les ventes"
+            }
+        },
+        "features": {
+            "title": "Toutes les fonctionnalités incluses",
+            "feature": "Fonctionnalité",
+            "bulkUpload": "Import en masse",
+            "customVocabulary": "Vocabulaire personnalisé",
+            "speakerDiarization": "Identification des locuteurs",
+            "languages": "32+ langues",
+            "audioPlayback": "Lecture audio",
+            "audioEditor": "Éditeur basé sur l'audio",
+            "euProcessors": "Sous-traitants basés dans l'UE",
+            "zeroRetention": "Politique zéro rétention",
+            "e2eEncryption": "Chiffrement de bout en bout",
+            "gdprCompliant": "Conforme RGPD",
+            "longTranscripts": "Transcriptions jusqu'à 4h",
+            "speakerLabels": "Labels de locuteurs",
+            "speakerOptions": "Options de locuteurs",
+            "projects": "Projets",
+            "collaboration": "Collaboration",
+            "dpa": "DPA disponible",
+            "support": "Support"
+        },
+        "viewPricingPage": "Voir la page tarifs"
+    },
+    "encryption": {
+        "badge": "Sécurité bancaire",
+        "title": "Vos données restent les vôtres. Pour toujours.",
+        "subtitle": "Nous avons intégré le chiffrement de bout en bout dans chaque couche de notre plateforme. De la transcription au stockage, vous gardez le contrôle total de vos données de recherche sensibles.",
+        "steps": {
+            "transcription": {
+                "title": "Transcription sans rétention",
+                "description": "L'audio est transcrit par nos processeurs en mode strict zéro rétention. Aucune donnée n'est stockée sur les serveurs externes."
+            },
+            "encryption": {
+                "title": "Chiffrement instantané",
+                "description": "Les transcriptions sont immédiatement chiffrées avec votre certificat avant de quitter votre navigateur."
+            },
+            "yourControl": {
+                "title": "Vous détenez les clés",
+                "description": "Vous seul possédez le certificat pour déchiffrer vos données. Même nous ne pouvons pas accéder à vos transcriptions."
+            },
+            "zeroKnowledge": {
+                "title": "Architecture zéro connaissance",
+                "description": "Nous avons conçu notre système pour ne jamais pouvoir accéder à vos données, même si nous le voulions."
+            }
+        },
+        "keyPoints": {
+            "title": "Ce que cela signifie pour vous",
+            "zeroRetention": {
+                "title": "Zéro rétention de données",
+                "description": "Les processeurs de transcription suppriment l'audio immédiatement après traitement."
+            },
+            "clientSide": {
+                "title": "Chiffrement côté client",
+                "description": "Tout le chiffrement se fait dans votre navigateur avant l'envoi."
+            },
+            "gdpr": {
+                "title": "Conforme RGPD & DPA",
+                "description": "Conçu pour les données de recherche sensibles et les informations personnelles."
+            },
+            "euServers": {
+                "title": "Infrastructure basée dans l'UE",
+                "description": "Tous les serveurs et sous-traitants sont situés dans l'Union européenne."
+            }
+        }
+    },
+    "faq": {
+        "title": "Questions fréquemment posées",
+        "subtitle": "Tout ce que vous devez savoir sur les tarifs et fonctionnalités d'Humanlogs",
+        "stillHaveQuestions": "Vous avez encore des questions ?",
+        "contactUs": "Nous contacter",
+        "questions": {
+            "cancel": {
+                "question": "Puis-je annuler à tout moment ?",
+                "answer": "Oui, vous pouvez annuler votre abonnement à tout moment sans justification. En cas d'annulation, vous conserverez l'accès à votre plan jusqu'à la fin de votre période de facturation en cours, et vous ne serez plus facturé par la suite."
+            },
+            "downgrade": {
+                "question": "Puis-je passer à un plan inférieur plus tard ?",
+                "answer": "Oui, vous pouvez passer à n'importe quel plan à tout moment. Le changement prendra effet au début de votre prochain cycle de facturation, et vous serez facturé au nouveau tarif. Les avantages de votre plan actuel restent actifs jusqu'à la fin de la période de facturation."
+            },
+            "freeVersion": {
+                "question": "Existe-t-il une version gratuite d'Humanlogs ?",
+                "answer": "Oui ! Notre plan gratuit inclut 100 minutes de transcription par mois (environ 3 transcriptions) avec un accès complet à toutes les fonctionnalités avancées, y compris le chiffrement de bout en bout, notre éditeur audio unique et l'identification des locuteurs. Aucune carte bancaire requise."
+            },
+            "invoices": {
+                "question": "Pouvez-vous m'envoyer les factures automatiquement ?",
+                "answer": "Oui, les factures sont automatiquement générées et envoyées à votre email après chaque paiement. Cela est géré par notre partenaire de paiement Stripe, et toutes les factures incluent vos coordonnées de facturation et peuvent être personnalisées avec les informations de votre entreprise."
+            },
+            "extraHours": {
+                "question": "Puis-je acheter des heures supplémentaires si je n'en ai plus ?",
+                "answer": "Oui, vous pouvez acheter des minutes de transcription supplémentaires à tout moment si vous dépassez le quota mensuel de votre plan. Les heures supplémentaires n'expirent jamais et peuvent être utilisées quand vous en avez besoin, même après la fin de votre abonnement."
+            },
+            "rollover": {
+                "question": "Les heures non utilisées sont-elles reportées au mois suivant ?",
+                "answer": "Non, les minutes incluses dans votre plan sont réinitialisées à la limite du plan au début de chaque cycle de facturation. Cependant, toutes les heures supplémentaires que vous avez achetées séparément sont conservées indéfiniment et n'expirent jamais."
+            },
+            "overLimit": {
+                "question": "Que se passe-t-il si je dépasse mes heures Pro incluses ?",
+                "answer": "Vous ne serez pas bloqué. Au lieu de cela, vous serez invité à acheter des minutes de transcription supplémentaires selon vos besoins. Votre travail n'est jamais interrompu et vous conservez un accès complet à toutes les fonctionnalités et à vos transcriptions existantes."
+            },
+            "paymentMethods": {
+                "question": "Quels moyens de paiement acceptez-vous ?",
+                "answer": "Nous acceptons tous les principaux moyens de paiement via Stripe, y compris les cartes de crédit (Visa, Mastercard, American Express), les cartes de débit et PayPal. Toutes les transactions sont sécurisées et chiffrées."
+            },
+            "enterprise": {
+                "question": "Proposez-vous des tarifs entreprise ou personnalisés ?",
+                "answer": "Oui, nous proposons des plans entreprise personnalisés pour les organisations ayant des besoins spécifiques. Contactez notre équipe commerciale pour discuter des tarifs de volume, du support dédié, des intégrations personnalisées et des accords de niveau de service adaptés à vos besoins."
+            },
+            "university": {
+                "question": "Puis-je obtenir Humanlogs pour mon université ou mon école ?",
+                "answer": "Oui ! Les institutions peuvent nous contacter pour obtenir une licence académique spéciale. Les étudiants et chercheurs individuels peuvent également utiliser Humanlogs immédiatement avec nos plans personnels gratuits ou payants. Tous les plans incluent le chiffrement de bout en bout pour protéger les données de recherche sensibles et la vie privée des participants."
+            },
+            "security": {
+                "question": "Comment mes données sont-elles sécurisées ?",
+                "answer": "Vos données passent par nos processeurs de transcription en mode zéro rétention, ce qui signifie qu'aucune donnée n'est conservée après la fin du traitement. Après la transcription, tout est chiffré de bout en bout dans votre navigateur à l'aide d'un certificat que vous seul contrôlez. Nous ne pouvons pas accéder ou récupérer vos données chiffrées même si vous perdez votre certificat - vous avez le contrôle complet et la confidentialité totale."
+            },
+            "selfHosted": {
+                "question": "Puis-je utiliser la version auto-hébergée gratuitement ?",
+                "answer": "Oui, la version auto-hébergée est gratuite pour un usage personnel. Cependant, pour déployer Humanlogs au sein du réseau de votre entreprise, université ou école, vous aurez besoin d'une licence institutionnelle. Celle-ci inclut nos clés API sans rétention et un support professionnel."
+            }
+        }
     }
 }

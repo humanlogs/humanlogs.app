@@ -154,3 +154,53 @@
     transform: translateY(0);
   }
 }
+
+.document h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 0rem;
+    margin-bottom: 0.75rem;
+}
+
+.document h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 1.25rem;
+    margin-bottom: 0.625rem;
+}
+
+.document h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.document p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.document a {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+.document code {
+    font-family: var(--font-mono);
+    background-color: var(--color-muted);
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+}
+
+.document ul,
+.document ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+    /* set a bullet style */
+    list-style-type: disc;
+}
+
+.document li {
+    margin-bottom: 0.5rem;
+}

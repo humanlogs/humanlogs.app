@@ -1,3 +1,10 @@
+import { FAQSection, PricingSection } from "../components/sections";
+
 export default function Page() {
-  return <main className="min-h-screen"></main>;
+  return (
+    <>
+      <PricingSection showFeatureGrid={true} />
+      <FAQSection />
+    </>
+  );
 }
