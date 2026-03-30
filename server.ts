@@ -2,6 +2,7 @@ import { createServer } from "http";
 import { parse } from "url";
 import next from "next";
 import { initSocketServer } from "./lib/socket-server";
+import { initializeCronJobs } from "./lib/cron-jobs";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
@@ -28,6 +29,11 @@ initSocketServer(httpServer);
 console.log("Socket.io server initialized");
 
 app.prepare().then(() => {
+  // Initialize cron jobs in production
+  if (!dev) {
+    initializeCronJobs();
+  }
+
   httpServer.listen(port, () => {
     console.log(`> Ready on http://${hostname}:${port}`);
   });
