@@ -4,6 +4,7 @@ import { HelpDialog } from "@/components/dialogs/help-dialog";
 import { ProjectCreateModal } from "@/components/dialogs/project-create-modal";
 import { ShortcutsDialog } from "@/components/transcriptions/dialogs/shortcuts-dialog";
 import { SpeakerOptionsDialog } from "@/components/transcriptions/dialogs/speaker-options-dialog";
+import { PauseConfigurationDialog } from "@/components/transcriptions/dialogs/pause-configuration-dialog";
 import { TranscriptionDeleteDialog } from "@/components/transcriptions/dialogs/transcription-delete-dialog";
 import { TranscriptionExportDialog } from "@/components/transcriptions/dialogs/transcription-export-dialog";
 import { TranscriptionRenameDialog } from "@/components/transcriptions/dialogs/transcription-rename-dialog";
@@ -52,6 +53,7 @@ export default async function AppLayout({
       <TranscriptionExportDialog />
       <TranscriptionHistorySheet />
       <SpeakerOptionsDialog />
+      <PauseConfigurationDialog />
       <ShortcutsDialog />
       <FeedbackDialog />
       <HelpDialog />

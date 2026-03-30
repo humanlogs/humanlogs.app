@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Lock, Shield, Key, Server } from "lucide-react";
 import { useTranslations } from "@/components/locale-provider";
-import { AnimatedSectionTitle } from "../animated-section-title";
 import { Badge } from "@/components/ui/badge";
+import { Key, Lock, Server, Shield } from "lucide-react";
+import { useEffect, useState } from "react";
+import { cn } from "../../../../lib/utils";
+import { AnimatedSectionTitle } from "../animated-section-title";
 
 // Sample transcript with speakers
 const SAMPLE_TRANSCRIPT = [
@@ -47,9 +48,6 @@ export const EncryptionSection = () => {
   const [location, setLocation] = useState<"browser" | "server">("browser");
   const [displayTranscript, setDisplayTranscript] = useState(SAMPLE_TRANSCRIPT);
   const [animationProgress, setAnimationProgress] = useState(0);
-
-  // Flatten transcript for easier text manipulation
-  const fullText = SAMPLE_TRANSCRIPT.map((s) => s.text).join(" ");
 
   useEffect(() => {
     // Main cycle: pause at browser, then animate to server, pause, animate back
@@ -173,47 +171,34 @@ export const EncryptionSection = () => {
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
           {/* Left: Dark Animation Card */}
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-8 shadow-2xl">
+          <div className="bg-black/80 rounded-none p-8">
             {/* Location Tabs */}
-            <div className="flex gap-2 mb-8">
+            <div className="flex gap-2 mb-4">
               <Badge
-                variant="outline"
-                className={`px-4 py-2 transition-all duration-500 ${
+                className={`rounded-none px-4 py-2 transition-all duration-500 ${
                   location === "browser"
                     ? "bg-blue-500/20 text-blue-400 border-blue-500"
                     : "bg-gray-800 text-gray-500 border-gray-700"
                 }`}
               >
-                <Lock className="h-4 w-4 mr-2" />
                 Browser
               </Badge>
               <Badge
-                variant="outline"
-                className={`px-4 py-2 transition-all duration-500 ${
+                className={`rounded-none px-4 py-2 transition-all duration-500 ${
                   location === "server"
                     ? "bg-purple-500/20 text-purple-400 border-purple-500"
                     : "bg-gray-800 text-gray-500 border-gray-700"
                 }`}
               >
-                <Server className="h-4 w-4 mr-2" />
                 Server
               </Badge>
             </div>
 
             {/* Transcription Display */}
-            <div className="bg-black/40 rounded-lg p-6 backdrop-blur-sm border border-gray-700/50 min-h-[280px] flex flex-col">
+            <div className="bg-black/40 p-6 backdrop-blur-sm border border-gray-700/50 min-h-[280px] flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <div className="text-xs text-gray-400 font-mono">
-                  {isEncrypted ? "ENCRYPTED_DATA.bin" : "transcription.txt"}
-                </div>
-                <div
-                  className={`px-2 py-1 rounded text-xs font-mono ${
-                    isEncrypted
-                      ? "bg-purple-500/20 text-purple-400"
-                      : "bg-blue-500/20 text-blue-400"
-                  }`}
-                >
-                  {isEncrypted ? "🔒 Encrypted" : "📄 Readable"}
+                  {isEncrypted ? "ENCRYPTED_DATA" : "transcription.txt"}
                 </div>
               </div>
 
@@ -222,7 +207,10 @@ export const EncryptionSection = () => {
                   <div key={idx} className="space-y-2">
                     <Badge
                       variant="outline"
-                      className={`${segment.color} text-xs`}
+                      className={cn(
+                        `${segment.color} text-xs transition-opacity duration-300`,
+                        isEncrypted ? "opacity-0" : "opacity-100",
+                      )}
                     >
                       {segment.speaker}
                     </Badge>
@@ -237,30 +225,15 @@ export const EncryptionSection = () => {
                 ))}
               </div>
             </div>
-
-            {/* Status indicator */}
-            <div className="mt-6 flex items-center gap-3">
-              <div
-                className={`w-2 h-2 rounded-full ${isEncrypted ? "bg-purple-500" : "bg-blue-500"} animate-pulse`}
-              />
-              <span className="text-xs text-gray-300">
-                {isEncrypted
-                  ? "Data encrypted with AES-256 before transmission"
-                  : "Original text visible only in your browser"}
-              </span>
-            </div>
           </div>
 
           {/* Right: Key Points Card */}
           <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-lg">
-            <h3 className="text-2xl font-bold text-black mb-6">
-              {t("keyPoints.title")}
-            </h3>
             <div className="space-y-6">
               <div className="flex gap-4">
                 <div className="flex-shrink-0">
-                  <div className="rounded-lg bg-blue-50 p-2.5">
-                    <Lock className="h-5 w-5 text-blue-600" />
+                  <div className="rounded-lg bg-blue-50 p-2">
+                    <Lock className="h-4 w-4 text-blue-600" />
                   </div>
                 </div>
                 <div>
@@ -275,8 +248,8 @@ export const EncryptionSection = () => {
 
               <div className="flex gap-4">
                 <div className="flex-shrink-0">
-                  <div className="rounded-lg bg-purple-50 p-2.5">
-                    <Key className="h-5 w-5 text-purple-600" />
+                  <div className="rounded-lg bg-purple-50 p-2">
+                    <Key className="h-4 w-4 text-purple-600" />
                   </div>
                 </div>
                 <div>
@@ -291,8 +264,8 @@ export const EncryptionSection = () => {
 
               <div className="flex gap-4">
                 <div className="flex-shrink-0">
-                  <div className="rounded-lg bg-green-50 p-2.5">
-                    <Shield className="h-5 w-5 text-green-600" />
+                  <div className="rounded-lg bg-green-50 p-2">
+                    <Shield className="h-4 w-4 text-green-600" />
                   </div>
                 </div>
                 <div>
@@ -307,8 +280,8 @@ export const EncryptionSection = () => {
 
               <div className="flex gap-4">
                 <div className="flex-shrink-0">
-                  <div className="rounded-lg bg-orange-50 p-2.5">
-                    <Server className="h-5 w-5 text-orange-600" />
+                  <div className="rounded-lg bg-orange-50 p-2">
+                    <Server className="h-4 w-4 text-orange-600" />
                   </div>
                 </div>
                 <div>

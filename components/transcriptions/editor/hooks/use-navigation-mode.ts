@@ -7,6 +7,7 @@ import { useCustomShortcuts } from "@/hooks/use-shortcuts";
 import { CustomShortcut } from "@/lib/shortcuts";
 import { useAnyModalOpen } from "../../../use-modal";
 import { AudioControls } from "../interactive-audio";
+import { selectSegmentByIndexAndFocus } from "./editor-utils";
 
 export type NavigationState = "edit" | "navigate";
 
@@ -331,20 +332,8 @@ export function useNavigationMode(
 
       event.preventDefault();
 
-      // Set the selection range
-      const domElement = editorRef.current?.querySelector(
-        `[data-index="${currentIndex}"]`,
-      );
-      if (domElement) {
-        const range = document.createRange();
-        range.selectNodeContents(domElement);
-        const selection = window.getSelection();
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-      }
-
-      // Focus after selection to avoid scroll messing up the position of the segment in the viewport
-      editorRef.current?.focus();
+      // Select the current segment and focus the editor
+      selectSegmentByIndexAndFocus(editorRef, currentIndex);
 
       // If a letter was typed or there's a custom shortcut replacement, insert that text
       document.execCommand("delete");
@@ -415,20 +404,11 @@ export function useNavigationMode(
 
       // Set the selection range
       if (state === "navigate") {
-        const domElement = editorRef.current?.querySelector(
-          `[data-index="${currentIndex}"]`,
-        );
-        if (domElement) {
-          const range = document.createRange();
-          range.selectNodeContents(domElement);
-          const selection = window.getSelection();
-          selection?.removeAllRanges();
-          selection?.addRange(range);
-        }
+        selectSegmentByIndexAndFocus(editorRef, currentIndex);
+      } else {
+        // In edit mode, just focus to maintain existing selection
+        editorRef.current?.focus();
       }
-
-      // Focus after selection to avoid scroll messing up the position of the segment in the viewport
-      editorRef.current?.focus();
 
       // If a letter was typed or there's a custom shortcut replacement, insert that text
       if (replacement) {

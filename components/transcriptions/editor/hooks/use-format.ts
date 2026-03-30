@@ -1,6 +1,7 @@
 "use client";
 
 import { RefObject, useCallback, useEffect, useState } from "react";
+import { selectActiveSegmentAndFocus } from "./editor-utils";
 
 function expandSelectionToWords() {
   const selection = window.getSelection();
@@ -111,7 +112,9 @@ export function useFormat(editorRef: RefObject<HTMLDivElement | null>) {
   const applyFormat = useCallback(
     (modifier: "b" | "i" | "u" | "s") => {
       if (!editorRef.current) return;
-      editorRef.current.focus();
+
+      // If in navigation mode with an active segment, select it first
+      selectActiveSegmentAndFocus(editorRef);
 
       // Expand selection to full words before applying format
       expandSelectionToWords();

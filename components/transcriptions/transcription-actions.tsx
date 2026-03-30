@@ -37,6 +37,7 @@ import {
 import { toast } from "sonner";
 import { useShortcutsModal } from "./dialogs/shortcuts-dialog";
 import { useSpeakerOptionsModal } from "./dialogs/speaker-options-dialog";
+import { usePauseConfigurationModal } from "./dialogs/pause-configuration-dialog";
 import { useTranscriptionDeleteModal } from "./dialogs/transcription-delete-dialog";
 import { useTranscriptionExportModal } from "./dialogs/transcription-export-dialog";
 import { useTranscriptionRenameModal } from "./dialogs/transcription-rename-dialog";
@@ -70,6 +71,7 @@ export function TranscriptionActions({
   const { openExport } = useTranscriptionExportModal();
   const { openHistory } = useTranscriptionHistoryModal();
   const { openSpeakerOptions } = useSpeakerOptionsModal();
+  const { openPauseConfiguration } = usePauseConfigurationModal();
   const { open: openShortcuts } = useShortcutsModal();
 
   // Get live editor state if available, otherwise use the original transcription
@@ -289,6 +291,25 @@ export function TranscriptionActions({
     });
   };
 
+  const handlePauseConfiguration = () => {
+    const content = getTranscriptionContent();
+    if (!content) {
+      toast.error(t("actions.noDataAvailable"));
+      return;
+    }
+    openPauseConfiguration(content, content.words, (options) => {
+      // Use the editor context to apply pause configuration
+      if (editorStateContext) {
+        editorStateContext.operations.applyPauseConfiguration?.(options);
+        toast.success("Pause configuration applied");
+      } else {
+        // Fallback: log for future API implementation
+        console.log("Pause options to apply:", options);
+        toast.info("Pause configuration will be applied (not yet implemented)");
+      }
+    });
+  };
+
   const downloadMenu = (
     <>
       <DropdownMenuItem onClick={handleExportCSV}>
@@ -402,6 +423,10 @@ export function TranscriptionActions({
           <DropdownMenuItem onClick={handleSpeakerOptions}>
             <UserCogIcon className="h-4 w-4 mr-2" />
             {t("actions.speakerOptions")}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handlePauseConfiguration}>
+            <Settings2Icon className="h-4 w-4 mr-2" />
+            Pauses
           </DropdownMenuItem>
           <DropdownMenuItem onClick={openShortcuts}>
             <KeyboardIcon className="h-4 w-4 mr-2" />

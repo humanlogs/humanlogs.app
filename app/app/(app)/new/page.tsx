@@ -13,6 +13,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import Link from "next/link";
+import { AlertCircle } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -472,6 +475,29 @@ export default function NewTranscriptionPage() {
     <div className="flex flex-col flex-1">
       <PageLayout title={t("audioFiles")}>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Low Credits Warning */}
+          {userCredits !== null && userCredits < 100 && (
+            <Alert
+              variant="default"
+              className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20"
+            >
+              <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
+              <AlertTitle className="text-yellow-800 dark:text-yellow-300">
+                Low Credits
+              </AlertTitle>
+              <AlertDescription className="text-yellow-700 dark:text-yellow-400">
+                You have {userCredits} credits remaining. Consider adding more
+                credits to continue transcribing.{" "}
+                <Link
+                  href="/app/account/billing"
+                  className="font-semibold underline hover:no-underline"
+                >
+                  View billing options
+                </Link>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Drag & Drop Zone */}
           <div
             className={`border-2 border-dashed rounded-lg p-8 flex items-center justify-center space-x-4 text-left transition-colors ${

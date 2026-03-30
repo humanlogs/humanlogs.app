@@ -325,7 +325,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right Side - Hero Animations */}
-      <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-zinc-50 to-zinc-100 border-l dark:from-gray-900 dark:to-black p-8 items-center justify-center">
+      <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-zinc-50 to-zinc-100 border-l p-8 items-center justify-center">
         <div className="w-full max-w-2xl space-y-8">
           {/* Animated Wave */}
           <div className="mb-8">
