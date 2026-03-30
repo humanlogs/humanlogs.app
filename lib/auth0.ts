@@ -15,7 +15,7 @@ export const auth0 = new Auth0Client({
     logout: "/api/auth/logout",
   },
   session: {
-    absoluteDuration: 24, // hours
+    absoluteDuration: 24 * 60 * 60, // 24 hours
   },
 });
 
