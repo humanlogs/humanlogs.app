@@ -1,6 +1,10 @@
+"use client";
+
 import Image from "next/image";
+import { useTranslations } from "@/components/locale-provider";
 
 export const LogoSection = () => {
+  const t = useTranslations("logos");
   const logos = [
     {
       name: "Université Côte d'Azur",
@@ -38,7 +42,7 @@ export const LogoSection = () => {
     <section className="border-y border-gray-200 bg-gray-50 py-12">
       <div className="container mx-auto px-4 md:px-6">
         <p className="mb-8 text-center text-sm font-medium text-gray-500">
-          TRUSTED BY RESEARCHERS AT
+          {t("trustedBy")}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-12 md:gap-16">
           {logos.map((logo) => (

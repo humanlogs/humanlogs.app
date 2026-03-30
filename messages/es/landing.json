@@ -1,0 +1,38 @@
+{
+    "header": {
+        "nav": {
+            "home": "Inicio",
+            "useCases": "Casos de uso",
+            "pricing": "Precios",
+            "github": "Github",
+            "contact": "Contacto",
+            "login": "Iniciar sesión",
+            "signUp": "Registrarse"
+        },
+        "useCasesDropdown": {
+            "research": "Investigación"
+        },
+        "languageSelector": {
+            "label": "Idioma",
+            "selectLanguage": "Seleccionar idioma"
+        }
+    },
+    "hero": {
+        "title": "Transcriba sus entrevistas de investigación de forma rápida y con confidencialidad absoluta.",
+        "subtitle": "Cree y edite sus transcripciones 4 veces más rápido con nuestro editor único.",
+        "startForFree": "Comenzar gratis",
+        "contactSales": "Contactar ventas",
+        "rating": "de más de 500 investigadores y estudiantes",
+        "pillars": {
+            "encryption": "Cifrado de extremo a extremo",
+            "editing": "Edición ultrarrápida",
+            "openSource": "Open Source"
+        }
+    },
+    "logos": {
+        "trustedBy": "CONFIADO POR INVESTIGADORES DE"
+    },
+    "transcriptCard": {
+        "tryItYourself": "Pruébalo tú mismo"
+    }
+}

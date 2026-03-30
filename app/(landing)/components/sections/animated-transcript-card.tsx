@@ -3,6 +3,9 @@
 import { useEffect, useState, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { FakeToolbar } from "./fake-toolbar";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { useTranslations } from "@/components/locale-provider";
 
 // Transcript sentences
 const TRANSCRIPT_TEXTS = [
@@ -94,6 +97,7 @@ const findSynonym = (word: string): string | null => {
 };
 
 export const AnimatedTranscriptCard = () => {
+  const t = useTranslations("transcriptCard");
   const [wordStates, setWordStates] = useState<Map<number, string>>(new Map());
   const [activeWordIndex, setActiveWordIndex] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
@@ -190,7 +194,18 @@ export const AnimatedTranscriptCard = () => {
   });
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
+    <div className="relative group bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
+      {/* Hover Overlay */}
+      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex items-center justify-center">
+        <Link
+          href="/app/login"
+          className="flex items-center gap-2 bg-white text-black px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+        >
+          {t("tryItYourself")}
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
+
       <FakeToolbar />
       <div className="p-6 space-y-4">
         {Object.entries(groupedBySentence).map(

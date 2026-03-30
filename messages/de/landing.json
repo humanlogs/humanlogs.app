@@ -1,0 +1,38 @@
+{
+    "header": {
+        "nav": {
+            "home": "Startseite",
+            "useCases": "Anwendungsfälle",
+            "pricing": "Preise",
+            "github": "Github",
+            "contact": "Kontakt",
+            "login": "Anmelden",
+            "signUp": "Registrieren"
+        },
+        "useCasesDropdown": {
+            "research": "Forschung"
+        },
+        "languageSelector": {
+            "label": "Sprache",
+            "selectLanguage": "Sprache auswählen"
+        }
+    },
+    "hero": {
+        "title": "Transkribieren Sie Ihre Forschungsgespräche schnell und mit absoluter Vertraulichkeit.",
+        "subtitle": "Erstellen und bearbeiten Sie Ihre Transkripte 4-mal schneller mit unserem einzigartigen Editor.",
+        "startForFree": "Kostenlos starten",
+        "contactSales": "Vertrieb kontaktieren",
+        "rating": "von über 500 Forschern und Studenten",
+        "pillars": {
+            "encryption": "Ende-zu-Ende-Verschlüsselung",
+            "editing": "Blitzschnelle Bearbeitung",
+            "openSource": "Open Source"
+        }
+    },
+    "logos": {
+        "trustedBy": "VERTRAUT VON FORSCHERN AN"
+    },
+    "transcriptCard": {
+        "tryItYourself": "Probieren Sie es selbst aus"
+    }
+}

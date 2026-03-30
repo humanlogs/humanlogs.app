@@ -1,0 +1,38 @@
+{
+    "header": {
+        "nav": {
+            "home": "Home",
+            "useCases": "Use Cases",
+            "pricing": "Pricing",
+            "github": "Github",
+            "contact": "Contact",
+            "login": "Login",
+            "signUp": "Sign Up"
+        },
+        "useCasesDropdown": {
+            "research": "Research"
+        },
+        "languageSelector": {
+            "label": "Language",
+            "selectLanguage": "Select language"
+        }
+    },
+    "hero": {
+        "title": "Fast, confidential transcription for your research interviews.",
+        "subtitle": "Build and refine transcripts 4 times faster thanks to our unique editor.",
+        "startForFree": "Start for Free",
+        "contactSales": "Contact sales",
+        "rating": "from 500+ researchers and students",
+        "pillars": {
+            "encryption": "End-to-End Encrypted",
+            "editing": "Lightning fast editing",
+            "openSource": "Open Source"
+        }
+    },
+    "logos": {
+        "trustedBy": "TRUSTED BY RESEARCHERS AT"
+    },
+    "transcriptCard": {
+        "tryItYourself": "Try it yourself"
+    }
+}

@@ -23,6 +23,12 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     const saved = localStorage.getItem("transcription-locale");
     if (saved && locales.includes(saved)) {
       setLocaleState(saved as Locale);
+    } else {
+      // Detect browser language
+      const browserLang = navigator.language.split("-")[0];
+      if (locales.includes(browserLang)) {
+        setLocaleState(browserLang as Locale);
+      }
     }
   }, []);
 

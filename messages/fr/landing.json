@@ -1,0 +1,38 @@
+{
+    "header": {
+        "nav": {
+            "home": "Accueil",
+            "useCases": "Cas d'usage",
+            "pricing": "Tarifs",
+            "github": "Github",
+            "contact": "Contact",
+            "login": "Connexion",
+            "signUp": "S'inscrire"
+        },
+        "useCasesDropdown": {
+            "research": "Recherche"
+        },
+        "languageSelector": {
+            "label": "Langue",
+            "selectLanguage": "Sélectionner une langue"
+        }
+    },
+    "hero": {
+        "title": "Transcrivez vos entretiens rapidement et en toute confidentialité.",
+        "subtitle": "Créez et éditez vos transcriptions 4 fois plus vite avec notre editeur unique.",
+        "startForFree": "Commencer gratuitement",
+        "contactSales": "Contacter les ventes",
+        "rating": "par plus de 500 chercheurs et étudiants",
+        "pillars": {
+            "encryption": "Chiffré de bout en bout",
+            "editing": "Édition ultra-rapide",
+            "openSource": "Open Source"
+        }
+    },
+    "logos": {
+        "trustedBy": "UTILISÉ PAR DES CHERCHEURS DE"
+    },
+    "transcriptCard": {
+        "tryItYourself": "Essayez par vous-même"
+    }
+}
