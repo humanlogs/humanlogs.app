@@ -23,6 +23,31 @@ export const metadata: Metadata = {
   icons: {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
   },
+  openGraph: {
+    title:
+      "humanlogs.app - Fast, confidential transcription for your research interviews",
+    description:
+      "Build and refine transcripts 4 times faster. End-to-end encrypted, 100+ languages, open source.",
+    url: "https://humanlogs.app",
+    siteName: "humanlogs.app",
+    images: [
+      {
+        url: "/landing/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "humanlogs.app - Audio transcription software for research",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "humanlogs.app - Fast, confidential transcription for research",
+    description:
+      "Build and refine transcripts 4 times faster. End-to-end encrypted, 100+ languages, open source.",
+    images: ["/landing/og-image.png"],
+  },
 };
 
 export default function RootLayout({
