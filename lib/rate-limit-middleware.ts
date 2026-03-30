@@ -26,8 +26,8 @@ type RouteHandler = (
 type AuthenticatedRouteHandler = (
   request: NextRequest,
   user: UserSession,
-  context?: { params?: any },
-) => Promise<NextResponse>;
+  context?: any,
+) => Promise<NextResponse | any>;
 
 /**
  * Wrap an authenticated route handler with rate limiting

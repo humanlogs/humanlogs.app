@@ -12,7 +12,7 @@ type RouteParams = {
 };
 
 export const GET = withAuthRateLimit(
-  async (request, user, { params }: RouteParams) => {
+  async (_request, user, { params }: RouteParams) => {
     try {
       const { id } = await params;
 
