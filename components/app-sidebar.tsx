@@ -119,14 +119,9 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
           {/* Logo Section */}
           <div className="flex items-center gap-2 px-2 py-2">
             <img
-              src="/logo-transparent.svg"
-              alt="Logo"
-              className="flex dark:hidden items-center justify-center w-9 h-9"
-            />
-            <img
               src="/logo.svg"
               alt="Logo"
-              className="hidden dark:flex items-center justify-center w-9 h-9"
+              className="flex items-center justify-center w-7 h-7"
             />
             <h2 className="text-lg font-bold">humanlogs</h2>
           </div>

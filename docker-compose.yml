@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: humanlogs-postgres
+    environment:
+      POSTGRES_DB: humanlogs
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password-change-me
+    restart: always
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - humanlogs-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"   # Max size per log file
+        max-file: "10"     # Number of rotated log files
+
+  app:
+    build: .
+    container_name: humanlogs-backend
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      AUTH_MODE: local
+      AUTH_SESSION_SECRET: change-me-too
+      DATABASE_URL: postgres://postgres:password-change-me@postgres:5432/humanlogs
+      ELEVENLABS_API_KEY: get-it-on-elevenlabs
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    env_file:
+      - .env
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - humanlogs-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"   # Max size per log file
+        max-file: "10"     # Number of rotated log files
+
+networks:
+  humanlogs-network:
+    driver: bridge
