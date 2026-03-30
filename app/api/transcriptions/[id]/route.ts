@@ -340,4 +340,5 @@ export const mapTransactionDetails = (transcription: Transcription) =>
     "createdAt",
     "updatedAt",
     "completedAt",
+    "isTutorial",
   ]);

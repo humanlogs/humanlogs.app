@@ -51,7 +51,10 @@ export function SidebarUserMenu({
   const [isHoveringAvatar, setIsHoveringAvatar] = React.useState(false);
 
   // Calculate credits display
-  const creditsTotal = userProfile?.creditsRefill || 0;
+  const creditsTotal = Math.max(
+    userProfile?.creditsRefill || 0,
+    userProfile?.credits || 0,
+  );
   const creditsRemaining = userProfile?.credits || 0;
   const creditsUsed = userProfile?.creditsUsed || 0;
   const creditsPercentage =

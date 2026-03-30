@@ -265,5 +265,22 @@
         "startTutorial": "Start Tutorial",
         "starting": "Starting...",
         "setupError": "An error occurred while setting up your account. Please try again."
+    },
+    "tutorialWelcome": {
+        "title": "Welcome to the Tutorial!",
+        "description": "This interactive tutorial will walk you through the basics of using Humanlogs. You'll learn how to work with audio transcriptions through hands-on practice.",
+        "audioSection": {
+            "title": "Listen to the Audio",
+            "description": "Follow along with the audio guide that explains each feature step by step."
+        },
+        "transcriptSection": {
+            "title": "Edit the Transcript",
+            "description": "Practice editing, formatting, and managing transcriptions using real examples."
+        },
+        "tip": {
+            "label": "💡 Pro Tip:",
+            "message": "Take your time and explore each feature. You can replay the audio anytime by clicking the play button."
+        },
+        "getStarted": "Get Started"
     }
 }

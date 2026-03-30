@@ -55,9 +55,10 @@ export const AnimatedWave = () => {
     if (!ctx) return;
 
     // Set canvas size
+    let rect = canvas.getBoundingClientRect();
     const resizeCanvas = () => {
       const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
+      rect = canvas.getBoundingClientRect();
       canvas.width = rect.width * dpr;
       canvas.height = rect.height * dpr;
       ctx.scale(dpr, dpr);
@@ -66,8 +67,8 @@ export const AnimatedWave = () => {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    const width = canvas.width;
-    const height = canvas.height;
+    const width = rect.width;
+    const height = rect.height;
     const barWidth = 3;
     const barGap = 1;
     const step = barWidth + barGap;
@@ -152,7 +153,7 @@ export const AnimatedWave = () => {
   }, []);
 
   return (
-    <div className="w-full h-10 rounded-full bg-gray-200/50 overflow-hidden">
+    <div className="w-full h-10 rounded-full bg-gray-200/50 overflow-hidden relative">
       <canvas ref={canvasRef} className="w-full h-full" />
     </div>
   );

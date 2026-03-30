@@ -40,6 +40,7 @@ export type TranscriptionDetail = {
   createdAt: string;
   updatedAt: string;
   completedAt?: string;
+  isTutorial?: boolean;
 };
 
 export type TranscriptionContent = {

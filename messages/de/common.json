@@ -263,5 +263,22 @@
         "startTutorial": "Tutorial Starten",
         "starting": "Wird gestartet...",
         "setupError": "Beim Einrichten Ihres Kontos ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
+    },
+    "tutorialWelcome": {
+        "title": "Willkommen zum Tutorial!",
+        "description": "Dieses interaktive Tutorial führt Sie durch die Grundlagen der Verwendung von Humanlogs. Sie lernen durch praktische Übungen, wie Sie mit Audio-Transkriptionen arbeiten.",
+        "audioSection": {
+            "title": "Audio Anhören",
+            "description": "Folgen Sie dem Audio-Leitfaden, der jede Funktion Schritt für Schritt erklärt."
+        },
+        "transcriptSection": {
+            "title": "Transkript Bearbeiten",
+            "description": "Üben Sie das Bearbeiten, Formatieren und Verwalten von Transkriptionen anhand realer Beispiele."
+        },
+        "tip": {
+            "label": "💡 Tipp:",
+            "message": "Nehmen Sie sich Zeit und erkunden Sie jede Funktion. Sie können das Audio jederzeit durch Klicken auf die Wiedergabetaste erneut abspielen."
+        },
+        "getStarted": "Beginnen"
     }
 }
