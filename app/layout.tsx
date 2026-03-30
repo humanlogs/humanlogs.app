@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     siteName: "humanlogs.app",
     images: [
       {
-        url: "/landing/og-image.png",
+        url: "https://humanlogs.app/landing/og-image.png",
         width: 1200,
         height: 630,
         alt: "humanlogs.app - Audio transcription software for research",
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     title: "humanlogs.app - Fast, confidential transcription for research",
     description:
       "Build and refine transcripts 4 times faster. End-to-end encrypted, 100+ languages, open source.",
-    images: ["/landing/og-image.png"],
+    images: ["https://humanlogs.app/landing/og-image.png"],
   },
 };
 
