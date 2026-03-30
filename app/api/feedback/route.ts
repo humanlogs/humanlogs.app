@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
+import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
 
-export async function POST(request: NextRequest) {
+export const POST = withAuthRateLimit(async (request, user) => {
   try {
-    const user = await requireAuth();
     const body = await request.json();
 
     const { type = "RATING", rating, message } = body;
@@ -69,4 +68,4 @@ export async function POST(request: NextRequest) {
       { status: 500 },
     );
   }
-}
+});

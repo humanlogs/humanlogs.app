@@ -6,9 +6,23 @@ Fast, confidential transcription for your research interviews.
 
 ## Features
 
-- **Accurate Transcriptions**: Get your interviews transcribed in minutes with high accuracy.
-- **Fast corrections and editing**: Our intuitive editor allows you to quickly make corrections and edits to your transcripts without switching between different tools.
-- **Confidentiality**: We prioritize your privacy. Your data is processed securely and is end-to-end encrypted.
+- **Super Accurate Transcription** – 100+ languages supported with best-in-class AI models. Process 2h of audio in just 10 minutes. Get started in minutes with the most accurate transcription available.
+
+- **Fast Editing & Corrections** – Our unique editor combines audio playback and text editing to help you refine transcripts 4 times faster. Click any word to jump to that moment in the audio.
+
+- **Collaboration** – Share your transcripts and work together on refining them. Perfect for research teams, newsrooms, and collaborative projects.
+
+- **Privacy by Design** – Work with sensitive data confidently. End-to-end encryption ensures your transcripts never leave your computer unencrypted. You hold the keys.
+
+- **Speaker Labels & Tools** – Automatic speaker diarization with manual labeling, renaming, merging, and removal. Apply text modifiers and organize multi-speaker conversations effortlessly.
+
+- **Organize per Project** – Working on multiple projects? Organize your transcriptions into folders designed specifically for research workflows and team collaboration.
+
+- **Export for the Real World** – Basic exports to PDF, Word, CSV, and TXT. Advanced exports for word analysis software, extract specific speakers, and custom formatting options.
+
+- **Transparent & Self-Hostable** – Install Humanlogs on your own infrastructure or within your university network. Full control over your data and processing. Open source and auditable.
+
+- **Built with Your Feedback** – We're eager to hear from you and implement your ideas. Join a community that shapes the future of transcription tools together.
 
 ## Getting Started
 

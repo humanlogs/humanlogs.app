@@ -1,7 +1,7 @@
-import { requireAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { isStripeConfigured } from "@/lib/stripe";
 import { NextRequest, NextResponse } from "next/server";
+import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
 
 const userSelectDefault = {
   id: true,
@@ -20,10 +20,8 @@ const userSelectDefault = {
   isWelcomeDone: true,
 };
 
-export async function GET() {
+export const GET = withAuthRateLimit(async (request, user) => {
   try {
-    const user = await requireAuth();
-
     // Fetch user from database with all fields
     const dbUser = await prisma.user.findUnique({
       where: {
@@ -47,11 +45,10 @@ export async function GET() {
       { status: 500 },
     );
   }
-}
+});
 
-export async function PATCH(request: NextRequest) {
+export const PATCH = withAuthRateLimit(async (request, user) => {
   try {
-    const user = await requireAuth();
     const body = await request.json();
 
     // Validate language if provided
@@ -86,4 +83,4 @@ export async function PATCH(request: NextRequest) {
       { status: 500 },
     );
   }
-}
+});

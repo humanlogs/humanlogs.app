@@ -1,31 +1,43 @@
 "use client";
 
-import {
+import React, {
   createContext,
   useContext,
   useRef,
   ReactNode,
   useState,
   useCallback,
+  useEffect,
 } from "react";
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { Speaker } from "./hooks/use-speaker-actions";
+import { SpeakerOptionsData } from "../dialogs/speaker-options-dialog";
+import { PauseConfigurationData } from "../dialogs/pause-configuration-dialog";
 
 type EditorState = {
   segments: TranscriptionSegment[];
   speakers: Speaker[];
 };
 
+type EditorOperations = {
+  applyPauseConfiguration?: (config: PauseConfigurationData) => void;
+  applySpeakerOptions?: (options: SpeakerOptionsData) => void;
+};
+
 type EditorStateContextType = {
   getState: () => EditorState | null;
   register: (getState: () => EditorState) => void;
   unregister: () => void;
+  operations: EditorOperations;
+  registerOperations: (operations: EditorOperations) => void;
+  unregisterOperations: () => void;
 };
 
 const EditorStateContext = createContext<EditorStateContextType | null>(null);
 
 export function EditorStateProvider({ children }: { children: ReactNode }) {
   const getStateRef = useRef<(() => EditorState) | null>(null);
+  const operationsRef = useRef<EditorOperations>({});
 
   const register = useCallback((getState: () => EditorState) => {
     getStateRef.current = getState;
@@ -39,7 +51,25 @@ export function EditorStateProvider({ children }: { children: ReactNode }) {
     return getStateRef.current?.() ?? null;
   }, []);
 
-  const contextValue = useRef({ getState, register, unregister });
+  const registerOperations = useCallback((operations: EditorOperations) => {
+    operationsRef.current = operations;
+  }, []);
+
+  const unregisterOperations = useCallback(() => {
+    operationsRef.current = {};
+  }, []);
+
+  // Use a stable reference but provide access to current operations
+  const contextValue = useRef({
+    getState,
+    register,
+    unregister,
+    get operations() {
+      return operationsRef.current;
+    },
+    registerOperations,
+    unregisterOperations,
+  });
 
   return (
     <EditorStateContext.Provider value={contextValue.current}>
@@ -58,7 +88,7 @@ export function useEditorStateRegister(getState: () => EditorState) {
     getStateRef.current = getState;
 
     // Register with the context
-    React.useEffect(() => {
+    useEffect(() => {
       context.register(() => getStateRef.current());
       return () => context.unregister();
     }, [context]);
@@ -80,6 +110,3 @@ export function useEditorState() {
 export function useOptionalEditorState() {
   return useContext(EditorStateContext);
 }
-
-// Need to import React for useEffect
-import React from "react";

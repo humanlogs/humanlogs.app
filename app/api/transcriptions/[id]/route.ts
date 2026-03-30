@@ -1,4 +1,3 @@
-import { requireAuth } from "@/lib/auth-helpers";
 import { getElevenLabsClient, isElevenLabsConfigured } from "@/lib/elevenlabs";
 import { prisma } from "@/lib/prisma";
 import { notifyDatabaseChange } from "@/lib/socket-helpers";
@@ -11,6 +10,7 @@ import {
   EncryptionUtils,
 } from "../../../../lib/encryption-entities";
 import { getStorage } from "../../../../lib/storage";
+import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
 
 type RouteParams = {
   params: Promise<{
@@ -18,245 +18,251 @@ type RouteParams = {
   }>;
 };
 
-export async function GET(request: Request, { params }: RouteParams) {
-  try {
-    const user = await requireAuth();
-    const { id } = await params;
+export const GET = withAuthRateLimit(
+  async (request, user, { params }: RouteParams) => {
+    try {
+      const { id } = await params;
 
-    // Fetch the transcription
-    let transcription = await prisma.transcription.findUnique({
-      where: {
-        id,
-      },
-    });
+      // Fetch the transcription
+      let transcription = await prisma.transcription.findUnique({
+        where: {
+          id,
+        },
+      });
 
-    // Check if transcription exists
-    if (!transcription) {
-      return NextResponse.json(
-        { error: "Transcription not found" },
-        { status: 404 },
-      );
-    }
-
-    // Check if user owns this transcription
-    if (transcription.userId !== user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
-
-    // If transcription is PENDING and we have an ElevenLabs ID, check status
-    transcription = await pollPendingTranscriptions(transcription);
-
-    // Return the transcription
-    return NextResponse.json(mapTransactionDetails(transcription));
-  } catch (error) {
-    console.error("Error fetching transcription:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch transcription" },
-      { status: 500 },
-    );
-  }
-}
-
-export async function PATCH(request: Request, { params }: RouteParams) {
-  try {
-    const user = await requireAuth();
-    const { id } = await params;
-    const body = await request.json();
-
-    // Fetch the transcription
-    const transcription = await prisma.transcription.findUnique({
-      where: { id },
-    });
-
-    // Check if transcription exists
-    if (!transcription) {
-      return NextResponse.json(
-        { error: "Transcription not found" },
-        { status: 404 },
-      );
-    }
-
-    // Check if user owns this transcription
-    if (transcription.userId !== user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
-
-    // Update the transcription
-    const updateData: {
-      title?: string;
-      projectId?: string | null;
-      transcription?: never;
-      updatedBy?: string;
-    } = {};
-
-    if (body.title !== undefined) {
-      if (typeof body.title !== "string" || !body.title.trim()) {
+      // Check if transcription exists
+      if (!transcription) {
         return NextResponse.json(
-          { error: "Title must be a non-empty string" },
-          { status: 400 },
+          { error: "Transcription not found" },
+          { status: 404 },
         );
       }
-      updateData.title = body.title.trim();
+
+      // Check if user owns this transcription
+      if (transcription.userId !== user.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      }
+
+      // If transcription is PENDING and we have an ElevenLabs ID, check status
+      transcription = await pollPendingTranscriptions(transcription);
+
+      // Return the transcription
+      return NextResponse.json(mapTransactionDetails(transcription));
+    } catch (error) {
+      console.error("Error fetching transcription:", error);
+      return NextResponse.json(
+        { error: "Failed to fetch transcription" },
+        { status: 500 },
+      );
     }
+  },
+);
 
-    if (body.projectId !== undefined) {
-      if (body.projectId === null) {
-        updateData.projectId = null;
-      } else if (typeof body.projectId === "string") {
-        // Verify the project exists and belongs to the user
-        const project = await prisma.project.findUnique({
-          where: { id: body.projectId },
-        });
+export const PATCH = withAuthRateLimit(
+  async (request, user, { params }: RouteParams) => {
+    try {
+      const { id } = await params;
+      const body = await request.json();
 
-        if (!project) {
+      // Fetch the transcription
+      const transcription = await prisma.transcription.findUnique({
+        where: { id },
+      });
+
+      // Check if transcription exists
+      if (!transcription) {
+        return NextResponse.json(
+          { error: "Transcription not found" },
+          { status: 404 },
+        );
+      }
+
+      // Check if user owns this transcription
+      if (transcription.userId !== user.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      }
+
+      // Update the transcription
+      const updateData: {
+        title?: string;
+        projectId?: string | null;
+        transcription?: never;
+        updatedBy?: string;
+      } = {};
+
+      if (body.title !== undefined) {
+        if (typeof body.title !== "string" || !body.title.trim()) {
           return NextResponse.json(
-            { error: "Project not found" },
-            { status: 404 },
+            { error: "Title must be a non-empty string" },
+            { status: 400 },
           );
         }
-
-        if (project.userId !== user.id) {
-          return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-        }
-
-        updateData.projectId = body.projectId;
-      } else {
-        return NextResponse.json(
-          { error: "projectId must be a string or null" },
-          { status: 400 },
-        );
-      }
-    }
-
-    // Handle transcription content updates
-    if (body.transcription !== undefined) {
-      if (
-        typeof body.transcription !== "object" ||
-        body.transcription === null
-      ) {
-        return NextResponse.json(
-          { error: "transcription must be an object" },
-          { status: 400 },
-        );
+        updateData.title = body.title.trim();
       }
 
-      // Extract change stats from request body (computed by frontend)
-      const changeStats = body.changeStats || {
-        additions: 0,
-        removals: 0,
-        changed: 0,
-      };
+      if (body.projectId !== undefined) {
+        if (body.projectId === null) {
+          updateData.projectId = null;
+        } else if (typeof body.projectId === "string") {
+          // Verify the project exists and belongs to the user
+          const project = await prisma.project.findUnique({
+            where: { id: body.projectId },
+          });
 
-      // Check we are not disclosing encrypted data
-      if (body.transcription && !body.transcription.privateKeys?.length) {
-        // Means we are sending unencrypted data
-        if (
-          (transcription.audioFileEncryption as EncryptedDataEntity)
-            ?.privateKeys?.length
-        ) {
-          // Means we should deal with encrypted data but we are sending unencrypted data, this should not happen
+          if (!project) {
+            return NextResponse.json(
+              { error: "Project not found" },
+              { status: 404 },
+            );
+          }
+
+          if (project.userId !== user.id) {
+            return NextResponse.json(
+              { error: "Unauthorized" },
+              { status: 403 },
+            );
+          }
+
+          updateData.projectId = body.projectId;
+        } else {
           return NextResponse.json(
-            {
-              error:
-                "Cannot update transcription with unencrypted data when the original transcription is encrypted",
-            },
+            { error: "projectId must be a string or null" },
             { status: 400 },
           );
         }
       }
 
-      // Create a history entry before updating
-      if (transcription.transcription !== null) {
-        await prisma.transcriptionHistory.create({
-          data: {
-            transcriptionId: id,
-            userId: user.id,
-            transcription: transcription.transcription as never,
-            updatedBy: user.id,
-            additions: changeStats.additions || 0,
-            removals: changeStats.removals || 0,
-            changed: changeStats.changed || 0,
-          },
-        });
+      // Handle transcription content updates
+      if (body.transcription !== undefined) {
+        if (
+          typeof body.transcription !== "object" ||
+          body.transcription === null
+        ) {
+          return NextResponse.json(
+            { error: "transcription must be an object" },
+            { status: 400 },
+          );
+        }
+
+        // Extract change stats from request body (computed by frontend)
+        const changeStats = body.changeStats || {
+          additions: 0,
+          removals: 0,
+          changed: 0,
+        };
+
+        // Check we are not disclosing encrypted data
+        if (body.transcription && !body.transcription.privateKeys?.length) {
+          // Means we are sending unencrypted data
+          if (
+            (transcription.audioFileEncryption as EncryptedDataEntity)
+              ?.privateKeys?.length
+          ) {
+            // Means we should deal with encrypted data but we are sending unencrypted data, this should not happen
+            return NextResponse.json(
+              {
+                error:
+                  "Cannot update transcription with unencrypted data when the original transcription is encrypted",
+              },
+              { status: 400 },
+            );
+          }
+        }
+
+        // Create a history entry before updating
+        if (transcription.transcription !== null) {
+          await prisma.transcriptionHistory.create({
+            data: {
+              transcriptionId: id,
+              userId: user.id,
+              transcription: transcription.transcription as never,
+              updatedBy: user.id,
+              additions: changeStats.additions || 0,
+              removals: changeStats.removals || 0,
+              changed: changeStats.changed || 0,
+            },
+          });
+        }
+
+        updateData.transcription = body.transcription as never;
+        updateData.updatedBy = user.id;
       }
 
-      updateData.transcription = body.transcription as never;
-      updateData.updatedBy = user.id;
-    }
+      const updated = await prisma.transcription.update({
+        where: { id },
+        data: updateData,
+      });
 
-    const updated = await prisma.transcription.update({
-      where: { id },
-      data: updateData,
-    });
+      // Notify client of transcription update
+      notifyDatabaseChange(user.id, "transcription", "update", {
+        id: updated.id,
+      });
 
-    // Notify client of transcription update
-    notifyDatabaseChange(user.id, "transcription", "update", {
-      id: updated.id,
-    });
-
-    return NextResponse.json(mapTransactionDetails(updated));
-  } catch (error) {
-    console.error("Error updating transcription:", error);
-    return NextResponse.json(
-      { error: "Failed to update transcription" },
-      { status: 500 },
-    );
-  }
-}
-
-export async function DELETE(request: Request, { params }: RouteParams) {
-  try {
-    const user = await requireAuth();
-    const { id } = await params;
-
-    // Fetch the transcription
-    const transcription = await prisma.transcription.findUnique({
-      where: { id },
-    });
-
-    // Check if transcription exists
-    if (!transcription) {
+      return NextResponse.json(mapTransactionDetails(updated));
+    } catch (error) {
+      console.error("Error updating transcription:", error);
       return NextResponse.json(
-        { error: "Transcription not found" },
-        { status: 404 },
+        { error: "Failed to update transcription" },
+        { status: 500 },
       );
     }
+  },
+);
 
-    // Check if user owns this transcription
-    if (transcription.userId !== user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+export const DELETE = withAuthRateLimit(
+  async (request, user, { params }: RouteParams) => {
+    try {
+      const { id } = await params;
+
+      // Fetch the transcription
+      const transcription = await prisma.transcription.findUnique({
+        where: { id },
+      });
+
+      // Check if transcription exists
+      if (!transcription) {
+        return NextResponse.json(
+          { error: "Transcription not found" },
+          { status: 404 },
+        );
+      }
+
+      // Check if user owns this transcription
+      if (transcription.userId !== user.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      }
+
+      // Delete all history entries for this transcription
+      await prisma.transcriptionHistory.deleteMany({
+        where: { transcriptionId: id, userId: user.id },
+      });
+
+      // Delete the audio file from storage if it exists (but not tutorial files)
+      if (
+        transcription.audioFileKey &&
+        !transcription.audioFileKey.startsWith("tutorial:")
+      ) {
+        await getStorage().delete(transcription.audioFileKey);
+      }
+
+      // Delete the transcription
+      await prisma.transcription.delete({
+        where: { id, userId: user.id },
+      });
+
+      // Notify client of transcription deletion
+      notifyDatabaseChange(user.id, "transcription", "delete", { id });
+
+      return NextResponse.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting transcription:", error);
+      return NextResponse.json(
+        { error: "Failed to delete transcription" },
+        { status: 500 },
+      );
     }
-
-    // Delete all history entries for this transcription
-    await prisma.transcriptionHistory.deleteMany({
-      where: { transcriptionId: id, userId: user.id },
-    });
-
-    // Delete the audio file from storage if it exists (but not tutorial files)
-    if (
-      transcription.audioFileKey &&
-      !transcription.audioFileKey.startsWith("tutorial:")
-    ) {
-      await getStorage().delete(transcription.audioFileKey);
-    }
-
-    // Delete the transcription
-    await prisma.transcription.delete({
-      where: { id, userId: user.id },
-    });
-
-    // Notify client of transcription deletion
-    notifyDatabaseChange(user.id, "transcription", "delete", { id });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Error deleting transcription:", error);
-    return NextResponse.json(
-      { error: "Failed to delete transcription" },
-      { status: 500 },
-    );
-  }
-}
+  },
+);
 
 export const pollPendingTranscriptions = async (
   transcription: Transcription,

@@ -4,10 +4,7 @@ import {
   getContactEmailTemplate,
   getContactConfirmationTemplate,
 } from "@/lib/email-templates";
-
-// Simple in-memory rate limiter
-// In production, consider using Redis or a database
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+import { checkRateLimit } from "@/lib/rate-limiter";
 
 const RATE_LIMIT = {
   MAX_REQUESTS: 3, // Max requests per time window
@@ -18,49 +15,21 @@ function getRateLimitKey(request: NextRequest): string {
   // Use IP address as the key
   const forwarded = request.headers.get("x-forwarded-for");
   const ip = forwarded ? forwarded.split(",")[0] : "unknown";
-  return `contact:${ip}`;
-}
-
-function checkRateLimit(key: string): { allowed: boolean; resetTime?: number } {
-  const now = Date.now();
-  const record = rateLimitMap.get(key);
-
-  // Clean up expired entries periodically
-  if (Math.random() < 0.01) {
-    for (const [k, v] of rateLimitMap.entries()) {
-      if (v.resetTime < now) {
-        rateLimitMap.delete(k);
-      }
-    }
-  }
-
-  if (!record || record.resetTime < now) {
-    // New window
-    rateLimitMap.set(key, {
-      count: 1,
-      resetTime: now + RATE_LIMIT.WINDOW_MS,
-    });
-    return { allowed: true };
-  }
-
-  if (record.count >= RATE_LIMIT.MAX_REQUESTS) {
-    return { allowed: false, resetTime: record.resetTime };
-  }
-
-  // Increment count
-  record.count++;
-  return { allowed: true };
+  return ip;
 }
 
 export async function POST(request: NextRequest) {
   try {
     // Check rate limit
     const rateLimitKey = getRateLimitKey(request);
-    const rateCheck = checkRateLimit(rateLimitKey);
+    const rateCheck = await checkRateLimit(rateLimitKey, {
+      maxRequests: RATE_LIMIT.MAX_REQUESTS,
+      windowMs: RATE_LIMIT.WINDOW_MS,
+      keyPrefix: "contact",
+    });
 
     if (!rateCheck.allowed) {
-      const resetTime = rateCheck.resetTime || Date.now();
-      const minutesLeft = Math.ceil((resetTime - Date.now()) / 60000);
+      const minutesLeft = Math.ceil((rateCheck.resetTime - Date.now()) / 60000);
       return NextResponse.json(
         {
           error: `Rate limit exceeded. Please try again in ${minutesLeft} minute${minutesLeft !== 1 ? "s" : ""}.`,
@@ -68,9 +37,9 @@ export async function POST(request: NextRequest) {
         {
           status: 429,
           headers: {
-            "X-RateLimit-Limit": RATE_LIMIT.MAX_REQUESTS.toString(),
-            "X-RateLimit-Remaining": "0",
-            "X-RateLimit-Reset": resetTime.toString(),
+            "X-RateLimit-Limit": rateCheck.limit.toString(),
+            "X-RateLimit-Remaining": rateCheck.remaining.toString(),
+            "X-RateLimit-Reset": rateCheck.resetTime.toString(),
           },
         },
       );

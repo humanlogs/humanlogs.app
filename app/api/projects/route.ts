@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
+import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
 
-export async function GET() {
+export const GET = withAuthRateLimit(async (request, user) => {
   try {
-    const user = await requireAuth();
-
     // Fetch all projects for the user (without transcriptions)
     const projects = await prisma.project.findMany({
       where: {
@@ -30,11 +28,10 @@ export async function GET() {
       { status: 500 },
     );
   }
-}
+});
 
-export async function POST(request: Request) {
+export const POST = withAuthRateLimit(async (request, user) => {
   try {
-    const user = await requireAuth();
     const body = await request.json();
 
     const { name } = body;
@@ -64,4 +61,4 @@ export async function POST(request: Request) {
       { status: 500 },
     );
   }
-}
+});

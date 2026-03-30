@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "@/components/locale-provider";
 import { PageLayout } from "@/components/page-layout";
 import { ProjectSelector } from "@/components/project-selector";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,13 +14,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import Link from "next/link";
-import { AlertCircle } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import _ from "lodash";
 import {
+  AlertCircle,
   FileIcon,
   PauseIcon,
   PencilIcon,
@@ -27,11 +27,11 @@ import {
   Trash2Icon,
   UploadIcon,
 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
-import { languagesNames, locales } from "../../../../lib/i18n";
-import _ from "lodash";
+import { useUserProfile } from "../../../../hooks/use-api";
 
 type AudioFile = {
   id: string;
@@ -140,6 +140,7 @@ const supportedLanguages = {
 export default function NewTranscriptionPage() {
   const t = useTranslations("newTranscription");
   const { locale } = useLocale();
+  const { data: user } = useUserProfile();
   const router = useRouter();
 
   // Form state
@@ -153,7 +154,6 @@ export default function NewTranscriptionPage() {
   const [vocabulary, setVocabulary] = React.useState<string>("Euh, Hmm, Bah");
   const [isDragging, setIsDragging] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [userCredits, setUserCredits] = React.useState<number | null>(null);
   const [playingAudioId, setPlayingAudioId] = React.useState<string | null>(
     null,
   );
@@ -175,15 +175,6 @@ export default function NewTranscriptionPage() {
         setSpeakers(count);
       }
     }
-
-    // Fetch user credits
-    fetch("/api/user")
-      .then((res) => res.json())
-      .then((data) => {
-        const available = data.credits || 0;
-        setUserCredits(Math.max(0, available));
-      })
-      .catch((err) => console.error("Error fetching credits:", err));
   }, []);
 
   // Save speaker count to localStorage when it changes
@@ -236,9 +227,9 @@ export default function NewTranscriptionPage() {
         continue;
       }
 
-      // Check file size (500MB max)
-      if (file.size > 500 * 1024 * 1024) {
-        toast.error(`File "${file.name}" is too large (max 500MB)`);
+      // Check file size (1GB max)
+      if (file.size > 1024 * 1024 * 1024) {
+        toast.error(`File "${file.name}" is too large (max 1GB)`);
         continue;
       }
 
@@ -383,7 +374,7 @@ export default function NewTranscriptionPage() {
   const totalMinutes = Math.ceil(totalSeconds / 60);
   const estimatedCredits = totalMinutes;
   const hasEnoughCredits =
-    userCredits === null || userCredits >= estimatedCredits;
+    user?.credits === null || (user?.credits || 0) >= estimatedCredits;
 
   // Format helpers
   const formatDuration = (seconds: number | null) => {
@@ -476,7 +467,7 @@ export default function NewTranscriptionPage() {
       <PageLayout title={t("audioFiles")}>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Low Credits Warning */}
-          {userCredits !== null && userCredits < 100 && (
+          {user?.credits !== null && (user?.credits || 0 < 200) && (
             <Alert
               variant="default"
               className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20"
@@ -486,8 +477,8 @@ export default function NewTranscriptionPage() {
                 Low Credits
               </AlertTitle>
               <AlertDescription className="text-yellow-700 dark:text-yellow-400">
-                You have {userCredits} credits remaining. Consider adding more
-                credits to continue transcribing.{" "}
+                You have {user?.credits || 0} credits remaining. Consider adding
+                more credits to continue transcribing.{" "}
                 <Link
                   href="/app/account/billing"
                   className="font-semibold underline hover:no-underline"

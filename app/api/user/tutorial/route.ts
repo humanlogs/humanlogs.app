@@ -1,6 +1,6 @@
-import { requireAuth } from "@/lib/auth-helpers";
 import { NextRequest, NextResponse } from "next/server";
 import { createTutorialTranscription } from "../../../../lib/tutorial-helpers";
+import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
 
 export const dynamic = "force-dynamic";
 
@@ -11,9 +11,8 @@ function isSupportedLanguage(lang: string): lang is SupportedLanguage {
   return SUPPORTED_LANGUAGES.includes(lang as SupportedLanguage);
 }
 
-export async function POST(request: NextRequest) {
+export const POST = withAuthRateLimit(async (request, user) => {
   try {
-    const user = await requireAuth();
     const body = await request.json();
     const { language = "en" } = body;
 
@@ -43,4 +42,4 @@ export async function POST(request: NextRequest) {
       { status: 500 },
     );
   }
-}
+});

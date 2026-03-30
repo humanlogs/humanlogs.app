@@ -176,6 +176,49 @@
             }
         }
     },
+    "features": {
+        "title": "Alles, was Sie für umfangreiches Transkribieren benötigen",
+        "subtitle": "Leistungsstarke Funktionen für Forscher, Journalisten und Fachleute",
+        "accurate": {
+            "title": "Super präzise Transkription",
+            "description": "Über 100 unterstützte Sprachen mit den besten verfügbaren KI-Modellen. Verarbeiten Sie 2 Stunden Audio in nur 10 Minuten. Starten Sie in wenigen Minuten mit der genauesten Transkription.",
+            "badge": "100+ Sprachen"
+        },
+        "editing": {
+            "title": "Schnelle Bearbeitung & Korrekturen",
+            "description": "Unser einzigartiger Editor kombiniert Audio-Wiedergabe und Textbearbeitung, um Ihnen zu helfen, Transkripte 4-mal schneller zu verfeinern. Klicken Sie auf ein beliebiges Wort, um zu diesem Moment im Audio zu springen.",
+            "badge": "4x schneller"
+        },
+        "speakers": {
+            "title": "Sprecher-Labels & Tools",
+            "description": "Automatische Sprechererkennung mit manueller Beschriftung, Umbenennung, Zusammenführung und Entfernung. Wenden Sie Textmodifikatoren an und organisieren Sie mühelos Gespräche mit mehreren Sprechern."
+        },
+        "projects": {
+            "title": "Organisation nach Projekt",
+            "description": "Arbeiten Sie an mehreren Projekten? Organisieren Sie Ihre Transkriptionen in Ordnern, die speziell für Forschungsworkflows und Teamzusammenarbeit entwickelt wurden."
+        },
+        "export": {
+            "title": "Export für die reale Welt",
+            "description": "Basis-Exporte als PDF, Word, CSV und TXT. Erweiterte Exporte für Textanalysesoftware, Extraktion bestimmter Sprecher und benutzerdefinierte Formatierungsoptionen."
+        },
+        "collaboration": {
+            "title": "Zusammenarbeit",
+            "description": "Teilen Sie Ihre Transkripte und arbeiten Sie gemeinsam an deren Verfeinerung. Perfekt für Forschungsteams, Redaktionen und kollaborative Projekte."
+        },
+        "privacy": {
+            "title": "Datenschutz by Design",
+            "description": "Arbeiten Sie selbstbewusst mit sensiblen Daten. Ende-zu-Ende-Verschlüsselung stellt sicher, dass Ihre Transkripte Ihren Computer niemals unverschlüsselt verlassen. Sie haben die Schlüssel.",
+            "badge": "E2E-Verschlüsselt"
+        },
+        "selfHost": {
+            "title": "Transparent & selbst-hostbar",
+            "description": "Installieren Sie Humanlogs auf Ihrer eigenen Infrastruktur oder in Ihrem Universitätsnetzwerk. Volle Kontrolle über Ihre Daten und Verarbeitung. Open Source und überprüfbar."
+        },
+        "feedback": {
+            "title": "Mit Ihrem Feedback entwickelt",
+            "description": "Wir freuen uns darauf, von Ihnen zu hören und Ihre Ideen umzusetzen. Werden Sie Teil einer Community, die gemeinsam die Zukunft von Transkriptionstools gestaltet."
+        }
+    },
     "faq": {
         "title": "Häufig gestellte Fragen",
         "subtitle": "Alles, was Sie über Preise und Funktionen von Humanlogs wissen müssen",

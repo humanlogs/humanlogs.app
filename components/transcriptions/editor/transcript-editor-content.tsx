@@ -19,6 +19,8 @@ import { AudioControls, InteractiveAudio } from "./interactive-audio";
 import { createPortal } from "react-dom";
 import { cn } from "../../../lib/utils";
 import { SpeakerOptionsData } from "../dialogs/speaker-options-dialog";
+import { PauseConfigurationData } from "../dialogs/pause-configuration-dialog";
+import { useOptionalEditorState } from "./editor-state-context";
 
 interface TranscriptEditorContentProps {
   segments: TranscriptionSegment[];
@@ -151,6 +153,139 @@ export function TranscriptEditorContent({
     // Apply changes
     onChange(updatedSegments);
   };
+
+  // Apply pause configuration (add pause markers to spacing segments)
+  const applyPauseConfiguration = (config: PauseConfigurationData) => {
+    const result: TranscriptionSegment[] = [];
+
+    for (let i = 0; i < segments.length; i++) {
+      const seg = segments[i];
+
+      // Only process spacing segments with timing information
+      if (
+        seg.type !== "spacing" ||
+        seg.start === undefined ||
+        seg.end === undefined
+      ) {
+        result.push(seg);
+        continue;
+      }
+
+      // Calculate duration
+      const duration = seg.end - seg.start;
+
+      // Check if this spacing is between words of the same speaker
+      let beforeWord: TranscriptionSegment | undefined;
+      let afterWord: TranscriptionSegment | undefined;
+
+      for (let j = i - 1; j >= 0; j--) {
+        if (segments[j].type === "word") {
+          beforeWord = segments[j];
+          break;
+        }
+      }
+      for (let j = i + 1; j < segments.length; j++) {
+        if (segments[j].type === "word") {
+          afterWord = segments[j];
+          break;
+        }
+      }
+
+      const sameSpeaker =
+        beforeWord?.speakerId !== undefined &&
+        afterWord?.speakerId !== undefined &&
+        beforeWord.speakerId === afterWord.speakerId;
+
+      // Only apply pause markers to pauses within same speaker
+      if (!sameSpeaker) {
+        result.push(seg);
+        continue;
+      }
+
+      // Apply pause markers based on duration
+      if (duration >= 3) {
+        // Long pause (>3s)
+        const mid = (seg.start + seg.end) / 2;
+
+        // Add spacing before pause marker
+        result.push({
+          type: "spacing",
+          text: " ",
+          start: seg.start,
+          end: mid,
+          speakerId: seg.speakerId,
+        });
+
+        // Add pause marker as a word segment
+        result.push({
+          type: "word",
+          text: config.longPauseMarker,
+          start: seg.start,
+          end: seg.end,
+          speakerId: seg.speakerId,
+        });
+
+        // Add spacing after pause marker (with optional double line break)
+        result.push({
+          type: "spacing",
+          text: config.addDoubleLineBreak ? "\n\n" : " ",
+          start: mid,
+          end: seg.end,
+          speakerId: seg.speakerId,
+        });
+      } else if (duration >= 1) {
+        // Short pause (>1s)
+        const mid = (seg.start + seg.end) / 2;
+
+        // Add spacing before pause marker
+        result.push({
+          type: "spacing",
+          text: " ",
+          start: seg.start,
+          end: mid,
+          speakerId: seg.speakerId,
+        });
+
+        // Add pause marker as a word segment
+        result.push({
+          type: "word",
+          text: config.shortPauseMarker,
+          start: seg.start,
+          end: seg.end,
+          speakerId: seg.speakerId,
+        });
+
+        // Add spacing after pause marker
+        result.push({
+          type: "spacing",
+          text: " ",
+          start: mid,
+          end: seg.end,
+          speakerId: seg.speakerId,
+        });
+      } else {
+        // Keep spacing as-is for pauses < 1s
+        result.push(seg);
+      }
+    }
+
+    // Apply changes
+    onChange(result);
+  };
+
+  // Register operations with editor state context (if available)
+  const editorStateContext = useOptionalEditorState();
+  useEffect(() => {
+    if (editorStateContext) {
+      editorStateContext.registerOperations({
+        applyPauseConfiguration,
+        applySpeakerOptions,
+      });
+      return () => {
+        editorStateContext.unregisterOperations();
+      };
+    }
+  }, [editorStateContext, applyPauseConfiguration, applySpeakerOptions]);
 
   // Search and replace
   const searchReplace = useSearchReplace(segments, onChange);

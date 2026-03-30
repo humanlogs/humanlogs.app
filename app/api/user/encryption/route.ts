@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
+import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
 
 /**
  * GET /api/user/encryption
  * Retrieves the user's encryption status and public key.
  */
-export async function GET() {
+export const GET = withAuthRateLimit(async (request, user) => {
   try {
-    const user = await requireAuth();
-
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
       select: {
@@ -34,15 +32,14 @@ export async function GET() {
       { status: 500 },
     );
   }
-}
+});
 
 /**
  * POST /api/user/encryption
  * Enables end-to-end encryption for the user.
  */
-export async function POST(request: NextRequest) {
+export const POST = withAuthRateLimit(async (request, user) => {
   try {
-    const user = await requireAuth();
     const body = await request.json();
 
     const { publicKey, trustedDeviceSecret } = body;
@@ -79,16 +76,14 @@ export async function POST(request: NextRequest) {
       { status: 500 },
     );
   }
-}
+});
 
 /**
  * DELETE /api/user/encryption
  * Disables end-to-end encryption for the user.
  */
-export async function DELETE() {
+export const DELETE = withAuthRateLimit(async (request, user) => {
   try {
-    const user = await requireAuth();
-
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -105,4 +100,4 @@ export async function DELETE() {
       { status: 500 },
     );
   }
-}
+});

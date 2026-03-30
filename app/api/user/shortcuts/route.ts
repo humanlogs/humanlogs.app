@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
+import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
 
 export type CustomShortcut = {
   id: string;
@@ -10,10 +10,8 @@ export type CustomShortcut = {
 };
 
 // GET /api/user/shortcuts - Get user's custom shortcuts
-export async function GET() {
+export const GET = withAuthRateLimit(async (request, user) => {
   try {
-    const user = await requireAuth();
-
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
       select: { shortcuts: true as any },
@@ -32,12 +30,11 @@ export async function GET() {
       { status: 500 },
     );
   }
-}
+});
 
 // POST /api/user/shortcuts - Add or update a shortcut
-export async function POST(request: NextRequest) {
+export const POST = withAuthRateLimit(async (request, user) => {
   try {
-    const user = await requireAuth();
     const body = await request.json();
 
     const { key, text, description } = body;
@@ -89,12 +86,11 @@ export async function POST(request: NextRequest) {
       { status: 500 },
     );
   }
-}
+});
 
 // DELETE /api/user/shortcuts?id=... - Delete a shortcut
-export async function DELETE(request: NextRequest) {
+export const DELETE = withAuthRateLimit(async (request, user) => {
   try {
-    const user = await requireAuth();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
@@ -132,4 +128,4 @@ export async function DELETE(request: NextRequest) {
       { status: 500 },
     );
   }
-}
+});

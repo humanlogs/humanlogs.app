@@ -284,10 +284,15 @@ export function TranscriptionActions({
       name: s.name,
     }));
     openSpeakerOptions(content, speakers, content.words, (options) => {
-      // TODO: Implement speaker options application logic
-      // This would need to call an API endpoint to update the transcription
-      console.log("Speaker options to apply:", options);
-      toast.info(t("actions.speakerOptionsInProgress"));
+      // Apply speaker options via editor context if available
+      if (editorStateContext?.operations?.applySpeakerOptions) {
+        editorStateContext.operations.applySpeakerOptions(options);
+        toast.success("Speaker options applied");
+      } else {
+        // Fallback: log for future API implementation
+        console.log("Speaker options to apply:", options);
+        toast.info(t("actions.speakerOptionsInProgress"));
+      }
     });
   };
 
@@ -299,8 +304,8 @@ export function TranscriptionActions({
     }
     openPauseConfiguration(content, content.words, (options) => {
       // Use the editor context to apply pause configuration
-      if (editorStateContext) {
-        editorStateContext.operations.applyPauseConfiguration?.(options);
+      if (editorStateContext?.operations?.applyPauseConfiguration) {
+        editorStateContext.operations.applyPauseConfiguration(options);
         toast.success("Pause configuration applied");
       } else {
         // Fallback: log for future API implementation

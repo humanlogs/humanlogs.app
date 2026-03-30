@@ -2,6 +2,7 @@ import { Layout } from "./_layout";
 import {
   EncryptionSection,
   FAQSection,
+  FeaturesSection,
   PricingSection,
   TestimonialsSection,
 } from "./components/sections";
@@ -13,6 +14,7 @@ export default function LandingPage() {
     <Layout>
       <HeroSection />
       <LogoSection />
+      <FeaturesSection />
       <TestimonialsSection />
       <EncryptionSection />
       <PricingSection showFeatureGrid={false} />

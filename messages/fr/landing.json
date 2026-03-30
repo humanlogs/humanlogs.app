@@ -176,6 +176,49 @@
             }
         }
     },
+    "features": {
+        "title": "Tout ce dont vous avez besoin pour transcrire à grande échelle",
+        "subtitle": "Des fonctionnalités puissantes conçues pour les chercheurs, journalistes et professionnels",
+        "accurate": {
+            "title": "Transcription ultra-précise",
+            "description": "Plus de 100 langues supportées avec les meilleurs modèles d'IA disponibles. Traitez 2h d'audio en seulement 10 minutes. Démarrez en quelques minutes avec la transcription la plus précise.",
+            "badge": "100+ langues"
+        },
+        "editing": {
+            "title": "Édition et corrections rapides",
+            "description": "Notre éditeur unique combine lecture audio et édition de texte pour vous aider à affiner vos transcriptions 4 fois plus rapidement. Cliquez sur n'importe quel mot pour accéder à ce moment dans l'audio.",
+            "badge": "4x plus rapide"
+        },
+        "speakers": {
+            "title": "Étiquettes et outils de locuteurs",
+            "description": "Diarisation automatique des locuteurs avec étiquetage manuel, renommage, fusion et suppression. Appliquez des modificateurs de texte et organisez facilement les conversations multi-locuteurs."
+        },
+        "projects": {
+            "title": "Organisation par projet",
+            "description": "Vous travaillez sur plusieurs projets ? Organisez vos transcriptions dans des dossiers spécialement conçus pour les flux de travail de recherche et la collaboration en équipe."
+        },
+        "export": {
+            "title": "Export pour le monde réel",
+            "description": "Exports basiques en PDF, Word, CSV et TXT. Exports avancés pour les logiciels d'analyse de texte, extraction de locuteurs spécifiques et options de formatage personnalisées."
+        },
+        "collaboration": {
+            "title": "Collaboration",
+            "description": "Partagez vos transcriptions et travaillez ensemble sur leur amélioration. Parfait pour les équipes de recherche, les rédactions et les projets collaboratifs."
+        },
+        "privacy": {
+            "title": "Confidentialité par conception",
+            "description": "Travaillez avec des données sensibles en toute confiance. Le chiffrement de bout en bout garantit que vos transcriptions ne quittent jamais votre ordinateur sans être chiffrées. Vous détenez les clés.",
+            "badge": "Chiffrement E2E"
+        },
+        "selfHost": {
+            "title": "Transparent et auto-hébergeable",
+            "description": "Installez Humanlogs sur votre propre infrastructure ou au sein de votre réseau universitaire. Contrôle total sur vos données et le traitement. Open source et auditable."
+        },
+        "feedback": {
+            "title": "Construit avec vos retours",
+            "description": "Nous sommes impatients de vous entendre et de mettre en œuvre vos idées. Rejoignez une communauté qui façonne l'avenir des outils de transcription ensemble."
+        }
+    },
     "faq": {
         "title": "Questions fréquemment posées",
         "subtitle": "Tout ce que vous devez savoir sur les tarifs et fonctionnalités d'Humanlogs",

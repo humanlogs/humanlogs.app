@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import {
   createCheckoutSession,
@@ -7,8 +6,9 @@ import {
   PLANS,
   isStripeConfigured,
 } from "@/lib/stripe";
+import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
 
-export async function POST(request: NextRequest) {
+export const POST = withAuthRateLimit(async (request, user) => {
   try {
     if (!isStripeConfigured()) {
       return NextResponse.json(
@@ -16,8 +16,6 @@ export async function POST(request: NextRequest) {
         { status: 503 },
       );
     }
-
-    const user = await requireAuth();
     const body = await request.json();
     const { planType } = body; // 'monthly', 'yearly', or 'one-time'
 
@@ -85,4 +83,4 @@ export async function POST(request: NextRequest) {
       { status: 500 },
     );
   }
-}
+});

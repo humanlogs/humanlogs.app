@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { createCustomerPortalSession, isStripeConfigured } from "@/lib/stripe";
+import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
 
-export async function POST(request: NextRequest) {
+export const POST = withAuthRateLimit(async (request, user) => {
   try {
     if (!isStripeConfigured()) {
       return NextResponse.json(
@@ -11,8 +11,6 @@ export async function POST(request: NextRequest) {
         { status: 503 },
       );
     }
-
-    const user = await requireAuth();
 
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
@@ -42,4 +40,4 @@ export async function POST(request: NextRequest) {
       { status: 500 },
     );
   }
-}
+});

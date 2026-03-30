@@ -31,7 +31,12 @@ console.log("Socket.io server initialized");
 app.prepare().then(() => {
   // Initialize cron jobs in production
   if (!dev) {
-    initializeCronJobs();
+    try {
+      initializeCronJobs();
+    } catch (error) {
+      console.error("Failed to initialize cron jobs:", error);
+      console.log("Server will continue without cron jobs");
+    }
   }
 
   httpServer.listen(port, () => {

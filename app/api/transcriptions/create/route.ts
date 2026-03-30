@@ -3,7 +3,6 @@ import {
   compressAudio,
   encryptAudioBuffer,
 } from "@/lib/audio-processing";
-import { requireAuth } from "@/lib/auth-helpers";
 import { getElevenLabsClient, isElevenLabsConfigured } from "@/lib/elevenlabs";
 import { prisma } from "@/lib/prisma";
 import { generateAudioKey, getStorage } from "@/lib/storage";
@@ -11,11 +10,12 @@ import { isBillableVersion } from "@/lib/stripe";
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { EncryptionUtils } from "../../../../lib/encryption-entities";
+import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
 
 export const dynamic = "force-dynamic";
 
-// Maximum file size: 500MB
-const MAX_FILE_SIZE = 500 * 1024 * 1024;
+// Maximum file size: 1GB
+const MAX_FILE_SIZE = 1024 * 1024 * 1024;
 
 // Supported audio formats
 const SUPPORTED_FORMATS = [
@@ -27,9 +27,8 @@ const SUPPORTED_FORMATS = [
   "audio/flac",
 ];
 
-export async function POST(request: NextRequest) {
+export const POST = withAuthRateLimit(async (request, user) => {
   try {
-    const user = await requireAuth();
 
     // Parse multipart form data
     const formData = await request.formData();
@@ -77,7 +76,7 @@ export async function POST(request: NextRequest) {
     for (const file of audioFiles) {
       if (file.size > MAX_FILE_SIZE) {
         return NextResponse.json(
-          { error: `File ${file.name} exceeds maximum size of 500MB` },
+          { error: `File ${file.name} exceeds maximum size of 1GB` },
           { status: 400 },
         );
       }

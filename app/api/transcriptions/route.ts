@@ -1,15 +1,13 @@
-import { requireAuth } from "@/lib/auth-helpers";
 import { isElevenLabsConfigured } from "@/lib/elevenlabs";
 import { prisma } from "@/lib/prisma";
 import { Transcription } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { EncryptedDataEntity } from "../../../lib/encryption-entities";
 import { pollPendingTranscriptions } from "./[id]/route";
+import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
 
-export async function GET() {
+export const GET = withAuthRateLimit(async (request, user) => {
   try {
-    const user = await requireAuth();
-
     // Fetch all transcriptions for the user (up to 1000)
     const transcriptions = await prisma.transcription.findMany({
       where: {
@@ -64,7 +62,7 @@ export async function GET() {
       { status: 500 },
     );
   }
-}
+});
 
 const formatTranscriptionList = (t: Transcription) => {
   return {

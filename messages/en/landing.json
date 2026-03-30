@@ -176,6 +176,49 @@
             }
         }
     },
+    "features": {
+        "title": "Everything you need to transcribe at scale",
+        "subtitle": "Powerful features designed for researchers, journalists, and professionals",
+        "accurate": {
+            "title": "Super accurate transcription",
+            "description": "100+ languages supported with best-in-class AI models. Process 2h of audio in just 10 minutes. Get started in minutes with the most accurate transcription available.",
+            "badge": "100+ languages"
+        },
+        "editing": {
+            "title": "Fast editing & corrections",
+            "description": "Our unique editor combines audio playback and text editing to help you refine transcripts 4 times faster. Click any word to jump to that moment in the audio.",
+            "badge": "4x faster"
+        },
+        "speakers": {
+            "title": "Speaker labels & tools",
+            "description": "Automatic speaker diarization with manual labeling, renaming, merging, and removal. Apply text modifiers and organize multi-speaker conversations effortlessly."
+        },
+        "projects": {
+            "title": "Organize per project",
+            "description": "Working on multiple projects? Organize your transcriptions into folders designed specifically for research workflows and team collaboration."
+        },
+        "export": {
+            "title": "Export for the real world",
+            "description": "Basic exports to PDF, Word, CSV, and TXT. Advanced exports for word analysis software, extract specific speakers, and custom formatting options."
+        },
+        "collaboration": {
+            "title": "Collaboration",
+            "description": "Share your transcripts and work together on refining them. Perfect for research teams, newsrooms, and collaborative projects."
+        },
+        "privacy": {
+            "title": "Privacy by design",
+            "description": "Work with sensitive data confidently. End-to-end encryption ensures your transcripts never leave your computer unencrypted. You hold the keys.",
+            "badge": "E2E Encrypted"
+        },
+        "selfHost": {
+            "title": "Transparent & self-hostable",
+            "description": "Install Humanlogs on your own infrastructure or within your university network. Full control over your data and processing. Open source and auditable."
+        },
+        "feedback": {
+            "title": "Built with your feedback",
+            "description": "We're eager to hear from you and implement your ideas. Join a community that shapes the future of transcription tools together."
+        }
+    },
     "faq": {
         "title": "Frequently Asked Questions",
         "subtitle": "Everything you need to know about Humanlogs pricing and features",

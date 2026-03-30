@@ -1,14 +1,12 @@
-import { requireAuth } from "@/lib/auth-helpers";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/mailer";
 import { getAccountDeletionEmailTemplate } from "@/lib/email-templates";
 import crypto from "crypto";
+import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
 
-export async function POST(request: Request) {
+export const POST = withAuthRateLimit(async (request, user) => {
   try {
-    const user = await requireAuth();
-
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
@@ -58,4 +56,4 @@ export async function POST(request: Request) {
       { status: 500 },
     );
   }
-}
+});
