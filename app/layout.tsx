@@ -1,12 +1,10 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
 import { LocaleProvider } from "@/components/locale-provider";
 import { QueryProvider } from "@/components/query-provider";
-import { SocketProvider } from "@/components/socket-provider";
+import { ThemeProvider } from "@/components/theme-provider";
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
-import { TrustedEncryptionKeysProvider } from "../components/trusted-encryption-keys-provider";
+import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,8 +17,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Transcrire",
-  description: "Audio transcription application",
+  title: "humanlogs.app",
+  description:
+    "Audio transcription software built for research. Fast, secure, and privacy-first.",
   icons: {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
   },
@@ -39,19 +38,15 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <QueryProvider>
-          <TrustedEncryptionKeysProvider>
-            <SocketProvider>
-              <LocaleProvider>
-                <ThemeProvider
-                  defaultTheme="system"
-                  storageKey="transcription-theme"
-                >
-                  {children}
-                  <Toaster richColors position="bottom-right" />
-                </ThemeProvider>
-              </LocaleProvider>
-            </SocketProvider>
-          </TrustedEncryptionKeysProvider>
+          <LocaleProvider>
+            <ThemeProvider
+              defaultTheme="system"
+              storageKey="transcription-theme"
+            >
+              {children}
+              <Toaster richColors position="bottom-right" />
+            </ThemeProvider>
+          </LocaleProvider>
         </QueryProvider>
       </body>
     </html>

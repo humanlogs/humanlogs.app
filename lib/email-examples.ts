@@ -20,7 +20,7 @@ import {
 export async function sendWelcomeEmail(userEmail: string, userName: string) {
   const template = getWelcomeEmailTemplate({
     userName,
-    loginUrl: `${process.env.NEXT_PUBLIC_APP_URL}/login`,
+    loginUrl: `${process.env.NEXT_PUBLIC_APP_URL}/app/login`,
   });
 
   await sendEmail({

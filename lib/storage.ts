@@ -26,6 +26,10 @@ class S3StorageAdapter implements StorageAdapter {
     const config = getConfig();
     this.client = new S3Client({
       region: config.aws.region,
+      credentials: {
+        accessKeyId: config.aws.accessKeyId,
+        secretAccessKey: config.aws.secretAccessKey,
+      },
     });
     this.bucketName = config.aws.s3.bucketName;
   }

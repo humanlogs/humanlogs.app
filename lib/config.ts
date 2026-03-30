@@ -29,6 +29,8 @@ const configSchema = z.object({
   }),
   aws: z.object({
     region: z.string(),
+    accessKeyId: z.string(),
+    secretAccessKey: z.string(),
     s3: z.object({
       bucketName: z.string(),
     }),

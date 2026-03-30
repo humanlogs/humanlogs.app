@@ -79,6 +79,10 @@ class Mailer {
 
       this.sesClient = new SESClient({
         region: emailConfig.ses.region,
+        credentials: {
+          accessKeyId: getConfig().aws.accessKeyId,
+          secretAccessKey: getConfig().aws.secretAccessKey,
+        },
       });
       this.isConfigured = true;
     } else {

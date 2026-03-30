@@ -97,17 +97,7 @@ export default function LoginPage() {
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/logo-colors.svg"
-              alt="Logo"
-              className="flex dark:hidden w-16 h-16"
-            />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/logo-white.svg"
-              alt="Logo"
-              className="dark:flex hidden w-16 h-16"
-            />
+            <img src="/logo.svg" alt="Logo" className="flex w-16 h-16" />
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
             {t("title")}

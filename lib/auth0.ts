@@ -8,13 +8,14 @@ export const auth0 = new Auth0Client({
   appBaseUrl: auth0Config.baseUrl,
   clientId: auth0Config.clientId,
   clientSecret: auth0Config.clientSecret,
+  signInReturnToPath: "/app",
   routes: {
     callback: "/api/auth/callback",
     login: "/api/auth/login",
     logout: "/api/auth/logout",
   },
   session: {
-    absoluteDuration: 60 * 60 * 24 * 7, // 7 days
+    absoluteDuration: 24, // hours
   },
 });
 

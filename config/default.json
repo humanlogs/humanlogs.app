@@ -46,7 +46,7 @@
         "provider": "smtp",
         "from": {
             "name": "",
-            "address": "hello@transcrire.app"
+            "address": "hello@humanlogs.app"
         },
         "smtp": {
             "host": "",
