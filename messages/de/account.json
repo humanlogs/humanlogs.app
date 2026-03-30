@@ -1,0 +1,176 @@
+{
+    "encryption": {
+        "cannotAccess": {
+            "title": "Zugriff auf Transkription nicht möglich",
+            "noCertificate": {
+                "badge": "Verschlüsselungszertifikat erforderlich",
+                "description": "Diese Transkription ist verschlüsselt. Sie müssen Ihr Verschlüsselungszertifikat importieren, um darauf zuzugreifen.",
+                "steps": {
+                    "title": "Was Sie tun müssen:",
+                    "step1": "Finden Sie Ihre Verschlüsselungszertifikatdatei (heruntergeladen, als Sie die Verschlüsselung aktiviert haben)",
+                    "step2": "Klicken Sie auf die Schaltfläche unten, um sie zu importieren",
+                    "step3": "Ihre verschlüsselten Transkriptionen werden dann zugänglich sein"
+                },
+                "button": "Zertifikat importieren"
+            },
+            "certificateMismatch": {
+                "badge": "Zertifikat nicht kompatibel",
+                "description": "Diese Transkription wurde mit einem anderen Zertifikat verschlüsselt. Das auf diesem Gerät geladene Zertifikat kann sie nicht entschlüsseln.",
+                "reasons": {
+                    "title": "Mögliche Gründe:",
+                    "reason1": "Diese Transkription wurde von einem anderen Benutzer erstellt",
+                    "reason2": "Sie haben Ihre Verschlüsselung zurückgesetzt und dies ist eine alte Transkription",
+                    "reason3": "Sie verwenden ein anderes Verschlüsselungszertifikat"
+                },
+                "note": "Wenn Sie das ursprüngliche Zertifikat haben, das zum Verschlüsseln dieser Transkription verwendet wurde, können Sie versuchen, es zu importieren.",
+                "button": "Anderes Zertifikat versuchen"
+            }
+        },
+        "settings": {
+            "loading": "Wird geladen...",
+            "activeStatus": {
+                "title": "Verschlüsselung aktiv",
+                "description": "Ihre Transkriptionen sind durch Ende-zu-Ende-Verschlüsselung geschützt.",
+                "button": "Zertifikat herunterladen"
+            },
+            "deviceTrust": {
+                "title": "Gerätevertrauen",
+                "description": "Wenn Sie einem Gerät vertrauen, bleibt Ihr Verschlüsselungszertifikat auch nach dem Abmelden in Ihrem Browser gespeichert. Vertrauen Sie nur Ihren persönlichen Geräten.",
+                "label": "Diesem Gerät vertrauen",
+                "enabled": "Diesem Gerät wird vertraut",
+                "disabled": "Diesem Gerät wird nicht vertraut",
+                "removeButton": "Schlüssel von diesem Gerät entfernen"
+            },
+            "dangerZone": {
+                "title": "Gefahrenzone",
+                "description": "Das Deaktivieren der Verschlüsselung entfernt alle Verschlüsselungsschlüssel und Sie verlieren den Zugriff auf zuvor verschlüsselte Daten.",
+                "button": "Ende-zu-Ende-Verschlüsselung deaktivieren"
+            },
+            "disableDialog": {
+                "title": "Ende-zu-Ende-Verschlüsselung deaktivieren?",
+                "description": "Diese Aktion entfernt alle Verschlüsselungsschlüssel und Einstellungen.",
+                "warning": {
+                    "title": "Warnung: Diese Aktion ist irreversibel",
+                    "point1": "Alle Ihre Verschlüsselungsschlüssel werden dauerhaft gelöscht",
+                    "point2": "Sie verlieren den Zugriff auf alle zuvor verschlüsselten Transkriptionen",
+                    "point3": "Dies kann nicht rückgängig gemacht werden"
+                },
+                "confirmation": "Sind Sie absolut sicher, dass Sie die Verschlüsselung deaktivieren möchten?",
+                "cancel": "Abbrechen",
+                "confirm": "Ja, Verschlüsselung deaktivieren"
+            },
+            "removeKeyDialog": {
+                "title": "Verschlüsselungsschlüssel von diesem Gerät entfernen?",
+                "description": "Ihr Verschlüsselungszertifikat wird aus diesem Browser entfernt.",
+                "warning": {
+                    "title": "Bevor Sie fortfahren:",
+                    "point1": "Stellen Sie sicher, dass Sie Ihr Verschlüsselungszertifikat woanders gespeichert haben",
+                    "point2": "Sie müssen Ihr Zertifikat erneut importieren, um auf verschlüsselte Transkriptionen auf diesem Gerät zuzugreifen",
+                    "point3": "Dies betrifft nur dieses Gerät - Ihre Verschlüsselungseinstellungen bleiben aktiv"
+                },
+                "cancel": "Abbrechen",
+                "confirm": "Schlüssel entfernen"
+            }
+        },
+        "import": {
+            "compact": {
+                "badge": "Verschlüsselungszertifikat erforderlich",
+                "description": "Laden Sie Ihr Zertifikat hoch, um auf verschlüsselte Daten auf diesem Gerät zuzugreifen.",
+                "button": "Zertifikat hochladen",
+                "uploading": "Wird hochgeladen..."
+            },
+            "full": {
+                "title": "Verschlüsselungszertifikat importieren",
+                "subtitle": "Greifen Sie auf Ihre verschlüsselten Transkriptionen zu",
+                "description": "Um auf Ihre verschlüsselten Transkriptionen zuzugreifen, importieren Sie bitte Ihr Verschlüsselungszertifikat. Dies ist die Datei, die Sie heruntergeladen haben, als Sie die Verschlüsselung zum ersten Mal aktiviert haben.",
+                "howToFind": {
+                    "title": "So finden Sie Ihr Zertifikat:",
+                    "point1": "Suchen Sie in Ihrem Download-Ordner nach einer Datei namens encryption-certificate-*.json",
+                    "point2": "Überprüfen Sie Ihren sicheren Backup-Speicherort, wo Sie es gespeichert haben",
+                    "point3": "Wenn Sie mehrere Geräte verwenden, haben Sie es möglicherweise auf einem anderen Computer"
+                },
+                "button": "Zertifikatdatei auswählen",
+                "uploading": "Zertifikat wird hochgeladen...",
+                "lostCertificate": {
+                    "title": "Zertifikat verloren?",
+                    "description": "Wenn Sie Ihr Verschlüsselungszertifikat verloren haben, können Sie nicht auf zuvor verschlüsselte Daten zugreifen. Sie können die Verschlüsselung deaktivieren und wieder aktivieren, um neu zu beginnen, aber alte Daten sind nicht zugänglich."
+                }
+            },
+            "trustDialog": {
+                "title": "Vertrauen Sie diesem Computer?",
+                "description": "Sollen wir Ihr Verschlüsselungszertifikat auf diesem Gerät gespeichert halten?",
+                "trusted": {
+                    "title": "Vertrauenswürdiges Gerät",
+                    "description": "Ihr Zertifikat bleibt nach dem Abmelden gespeichert. Verwenden Sie dies nur auf Ihren persönlichen Geräten."
+                },
+                "untrusted": {
+                    "title": "Nicht vertrauenswürdiges Gerät",
+                    "description": "Ihr Zertifikat wird entfernt, wenn Sie sich abmelden. Verwenden Sie dies auf gemeinsam genutzten oder öffentlichen Computern."
+                },
+                "dontTrust": "Nicht vertrauen",
+                "trust": "Diesem Computer vertrauen"
+            },
+            "success": "Zertifikat erfolgreich geladen!",
+            "error": "Fehler beim Laden des Zertifikats. Bitte überprüfen Sie die Datei und versuchen Sie es erneut."
+        },
+        "setup": {
+            "title": "Schützen Sie Ihre Privatsphäre",
+            "subtitle": "Wählen Sie aus, wie Sie Ihre Transkriptionen sichern möchten",
+            "enabled": {
+                "title": "Ende-zu-Ende-Verschlüsselung",
+                "badge": "Empfohlen",
+                "description": "Ihre Daten werden auf Ihrem Gerät verschlüsselt, bevor sie an unsere Server gesendet werden. Nur Sie können Ihre Daten entschlüsseln — nicht einmal wir können Ihre Transkriptionen lesen.",
+                "generate": {
+                    "intro": "Wir generieren ein einzigartiges Verschlüsselungszertifikat für Sie. Sie benötigen dieses Zertifikat, um:",
+                    "point1": "Auf Ihre verschlüsselten Transkriptionen zuzugreifen",
+                    "point2": "Die App auf anderen Geräten zu verwenden",
+                    "point3": "Ihre Daten wiederherzustellen, wenn Sie den Zugriff auf dieses Gerät verlieren",
+                    "button": "Zertifikat generieren",
+                    "generating": "Wird generiert..."
+                },
+                "downloaded": {
+                    "success": "Zertifikat heruntergeladen!",
+                    "instruction": "Ihr Verschlüsselungszertifikat wurde in Ihrem Download-Ordner gespeichert. Bewahren Sie es sicher auf!"
+                },
+                "checklist": {
+                    "title": "Bevor Sie fortfahren, bestätigen Sie bitte:",
+                    "saved": "Ich habe mein Zertifikat an einem sicheren Ort gespeichert (Passwort-Manager, verschlüsselter Cloud-Speicher usw.)",
+                    "emailed": "Ich verstehe, dass ich mein Zertifikat sichern sollte (es mir selbst per E-Mail senden, es auf einem anderen Gerät speichern usw.)",
+                    "understood": "Ich verstehe, dass ich dauerhaft den Zugriff auf meine verschlüsselten Transkriptionen verliere, wenn ich mein Zertifikat verliere"
+                }
+            },
+            "skip": {
+                "title": "Verschlüsselung überspringen",
+                "description": "Sie können die Verschlüsselung später in Ihren Kontoeinstellungen einrichten. Ihre Daten werden ohne Ende-zu-Ende-Verschlüsselung auf unseren Servern gespeichert.",
+                "button": "Ohne Verschlüsselung fortfahren"
+            },
+            "actions": {
+                "downloadAgain": "Erneut herunterladen",
+                "continue": "Fortfahren"
+            },
+            "trustDialog": {
+                "title": "Vertrauen Sie diesem Computer?",
+                "description": "Wenn Sie diesem Computer vertrauen, speichern wir Ihr Verschlüsselungszertifikat sicher in Ihrem Browser. Sie müssen es nicht erneut hochladen, wenn Sie sich anmelden (aber das ist kein Grund, kein Backup zu behalten!).",
+                "trusted": {
+                    "title": "Vertrauenswürdiges Gerät",
+                    "description": "Ihr Zertifikat bleibt nach dem Abmelden gespeichert. Verwenden Sie dies nur auf Ihren persönlichen Geräten."
+                },
+                "untrusted": {
+                    "title": "Nicht vertrauenswürdiges Gerät",
+                    "description": "Ihr Zertifikat wird entfernt, wenn Sie sich abmelden. Verwenden Sie dies auf gemeinsam genutzten oder öffentlichen Computern."
+                },
+                "dontTrust": "Nicht vertrauen",
+                "trust": "Diesem Computer vertrauen"
+            },
+            "errors": {
+                "generate": "Fehler beim Generieren des Zertifikats. Bitte versuchen Sie es erneut.",
+                "enable": "Fehler beim Aktivieren der Verschlüsselung. Bitte versuchen Sie es erneut."
+            },
+            "success": {
+                "generate": "Zertifikat generiert und heruntergeladen! Bitte speichern Sie es sicher.",
+                "deviceTrust": "Gerät wird jetzt vertraut",
+                "deviceUntrust": "Gerät wird nicht mehr vertraut"
+            }
+        }
+    }
+}

@@ -6,6 +6,7 @@ import {
   useUploadCertificate,
 } from "@/hooks/use-encryption";
 import { AlertCircleIcon, KeyIcon, UploadIcon } from "lucide-react";
+import { useTranslations } from "@/components/locale-provider";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
@@ -29,6 +30,7 @@ export function ImportCertificatePrompt({
   onSuccess,
   compact = false,
 }: ImportCertificatePromptProps) {
+  const t = useTranslations("encryption.import");
   const { data: encryptionState } = useEncryptionStatus();
   const uploadCertificate = useUploadCertificate();
   const toggleDeviceTrust = useToggleDeviceTrust();
@@ -51,15 +53,13 @@ export function ImportCertificatePrompt({
           encryptionState.encryptionStatus.trustedDeviceSecret,
         trustDevice: false,
       });
-      toast.success("Certificate loaded successfully!");
+      toast.success(t("success"));
 
       // Ask about device trust
       setShowTrustDialog(true);
     } catch (error) {
       console.error("Failed to load certificate:", error);
-      toast.error(
-        "Failed to load certificate. Please check the file and try again.",
-      );
+      toast.error(t("error"));
     } finally {
       setUploadingFile(false);
       event.target.value = ""; // Reset input
@@ -89,22 +89,22 @@ export function ImportCertificatePrompt({
           <div>
             <p className="text-sm font-medium flex items-center gap-2">
               <AlertCircleIcon className="w-4 h-4 text-orange-600" />
-              Encryption Certificate Required
+              {t("compact.badge")}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              Upload your certificate to access encrypted data on this device.
+              {t("compact.description")}
             </p>
           </div>
           <div>
             <Label htmlFor="certificate-upload-compact" className="sr-only">
-              Upload Certificate
+              {t("compact.button")}
             </Label>
             <label
               htmlFor="certificate-upload-compact"
               className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors cursor-pointer"
             >
               <UploadIcon className="w-4 h-4" />
-              {uploadingFile ? "Uploading..." : "Upload Certificate"}
+              {uploadingFile ? t("compact.uploading") : t("compact.button")}
             </label>
             <Input
               id="certificate-upload-compact"
@@ -121,27 +121,26 @@ export function ImportCertificatePrompt({
         <Dialog open={showTrustDialog} onOpenChange={setShowTrustDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Do you trust this computer?</DialogTitle>
+              <DialogTitle>{t("trustDialog.title")}</DialogTitle>
               <DialogDescription>
-                Should we keep your encryption certificate stored on this
-                device?
+                {t("trustDialog.description")}
               </DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-4">
               <div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 p-4">
                 <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                  Trusted Device
+                  {t("trustDialog.trusted.title")}
                 </p>
                 <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                  Your certificate will remain stored after logout. Only use
-                  this on your personal devices.
+                  {t("trustDialog.trusted.description")}
                 </p>
               </div>
               <div className="rounded-lg bg-muted p-4">
-                <p className="text-sm font-medium">Untrusted Device</p>
+                <p className="text-sm font-medium">
+                  {t("trustDialog.untrusted.title")}
+                </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Your certificate will be removed when you logout. Use this on
-                  shared or public computers.
+                  {t("trustDialog.untrusted.description")}
                 </p>
               </div>
             </div>
@@ -151,13 +150,13 @@ export function ImportCertificatePrompt({
                 onClick={() => handleDeviceTrustDecision(false)}
                 disabled={toggleDeviceTrust.isPending}
               >
-                Don&apos;t Trust
+                {t("trustDialog.dontTrust")}
               </Button>
               <Button
                 onClick={() => handleDeviceTrustDecision(true)}
                 disabled={toggleDeviceTrust.isPending}
               >
-                Trust This Computer
+                {t("trustDialog.trust")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -176,42 +175,38 @@ export function ImportCertificatePrompt({
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold">Certificate Required</h2>
+              <h2 className="text-2xl font-bold">{t("full.title")}</h2>
               <p className="text-sm text-muted-foreground">
-                Your account is protected by end-to-end encryption
+                {t("full.subtitle")}
               </p>
             </div>
           </div>
 
           <div className="rounded-lg bg-muted p-4">
             <p className="text-sm text-muted-foreground">
-              To access your encrypted transcriptions, please import your
-              encryption certificate. This is the file you downloaded when you
-              first enabled encryption.
+              {t("full.description")}
             </p>
           </div>
 
           <div className="space-y-2">
-            <h3 className="font-medium text-sm">
-              How to find your certificate:
-            </h3>
+            <h3 className="font-medium text-sm">{t("full.howToFind.title")}</h3>
             <ul className="text-sm text-muted-foreground space-y-1.5 ml-4 list-disc">
-              <li>Check your Downloads folder</li>
-              <li>Look for emails you sent to yourself as backup</li>
-              <li>Check any secure storage locations you use</li>
+              <li>{t("full.howToFind.point1")}</li>
+              <li>{t("full.howToFind.point2")}</li>
+              <li>{t("full.howToFind.point3")}</li>
             </ul>
           </div>
 
           <div>
             <Label htmlFor="certificate-upload" className="sr-only">
-              Upload Certificate
+              {t("full.button")}
             </Label>
             <label
               htmlFor="certificate-upload"
               className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors cursor-pointer"
             >
               <UploadIcon className="w-5 h-5" />
-              {uploadingFile ? "Uploading..." : "Import Certificate"}
+              {uploadingFile ? t("full.uploading") : t("full.button")}
             </label>
             <Input
               id="certificate-upload"
@@ -226,13 +221,10 @@ export function ImportCertificatePrompt({
           <div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 p-4">
             <p className="text-sm font-medium flex items-center gap-2">
               <AlertCircleIcon className="w-4 h-4" />
-              Lost your certificate?
+              {t("full.lostCertificate.title")}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              If you&apos;ve lost your encryption certificate, you won&apos;t be
-              able to access previously encrypted data. You can disable and
-              re-enable encryption to start fresh, but old data will be
-              inaccessible.
+              {t("full.lostCertificate.description")}
             </p>
           </div>
         </div>

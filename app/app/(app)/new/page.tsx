@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
 import { languagesNames, locales } from "../../../../lib/i18n";
+import _ from "lodash";
 
 type AudioFile = {
   id: string;
@@ -35,6 +36,102 @@ type AudioFile = {
   name: string;
   duration: number | null;
   size: number;
+};
+
+const supportedLanguages = {
+  bel: "Belarusian",
+  bos: "Bosnian",
+  bul: "Bulgarian",
+  cat: "Catalan",
+  hrv: "Croatian",
+  ces: "Czech",
+  dan: "Danish",
+  nld: "Dutch",
+  eng: "English",
+  est: "Estonian",
+  fin: "Finnish",
+  fra: "Français",
+  glg: "Galician",
+  deu: "German",
+  ell: "Greek",
+  hun: "Hungarian",
+  isl: "Icelandic",
+  ind: "Indonesian",
+  ita: "Italian",
+  jpn: "Japanese",
+  kan: "Kannada",
+  lav: "Latvian",
+  mkd: "Macedonian",
+  msa: "Malay",
+  mal: "Malayalam",
+  nor: "Norwegian",
+  pol: "Polish",
+  por: "Portuguese",
+  ron: "Romanian",
+  rus: "Russian",
+  slk: "Slovak",
+  spa: "Spanish",
+  swe: "Swedish",
+  tur: "Turkish",
+  ukr: "Ukrainian",
+  vie: "Vietnamese",
+  hye: "Armenian",
+  aze: "Azerbaijani",
+  ben: "Bengali",
+  yue: "Cantonese",
+  fil: "Filipino",
+  kat: "Georgian",
+  guj: "Gujarati",
+  hin: "Hindi",
+  kaz: "Kazakh",
+  lit: "Lithuanian",
+  mlt: "Maltese",
+  cmn: "Mandarin",
+  mar: "Marathi",
+  nep: "Nepali",
+  ori: "Odia",
+  fas: "Persian",
+  srp: "Serbian",
+  slv: "Slovenian",
+  swa: "Swahili",
+  tam: "Tamil",
+  tel: "Telugu",
+  afr: "Afrikaans",
+  ara: "Arabic",
+  asm: "Assamese",
+  ast: "Asturian",
+  mya: "Burmese",
+  hau: "Hausa",
+  heb: "Hebrew",
+  jav: "Javanese",
+  kor: "Korean",
+  kir: "Kyrgyz",
+  ltz: "Luxembourgish",
+  mri: "Māori",
+  oci: "Occitan",
+  pan: "Punjabi",
+  tgk: "Tajik",
+  tha: "Thai",
+  uzb: "Uzbek",
+  cym: "Welsh",
+  amh: "Amharic",
+  lug: "Ganda",
+  ibo: "Igbo",
+  gle: "Irish",
+  khm: "Khmer",
+  kur: "Kurdish",
+  lao: "Lao",
+  mon: "Mongolian",
+  nso: "Northern Sotho",
+  pus: "Pashto",
+  sna: "Shona",
+  snd: "Sindhi",
+  som: "Somali",
+  urd: "Urdu",
+  wol: "Wolof",
+  xho: "Xhosa",
+  yor: "Yoruba",
+  zul: "Zulu",
 };
 
 export default function NewTranscriptionPage() {
@@ -45,7 +142,10 @@ export default function NewTranscriptionPage() {
   // Form state
   const [audioFiles, setAudioFiles] = React.useState<AudioFile[]>([]);
   const [projectId, setProjectId] = React.useState<string | undefined>();
-  const [language, setLanguage] = React.useState<string>(locale);
+  const [language, setLanguage] = React.useState<string>(
+    Object.keys(supportedLanguages).find((key) => key.startsWith(locale)) ||
+      "eng",
+  );
   const [speakers, setSpeakers] = React.useState<number>(2);
   const [vocabulary, setVocabulary] = React.useState<string>("Euh, Hmm, Bah");
   const [isDragging, setIsDragging] = React.useState(false);
@@ -478,8 +578,11 @@ export default function NewTranscriptionPage() {
               <Select
                 size="sm"
                 className="w-max inline-flex"
-                options={locales.map((lang) => ({
-                  label: (languagesNames as any)[lang],
+                options={_.sortBy(
+                  Object.keys(supportedLanguages),
+                  (a) => (supportedLanguages as any)[a],
+                ).map((lang) => ({
+                  label: (supportedLanguages as any)[lang],
                   value: lang,
                 }))}
                 value={language}

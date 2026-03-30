@@ -15,6 +15,7 @@ import {
   SmartphoneIcon,
   TrashIcon,
 } from "lucide-react";
+import { useTranslations } from "@/components/locale-provider";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
@@ -36,6 +37,7 @@ export function EncryptionSettings({
   onDisabled,
   compact = false,
 }: EncryptionSettingsProps) {
+  const t = useTranslations("encryption.settings");
   const { data: encryptionState, isLoading } = useEncryptionStatus();
   const toggleDeviceTrust = useToggleDeviceTrust();
   const disableEncryption = useDisableEncryption();
@@ -58,9 +60,7 @@ export function EncryptionSettings({
         deviceSecret: encryptionState.encryptionStatus.trustedDeviceSecret,
       });
       toast.success(
-        newTrustSetting
-          ? "Device is now trusted"
-          : "Device is no longer trusted",
+        newTrustSetting ? t("deviceTrust.enabled") : t("deviceTrust.disabled"),
       );
     } catch (error) {
       console.error("Failed to update device trust:", error);
@@ -110,7 +110,7 @@ export function EncryptionSettings({
   }
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading...</div>;
+    return <div className="text-sm text-muted-foreground">{t("loading")}</div>;
   }
 
   if (!encryptionState?.encryptionStatus?.hasEncryption || !hasLocalKey) {
@@ -125,10 +125,10 @@ export function EncryptionSettings({
             <div>
               <p className="text-sm font-medium flex items-center gap-2 text-green-700 dark:text-green-400">
                 <CheckCircleIcon className="w-4 h-4" />
-                End-to-End Encryption Active
+                {t("activeStatus.title")}
               </p>
               <p className="text-sm text-muted-foreground mt-1">
-                Your transcriptions are protected with end-to-end encryption.
+                {t("activeStatus.description")}
               </p>
             </div>
             <Button
@@ -139,7 +139,7 @@ export function EncryptionSettings({
               className="w-full"
             >
               <DownloadIcon className="w-4 h-4 mr-2" />
-              Download Certificate
+              {t("activeStatus.button")}
             </Button>
           </div>
 
@@ -149,11 +149,13 @@ export function EncryptionSettings({
               <div className="flex items-center gap-3">
                 <SmartphoneIcon className="w-5 h-5 text-muted-foreground" />
                 <div>
-                  <p className="font-medium text-sm">Trust This Device</p>
+                  <p className="font-medium text-sm">
+                    {t("deviceTrust.label")}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {deviceTrusted
-                      ? "Certificate persists after logout"
-                      : "Certificate removed on logout"}
+                      ? t("deviceTrust.enabled")
+                      : t("deviceTrust.disabled")}
                   </p>
                 </div>
               </div>
@@ -173,7 +175,7 @@ export function EncryptionSettings({
               className="w-full"
             >
               <TrashIcon className="w-4 h-4 mr-2" />
-              Remove Key from This Device
+              {t("deviceTrust.removeButton")}
             </Button>
           </div>
 
@@ -184,7 +186,7 @@ export function EncryptionSettings({
             className="w-full"
             size="sm"
           >
-            Disable Encryption
+            {t("dangerZone.button")}
           </Button>
         </div>
 
@@ -192,9 +194,9 @@ export function EncryptionSettings({
         <Dialog open={showDisableDialog} onOpenChange={setShowDisableDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Disable End-to-End Encryption?</DialogTitle>
+              <DialogTitle>{t("disableDialog.title")}</DialogTitle>
               <DialogDescription>
-                This action will remove all encryption keys and settings.
+                {t("disableDialog.description")}
               </DialogDescription>
             </DialogHeader>
             <div className="py-4">
@@ -228,16 +230,14 @@ export function EncryptionSettings({
                 variant="outline"
                 onClick={() => setShowDisableDialog(false)}
               >
-                Cancel
+                {t("disableDialog.cancel")}
               </Button>
               <Button
                 variant="destructive"
                 onClick={handleDisableEncryption}
                 disabled={disableEncryption.isPending}
               >
-                {disableEncryption.isPending
-                  ? "Disabling..."
-                  : "Disable Encryption"}
+                {t("disableDialog.confirm")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -255,11 +255,10 @@ export function EncryptionSettings({
             <div className="flex-1">
               <p className="font-medium flex items-center gap-2 text-green-700 dark:text-green-400">
                 <CheckCircleIcon className="w-4 h-4" />
-                Your account is protected by end-to-end encryption
+                {t("activeStatus.title")}
               </p>
               <p className="text-sm text-muted-foreground mt-1">
-                Your transcriptions are encrypted on your device before being
-                sent to our servers. Only you can access them.
+                {t("activeStatus.description")}
               </p>
             </div>
           </div>
@@ -270,7 +269,7 @@ export function EncryptionSettings({
             className="w-full"
           >
             <DownloadIcon className="w-4 h-4 mr-2" />
-            Download Certificate
+            {t("activeStatus.button")}
           </Button>
         </div>
 
@@ -278,14 +277,12 @@ export function EncryptionSettings({
         <div className="rounded-lg border p-6 space-y-4">
           <div className="flex items-center gap-2">
             <SmartphoneIcon className="w-5 h-5" />
-            <h3 className="font-semibold">Device Trust</h3>
+            <h3 className="font-semibold">{t("deviceTrust.title")}</h3>
           </div>
 
           <div className="rounded-lg bg-muted p-4">
             <p className="text-sm text-muted-foreground">
-              {deviceTrusted
-                ? "This device is trusted. Your encryption key will remain stored even after logout."
-                : "This device is not trusted. Your encryption key will be removed when you logout."}
+              {t("deviceTrust.description")}
             </p>
           </div>
 
@@ -293,12 +290,14 @@ export function EncryptionSettings({
             <div className="flex items-center justify-between p-4 rounded-lg border bg-background">
               <div>
                 <p className="font-medium">
-                  {deviceTrusted ? "Trusted Device" : "Untrusted Device"}
+                  {deviceTrusted
+                    ? t("deviceTrust.enabled")
+                    : t("deviceTrust.disabled")}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {deviceTrusted
-                    ? "Key remains after logout"
-                    : "Key removed on logout"}
+                    ? t("deviceTrust.enabled")
+                    : t("deviceTrust.disabled")}
                 </p>
               </div>
               <Button
@@ -306,7 +305,9 @@ export function EncryptionSettings({
                 disabled={toggleDeviceTrust.isPending}
                 variant={deviceTrusted ? "outline" : "default"}
               >
-                {deviceTrusted ? "Untrust Device" : "Trust Device"}
+                {deviceTrusted
+                  ? t("deviceTrust.label")
+                  : t("deviceTrust.label")}
               </Button>
             </div>
             <Button
@@ -314,7 +315,7 @@ export function EncryptionSettings({
               onClick={() => setShowRemoveKeyDialog(true)}
             >
               <TrashIcon className="w-4 h-4 mr-2" />
-              Remove Key from This Device
+              {t("deviceTrust.removeButton")}
             </Button>
           </div>
         </div>
@@ -322,10 +323,11 @@ export function EncryptionSettings({
         {/* Disable Encryption Section */}
         <div className="rounded-lg border border-destructive/20 p-6 space-y-4">
           <div className="space-y-2">
-            <h3 className="font-semibold text-destructive">Danger Zone</h3>
+            <h3 className="font-semibold text-destructive">
+              {t("dangerZone.title")}
+            </h3>
             <p className="text-sm text-muted-foreground">
-              Disabling encryption will remove all encryption keys and you will
-              lose access to previously encrypted data.
+              {t("dangerZone.description")}
             </p>
           </div>
           <Button
@@ -333,7 +335,7 @@ export function EncryptionSettings({
             onClick={() => setShowDisableDialog(true)}
             className="w-full"
           >
-            Disable End-to-End Encryption
+            {t("dangerZone.button")}
           </Button>
         </div>
       </div>
@@ -342,34 +344,29 @@ export function EncryptionSettings({
       <Dialog open={showDisableDialog} onOpenChange={setShowDisableDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Disable End-to-End Encryption?</DialogTitle>
+            <DialogTitle>{t("disableDialog.title")}</DialogTitle>
             <DialogDescription>
-              This action will remove all encryption keys and settings.
+              {t("disableDialog.description")}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 space-y-2">
               <p className="text-sm font-medium text-destructive flex items-center gap-2">
                 <AlertCircleIcon className="w-4 h-4" />
-                Warning: You will lose access to encrypted data
+                {t("disableDialog.warning.title")}
               </p>
               <p className="text-sm text-muted-foreground">
-                If you disable encryption, you will permanently lose access to
-                any transcriptions that were encrypted with your current
-                certificate. This action cannot be undone.
+                {t("disableDialog.confirmation")}
               </p>
             </div>
             <div className="mt-4 space-y-2">
-              <p className="text-sm font-medium">What will happen:</p>
+              <p className="text-sm font-medium">
+                {t("disableDialog.warning.title")}
+              </p>
               <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
-                <li>All encryption keys will be removed from your account</li>
-                <li>
-                  Previously encrypted transcriptions will become inaccessible
-                </li>
-                <li>New transcriptions will not be encrypted</li>
-                <li>
-                  You can re-enable encryption later, but with a new key pair
-                </li>
+                <li>{t("disableDialog.warning.point1")}</li>
+                <li>{t("disableDialog.warning.point2")}</li>
+                <li>{t("disableDialog.warning.point3")}</li>
               </ul>
             </div>
           </div>
@@ -378,16 +375,14 @@ export function EncryptionSettings({
               variant="outline"
               onClick={() => setShowDisableDialog(false)}
             >
-              Cancel
+              {t("disableDialog.cancel")}
             </Button>
             <Button
               variant="destructive"
               onClick={handleDisableEncryption}
               disabled={disableEncryption.isPending}
             >
-              {disableEncryption.isPending
-                ? "Disabling..."
-                : "Yes, Disable Encryption"}
+              {t("disableDialog.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -397,31 +392,21 @@ export function EncryptionSettings({
       <Dialog open={showRemoveKeyDialog} onOpenChange={setShowRemoveKeyDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Remove encryption key from this device?</DialogTitle>
+            <DialogTitle>{t("removeKeyDialog.title")}</DialogTitle>
             <DialogDescription>
-              This will remove your encryption certificate from this device
-              only.
+              {t("removeKeyDialog.description")}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 px-6">
             <div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 p-4 space-y-2">
               <p className="text-sm font-medium flex items-center gap-2">
                 <AlertCircleIcon className="w-4 h-4" />
-                What will happen:
+                {t("removeKeyDialog.warning.title")}
               </p>
               <ul className="text-sm text-muted-foreground space-y-1 ml-6 list-disc">
-                <li>Your encryption key will be removed from this device</li>
-                <li>
-                  You&apos;ll need to re-upload your certificate to access
-                  encrypted data
-                </li>
-                <li>
-                  Your data remains encrypted on our servers and other devices
-                </li>
-                <li>
-                  Make sure you have your certificate file saved before
-                  continuing
-                </li>
+                <li>{t("removeKeyDialog.warning.point1")}</li>
+                <li>{t("removeKeyDialog.warning.point2")}</li>
+                <li>{t("removeKeyDialog.warning.point3")}</li>
               </ul>
             </div>
           </div>
@@ -430,14 +415,14 @@ export function EncryptionSettings({
               variant="outline"
               onClick={() => setShowRemoveKeyDialog(false)}
             >
-              Cancel
+              {t("removeKeyDialog.cancel")}
             </Button>
             <Button
               variant="destructive"
               onClick={handleRemoveLocalKey}
               disabled={removeLocalKey.isPending}
             >
-              {removeLocalKey.isPending ? "Removing..." : "Remove Key"}
+              {t("removeKeyDialog.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>

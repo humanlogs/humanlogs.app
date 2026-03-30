@@ -7,6 +7,7 @@ import {
   useToggleDeviceTrust,
 } from "@/hooks/use-encryption";
 import { CheckCircleIcon, KeyIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
@@ -31,6 +32,7 @@ export function SetupEncryption({
   onSkip,
   hideSkipOption = false,
 }: SetupEncryptionProps) {
+  const t = useTranslations("encryption.setup");
   const [certificateDownloaded, setCertificateDownloaded] = useState(false);
   const [showTrustDialog, setShowTrustDialog] = useState(false);
   const [certificateData, setCertificateData] = useState<{
@@ -62,12 +64,10 @@ export function SetupEncryption({
         deviceSecret: result.deviceSecret,
       });
       setCertificateDownloaded(true);
-      toast.success(
-        "Certificate generated and downloaded! Please save it securely.",
-      );
+      toast.success(t("success.generate"));
     } catch (error) {
       console.error("Failed to generate certificate:", error);
-      toast.error("Failed to generate certificate. Please try again.");
+      toast.error(t("errors.generate"));
     }
   }
 
@@ -98,7 +98,7 @@ export function SetupEncryption({
       onComplete();
     } catch (error) {
       console.error("Failed to enable encryption:", error);
-      toast.error("Failed to enable encryption. Please try again.");
+      toast.error(t("errors.enable"));
     }
   }
 
@@ -107,12 +107,8 @@ export function SetupEncryption({
       <div className="w-full max-w-2xl space-y-6 rounded-2xl bg-white p-8 shadow-xl dark:bg-zinc-950">
         <div className="flex items-start gap-4">
           <div className="flex-1">
-            <h1 className="text-2xl font-bold tracking-tight">
-              Protect Your Privacy
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Choose how to secure your transcriptions
-            </p>
+            <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
+            <p className="text-muted-foreground mt-1">{t("subtitle")}</p>
           </div>
         </div>
 
@@ -122,15 +118,13 @@ export function SetupEncryption({
             <div className="flex items-start gap-3">
               <div className="flex-1">
                 <h3 className="font-semibold text-lg">
-                  End-to-End Encryption{" "}
+                  {t("enabled.title")}{" "}
                   <span className="text-sm font-normal text-blue-600 dark:text-blue-400">
-                    (Recommended)
+                    ({t("enabled.badge")})
                   </span>
                 </h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Your data is encrypted on your device before being sent to our
-                  servers. <strong>Only you can access it</strong> — not even we
-                  can read your transcriptions.
+                  {t("enabled.description")}
                 </p>
               </div>
               <KeyIcon className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
@@ -139,12 +133,12 @@ export function SetupEncryption({
             {!certificateDownloaded ? (
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  We&apos;ll generate a unique encryption certificate for you.
-                  You&apos;ll need this certificate to:
+                  {t("enabled.generate.intro")}
                 </p>
                 <ul className="text-sm text-muted-foreground space-y-1 ml-6 list-disc">
-                  <li>Access your encrypted data from other devices</li>
-                  <li>Recover your account if you lose access</li>
+                  <li>{t("enabled.generate.point1")}</li>
+                  <li>{t("enabled.generate.point2")}</li>
+                  <li>{t("enabled.generate.point3")}</li>
                 </ul>
                 <Button
                   onClick={handleGenerateCertificate}
@@ -154,8 +148,8 @@ export function SetupEncryption({
                 >
                   <KeyIcon className="w-4 h-4 mr-2" />
                   {generateCertificate.isPending
-                    ? "Generating Certificate..."
-                    : "Generate & Download Certificate"}
+                    ? t("enabled.generate.generating")
+                    : t("enabled.generate.button")}
                 </Button>
               </div>
             ) : (
@@ -163,13 +157,13 @@ export function SetupEncryption({
                 <div className="rounded-lg bg-white dark:bg-zinc-950 border border-green-200 dark:border-green-900 p-4">
                   <p className="text-sm font-medium flex items-center gap-2 text-green-700 dark:text-green-400">
                     <CheckCircleIcon className="w-4 h-4" />
-                    Certificate downloaded successfully!
+                    {t("enabled.downloaded.success")}
                   </p>
                 </div>
 
                 <div className="space-y-3">
                   <Label className="text-sm font-medium">
-                    Before continuing, please confirm:
+                    {t("enabled.checklist.title")}
                   </Label>
 
                   <div className="space-y-2.5">
@@ -181,8 +175,7 @@ export function SetupEncryption({
                         className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
                       <span className="text-sm group-hover:text-foreground text-muted-foreground">
-                        I have saved the certificate file to a secure location
-                        on my device
+                        {t("enabled.checklist.saved")}
                       </span>
                     </label>
 
@@ -194,8 +187,7 @@ export function SetupEncryption({
                         className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
                       <span className="text-sm group-hover:text-foreground text-muted-foreground">
-                        I have sent the certificate to myself by email as a
-                        backup
+                        {t("enabled.checklist.emailed")}
                       </span>
                     </label>
 
@@ -207,8 +199,7 @@ export function SetupEncryption({
                         className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
                       <span className="text-sm group-hover:text-foreground text-muted-foreground">
-                        I understand that I&apos;ll need to upload this
-                        certificate to access my data from other devices
+                        {t("enabled.checklist.understood")}
                       </span>
                     </label>
                   </div>
@@ -220,11 +211,9 @@ export function SetupEncryption({
           {/* Skip Option */}
           {!certificateDownloaded && !hideSkipOption && onSkip && (
             <div className="rounded-lg border border-gray-200 dark:border-black p-6 space-y-3">
-              <h3 className="font-semibold">Skip Encryption</h3>
+              <h3 className="font-semibold">{t("skip.title")}</h3>
               <p className="text-sm text-muted-foreground">
-                You can set up encryption later in your account settings. Your
-                data will be stored on our servers without end-to-end
-                encryption.
+                {t("skip.description")}
               </p>
               <Button
                 variant="outline"
@@ -232,7 +221,7 @@ export function SetupEncryption({
                 disabled={generateCertificate.isPending}
                 className="w-full"
               >
-                Continue Without Encryption
+                {t("skip.button")}
               </Button>
             </div>
           )}
@@ -246,7 +235,7 @@ export function SetupEncryption({
               disabled={generateCertificate.isPending}
               className="flex-1"
             >
-              Download Again
+              {t("actions.downloadAgain")}
             </Button>
             <Button
               onClick={handleContinue}
@@ -254,7 +243,7 @@ export function SetupEncryption({
               className="flex-1"
               size="lg"
             >
-              Continue
+              {t("actions.continue")}
             </Button>
           </div>
         )}
@@ -264,29 +253,26 @@ export function SetupEncryption({
       <Dialog open={showTrustDialog} onOpenChange={setShowTrustDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Do you trust this computer?</DialogTitle>
+            <DialogTitle>{t("trustDialog.title")}</DialogTitle>
             <DialogDescription>
-              If you trust this computer, we&apos;ll store your encryption
-              certificate securely in your browser. You won&apos;t need to
-              upload it again when you log in (but this is not a reason not to
-              keep a backup!).
+              {t("trustDialog.description")}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4 px-6">
             <div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 p-4">
               <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                Trusted Device
+                {t("trustDialog.trusted.title")}
               </p>
               <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                Your certificate will remain stored after logout. Only use this
-                on your personal devices.
+                {t("trustDialog.trusted.description")}
               </p>
             </div>
             <div className="rounded-lg bg-muted p-4">
-              <p className="text-sm font-medium">Untrusted Device</p>
+              <p className="text-sm font-medium">
+                {t("trustDialog.untrusted.title")}
+              </p>
               <p className="text-sm text-muted-foreground mt-1">
-                Your certificate will be removed when you logout. Use this on
-                shared or public computers.
+                {t("trustDialog.untrusted.description")}
               </p>
             </div>
           </div>
@@ -296,13 +282,13 @@ export function SetupEncryption({
               onClick={() => handleDeviceTrustDecision(false)}
               disabled={enableEncryption.isPending}
             >
-              Don&apos;t Trust
+              {t("trustDialog.dontTrust")}
             </Button>
             <Button
               onClick={() => handleDeviceTrustDecision(true)}
               disabled={enableEncryption.isPending}
             >
-              Trust This Computer
+              {t("trustDialog.trust")}
             </Button>
           </DialogFooter>
         </DialogContent>
