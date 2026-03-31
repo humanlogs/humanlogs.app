@@ -1,12 +1,17 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 
 export interface SearchMatch {
   segmentIndex: number;
   matchIndex: number; // Index within the segment's text
   length: number;
+}
+
+// Remove accents and diacritics from text
+function normalizeText(text: string): string {
+  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
 export function useSearchReplace(
@@ -18,6 +23,7 @@ export function useSearchReplace(
   const [replaceTerm, setReplaceTerm] = useState("");
   const [caseSensitive, setCaseSensitive] = useState(false);
   const [wholeWord, setWholeWord] = useState(false);
+  const [ignoreAccents, setIgnoreAccents] = useState(false);
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
 
   // Find all matches in the segments
@@ -26,18 +32,20 @@ export function useSearchReplace(
       term: string,
       isCaseSensitive: boolean,
       isWholeWord: boolean,
+      shouldIgnoreAccents: boolean,
     ): SearchMatch[] => {
       if (!term) return [];
 
       const matches: SearchMatch[] = [];
-      const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const searchTerm = shouldIgnoreAccents ? normalizeText(term) : term;
+      const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const pattern = isWholeWord ? `\\b${escapedTerm}\\b` : escapedTerm;
       const searchRegex = new RegExp(pattern, isCaseSensitive ? "g" : "gi");
 
       segments.forEach((segment, segmentIndex) => {
         if (segment.type !== "word") return;
 
-        const text = segment.text;
+        const text = shouldIgnoreAccents ? normalizeText(segment.text) : segment.text;
         let match;
         searchRegex.lastIndex = 0; // Reset regex state
         while ((match = searchRegex.exec(text)) !== null) {
@@ -56,10 +64,19 @@ export function useSearchReplace(
 
   // Get all matches
   const matches = useMemo(
-    () => (searchTerm ? findMatches(searchTerm, caseSensitive, wholeWord) : []),
-    [searchTerm, caseSensitive, wholeWord, findMatches],
+    () => (searchTerm ? findMatches(searchTerm, caseSensitive, wholeWord, ignoreAccents) : []),
+    [searchTerm, caseSensitive, wholeWord, ignoreAccents, findMatches],
   );
   const matchCount = matches.length;
+
+  // Reset current match index when matches change or become empty
+  useEffect(() => {
+    if (matchCount === 0) {
+      setCurrentMatchIndex(0);
+    } else if (currentMatchIndex >= matchCount) {
+      setCurrentMatchIndex(0);
+    }
+  }, [matchCount, currentMatchIndex]);
 
   // Navigate to next match
   const nextMatch = useCallback(() => {
@@ -83,18 +100,20 @@ export function useSearchReplace(
   const replaceAll = useCallback(() => {
     if (!searchTerm) return;
 
-    const allMatches = findMatches(searchTerm, caseSensitive, wholeWord);
+    const allMatches = findMatches(searchTerm, caseSensitive, wholeWord, ignoreAccents);
     if (allMatches.length === 0) return;
 
     // Create new segments array with replacements
     const newSegments = [...segments];
-    const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const normalizedSearchTerm = ignoreAccents ? normalizeText(searchTerm) : searchTerm;
+    const escapedTerm = normalizedSearchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const pattern = wholeWord ? `\\b${escapedTerm}\\b` : escapedTerm;
     const searchRegex = new RegExp(pattern, caseSensitive ? "g" : "gi");
 
     allMatches.forEach(({ segmentIndex }) => {
       const segment = newSegments[segmentIndex];
       if (segment.type === "word") {
+        const textToSearch = ignoreAccents ? normalizeText(segment.text) : segment.text;
         newSegments[segmentIndex] = {
           ...segment,
           text: segment.text.replace(searchRegex, replaceTerm),
@@ -108,6 +127,7 @@ export function useSearchReplace(
     replaceTerm,
     caseSensitive,
     wholeWord,
+    ignoreAccents,
     segments,
     onChange,
     findMatches,
@@ -161,6 +181,8 @@ export function useSearchReplace(
     setCaseSensitive,
     wholeWord,
     setWholeWord,
+    ignoreAccents,
+    setIgnoreAccents,
     matches,
     matchCount,
     currentMatchIndex: effectiveCurrentIndex,

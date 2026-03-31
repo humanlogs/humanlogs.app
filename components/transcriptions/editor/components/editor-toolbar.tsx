@@ -28,6 +28,8 @@ interface EditorToolbarProps {
     setCaseSensitive: (value: boolean) => void;
     wholeWord: boolean;
     setWholeWord: (value: boolean) => void;
+    ignoreAccents: boolean;
+    setIgnoreAccents: (value: boolean) => void;
     matchCount: number;
     currentMatchIndex: number;
     nextMatch: () => void;
@@ -173,6 +175,8 @@ export function EditorToolbar({
         onCaseSensitiveChange={searchReplace.setCaseSensitive}
         wholeWord={searchReplace.wholeWord}
         onWholeWordChange={searchReplace.setWholeWord}
+        ignoreAccents={searchReplace.ignoreAccents}
+        onIgnoreAccentsChange={searchReplace.setIgnoreAccents}
         matchCount={searchReplace.matchCount}
         currentMatchIndex={searchReplace.currentMatchIndex}
         onNextMatch={searchReplace.nextMatch}

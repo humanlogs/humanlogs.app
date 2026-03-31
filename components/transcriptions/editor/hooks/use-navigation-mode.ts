@@ -1,18 +1,19 @@
 "use client";
 
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
-import { RefObject, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useCustomShortcuts } from "@/hooks/use-shortcuts";
 import { CustomShortcut } from "@/lib/shortcuts";
 import { useAnyModalOpen } from "../../../use-modal";
 import { AudioControls } from "../interactive-audio";
 import { selectSegmentByIndexAndFocus } from "./editor-utils";
+import { EditorAPI } from "./editor-api";
 
 export type NavigationState = "edit" | "navigate";
 
 export function useNavigationMode(
-  editorRef: RefObject<HTMLDivElement | null>,
+  editorAPI: EditorAPI,
   segments: TranscriptionSegment[],
   audioControls: AudioControls | null,
 ) {
@@ -24,10 +25,10 @@ export function useNavigationMode(
 
   useEffect(() => {
     if (isModalOpen) {
-      editorRef.current?.blur();
+      editorAPI.blur();
       audioControls?.pause();
     }
-  }, [isModalOpen, audioControls, editorRef]);
+  }, [isModalOpen, audioControls, editorAPI]);
 
   useEffect(() => {
     if (audioControls)
@@ -49,18 +50,13 @@ export function useNavigationMode(
   useEffect(() => {
     if (state === "navigate") {
       if (currentIndex !== -1) {
-        editorRef.current?.querySelectorAll(".active-segment").forEach((el) => {
-          el.classList.remove("active-segment");
-        });
-        const domElement = editorRef.current?.querySelector(
-          `[data-index="${currentIndex}"]`,
-        );
-        if (domElement) {
+        editorAPI.clearActiveSegments();
+        const rect = editorAPI.getSegmentBounds(currentIndex);
+        if (rect) {
           // Scrolling strategy
           const headerHeight =
             document.querySelector("header")?.getBoundingClientRect().height ||
             0;
-          const rect = domElement.getBoundingClientRect();
           const viewportHeight = window.innerHeight;
           const topMargin = Math.max(viewportHeight * 0.1, 100);
           const bottomMargin = viewportHeight * 0.9;
@@ -75,19 +71,17 @@ export function useNavigationMode(
             });
           }
 
-          domElement.classList.add("active-segment");
+          // TODO: Add visual highlighting using positioned overlay
+          // For now, just ensure the segment is visible via scrolling
         }
       }
     } else {
-      editorRef.current?.querySelectorAll(".active-segment").forEach((el) => {
-        el.classList.remove("active-segment");
-      });
+      editorAPI.clearActiveSegments();
     }
-  }, [currentIndex, state, editorRef]);
+  }, [currentIndex, state, editorAPI]);
 
   // Bind the state to the focus of the editor
   useEffect(() => {
-    if (!editorRef.current) return;
     const handleFocus = () => {
       audioControls?.pause();
       setState("edit");
@@ -100,21 +94,20 @@ export function useNavigationMode(
       }
       setState("navigate");
     };
-    const editor = editorRef.current;
-    editor.addEventListener("focus", handleFocus);
-    editor.addEventListener("blur", handleBlur);
+    const cleanupFocus = editorAPI.addEventListener("focus", handleFocus);
+    const cleanupBlur = editorAPI.addEventListener("blur", handleBlur);
     return () => {
-      editor.removeEventListener("focus", handleFocus);
-      editor.removeEventListener("blur", handleBlur);
+      cleanupFocus();
+      cleanupBlur();
     };
-  });
+  }, [editorAPI, audioControls, setState]);
 
   // Bind the state of the playing audio to the navigate mode: if the audio is playing, we are in navigate mode, if it's paused, we are in edit mode
   useEffect(() => {
     if (audioControls?.isPlaying && state !== "navigate") {
-      editorRef.current?.blur();
+      editorAPI.blur();
     }
-  }, [audioControls?.isPlaying, setState, state, editorRef]);
+  }, [audioControls?.isPlaying, setState, state, editorAPI]);
 
   // Arrows: move into segments
   // Space = play / pause
@@ -142,7 +135,7 @@ export function useNavigationMode(
       // Ignore if the editor is not focused
       if (state !== "edit") return;
       // Blur the editor to trigger the navigate mode and then toggle play/pause
-      if (editorRef.current) editorRef.current.blur();
+      editorAPI.blur();
       audioControls?.togglePlayPause();
     },
     {
@@ -255,51 +248,64 @@ export function useNavigationMode(
         }
 
         // For up and down, find the segment that is the closest in the DOM
-        // In the DOM we can use "data-index" attribute to find the current segment, then find the closest one with the same "data-speaker-id" attribute for the same speaker, or if there is no speaker, the closest one in terms of "data-start" attribute
+        // TODO: In plain text mode, this needs to be reimplemented using getSegmentBounds()
+        // to find segments on different lines
         if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-          const domElement = editorRef.current?.querySelector(
-            `[data-index="${currentIndex}"]`,
-          );
-          if (!domElement) return;
+          const currentRect = editorAPI.getSegmentBounds(currentIndex);
+          if (!currentRect) {
+            // Fallback to simple left/right navigation
+            selection =
+              event.key === "ArrowDown" ? currentIndex + 1 : currentIndex - 1;
+          } else {
+            // Find the segment on the next/previous line that's closest horizontally
+            const direction = event.key === "ArrowDown" ? 1 : -1;
+            let candidateIndex = currentIndex + direction;
+            let foundLineChange = false;
+            let closest = { index: currentIndex, distance: Infinity };
 
-          const rect = domElement.getBoundingClientRect();
+            // Scan segments to find one on a different line
+            while (candidateIndex >= 0 && candidateIndex < segments.length) {
+              const candidateRect = editorAPI.getSegmentBounds(candidateIndex);
+              if (!candidateRect) {
+                candidateIndex += direction;
+                continue;
+              }
 
-          let nextElement =
-            event.key === "ArrowDown"
-              ? domElement.nextElementSibling
-              : domElement.previousElementSibling;
-          while (nextElement) {
-            const rectCandidate = nextElement.getBoundingClientRect();
-            // First wait for Y axis change (got to new line)
-            if (differentVerticalLine(rect, rectCandidate)) {
-              break;
+              const isDifferentLine = differentVerticalLine(
+                currentRect,
+                candidateRect,
+              );
+
+              if (isDifferentLine) {
+                foundLineChange = true;
+                const horizontalDistance = Math.abs(
+                  candidateRect.left - currentRect.left,
+                );
+
+                if (horizontalDistance < closest.distance) {
+                  closest = {
+                    index: candidateIndex,
+                    distance: horizontalDistance,
+                  };
+                }
+
+                // If we're moving away horizontally, we've found the best match on this line
+                if (
+                  closest.distance < Infinity &&
+                  horizontalDistance > closest.distance
+                ) {
+                  break;
+                }
+              }
+
+              candidateIndex += direction;
             }
-            nextElement =
-              event.key === "ArrowDown"
-                ? nextElement.nextElementSibling
-                : nextElement.previousElementSibling;
-          }
 
-          if (nextElement) {
-            let closest = 1000000000;
-            const rectLine = nextElement.getBoundingClientRect();
-            while (nextElement) {
-              const rectCandidate = nextElement.getBoundingClientRect();
-              const distance = Math.abs(rectCandidate.left - rect.left);
-              if (distance < closest) {
-                closest = distance;
-                selection = Number(nextElement.getAttribute("data-index") || 0);
-              }
-              if (
-                distance > closest ||
-                differentVerticalLine(rectLine, rectCandidate)
-              ) {
-                break;
-              }
-              nextElement =
-                event.key === "ArrowDown"
-                  ? nextElement.nextElementSibling
-                  : nextElement.previousElementSibling;
+            if (foundLineChange) {
+              selection = closest.index;
+            } else {
+              // No line change found, stay on current segment
+              selection = currentIndex;
             }
           }
         }
@@ -332,16 +338,14 @@ export function useNavigationMode(
       event.preventDefault();
 
       // Select the current segment and focus the editor
-      selectSegmentByIndexAndFocus(editorRef, currentIndex);
+      selectSegmentByIndexAndFocus(editorAPI, currentIndex);
 
       // If a letter was typed or there's a custom shortcut replacement, insert that text
       document.execCommand("delete");
 
       const nextDomElement =
-        editorRef.current?.querySelector(
-          `[data-index="${currentIndex - 1}"]`,
-        ) ||
-        editorRef.current?.querySelector(`[data-index="${currentIndex + 1}"]`);
+        editorAPI.getSegmentNode(currentIndex - 1) ||
+        editorAPI.getSegmentNode(currentIndex + 1);
       if (nextDomElement) {
         const range = document.createRange();
         range.selectNodeContents(nextDomElement);
@@ -373,7 +377,7 @@ export function useNavigationMode(
           document.activeElement.tagName,
         ) &&
         // Is focussing an element outside of the editor
-        document.activeElement !== editorRef.current
+        editorAPI.isFocused() === false
       ) {
         return;
       }
@@ -403,10 +407,10 @@ export function useNavigationMode(
 
       // Set the selection range
       if (state === "navigate") {
-        selectSegmentByIndexAndFocus(editorRef, currentIndex);
+        selectSegmentByIndexAndFocus(editorAPI, currentIndex);
       } else {
         // In edit mode, just focus to maintain existing selection
-        editorRef.current?.focus();
+        editorAPI.focus();
       }
 
       // If a letter was typed or there's a custom shortcut replacement, insert that text
@@ -429,7 +433,7 @@ export function useNavigationMode(
       if (isModalOpen) return;
       if (state !== "edit") return;
       event.preventDefault();
-      editorRef.current?.blur();
+      editorAPI.blur();
     },
     {
       enableOnContentEditable: true,
@@ -437,6 +441,11 @@ export function useNavigationMode(
     },
     [isModalOpen, state],
   );
+
+  return {
+    state,
+    currentIndex,
+  };
 }
 
 const duration = (segment: TranscriptionSegment) => {

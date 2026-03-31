@@ -1,46 +1,26 @@
-import { RefObject } from "react";
+import { EditorAPI } from "./editor-api";
 
 /**
  * Selects the currently active segment (marked with .active-segment class)
  * and focuses the editor. Returns true if a segment was found and selected.
  */
-export function selectActiveSegmentAndFocus(
-  editorRef: RefObject<HTMLDivElement | null>,
-): boolean {
-  const domElement = editorRef.current?.querySelector(".active-segment");
-  if (domElement) {
-    const range = document.createRange();
-    range.selectNodeContents(domElement);
-    const selection = window.getSelection();
-    selection?.removeAllRanges();
-    selection?.addRange(range);
-  }
-
-  // Focus after selection to avoid scroll messing up the position of the segment in the viewport
-  editorRef.current?.focus();
-  return !!domElement;
+export function selectActiveSegmentAndFocus(editorAPI: EditorAPI): boolean {
+  editorAPI.focus();
+  return editorAPI.getSegmentNode() !== null;
 }
 
 /**
  * Selects a specific segment by index and focuses the editor.
  * Returns true if the segment was found and selected.
+ * @param editorAPI - The editor API instance
+ * @param currentIndex - The segment index to select
+ * @param selectContent - If true, selects the entire segment content; if false, just places caret at start
  */
 export function selectSegmentByIndexAndFocus(
-  editorRef: RefObject<HTMLDivElement | null>,
+  editorAPI: EditorAPI,
   currentIndex: number,
+  selectContent: boolean = true,
 ): boolean {
-  const domElement = editorRef.current?.querySelector(
-    `[data-index="${currentIndex}"]`,
-  );
-  if (domElement) {
-    const range = document.createRange();
-    range.selectNodeContents(domElement);
-    const selection = window.getSelection();
-    selection?.removeAllRanges();
-    selection?.addRange(range);
-  }
-
-  // Focus after selection to avoid scroll messing up the position of the segment in the viewport
-  editorRef.current?.focus();
-  return !!domElement;
+  editorAPI.focus(currentIndex, selectContent);
+  return editorAPI.getSegmentNode(currentIndex) !== null;
 }

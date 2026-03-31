@@ -1,116 +1,111 @@
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 
-// Maps HTML tag names produced by execCommand to the modifier they represent
-const MODIFIER_TAG: Record<string, "b" | "i" | "u" | "s"> = {
-  b: "b",
-  strong: "b",
-  i: "i",
-  em: "i",
-  u: "u",
-  s: "s",
-  strike: "s",
-  del: "s",
-};
-
-export function elementToSegment(el: HTMLElement): TranscriptionSegment {
-  const type = (el.dataset.type ?? "word") as "word" | "spacing";
-  const text = el.textContent ?? "";
-  const modifiers: ("b" | "i" | "u" | "s")[] = [];
-  if (el.querySelector("b, strong")) modifiers.push("b");
-  if (el.querySelector("i, em")) modifiers.push("i");
-  if (el.querySelector("u")) modifiers.push("u");
-  if (el.querySelector("s, strike, del")) modifiers.push("s");
-
-  return {
-    type,
-    text,
-    start:
-      el.dataset.start !== undefined ? parseFloat(el.dataset.start) : undefined,
-    end: el.dataset.end !== undefined ? parseFloat(el.dataset.end) : undefined,
-    speakerId: el.dataset.speaker || undefined,
-    modifiers:
-      modifiers.length > 0
-        ? (modifiers as ("b" | "i" | "u" | "s")[])
-        : undefined,
-  };
-}
-
 /**
- * Walk the contenteditable DOM and extract TranscriptionSegments.
- *
- * `inherited` accumulates formatting from execCommand-produced ancestor wrappers
- * (e.g. <b><span data-type="word">…</span></b>) so modifiers are correctly parsed.
+ * Converts the plain text content of the editor back to segments.
+ * Uses the original segments array as reference and updates only the text content.
+ * Formatting modifiers are extracted from the DOM structure.
  */
-export function domToSegments(container: HTMLElement): TranscriptionSegment[] {
-  const segments: TranscriptionSegment[] = [];
+export function domToSegments(
+  container: HTMLElement,
+  originalSegments: TranscriptionSegment[],
+): TranscriptionSegment[] {
+  const text = container.textContent ?? "";
 
-  const processNode = (
+  // Build a map of character positions to formatting modifiers
+  const modifierMap = new Map<number, Set<"b" | "i" | "u" | "s">>();
+
+  const buildModifierMap = (
     node: Node,
-    inherited: ("b" | "i" | "u" | "s")[],
-    isFirstChild: boolean,
-  ): void => {
+    modifiers: ("b" | "i" | "u" | "s")[],
+    offset: number,
+  ): number => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const nodeText = node.textContent ?? "";
+      for (let i = 0; i < nodeText.length; i++) {
+        const pos = offset + i;
+        if (!modifierMap.has(pos)) {
+          modifierMap.set(pos, new Set());
+        }
+        modifiers.forEach((mod) => modifierMap.get(pos)!.add(mod));
+      }
+      return offset + nodeText.length;
+    }
+
     if (node.nodeType === Node.ELEMENT_NODE) {
       const el = node as HTMLElement;
       const tag = el.tagName.toLowerCase();
 
-      const mod = MODIFIER_TAG[tag];
-      const mods: ("b" | "i" | "u" | "s")[] =
-        mod && !inherited.includes(mod) ? [...inherited, mod] : inherited;
-
-      if (el.dataset.type) {
-        const seg = elementToSegment(el);
-        const combined = [...new Set([...(seg.modifiers ?? []), ...mods])] as (
-          | "b"
-          | "i"
-          | "u"
-          | "s"
-        )[];
-        segments.push({
-          ...seg,
-          modifiers: combined.length > 0 ? combined : undefined,
-        });
-        return;
+      let newModifiers = [...modifiers];
+      if (tag === "b" || tag === "strong") {
+        newModifiers = [...newModifiers, "b"];
+      } else if (tag === "i" || tag === "em") {
+        newModifiers = [...newModifiers, "i"];
+      } else if (tag === "u") {
+        newModifiers = [...newModifiers, "u"];
+      } else if (tag === "s" || tag === "strike" || tag === "del") {
+        newModifiers = [...newModifiers, "s"];
       }
 
-      if (el.tagName === "BR") {
-        segments.push({ type: "spacing", text: "\n" });
-        return;
+      let currentOffset = offset;
+      for (const child of Array.from(node.childNodes)) {
+        currentOffset = buildModifierMap(child, newModifiers, currentOffset);
       }
-
-      // DIV elements created by pressing Enter — add a line break before their
-      // content (except the very first div in the container, which shouldn't
-      // inject a leading newline).
-      if (el.tagName === "DIV" && !isFirstChild) {
-        segments.push({ type: "spacing", text: "\n" });
-      }
-
-      for (let i = 0; i < el.childNodes.length; i++) {
-        processNode(el.childNodes[i], mods, i === 0);
-      }
-    } else if (node.nodeType === Node.TEXT_NODE) {
-      const text = node.textContent ?? "";
-      if (!text) return;
-      const parts = text.split(/(\s+)/);
-      for (const part of parts) {
-        if (!part) continue;
-        if (/^\s+$/.test(part)) {
-          segments.push({ type: "spacing", text: part });
-        } else {
-          segments.push({
-            type: "word",
-            text: part,
-            modifiers:
-              inherited.length > 0
-                ? ([...inherited] as ("b" | "i" | "u" | "s")[])
-                : undefined,
-          });
-        }
-      }
+      return currentOffset;
     }
+
+    return offset;
   };
 
-  for (let i = 0; i < container.childNodes.length; i++) {
-    processNode(container.childNodes[i], [], i === 0);
+  buildModifierMap(container, [], 0);
+
+  // Now reconstruct segments by iterating through the text
+  const result: TranscriptionSegment[] = [];
+  let charIndex = 0;
+
+  for (const originalSeg of originalSegments) {
+    const segmentLength = originalSeg.text.length;
+    const segmentText = text.substring(charIndex, charIndex + segmentLength);
+
+    // Determine modifiers for this segment by sampling the first character
+    const mods = modifierMap.get(charIndex);
+    const segmentModifiers = mods ? Array.from(mods) : [];
+
+    result.push({
+      ...originalSeg,
+      text: segmentText,
+      modifiers:
+        segmentModifiers.length > 0
+          ? (segmentModifiers as ("b" | "i" | "u" | "s")[])
+          : undefined,
+    });
+
+    charIndex += segmentLength;
   }
-  return segments;
+
+  // Handle case where user has typed more text than exists in original segments
+  if (charIndex < text.length) {
+    const remainingText = text.substring(charIndex);
+    // Split remaining text into words and spacing
+    const parts = remainingText.split(/(\s+)/);
+
+    for (const part of parts) {
+      if (!part) continue;
+
+      const mods = modifierMap.get(charIndex);
+      const segmentModifiers = mods ? Array.from(mods) : [];
+
+      result.push({
+        type: /^\s+$/.test(part) ? "spacing" : "word",
+        text: part,
+        modifiers:
+          segmentModifiers.length > 0
+            ? (segmentModifiers as ("b" | "i" | "u" | "s")[])
+            : undefined,
+      });
+
+      charIndex += part.length;
+    }
+  }
+
+  return result;
 }

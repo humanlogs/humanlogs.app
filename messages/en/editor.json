@@ -15,6 +15,7 @@
             "next": "Next (Enter)",
             "matchCase": "Match case",
             "wholeWord": "Whole word",
+            "ignoreAccents": "Ignore accents",
             "replace": "Replace",
             "replaceWith": "Replace with",
             "replaceAll": "All ({count})"

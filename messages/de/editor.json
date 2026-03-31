@@ -15,6 +15,7 @@
             "next": "Nächstes (Eingabe)",
             "matchCase": "Groß-/Kleinschreibung beachten",
             "wholeWord": "Ganzes Wort",
+            "ignoreAccents": "Akzente ignorieren",
             "replace": "Ersetzen",
             "replaceWith": "Ersetzen durch",
             "replaceAll": "Alle ({count})"

@@ -17,6 +17,8 @@ export interface SearchReplaceToolbarProps {
   onCaseSensitiveChange: (value: boolean) => void;
   wholeWord: boolean;
   onWholeWordChange: (value: boolean) => void;
+  ignoreAccents: boolean;
+  onIgnoreAccentsChange: (value: boolean) => void;
   matchCount: number;
   currentMatchIndex: number;
   onNextMatch: () => void;
@@ -38,6 +40,8 @@ export function SearchReplaceToolbar({
   onCaseSensitiveChange,
   wholeWord,
   onWholeWordChange,
+  ignoreAccents,
+  onIgnoreAccentsChange,
   matchCount,
   currentMatchIndex,
   onNextMatch,
@@ -142,6 +146,19 @@ export function SearchReplaceToolbar({
                     {t("search.wholeWord")}
                   </Label>
                 </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="ignore-accents-toolbar"
+                    checked={ignoreAccents}
+                    onCheckedChange={(value) => onIgnoreAccentsChange(!!value)}
+                  />
+                  <Label
+                    htmlFor="ignore-accents-toolbar"
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    {t("search.ignoreAccents")}
+                  </Label>
+                </div>
                 {!hideReplace && (
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -166,6 +183,7 @@ export function SearchReplaceToolbar({
                     {t("search.replaceWith")}
                   </Label>
                   <Input
+                    autoComplete="off"
                     id="replace-input"
                     type="text"
                     value={replaceTerm}

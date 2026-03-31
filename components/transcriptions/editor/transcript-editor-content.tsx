@@ -1,11 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { TranscriptionSegment } from "../../../hooks/use-transcriptions";
+import { cn } from "../../../lib/utils";
+import { PauseConfigurationData } from "../dialogs/pause-configuration-dialog";
+import { SpeakerOptionsData } from "../dialogs/speaker-options-dialog";
+import { ActiveSegmentHighlight } from "./components/active-segment-highlight";
 import { EditorToolbar } from "./components/editor-toolbar";
 import { SearchHighlights } from "./components/search-highlights";
 import { SpeakerColumn } from "./components/speaker-column";
 import { SpeakerRenameDialog } from "./components/speaker-rename-dialog";
+import { useOptionalEditorState } from "./editor-state-context";
+import { createEditorAPI } from "./hooks/editor-api";
 import { useAudioSync } from "./hooks/use-audio-sync";
 import { useBracketWrap } from "./hooks/use-bracket-wrap";
 import { useEditorSync } from "./hooks/use-editor-sync";
@@ -16,11 +23,6 @@ import { useSearchReplace } from "./hooks/use-search-replace";
 import { Speaker, useSpeakerActions } from "./hooks/use-speaker-actions";
 import { useSpeakerPositions } from "./hooks/use-speaker-positions";
 import { AudioControls, InteractiveAudio } from "./interactive-audio";
-import { createPortal } from "react-dom";
-import { cn } from "../../../lib/utils";
-import { SpeakerOptionsData } from "../dialogs/speaker-options-dialog";
-import { PauseConfigurationData } from "../dialogs/pause-configuration-dialog";
-import { useOptionalEditorState } from "./editor-state-context";
 
 interface TranscriptEditorContentProps {
   segments: TranscriptionSegment[];
@@ -49,6 +51,9 @@ export function TranscriptEditorContent({
   // re-renders are skipped when the parent echoes back what we already set.
   const segmentsRef = useRef<TranscriptionSegment[] | null>(null);
 
+  // Create EditorAPI from editorRef
+  const editorAPI = useMemo(() => createEditorAPI(editorRef), []);
+
   // Audio controls from InteractiveAudio
   const [audioControls, setAudioControls] = useState<AudioControls | null>(
     null,
@@ -60,7 +65,7 @@ export function TranscriptEditorContent({
   }, [audioControls]);
 
   const { handleInput, handleBeforeInput, handleUndoKeyDown } = useEditorSync(
-    editorRef,
+    editorAPI,
     segmentsRef,
     segments,
     onChange,
@@ -69,13 +74,14 @@ export function TranscriptEditorContent({
     applyFormat,
     handleKeyDown: handleFormatKeyDown,
     activeFormats,
-  } = useFormat(editorRef);
+  } = useFormat(editorAPI);
   const { handleKeyDown: handleBracketWrapKeyDown } = useBracketWrap();
 
   // Navigation mode
-  useNavigationMode(editorRef, segments, audioControls);
+  const { state: navigationState, currentIndex: activeSegmentIndex } =
+    useNavigationMode(editorAPI, segments, audioControls);
 
-  const speakerPositions = useSpeakerPositions(editorRef, segments);
+  const speakerPositions = useSpeakerPositions(editorAPI, segments);
   const { renameSpeaker, changeSpeakerForTurn } = useSpeakerActions({
     speakers,
     segments,
@@ -296,14 +302,14 @@ export function TranscriptEditorContent({
 
   // Search highlights
   const highlights = useSearchHighlights(
-    editorRef,
+    editorAPI,
     segments,
     searchReplace.matches,
     searchReplace.currentMatchIndex,
   );
 
   // Two-way sync between cursor position and audio playback
-  useAudioSync(editorRef, segments);
+  const { activeSegmentIndices } = useAudioSync(editorAPI, segments);
 
   // Global keyboard shortcuts for search
   useEffect(() => {
@@ -389,6 +395,13 @@ export function TranscriptEditorContent({
           <div className="flex-1 px-2">
             <div className="relative">
               <SearchHighlights highlights={highlights} />
+              <ActiveSegmentHighlight
+                editorAPI={editorAPI}
+                segmentIndex={activeSegmentIndex}
+                visible={
+                  navigationState === "navigate" && activeSegmentIndex >= 0
+                }
+              />
               <div
                 ref={editorRef}
                 contentEditable={hasWriteAccess}

@@ -7,25 +7,25 @@ export function escapeHtml(text: string): string {
     .replace(/>/g, "&gt;");
 }
 
-export function segmentToHtml(
-  seg: TranscriptionSegment,
-  index: number,
-): string {
-  const modifiers = seg.modifiers ?? [];
-  let content = escapeHtml(seg.text);
-  if (modifiers.includes("s")) content = `<s>${content}</s>`;
-  if (modifiers.includes("u")) content = `<u>${content}</u>`;
-  if (modifiers.includes("i")) content = `<i>${content}</i>`;
-  if (modifiers.includes("b")) content = `<b>${content}</b>`;
-
-  const cls = seg.type === "word" ? "word-span" : "spacing-span";
-  const dataStart = seg.start !== undefined ? ` data-start="${seg.start}"` : "";
-  const dataEnd = seg.end !== undefined ? ` data-end="${seg.end}"` : "";
-  const dataSpeaker = seg.speakerId ? ` data-speaker="${seg.speakerId}"` : "";
-
-  return `<span class="${cls}" data-index="${index}" data-type="${seg.type}"${dataStart}${dataEnd}${dataSpeaker}>${content}</span>`;
-}
-
+/**
+ * Converts segments to plain HTML text with formatting tags.
+ * No individual word spans - just the text content with b/i/u/s tags.
+ */
 export function segmentsToHtml(segments: TranscriptionSegment[]): string {
-  return segments.map((seg, i) => segmentToHtml(seg, i)).join("");
+  let html = "";
+
+  for (const seg of segments) {
+    const modifiers = seg.modifiers ?? [];
+    let content = escapeHtml(seg.text);
+
+    // Apply formatting tags in consistent order
+    if (modifiers.includes("b")) content = `<b>${content}</b>`;
+    if (modifiers.includes("i")) content = `<i>${content}</i>`;
+    if (modifiers.includes("u")) content = `<u>${content}</u>`;
+    if (modifiers.includes("s")) content = `<s>${content}</s>`;
+
+    html += content;
+  }
+
+  return html;
 }

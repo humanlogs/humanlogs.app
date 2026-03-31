@@ -1,8 +1,9 @@
 "use client";
 
-import { RefObject, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { SearchMatch } from "./use-search-replace";
+import { EditorAPI } from "./editor-api";
 
 export interface HighlightPosition {
   top: number;
@@ -13,7 +14,7 @@ export interface HighlightPosition {
 }
 
 export function useSearchHighlights(
-  editorRef: RefObject<HTMLDivElement | null>,
+  editorAPI: EditorAPI,
   segments: TranscriptionSegment[],
   matches: SearchMatch[],
   currentMatchIndex: number,
@@ -21,100 +22,111 @@ export function useSearchHighlights(
   const [highlights, setHighlights] = useState<HighlightPosition[]>([]);
 
   useEffect(() => {
-    if (!editorRef.current || matches.length === 0) {
+    if (!editorAPI.ready() || matches.length === 0) {
       setHighlights([]);
       return;
     }
 
-    const editor = editorRef.current;
-    const positions: HighlightPosition[] = [];
-
-    // Walk through the editor DOM to find text nodes
-    const walker = document.createTreeWalker(
-      editor,
-      NodeFilter.SHOW_TEXT,
-      null,
-    );
-
-    let segmentIndex = 0;
-    const currentNode: Node | null = walker.nextNode();
-
-    matches.forEach((match, matchIdx) => {
-      // Skip to the correct segment
-      while (segmentIndex < match.segmentIndex && currentNode) {
-        if (segments[segmentIndex].type === "word") {
-          // Intentionally empty - just advancing through segments
-        }
-        segmentIndex++;
+    const updateHighlights = () => {
+      const editor = editorAPI.getEditorElement();
+      if (!editor) {
+        setHighlights([]);
+        return;
       }
 
-      if (segmentIndex !== match.segmentIndex) return;
+      const editorRect = editorAPI.getBoundingClientRect();
+      const positions: HighlightPosition[] = [];
 
-      // Find the text node containing this match
-      const segment = segments[match.segmentIndex];
-      if (segment.type !== "word") return;
+      matches.forEach((match, matchIdx) => {
+        // Calculate absolute character offset for this match
+        let charOffset = 0;
+        for (let i = 0; i < match.segmentIndex; i++) {
+          charOffset += segments[i].text.length;
+        }
+        charOffset += match.matchIndex;
 
-      const matchStart = match.matchIndex;
-      const matchEnd = match.matchIndex + match.length;
+        const matchEnd = charOffset + match.length;
 
-      // Calculate position using Range API
-      try {
+        // Create range for the match
         const range = document.createRange();
+        const walker = document.createTreeWalker(
+          editor,
+          NodeFilter.SHOW_TEXT,
+          null,
+        );
 
-        // Find the correct text node
-        const textNode = findTextNodeForSegment(editor, match.segmentIndex);
+        let currentOffset = 0;
+        let startNode: Node | null = null;
+        let startOffset = 0;
+        let endNode: Node | null = null;
+        let endOffset = 0;
 
-        if (!textNode) return;
+        let node: Node | null;
+        while ((node = walker.nextNode())) {
+          const nodeLength = node.textContent?.length ?? 0;
 
-        range.setStart(textNode, matchStart);
-        range.setEnd(textNode, matchEnd);
+          // Find start position
+          if (!startNode && currentOffset + nodeLength > charOffset) {
+            startNode = node;
+            startOffset = charOffset - currentOffset;
+          }
 
-        const rect = range.getBoundingClientRect();
-        const editorRect = editor.getBoundingClientRect();
+          // Find end position
+          if (!endNode && currentOffset + nodeLength >= matchEnd) {
+            endNode = node;
+            endOffset = matchEnd - currentOffset;
+            break;
+          }
 
-        if (rect.width > 0 && rect.height > 0) {
-          positions.push({
-            top: rect.top - editorRect.top + editor.scrollTop,
-            left: rect.left - editorRect.left + editor.scrollLeft,
-            width: rect.width,
-            height: rect.height,
-            isCurrent: matchIdx === currentMatchIndex,
-          });
+          currentOffset += nodeLength;
         }
-      } catch (e) {
-        console.error("Error calculating highlight position:", e);
-      }
-    });
 
-    setHighlights(positions);
-  }, [editorRef, segments, matches, currentMatchIndex]);
+        if (startNode && endNode) {
+          try {
+            range.setStart(startNode, startOffset);
+            range.setEnd(endNode, endOffset);
+
+            const rect = range.getBoundingClientRect();
+
+            if (rect.width > 0 && rect.height > 0) {
+              positions.push({
+                top: rect.top - editorRect.top,
+                left: rect.left - editorRect.left,
+                width: rect.width,
+                height: rect.height,
+                isCurrent: matchIdx === currentMatchIndex,
+              });
+            }
+          } catch (e) {
+            console.error("Error calculating highlight position:", e);
+          }
+        }
+      });
+
+      setHighlights(positions);
+    };
+
+    // Initial update
+    updateHighlights();
+
+    // Update on scroll
+    const cleanupScroll = editorAPI.addEventListener("scroll", updateHighlights);
+
+    // Update on window events
+    const handleWindowEvent = () => updateHighlights();
+    window.addEventListener("scroll", handleWindowEvent, true);
+    window.addEventListener("resize", handleWindowEvent);
+
+    // Update on editor mutations
+    const cleanupMutations = editorAPI.observeMutations(updateHighlights);
+
+    return () => {
+      cleanupScroll();
+      cleanupMutations();
+      window.removeEventListener("scroll", handleWindowEvent, true);
+      window.removeEventListener("resize", handleWindowEvent);
+    };
+  }, [editorAPI, segments, matches, currentMatchIndex]);
 
   return highlights;
-}
-
-// Helper function to find the text node for a specific segment
-function findTextNodeForSegment(
-  editor: HTMLElement,
-  segmentIndex: number,
-): Text | null {
-  const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT, null);
-
-  let currentSegmentIndex = -1;
-  let node: Node | null = walker.nextNode();
-
-  while (node) {
-    // Check if this text node belongs to a word segment
-    const parentElement = node.parentElement;
-    if (parentElement && node.textContent) {
-      currentSegmentIndex++;
-
-      if (currentSegmentIndex === segmentIndex) {
-        return node as Text;
-      }
-    }
-
-    node = walker.nextNode();
-  }
-
-  return null;
 }

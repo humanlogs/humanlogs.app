@@ -1,20 +1,15 @@
 "use client";
 
-import { RefObject, useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { normalizeEditorSegments } from "./use-normalize-editor-segments";
-import { domToSegments } from "../utils/dom";
-import { segmentsToHtml } from "../utils/html";
-import {
-  getSelectionOffsets,
-  restoreSelection,
-  SelectionOffsets,
-} from "../utils/selection";
+import { SelectionOffsets } from "../utils/selection";
 import { bracketWrapState } from "./use-bracket-wrap";
 import { useUndoHistory } from "./use-undo-history";
+import { EditorAPI } from "./editor-api";
 
 export function useEditorSync(
-  editorRef: RefObject<HTMLDivElement | null>,
+  editorAPI: EditorAPI,
   segmentsRef: { current: TranscriptionSegment[] | null },
   segments: TranscriptionSegment[],
   onChange: (segments: TranscriptionSegment[]) => void,
@@ -25,7 +20,7 @@ export function useEditorSync(
   // Sync DOM when segments prop changes from outside (speaker changes, etc.).
   // We own the undo stack so we can always do a full rewrite without worry.
   useEffect(() => {
-    if (!editorRef.current) return;
+    if (!editorAPI.ready()) return;
     if (segments === segmentsRef.current) return;
 
     const isFirstRender = segmentsRef.current === null;
@@ -33,25 +28,24 @@ export function useEditorSync(
 
     // Save the outgoing state to the undo stack so Ctrl+Z can restore it.
     if (!isFirstRender && segmentsRef.current !== null) {
-      const sel = getSelectionOffsets(editorRef.current);
+      const sel = editorAPI.getSelectionOffsets();
       history.record(segmentsRef.current, sel);
     }
 
-    const sel = !isFirstRender ? getSelectionOffsets(editorRef.current) : null;
-    editorRef.current.innerHTML = segmentsToHtml(normalized);
+    const sel = !isFirstRender ? editorAPI.getSelectionOffsets() : null;
+    editorAPI.setSegments(normalized);
     segmentsRef.current = normalized;
-    if (sel !== null) restoreSelection(editorRef.current, sel.start, sel.end);
+    if (sel !== null) editorAPI.restoreSelection(sel.start, sel.end);
 
     if (normalized !== segments) onChange(normalized);
-    // editorRef and segmentsRef are stable refs — not needed in deps
+    // editorAPI is stable — not needed in deps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [segments]);
 
   // Capture selection before any input modifications
   const handleBeforeInput = useCallback(() => {
-    if (!editorRef.current) return;
-    beforeInputSelection.current = getSelectionOffsets(editorRef.current);
-    // editorRef and beforeInputSelection are stable refs — not needed in deps
+    beforeInputSelection.current = editorAPI.getSelectionOffsets();
+    // editorAPI and beforeInputSelection are stable refs — not needed in deps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -59,8 +53,7 @@ export function useEditorSync(
   // Save the pre-change snapshot to the undo stack on every input event so
   // that Ctrl+Z can walk back through typing and formatting operations.
   const handleInput = useCallback(() => {
-    if (!editorRef.current) return;
-    const raw = domToSegments(editorRef.current);
+    const raw = editorAPI.getSegments();
     const normalized = normalizeEditorSegments(raw);
 
     // Record the state *before* this change.
@@ -70,7 +63,7 @@ export function useEditorSync(
       const sel =
         bracketWrapState.originalSelection ||
         beforeInputSelection.current ||
-        getSelectionOffsets(editorRef.current);
+        editorAPI.getSelectionOffsets();
       history.record(segmentsRef.current, sel);
       beforeInputSelection.current = null;
     }
@@ -80,9 +73,9 @@ export function useEditorSync(
     if (rawText !== normalizedText || true) {
       // Normalization changed visible text (pause → "(pause)", speaker
       // boundary → "\n\n").  Rewrite DOM to reflect the canonical form.
-      const sel = getSelectionOffsets(editorRef.current);
-      editorRef.current.innerHTML = segmentsToHtml(normalized);
-      if (sel !== null) restoreSelection(editorRef.current, sel.start, sel.end);
+      const sel = editorAPI.getSelectionOffsets();
+      editorAPI.setSegments(normalized);
+      if (sel !== null) editorAPI.restoreSelection(sel.start, sel.end);
     }
 
     // segmentsRef must point to `normalized` so that the parent echo-back
@@ -90,7 +83,7 @@ export function useEditorSync(
     // early-return in the sync effect and avoids a redundant DOM rewrite.
     segmentsRef.current = normalized;
     onChange(normalized);
-    // editorRef and segmentsRef are stable refs — not needed in deps
+    // editorAPI and segmentsRef are stable refs — not needed in deps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onChange]);
 
@@ -106,26 +99,25 @@ export function useEditorSync(
       if (!isUndo && !isRedo) return;
 
       e?.preventDefault?.();
-      if (!editorRef.current || segmentsRef.current === null) return;
+      if (!editorAPI.ready() || segmentsRef.current === null) return;
 
-      const currentSel = getSelectionOffsets(editorRef.current);
+      const currentSel = editorAPI.getSelectionOffsets();
       const historyState = isUndo
         ? history.undo(segmentsRef.current, currentSel)
         : history.redo(segmentsRef.current, currentSel);
       if (!historyState) return;
 
-      editorRef.current.innerHTML = segmentsToHtml(historyState.segments);
+      editorAPI.setSegments(historyState.segments);
       segmentsRef.current = historyState.segments;
       if (historyState.selection !== null) {
-        restoreSelection(
-          editorRef.current,
+        editorAPI.restoreSelection(
           historyState.selection.start,
           historyState.selection.end,
         );
       }
       onChange(historyState.segments);
     },
-    // editorRef and segmentsRef are stable refs, history methods are stable
+    // editorAPI and segmentsRef are stable refs, history methods are stable
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [onChange],
   );

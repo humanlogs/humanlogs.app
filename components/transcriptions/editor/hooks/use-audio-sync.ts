@@ -1,9 +1,9 @@
 "use client";
 
-import { RefObject, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { useAudio } from "../audio-context";
-import { getSelectionOffsets } from "../utils/selection";
+import { EditorAPI } from "./editor-api";
 
 /**
  * Two-way sync between editor cursor and audio playback:
@@ -11,20 +11,22 @@ import { getSelectionOffsets } from "../utils/selection";
  * 2. When audio time changes → highlight all segments within ±0.1s of current time (CSS only)
  */
 export function useAudioSync(
-  editorRef: RefObject<HTMLDivElement | null>,
+  editorAPI: EditorAPI,
   segments: TranscriptionSegment[],
 ) {
   const { currentTime, seekTo } = useAudio();
   const lastSelectionRef = useRef<{ start: number; end: number } | null>(null);
   const lastSyncTimeRef = useRef<number>(0);
+  const [activeSegmentIndices, setActiveSegmentIndices] = useState<number[]>(
+    [],
+  );
 
   // Part 1: Caret position → Audio seek
   useEffect(() => {
-    const editor = editorRef.current;
-    if (!editor) return;
+    if (!editorAPI.ready()) return;
 
     const handleSelectionChange = () => {
-      const selection = getSelectionOffsets(editor);
+      const selection = editorAPI.getSelectionOffsets();
       if (!selection) return;
 
       // Only sync if it's a cursor (collapsed selection), not a range
@@ -88,34 +90,36 @@ export function useAudioSync(
     return () => {
       document.removeEventListener("selectionchange", handleSelectionChange);
     };
-  }, [editorRef, segments, seekTo]);
+  }, [editorAPI, segments, seekTo]);
 
-  // Part 2: Audio time → Highlight segments (CSS only, no selection change)
-  // Highlights all segments whose expanded time range (start-0.1 to end+0.1) includes currentTime
+  // Part 2: Audio time → Highlight segments
+  // Highlights all segments whose expanded time range includes currentTime
   useEffect(() => {
-    const editor = editorRef.current;
-    if (!editor) return;
+    if (!editorAPI.ready()) return;
 
-    // Remove all previous highlights
-    const previousHighlights = editor.querySelectorAll(
+    // Remove all previous highlights (legacy support for span-based mode)
+    const previousHighlights = editorAPI.querySelectorAll(
       ".word-span.active, .spacing-span.active",
     );
     previousHighlights.forEach((el) => el.classList.remove("active"));
 
-    // Find all segments that should be highlighted (with 0.1s buffer on each side)
+    // Find all segments that should be highlighted
+    const indicesToHighlight: number[] = [];
     segments.forEach((segment, index) => {
       if (segment.start !== undefined && segment.end !== undefined) {
-        const expandedStart = segment.start; // - 0.01;
-        const expandedEnd = segment.end; // + 0.01;
+        const expandedStart = segment.start;
+        const expandedEnd = segment.end;
 
-        // Check if current time is within the expanded range
         if (currentTime >= expandedStart && currentTime <= expandedEnd) {
-          const element = editor.querySelector(`[data-index="${index}"]`);
-          if (element) {
-            element.classList.add("active");
-          }
+          indicesToHighlight.push(index);
         }
       }
     });
-  }, [currentTime, editorRef, segments]);
+
+    setActiveSegmentIndices(indicesToHighlight);
+  }, [currentTime, editorAPI, segments]);
+
+  return {
+    activeSegmentIndices,
+  };
 }

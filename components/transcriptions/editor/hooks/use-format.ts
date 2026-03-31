@@ -1,7 +1,8 @@
 "use client";
 
-import { RefObject, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { selectActiveSegmentAndFocus } from "./editor-utils";
+import { EditorAPI } from "./editor-api";
 
 function expandSelectionToWords() {
   const selection = window.getSelection();
@@ -81,7 +82,7 @@ function getActiveFormats(): Set<"b" | "i" | "u" | "s"> {
   return active;
 }
 
-export function useFormat(editorRef: RefObject<HTMLDivElement | null>) {
+export function useFormat(editorAPI: EditorAPI) {
   const [activeFormats, setActiveFormats] = useState<
     Set<"b" | "i" | "u" | "s">
   >(new Set());
@@ -92,29 +93,29 @@ export function useFormat(editorRef: RefObject<HTMLDivElement | null>) {
       setActiveFormats(getActiveFormats());
     };
 
-    const editor = editorRef.current;
-    if (!editor) return;
-
     // Update on selection change and input
     document.addEventListener("selectionchange", updateFormats);
-    editor.addEventListener("input", updateFormats);
-    editor.addEventListener("keyup", updateFormats);
-    editor.addEventListener("mouseup", updateFormats);
+    const cleanupInput = editorAPI.addEventListener(
+      "input" as any,
+      updateFormats,
+    );
+    document.addEventListener("keyup", updateFormats);
+    document.addEventListener("mouseup", updateFormats);
 
     return () => {
       document.removeEventListener("selectionchange", updateFormats);
-      editor.removeEventListener("input", updateFormats);
-      editor.removeEventListener("keyup", updateFormats);
-      editor.removeEventListener("mouseup", updateFormats);
+      cleanupInput();
+      document.removeEventListener("keyup", updateFormats);
+      document.removeEventListener("mouseup", updateFormats);
     };
-  }, [editorRef]);
+  }, [editorAPI]);
 
   const applyFormat = useCallback(
     (modifier: "b" | "i" | "u" | "s") => {
-      if (!editorRef.current) return;
+      if (!editorAPI.ready()) return;
 
       // If in navigation mode with an active segment, select it first
-      selectActiveSegmentAndFocus(editorRef);
+      selectActiveSegmentAndFocus(editorAPI);
 
       // Expand selection to full words before applying format
       expandSelectionToWords();
@@ -134,7 +135,7 @@ export function useFormat(editorRef: RefObject<HTMLDivElement | null>) {
       // Update active formats after applying
       setActiveFormats(getActiveFormats());
     },
-    // editorRef is a stable ref — not needed in deps
+    // editorAPI is a stable ref — not needed in deps
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );

@@ -15,6 +15,7 @@
             "next": "Suivant (Entrée)",
             "matchCase": "Respecter la casse",
             "wholeWord": "Mot entier",
+            "ignoreAccents": "Ignorer les accents",
             "replace": "Remplacer",
             "replaceWith": "Remplacer par",
             "replaceAll": "Tout ({count})"

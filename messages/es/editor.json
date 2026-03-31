@@ -15,6 +15,7 @@
             "next": "Siguiente (Enter)",
             "matchCase": "Distinguir mayúsculas",
             "wholeWord": "Palabra completa",
+            "ignoreAccents": "Ignorar acentos",
             "replace": "Reemplazar",
             "replaceWith": "Reemplazar con",
             "replaceAll": "Todos ({count})"
