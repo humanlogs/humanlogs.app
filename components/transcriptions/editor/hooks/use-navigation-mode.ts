@@ -12,6 +12,31 @@ import { EditorAPI } from "./editor-api";
 
 export type NavigationState = "edit" | "navigate";
 
+/**
+ * Smart window scroll that automatically uses instant scroll if called
+ * multiple times within the animation delay period.
+ */
+const createSmartScroll = () => {
+  let lastScrollTime = 0;
+  const ANIMATION_DURATION = 300; // Smooth scroll animation duration in ms
+
+  return (targetY: number) => {
+    const now = Date.now();
+    const timeSinceLastScroll = now - lastScrollTime;
+
+    // Use instant scroll if we're requesting a new scroll before the previous one finished
+    const behavior =
+      timeSinceLastScroll < ANIMATION_DURATION ? "instant" : "smooth";
+
+    window.scrollTo({
+      top: targetY,
+      behavior: behavior as ScrollBehavior,
+    });
+
+    lastScrollTime = now;
+  };
+};
+
 export function useNavigationMode(
   editorAPI: EditorAPI,
   segments: TranscriptionSegment[],
@@ -21,6 +46,7 @@ export function useNavigationMode(
   const [currentIndex, setCurrentIndex] = useState<number>(-1);
   const isModalOpen = useAnyModalOpen();
   const lastNavigationTime = useRef<number>(0);
+  const smartScrollRef = useRef(createSmartScroll());
   const { data: customShortcuts = [] } = useCustomShortcuts();
 
   useEffect(() => {
@@ -58,21 +84,17 @@ export function useNavigationMode(
             document.querySelector("header")?.getBoundingClientRect().height ||
             0;
           const viewportHeight = window.innerHeight;
-          const topMargin = Math.max(viewportHeight * 0.1, 100);
-          const bottomMargin = viewportHeight * 0.9;
+          const topMargin = Math.max(viewportHeight * 0.2, 100);
+          const bottomMargin = viewportHeight * 0.8;
           const visibleTop = headerHeight + topMargin;
           const visibleBottom = bottomMargin;
           if (!(rect.top >= visibleTop && rect.bottom <= visibleBottom)) {
             const targetY =
-              rect.top + window.pageYOffset - headerHeight - topMargin;
-            window.scrollTo({
-              top: targetY,
-              behavior: "smooth",
-            });
+              rect.top >= visibleTop
+                ? window.pageYOffset + (rect.top - visibleBottom)
+                : window.pageYOffset + (rect.top - visibleTop);
+            smartScrollRef.current(targetY);
           }
-
-          // TODO: Add visual highlighting using positioned overlay
-          // For now, just ensure the segment is visible via scrolling
         }
       }
     } else {

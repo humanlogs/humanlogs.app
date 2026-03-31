@@ -38,7 +38,9 @@ export function useSpeakerPositions(
 
   // Re-measure on editor scroll
   useEffect(() => {
-    const cleanup = editorAPI.addEventListener("scroll", recalculate, { passive: true });
+    const cleanup = editorAPI.addEventListener("scroll", recalculate, {
+      passive: true,
+    });
     return cleanup;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recalculate]);

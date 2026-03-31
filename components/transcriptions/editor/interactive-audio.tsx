@@ -244,7 +244,11 @@ export const InteractiveAudio = ({
 
     // Register seek handler for audio context
     registerSeekHandler((time: number) => {
-      wavesurfer.seekTo(time / wavesurfer.getDuration());
+      try {
+        wavesurfer.seekTo(time / wavesurfer.getDuration());
+      } catch (e) {
+        console.error("Error seeking audio:", e);
+      }
     });
 
     // Update current time as audio plays

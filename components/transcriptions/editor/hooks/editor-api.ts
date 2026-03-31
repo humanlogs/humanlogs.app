@@ -48,9 +48,6 @@ export interface EditorAPI {
     top: number;
   }>;
 
-  // Scrolling
-  scrollTo(segmentIndex?: number): void;
-
   // DOM queries (will be deprecated later with virtual scrolling)
   querySelectorAll(selector: string): NodeListOf<Element>;
   querySelector(selector: string): Element | null;
@@ -379,68 +376,6 @@ export function createEditorAPI(
       }
 
       return result;
-    },
-
-    scrollTo(segmentIndex?) {
-      if (!editorRef.current) return;
-
-      if (segmentIndex !== undefined) {
-        // Calculate character offset for this segment
-        let charOffset = 0;
-        for (let i = 0; i < segmentIndex && i < currentSegments.length; i++) {
-          charOffset += currentSegments[i].text.length;
-        }
-
-        // Create range at segment position and scroll into view
-        const range = document.createRange();
-        const walker = document.createTreeWalker(
-          editorRef.current,
-          NodeFilter.SHOW_TEXT,
-          null,
-        );
-
-        let currentOffset = 0;
-        let targetNode: Node | null = null;
-        let targetOffset = 0;
-
-        let node: Node | null;
-        while ((node = walker.nextNode())) {
-          const nodeLength = node.textContent?.length ?? 0;
-          if (currentOffset + nodeLength >= charOffset) {
-            targetNode = node;
-            targetOffset = charOffset - currentOffset;
-            break;
-          }
-          currentOffset += nodeLength;
-        }
-
-        if (targetNode && targetNode.parentElement) {
-          targetNode.parentElement.scrollIntoView({
-            behavior: "smooth",
-            block: "nearest",
-            inline: "nearest",
-          });
-        }
-      } else {
-        // Scroll to current cursor position
-        const sel = window.getSelection();
-        if (sel && sel.rangeCount > 0) {
-          const range = sel.getRangeAt(0);
-          const rect = range.getBoundingClientRect();
-
-          if (rect.height > 0) {
-            // Create a temporary element at the cursor position to scroll to
-            const tempEl = document.createElement("span");
-            range.insertNode(tempEl);
-            tempEl.scrollIntoView({
-              behavior: "smooth",
-              block: "nearest",
-              inline: "nearest",
-            });
-            tempEl.remove();
-          }
-        }
-      }
     },
 
     querySelectorAll(selector) {

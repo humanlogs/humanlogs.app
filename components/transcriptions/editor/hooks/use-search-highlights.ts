@@ -110,7 +110,10 @@ export function useSearchHighlights(
     updateHighlights();
 
     // Update on scroll
-    const cleanupScroll = editorAPI.addEventListener("scroll", updateHighlights);
+    const cleanupScroll = editorAPI.addEventListener(
+      "scroll",
+      updateHighlights,
+    );
 
     // Update on window events
     const handleWindowEvent = () => updateHighlights();

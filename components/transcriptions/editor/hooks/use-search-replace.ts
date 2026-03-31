@@ -45,7 +45,9 @@ export function useSearchReplace(
       segments.forEach((segment, segmentIndex) => {
         if (segment.type !== "word") return;
 
-        const text = shouldIgnoreAccents ? normalizeText(segment.text) : segment.text;
+        const text = shouldIgnoreAccents
+          ? normalizeText(segment.text)
+          : segment.text;
         let match;
         searchRegex.lastIndex = 0; // Reset regex state
         while ((match = searchRegex.exec(text)) !== null) {
@@ -64,7 +66,10 @@ export function useSearchReplace(
 
   // Get all matches
   const matches = useMemo(
-    () => (searchTerm ? findMatches(searchTerm, caseSensitive, wholeWord, ignoreAccents) : []),
+    () =>
+      searchTerm
+        ? findMatches(searchTerm, caseSensitive, wholeWord, ignoreAccents)
+        : [],
     [searchTerm, caseSensitive, wholeWord, ignoreAccents, findMatches],
   );
   const matchCount = matches.length;
@@ -100,20 +105,32 @@ export function useSearchReplace(
   const replaceAll = useCallback(() => {
     if (!searchTerm) return;
 
-    const allMatches = findMatches(searchTerm, caseSensitive, wholeWord, ignoreAccents);
+    const allMatches = findMatches(
+      searchTerm,
+      caseSensitive,
+      wholeWord,
+      ignoreAccents,
+    );
     if (allMatches.length === 0) return;
 
     // Create new segments array with replacements
     const newSegments = [...segments];
-    const normalizedSearchTerm = ignoreAccents ? normalizeText(searchTerm) : searchTerm;
-    const escapedTerm = normalizedSearchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const normalizedSearchTerm = ignoreAccents
+      ? normalizeText(searchTerm)
+      : searchTerm;
+    const escapedTerm = normalizedSearchTerm.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      "\\$&",
+    );
     const pattern = wholeWord ? `\\b${escapedTerm}\\b` : escapedTerm;
     const searchRegex = new RegExp(pattern, caseSensitive ? "g" : "gi");
 
     allMatches.forEach(({ segmentIndex }) => {
       const segment = newSegments[segmentIndex];
       if (segment.type === "word") {
-        const textToSearch = ignoreAccents ? normalizeText(segment.text) : segment.text;
+        const textToSearch = ignoreAccents
+          ? normalizeText(segment.text)
+          : segment.text;
         newSegments[segmentIndex] = {
           ...segment,
           text: segment.text.replace(searchRegex, replaceTerm),

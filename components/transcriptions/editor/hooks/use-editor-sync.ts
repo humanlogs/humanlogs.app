@@ -53,6 +53,10 @@ export function useEditorSync(
   // Save the pre-change snapshot to the undo stack on every input event so
   // that Ctrl+Z can walk back through typing and formatting operations.
   const handleInput = useCallback(() => {
+    // TODO change me, this is currently super slow
+
+    return;
+
     const raw = editorAPI.getSegments();
     const normalized = normalizeEditorSegments(raw);
 
