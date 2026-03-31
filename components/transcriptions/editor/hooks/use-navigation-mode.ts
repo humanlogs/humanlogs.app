@@ -67,7 +67,6 @@ export function useNavigationMode(
           const visibleTop = headerHeight + topMargin;
           const visibleBottom = bottomMargin;
           if (!(rect.top >= visibleTop && rect.bottom <= visibleBottom)) {
-            console.log("Scrolling to segment", currentIndex, rect);
             const targetY =
               rect.top + window.pageYOffset - headerHeight - topMargin;
             window.scrollTo({

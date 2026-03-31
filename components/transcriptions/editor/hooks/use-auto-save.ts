@@ -165,16 +165,7 @@ export function useAutoSave({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    transcriptionId,
-    segments,
-    speakers,
-    debounceMs,
-    maxDebounceMs,
-    onSaveStart,
-    onSaveComplete,
-    onSaveError,
-  ]);
+  }, [transcriptionId, segments, speakers, debounceMs, maxDebounceMs]);
 
   // Cleanup max debounce timer on unmount
   useEffect(() => {
