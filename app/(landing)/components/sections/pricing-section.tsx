@@ -32,7 +32,7 @@ export const PricingSection = ({
     { key: "speakerOptions", all: true },
     { key: "projects", all: true },
     { key: "collaboration", all: true },
-    { key: "dpa", all: true },
+    { key: "dpa", all: false },
     { key: "support", all: false },
   ];
 
