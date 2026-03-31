@@ -9,6 +9,7 @@ type ProjectSelectorProps = {
   className?: string;
   value?: string;
   onChange: (projectId: string | undefined) => void;
+  disabled?: boolean;
 };
 
 export function ProjectSelector({
@@ -16,6 +17,7 @@ export function ProjectSelector({
   onChange,
   size,
   className,
+  disabled,
 }: ProjectSelectorProps) {
   const { data: projects = [] } = useProjects();
   const { openCreate } = useProjectModal();
@@ -41,6 +43,7 @@ export function ProjectSelector({
 
   return (
     <Select
+      disabled={disabled}
       size={size}
       className={className}
       options={options}

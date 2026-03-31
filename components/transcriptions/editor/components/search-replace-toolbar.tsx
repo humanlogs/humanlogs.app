@@ -26,6 +26,7 @@ export interface SearchReplaceToolbarProps {
   showReplace: boolean;
   onToggleReplace: () => void;
   searchInputRef?: React.RefObject<HTMLInputElement | null>;
+  hideReplace?: boolean;
 }
 
 export function SearchReplaceToolbar({
@@ -46,6 +47,7 @@ export function SearchReplaceToolbar({
   showReplace,
   onToggleReplace,
   searchInputRef,
+  hideReplace = false,
 }: SearchReplaceToolbarProps) {
   const t = useTranslations("editor");
   const [isExpanded, setIsExpanded] = useState(false);
@@ -140,19 +142,21 @@ export function SearchReplaceToolbar({
                     {t("search.wholeWord")}
                   </Label>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="replace-toggle-toolbar"
-                    checked={showReplaceInput}
-                    onCheckedChange={(value) => setShowReplaceInput(!!value)}
-                  />
-                  <Label
-                    htmlFor="replace-toggle-toolbar"
-                    className="text-sm font-normal cursor-pointer"
-                  >
-                    {t("search.replace")}
-                  </Label>
-                </div>
+                {!hideReplace && (
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="replace-toggle-toolbar"
+                      checked={showReplaceInput}
+                      onCheckedChange={(value) => setShowReplaceInput(!!value)}
+                    />
+                    <Label
+                      htmlFor="replace-toggle-toolbar"
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {t("search.replace")}
+                    </Label>
+                  </div>
+                )}
               </div>
 
               {/* Replace Input */}

@@ -127,24 +127,24 @@ export const POST = withAuthRateLimit(async (request, user) => {
       }
     }
 
-    // Process each file and create transcriptions
-    const storage = getStorage();
+    // Create transcription records and get file buffers
     const createdTranscriptions: string[] = [];
+    const audioBuffers: Buffer[] = [];
 
     try {
+      // Create all transcription records first
       for (let i = 0; i < audioFiles.length; i++) {
         const file = audioFiles[i];
         const fileName = fileNames[i];
-        const duration = fileDurations[i];
 
-        // Create transcription record first
+        // Create transcription record
         const transcription = await prisma.transcription.create({
           data: {
             userId: user.id,
             title: fileName,
             audioFileName: fileName,
             audioFileSize: file.size,
-            audioFileKey: "", // Will be updated after upload
+            audioFileKey: "", // Will be updated after upload in async processing
             language,
             speakerCount,
             vocabulary: vocabularyArray,
@@ -156,106 +156,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
 
         // Get original file buffer
         const originalBuffer = Buffer.from(await file.arrayBuffer());
-
-        // Compress audio file using ffmpeg
-        let unencryptedFile: Buffer;
-        try {
-          const ffmpegAvailable = await checkFfmpegAvailable();
-          if (ffmpegAvailable) {
-            console.log(
-              `Compressing audio file ${fileName} (${file.size} bytes)...`,
-            );
-            unencryptedFile = await compressAudio(originalBuffer, fileName);
-            console.log(
-              `Compressed to ${unencryptedFile.length} bytes (${Math.round((unencryptedFile.length / file.size) * 100)}% of original)`,
-            );
-          } else {
-            console.warn(
-              "ffmpeg not available, skipping compression. Install ffmpeg for optimal storage.",
-            );
-            unencryptedFile = originalBuffer;
-          }
-        } catch (error) {
-          console.error("Error compressing audio, using original:", error);
-          unencryptedFile = originalBuffer;
-        }
-
-        const userProfile = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: {
-            publicKey: true,
-          },
-        });
-
-        let fileToStore = unencryptedFile;
-
-        const useEncryption = userProfile?.publicKey ? true : false;
-
-        if (useEncryption) {
-          const encryption = new EncryptionUtils(crypto);
-          const transcriptionDto = await encryption.createEncryptedDataEntity(
-            {},
-            [
-              await encryption.createEncryptedAccessorEntity(
-                user.id,
-                userProfile!.publicKey!,
-              ),
-            ],
-          );
-
-          const audioFileSecret = crypto.randomBytes(32).toString("base64");
-          fileToStore = encryptAudioBuffer(unencryptedFile, audioFileSecret);
-
-          // Update transcription with storage key
-          await prisma.transcription.update({
-            where: { id: transcription.id },
-            data: {
-              transcription: transcriptionDto as never,
-              audioFileEncryption: (await encryption.createEncryptedDataEntity(
-                audioFileSecret,
-                [
-                  await encryption.createEncryptedAccessorEntity(
-                    user.id,
-                    userProfile!.publicKey!,
-                  ),
-                ],
-              )) as never,
-            },
-          });
-        }
-
-        // Store the compressed/unencrypted audio file for now
-        // It will be encrypted at the end of the ElevenLabs transcription step
-        const contentType = "audio/opus"; // Compressed opus file
-
-        // Upload to storage
-        const storageKey = generateAudioKey(
-          user.id,
-          transcription.id,
-          file.name,
-        );
-        await storage.upload(storageKey, fileToStore, contentType);
-
-        // Update transcription with storage key
-        await prisma.transcription.update({
-          where: { id: transcription.id },
-          data: { audioFileKey: storageKey },
-        });
-
-        // Start transcription job asynchronously
-        // We don't await this to avoid blocking the response
-        // Pass the unencrypted file to the transcription process
-        processTranscription(transcription.id, unencryptedFile, {
-          language,
-          speakerCount,
-          vocabulary: vocabularyArray,
-          duration,
-        }).catch((error) => {
-          console.error(
-            `Error processing transcription ${transcription.id}:`,
-            error,
-          );
-        });
+        audioBuffers.push(originalBuffer);
       }
 
       // Deduct credits only if billable version
@@ -273,6 +174,34 @@ export const POST = withAuthRateLimit(async (request, user) => {
         });
       }
 
+      // Start async processing for all files (compression, encryption, upload, transcription)
+      // We don't await this to return the response immediately
+      for (let i = 0; i < audioFiles.length; i++) {
+        const transcriptionId = createdTranscriptions[i];
+        const originalBuffer = audioBuffers[i];
+        const fileName = fileNames[i];
+        const duration = fileDurations[i];
+
+        processAudioAndTranscription(
+          transcriptionId,
+          originalBuffer,
+          fileName,
+          user.id,
+          {
+            language,
+            speakerCount,
+            vocabulary: vocabularyArray,
+            duration,
+          },
+        ).catch((error) => {
+          console.error(
+            `Error processing audio and transcription ${transcriptionId}:`,
+            error,
+          );
+        });
+      }
+
+      // Return immediately - processing happens in background
       return NextResponse.json({
         success: true,
         transcriptions: createdTranscriptions,
@@ -298,6 +227,122 @@ export const POST = withAuthRateLimit(async (request, user) => {
     );
   }
 });
+
+/**
+ * Process audio file (compression, encryption, upload) and start transcription
+ * This function runs asynchronously in the background
+ */
+async function processAudioAndTranscription(
+  transcriptionId: string,
+  originalBuffer: Buffer,
+  fileName: string,
+  userId: string,
+  options: {
+    language: string;
+    speakerCount: number;
+    vocabulary: string[];
+    duration: number;
+  },
+): Promise<void> {
+  try {
+    const storage = getStorage();
+
+    // Compress audio file using ffmpeg
+    let unencryptedFile: Buffer;
+    try {
+      const ffmpegAvailable = await checkFfmpegAvailable();
+      if (ffmpegAvailable) {
+        console.log(
+          `Compressing audio file ${fileName} (${originalBuffer.length} bytes)...`,
+        );
+        unencryptedFile = await compressAudio(originalBuffer, fileName);
+        console.log(
+          `Compressed to ${unencryptedFile.length} bytes (${Math.round((unencryptedFile.length / originalBuffer.length) * 100)}% of original)`,
+        );
+      } else {
+        console.warn(
+          "ffmpeg not available, skipping compression. Install ffmpeg for optimal storage.",
+        );
+        unencryptedFile = originalBuffer;
+      }
+    } catch (error) {
+      console.error("Error compressing audio, using original:", error);
+      unencryptedFile = originalBuffer;
+    }
+
+    // Get user's public key for encryption
+    const userProfile = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        publicKey: true,
+      },
+    });
+
+    let fileToStore = unencryptedFile;
+    const useEncryption = userProfile?.publicKey ? true : false;
+
+    if (useEncryption) {
+      const encryption = new EncryptionUtils(crypto);
+      const transcriptionDto = await encryption.createEncryptedDataEntity({}, [
+        await encryption.createEncryptedAccessorEntity(
+          userId,
+          userProfile!.publicKey!,
+        ),
+      ]);
+
+      const audioFileSecret = crypto.randomBytes(32).toString("base64");
+      fileToStore = encryptAudioBuffer(unencryptedFile, audioFileSecret);
+
+      // Update transcription with encryption metadata
+      await prisma.transcription.update({
+        where: { id: transcriptionId },
+        data: {
+          transcription: transcriptionDto as never,
+          audioFileEncryption: (await encryption.createEncryptedDataEntity(
+            audioFileSecret,
+            [
+              await encryption.createEncryptedAccessorEntity(
+                userId,
+                userProfile!.publicKey!,
+              ),
+            ],
+          )) as never,
+        },
+      });
+    }
+
+    // Upload to storage
+    const contentType = "audio/opus"; // Compressed opus file
+    const storageKey = generateAudioKey(userId, transcriptionId, fileName);
+    await storage.upload(storageKey, fileToStore, contentType);
+
+    // Update transcription with storage key
+    await prisma.transcription.update({
+      where: { id: transcriptionId },
+      data: { audioFileKey: storageKey },
+    });
+
+    // Start transcription job
+    await processTranscription(transcriptionId, unencryptedFile, options);
+  } catch (error) {
+    console.error(
+      `Error processing audio and transcription ${transcriptionId}:`,
+      error,
+    );
+
+    // Update transcription with error
+    await prisma.transcription.update({
+      where: { id: transcriptionId },
+      data: {
+        state: "ERROR",
+        errorMessage:
+          error instanceof Error
+            ? error.message
+            : "Failed to process audio file",
+      },
+    });
+  }
+}
 
 /**
  * Process a transcription asynchronously

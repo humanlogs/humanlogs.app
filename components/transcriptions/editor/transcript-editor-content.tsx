@@ -29,6 +29,8 @@ interface TranscriptEditorContentProps {
   onChange: (segments: TranscriptionSegment[]) => void;
   onSpeakersChange: (speakers: Speaker[]) => void;
   audioFileEncryption?: string;
+  hasWriteAccess: boolean;
+  hasListenAccess: boolean;
 }
 
 export function TranscriptEditorContent({
@@ -38,6 +40,8 @@ export function TranscriptEditorContent({
   onChange,
   onSpeakersChange,
   audioFileEncryption,
+  hasWriteAccess,
+  hasListenAccess,
 }: TranscriptEditorContentProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -341,15 +345,6 @@ export function TranscriptEditorContent({
     return () => document.removeEventListener("keydown", handleGlobalKeyDown);
   }, [searchReplace]);
 
-  useEffect(() => {
-    return;
-    window.addEventListener("scroll", () => {
-      document
-        .getElementById("header-sub-portal-container")
-        ?.classList.toggle("border-b", window.scrollY > 0);
-    });
-  }, []);
-
   return (
     <>
       <SpeakerRenameDialog />
@@ -357,12 +352,14 @@ export function TranscriptEditorContent({
         {/* Sticky top section */}
         {createPortal(
           <div id="header-sub-portal-container" className={cn("space-y-2")}>
-            <InteractiveAudio
-              segments={segments}
-              id={id}
-              audioFileEncryption={audioFileEncryption}
-              onAudioControlsReady={setAudioControls}
-            />
+            {hasListenAccess && (
+              <InteractiveAudio
+                segments={segments}
+                id={id}
+                audioFileEncryption={audioFileEncryption}
+                onAudioControlsReady={setAudioControls}
+              />
+            )}
             <div className="px-4 pb-2">
               <EditorToolbar
                 applyFormat={applyFormat}
@@ -370,6 +367,8 @@ export function TranscriptEditorContent({
                 searchReplace={searchReplace}
                 searchInputRef={searchInputRef}
                 audioControls={audioControls}
+                hasWriteAccess={hasWriteAccess}
+                hasListenAccess={hasListenAccess}
               />
             </div>
           </div>,
@@ -385,13 +384,14 @@ export function TranscriptEditorContent({
             onRenameSpeaker={renameSpeaker}
             onChangeSpeakerForTurn={changeSpeakerForTurn}
             onApplySpeakerOptions={applySpeakerOptions}
+            readOnly={!hasWriteAccess}
           />
           <div className="flex-1 px-2">
             <div className="relative">
               <SearchHighlights highlights={highlights} />
               <div
                 ref={editorRef}
-                contentEditable
+                contentEditable={hasWriteAccess}
                 suppressContentEditableWarning
                 spellCheck
                 className="text-base leading-relaxed focus:outline-none relative"

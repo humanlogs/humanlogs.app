@@ -85,6 +85,7 @@ export const InteractiveAudio = ({
   const onTimeUpdateRef = useRef<(currentTime: number) => void>(() => {});
   const { setCurrentTime, registerSeekHandler } = useAudio();
   const segmentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeedVal] = useState(1);
   const [totalDuration, setTotalDuration] = useState<number | undefined>(0);
@@ -286,12 +287,10 @@ export const InteractiveAudio = ({
           );
 
           // Create blob URL and load into wavesurfer
+          // Keep the blob URL alive for the entire component lifecycle to support seeking
           const blobUrl = URL.createObjectURL(decryptedBlob);
+          blobUrlRef.current = blobUrl;
           await wavesurfer.load(blobUrl);
-
-          // Clean up blob URL after loading (wavesurfer copies the data)
-          // We do this after a delay to ensure wavesurfer has processed the audio
-          setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
         }
       } catch (err) {
         console.error("Error loading audio:", err);
@@ -304,6 +303,11 @@ export const InteractiveAudio = ({
     return () => {
       if (segmentTimeoutRef.current) {
         clearTimeout(segmentTimeoutRef.current);
+      }
+      // Revoke blob URL to prevent memory leaks
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
       }
       wavesurfer.destroy();
     };

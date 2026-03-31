@@ -47,6 +47,7 @@ interface SpeakerColumnProps {
   onRenameSpeaker: (speakerId: string, name: string) => void;
   onChangeSpeakerForTurn: (turnIndex: number, targetId: string | null) => void;
   onApplySpeakerOptions?: (options: SpeakerOptionsData) => void;
+  readOnly?: boolean;
 }
 
 interface SpeakerBadgeProps {
@@ -56,6 +57,7 @@ interface SpeakerBadgeProps {
   onRenameSpeaker: (speakerId: string, name: string) => void;
   onChangeSpeakerForTurn: (turnIndex: number, targetId: string | null) => void;
   onApplySpeakerOptions?: (options: SpeakerOptionsData) => void;
+  readOnly?: boolean;
 }
 
 function SpeakerBadge({
@@ -65,6 +67,7 @@ function SpeakerBadge({
   onRenameSpeaker,
   onChangeSpeakerForTurn,
   onApplySpeakerOptions,
+  readOnly = false,
 }: SpeakerBadgeProps) {
   const t = useTranslations("editor");
   const { speakerId, index, top } = position;
@@ -97,57 +100,67 @@ function SpeakerBadge({
       className="absolute left-0 -translate-y-1/2 whitespace-nowrap"
       style={{ top }}
     >
-      <DropdownMenu
-        align="start"
-        trigger={
-          <SpeakerBadgeChip
-            label={label}
-            colorClass={colorClass}
-            className="cursor-pointer select-none"
-          />
-        }
-      >
-        <DropdownMenuItem
-          onClick={() =>
-            openRename(speakerId, label, (name) =>
-              onRenameSpeaker(speakerId, name),
-            )
-          }
-        >
-          <UserRoundPen className="mr-2 h-3.5 w-3.5" />
-          {t("speaker.renameSpeaker")}
-        </DropdownMenuItem>
-
-        <DropdownMenuItem onClick={handleOpenSpeakerOptions}>
-          <UserCog className="mr-2 h-3.5 w-3.5" />
-          {t("speaker.speakerOptions")}
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuSub
+      {readOnly ? (
+        <SpeakerBadgeChip
+          label={label}
+          colorClass={colorClass}
+          className="select-none"
+        />
+      ) : (
+        <DropdownMenu
+          align="start"
           trigger={
-            <span className="flex items-center gap-2">
-              <Users className="h-3.5 w-3.5" />
-              {t("speaker.changeSpeaker")}
-            </span>
+            <SpeakerBadgeChip
+              label={label}
+              colorClass={colorClass}
+              className="cursor-pointer select-none"
+            />
           }
         >
-          {otherSpeakers.map((s) => (
-            <DropdownMenuItem
-              key={s.id}
-              onClick={() => onChangeSpeakerForTurn(index, s.id)}
-            >
-              {getSpeakerLabel(s.id, speakers, segments)}
-            </DropdownMenuItem>
-          ))}
-          {otherSpeakers.length > 0 && <DropdownMenuSeparator />}
-          <DropdownMenuItem onClick={() => onChangeSpeakerForTurn(index, null)}>
-            <UserRoundPlus className="mr-2 h-3.5 w-3.5" />
-            {t("speaker.newSpeaker")}
+          <DropdownMenuItem
+            onClick={() =>
+              openRename(speakerId, label, (name) =>
+                onRenameSpeaker(speakerId, name),
+              )
+            }
+          >
+            <UserRoundPen className="mr-2 h-3.5 w-3.5" />
+            {t("speaker.renameSpeaker")}
           </DropdownMenuItem>
-        </DropdownMenuSub>
-      </DropdownMenu>
+
+          <DropdownMenuItem onClick={handleOpenSpeakerOptions}>
+            <UserCog className="mr-2 h-3.5 w-3.5" />
+            {t("speaker.speakerOptions")}
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuSub
+            trigger={
+              <span className="flex items-center gap-2">
+                <Users className="h-3.5 w-3.5" />
+                {t("speaker.changeSpeaker")}
+              </span>
+            }
+          >
+            {otherSpeakers.map((s) => (
+              <DropdownMenuItem
+                key={s.id}
+                onClick={() => onChangeSpeakerForTurn(index, s.id)}
+              >
+                {getSpeakerLabel(s.id, speakers, segments)}
+              </DropdownMenuItem>
+            ))}
+            {otherSpeakers.length > 0 && <DropdownMenuSeparator />}
+            <DropdownMenuItem
+              onClick={() => onChangeSpeakerForTurn(index, null)}
+            >
+              <UserRoundPlus className="mr-2 h-3.5 w-3.5" />
+              {t("speaker.newSpeaker")}
+            </DropdownMenuItem>
+          </DropdownMenuSub>
+        </DropdownMenu>
+      )}
     </div>
   );
 }
@@ -159,6 +172,7 @@ export function SpeakerColumn({
   onRenameSpeaker,
   onChangeSpeakerForTurn,
   onApplySpeakerOptions,
+  readOnly = false,
 }: SpeakerColumnProps) {
   if (positions.length === 0) return <div className="w-24 shrink-0" />;
 
@@ -173,6 +187,7 @@ export function SpeakerColumn({
           onRenameSpeaker={onRenameSpeaker}
           onChangeSpeakerForTurn={onChangeSpeakerForTurn}
           onApplySpeakerOptions={onApplySpeakerOptions}
+          readOnly={readOnly}
         />
       ))}
 

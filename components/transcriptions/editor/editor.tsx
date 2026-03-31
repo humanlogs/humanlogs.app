@@ -37,6 +37,12 @@ export const TranscriptEditor = ({
   transcription: TranscriptionDetail;
   onSaveStatusChange?: (status: SaveStatus) => void;
 }) => {
+  const hasWriteAccess =
+    transcription.isOwner || transcription.role === "write";
+  const hasListenAccess =
+    transcription.isOwner ||
+    transcription.role === "read+listen" ||
+    transcription.role === "write";
   const t = useTranslations("editor");
   const [segments, setSegments] = useState<TranscriptionSegment[]>(
     transcription.transcription?.words ?? [],
@@ -84,6 +90,8 @@ export const TranscriptEditor = ({
         onChange={setSegments}
         onSpeakersChange={setSpeakers}
         audioFileEncryption={transcription.audioFileEncryption}
+        hasWriteAccess={hasWriteAccess}
+        hasListenAccess={hasListenAccess}
       />
     </div>
   );

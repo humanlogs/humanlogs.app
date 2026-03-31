@@ -39,6 +39,8 @@ interface EditorToolbarProps {
   };
   searchInputRef?: React.RefObject<HTMLInputElement | null>;
   audioControls: AudioControls | null;
+  hasWriteAccess: boolean;
+  hasListenAccess: boolean;
 }
 
 export function EditorToolbar({
@@ -47,66 +49,72 @@ export function EditorToolbar({
   searchReplace,
   searchInputRef,
   audioControls,
+  hasWriteAccess,
+  hasListenAccess,
 }: EditorToolbarProps) {
   const t = useTranslations("editor");
 
   return (
     <div className="flex items-center gap-0 shrink-0">
-      <Button
-        variant={audioControls?.isPlaying ? "default" : "ghost"}
-        size="sm"
-        onMouseDown={(e) => {
-          e.preventDefault(); // keep focus in editor
-          audioControls?.togglePlayPause();
-        }}
-        className="h-7 w-7 p-0 font-bold"
-        title={t("toolbar.playPause")}
-      >
-        {audioControls?.isPlaying ? (
-          <PauseIcon
-            className="h-3.5 w-3.5 text-pink-500 fill-pink-500 animation-pulse"
-            fill="filled"
-          />
-        ) : (
-          <PlayIcon className="h-3.5 w-3.5" />
-        )}
-      </Button>
-
-      <DropdownMenu
-        position="bottom"
-        align="start"
-        trigger={
+      {hasListenAccess && (
+        <>
           <Button
-            variant="ghost"
+            variant={audioControls?.isPlaying ? "default" : "ghost"}
             size="sm"
-            className="h-7 w-7 p-0"
-            title={t("toolbar.playbackSpeed")}
+            onMouseDown={(e) => {
+              e.preventDefault(); // keep focus in editor
+              audioControls?.togglePlayPause();
+            }}
+            className="h-7 w-7 p-0 font-bold"
+            title={t("toolbar.playPause")}
           >
-            {`${audioControls?.playbackSpeed || 1}`.replace(/^0+/, "")}x
+            {audioControls?.isPlaying ? (
+              <PauseIcon
+                className="h-3.5 w-3.5 text-pink-500 fill-pink-500 animation-pulse"
+                fill="filled"
+              />
+            ) : (
+              <PlayIcon className="h-3.5 w-3.5" />
+            )}
           </Button>
-        }
-      >
-        {[0.5, 1, 2, 4].map((a) => (
-          <DropdownMenuItem
-            key={a}
-            onClick={() => audioControls?.setPlaybackSpeed(a)}
+
+          <DropdownMenu
+            position="bottom"
+            align="start"
+            trigger={
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                title={t("toolbar.playbackSpeed")}
+              >
+                {`${audioControls?.playbackSpeed || 1}`.replace(/^0+/, "")}x
+              </Button>
+            }
           >
-            {`${a}`.replace(/^0+/, "")}x
-          </DropdownMenuItem>
-        ))}{" "}
-      </DropdownMenu>
+            {[0.5, 1, 2, 4].map((a) => (
+              <DropdownMenuItem
+                key={a}
+                onClick={() => audioControls?.setPlaybackSpeed(a)}
+              >
+                {`${a}`.replace(/^0+/, "")}x
+              </DropdownMenuItem>
+            ))}{" "}
+          </DropdownMenu>
 
-      <Separator
-        orientation="vertical"
-        className="mx-2 h-4 w-px bg-slate-500/20"
-      />
+          <Separator
+            orientation="vertical"
+            className="mx-2 h-4 w-px bg-slate-500/20"
+          />
 
-      <TimeCode audioControls={audioControls} />
+          <TimeCode audioControls={audioControls} />
 
-      <Separator
-        orientation="vertical"
-        className="mx-2 h-4 w-px bg-slate-500/20"
-      />
+          <Separator
+            orientation="vertical"
+            className="mx-2 h-4 w-px bg-slate-500/20"
+          />
+        </>
+      )}
       <Button
         variant={activeFormats.has("b") ? "default" : "ghost"}
         size="sm"

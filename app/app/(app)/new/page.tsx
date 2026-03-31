@@ -587,12 +587,14 @@ export default function NewTranscriptionPage() {
             {/* Project */}
             <div className="space-x-2">
               <ProjectSelector
+                disabled={isSubmitting}
                 value={projectId}
                 onChange={setProjectId}
                 size="sm"
                 className="w-max inline-flex"
               />
               <Select
+                disabled={isSubmitting}
                 size="sm"
                 className="w-max inline-flex"
                 options={_.sortBy(
@@ -608,6 +610,7 @@ export default function NewTranscriptionPage() {
                 searchPlaceholder="Search languages..."
               />
               <Select
+                disabled={isSubmitting}
                 size="sm"
                 className="w-max inline-flex"
                 options={[1, 2, 3, 4, 5, 32].map((num) => ({
@@ -635,6 +638,7 @@ export default function NewTranscriptionPage() {
                 onChange={(e) => setVocabulary(e.target.value)}
                 placeholder={t("vocabularyPlaceholder")}
                 rows={3}
+                disabled={isSubmitting}
               />
               <p className="text-xs text-muted-foreground">
                 {t("vocabularyHelper")}
