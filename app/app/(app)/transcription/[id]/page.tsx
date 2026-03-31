@@ -102,6 +102,8 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
                 saveStatus={saveStatus}
                 transcription={transcription.transcription}
                 audioFileEncryption={transcription.audioFileEncryption}
+                shared={transcription.shared}
+                isOwner={transcription.isOwner}
               />
             </div>,
             document.getElementById("header-actions-portal")!,

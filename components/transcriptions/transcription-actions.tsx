@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -7,9 +8,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuSub,
 } from "@/components/ui/dropdown-menu";
-import { TranscriptionContent } from "@/hooks/use-transcriptions";
-import { downloadAndDecryptAudio } from "@/lib/audio-decryption.browser";
+import { SharedUser, TranscriptionContent } from "@/hooks/use-transcriptions";
 import { downloadAsMP3 } from "@/lib/audio-conversion.browser";
+import { downloadAndDecryptAudio } from "@/lib/audio-decryption.browser";
 import {
   exportAsCSV,
   exportAsJSON,
@@ -32,20 +33,21 @@ import {
   Settings2Icon,
   TrashIcon,
   UserCogIcon,
+  Users2Icon,
   XCircleIcon,
 } from "lucide-react";
 import { toast } from "sonner";
+import { usePauseConfigurationModal } from "./dialogs/pause-configuration-dialog";
 import { useShortcutsModal } from "./dialogs/shortcuts-dialog";
 import { useSpeakerOptionsModal } from "./dialogs/speaker-options-dialog";
-import { usePauseConfigurationModal } from "./dialogs/pause-configuration-dialog";
 import { useTranscriptionDeleteModal } from "./dialogs/transcription-delete-dialog";
 import { useTranscriptionExportModal } from "./dialogs/transcription-export-dialog";
 import { useTranscriptionRenameModal } from "./dialogs/transcription-rename-dialog";
 import { useTranscriptionSetProjectModal } from "./dialogs/transcription-set-project-dialog";
+import { TranscriptionShareDropdown } from "./dialogs/transcription-share-dialog";
+import { useOptionalEditorState } from "./editor/editor-state-context";
 import { SaveStatus } from "./editor/hooks/use-auto-save";
 import { useTranscriptionHistoryModal } from "./transcription-history-sheet";
-import { useOptionalEditorState } from "./editor/editor-state-context";
-import { useTranslations } from "@/components/locale-provider";
 
 type TranscriptionActionsProps = {
   transcriptionId: string;
@@ -54,6 +56,8 @@ type TranscriptionActionsProps = {
   saveStatus?: SaveStatus;
   transcription?: TranscriptionContent;
   audioFileEncryption?: string;
+  shared?: SharedUser[];
+  isOwner?: boolean;
 };
 
 export function TranscriptionActions({
@@ -63,6 +67,8 @@ export function TranscriptionActions({
   saveStatus = "idle",
   transcription,
   audioFileEncryption,
+  shared,
+  isOwner = true,
 }: TranscriptionActionsProps) {
   const t = useTranslations("editor");
   const { openRename } = useTranscriptionRenameModal();
@@ -383,6 +389,19 @@ export function TranscriptionActions({
           >
             <DropdownMenuItem>{t("actions.encrypted")}</DropdownMenuItem>
           </DropdownMenu>
+        )}
+
+        {false && (
+          <TranscriptionShareDropdown
+            transcriptionId={transcriptionId}
+            shared={shared}
+            isOwner={isOwner}
+            trigger={
+              <Button variant={"ghost"} size="icon-sm">
+                <Users2Icon className="h-4 w-4" />
+              </Button>
+            }
+          />
         )}
 
         <DropdownMenu

@@ -24,6 +24,7 @@ export const GET = withAuthRateLimit(
           userId: true,
           audioFileKey: true,
           audioFileName: true,
+          shared: true,
         },
       });
 
@@ -35,8 +36,15 @@ export const GET = withAuthRateLimit(
         );
       }
 
-      // Check if user owns this transcription
-      if (transcription.userId !== user.id) {
+      // Check if user has access to this transcription
+      const isOwner = transcription.userId === user.id;
+      type SharedUser = { userId: string; role: string };
+      const shared = (transcription.shared as SharedUser[]) || [];
+      const sharedUser = shared.find((s) => s.userId === user.id);
+      const hasListenAccess =
+        sharedUser?.role === "read+listen" || sharedUser?.role === "write";
+
+      if (!isOwner && !hasListenAccess) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
       }
 

@@ -20,6 +20,14 @@ type Transcription = {
   projectId?: string;
   state: "PENDING" | "COMPLETED" | "ERROR";
   errorMessage?: string | null;
+  isOwner?: boolean;
+  role?: "owner" | "read" | "read+listen" | "write" | null;
+  shared?: SharedUser[];
+};
+
+export type SharedUser = {
+  userId: string;
+  role: "read" | "read+listen" | "write";
 };
 
 export type TranscriptionDetail = {
@@ -41,6 +49,9 @@ export type TranscriptionDetail = {
   updatedAt: string;
   completedAt?: string;
   isTutorial?: boolean;
+  shared?: SharedUser[];
+  isOwner?: boolean;
+  role?: "owner" | "read" | "read+listen" | "write" | null;
 };
 
 export type TranscriptionContent = {
@@ -354,6 +365,68 @@ export function useRevertTranscription(transcriptionId: string) {
       });
       queryClient.invalidateQueries({
         queryKey: ["transcription-history", transcriptionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["transcriptions"],
+      });
+    },
+  });
+}
+
+// Share transcription mutation
+export function useShareTranscription(transcriptionId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: {
+      email: string;
+      role: "read" | "read+listen" | "write";
+    }) => {
+      if (!transcriptionId) throw new Error("No transcription ID");
+      const response = await fetch(
+        `/api/transcriptions/${transcriptionId}/share`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        },
+      );
+      const responseData = await response.json();
+      if (!response.ok) {
+        throw new Error(responseData.error || "Failed to share transcription");
+      }
+      return responseData;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["transcriptions", transcriptionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["transcriptions"],
+      });
+    },
+  });
+}
+
+// Remove share mutation
+export function useRemoveShare(transcriptionId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      if (!transcriptionId) throw new Error("No transcription ID");
+      const response = await fetch(
+        `/api/transcriptions/${transcriptionId}/share?userId=${encodeURIComponent(userId)}`,
+        {
+          method: "DELETE",
+        },
+      );
+      if (!response.ok) throw new Error("Failed to remove share");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["transcriptions", transcriptionId],
       });
       queryClient.invalidateQueries({
         queryKey: ["transcriptions"],

@@ -18,6 +18,42 @@ type RouteParams = {
   }>;
 };
 
+type SharedUser = { userId: string; role: "read" | "read+listen" | "write" };
+
+// Helper function to check user access to a transcription
+function checkAccess(
+  transcription: Transcription,
+  userId: string,
+  requiredRole?: "read" | "read+listen" | "write",
+): { hasAccess: boolean; isOwner: boolean; role: string | null } {
+  const isOwner = transcription.userId === userId;
+  const shared = (transcription.shared as SharedUser[]) || [];
+  const sharedUser = shared.find((s) => s.userId === userId);
+
+  if (isOwner) {
+    return { hasAccess: true, isOwner: true, role: "owner" };
+  }
+
+  if (!sharedUser) {
+    return { hasAccess: false, isOwner: false, role: null };
+  }
+
+  // Check if user's role meets the requirement
+  if (requiredRole) {
+    const roleHierarchy: Record<string, number> = {
+      read: 1,
+      "read+listen": 2,
+      write: 3,
+    };
+
+    const hasAccess =
+      roleHierarchy[sharedUser.role] >= roleHierarchy[requiredRole];
+    return { hasAccess, isOwner: false, role: sharedUser.role };
+  }
+
+  return { hasAccess: true, isOwner: false, role: sharedUser.role };
+}
+
 export const GET = withAuthRateLimit(
   async (request, user, { params }: RouteParams) => {
     try {
@@ -38,16 +74,24 @@ export const GET = withAuthRateLimit(
         );
       }
 
-      // Check if user owns this transcription
-      if (transcription.userId !== user.id) {
+      // Check if user has access to this transcription (any role)
+      const access = checkAccess(transcription, user.id);
+      if (!access.hasAccess) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
       }
 
       // If transcription is PENDING and we have an ElevenLabs ID, check status
       transcription = await pollPendingTranscriptions(transcription);
 
-      // Return the transcription
-      return NextResponse.json(mapTransactionDetails(transcription));
+      // Return the transcription with access information
+      const details = mapTransactionDetails(transcription);
+      return NextResponse.json({
+        ...details,
+        isOwner: access.isOwner,
+        role: access.role,
+        // Only include shared list for owners
+        shared: access.isOwner ? details.shared : undefined,
+      });
     } catch (error) {
       console.error("Error fetching transcription:", error);
       return NextResponse.json(
@@ -77,8 +121,9 @@ export const PATCH = withAuthRateLimit(
         );
       }
 
-      // Check if user owns this transcription
-      if (transcription.userId !== user.id) {
+      // Check if user has write access to this transcription
+      const access = checkAccess(transcription, user.id, "write");
+      if (!access.hasAccess) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
       }
 
@@ -90,7 +135,14 @@ export const PATCH = withAuthRateLimit(
         updatedBy?: string;
       } = {};
 
+      // Only owner can change title and projectId
       if (body.title !== undefined) {
+        if (!access.isOwner) {
+          return NextResponse.json(
+            { error: "Only the owner can change the title" },
+            { status: 403 },
+          );
+        }
         if (typeof body.title !== "string" || !body.title.trim()) {
           return NextResponse.json(
             { error: "Title must be a non-empty string" },
@@ -101,6 +153,12 @@ export const PATCH = withAuthRateLimit(
       }
 
       if (body.projectId !== undefined) {
+        if (!access.isOwner) {
+          return NextResponse.json(
+            { error: "Only the owner can change the project" },
+            { status: 403 },
+          );
+        }
         if (body.projectId === null) {
           updateData.projectId = null;
         } else if (typeof body.projectId === "string") {
@@ -347,4 +405,5 @@ export const mapTransactionDetails = (transcription: Transcription) =>
     "updatedAt",
     "completedAt",
     "isTutorial",
+    "shared",
   ]);

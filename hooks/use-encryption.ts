@@ -176,6 +176,20 @@ export function useUploadCertificate() {
     }) => {
       const certificate = parseCertificate(certificateContent);
 
+      // Update public key on the server
+      const response = await fetch("/api/user/encryption", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          publicKey: certificate.publicKey,
+          trustedDeviceSecret: trustedDeviceSecret,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to upload certificate to server");
+      }
+
       // Store private key locally
       await storePrivateKey(
         certificate.privateKey,

@@ -6,6 +6,7 @@ import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
 const userSelectPublic = {
   id: true,
   name: true,
+  email: true,
   picture: true,
 };
 

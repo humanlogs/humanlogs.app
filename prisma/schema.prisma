@@ -64,6 +64,7 @@ model Transcription {
   state                     TranscriptionState            @default(PENDING)
   errorMessage              String?
   elevenLabsTranscriptionId String?
+  shared                    Json?
   createdAt                 DateTime                      @default(now())
   updatedAt                 DateTime                      @updatedAt
   updatedBy                 String                        @default("system")

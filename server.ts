@@ -2,7 +2,6 @@ import { createServer } from "http";
 import { parse } from "url";
 import next from "next";
 import { initSocketServer } from "./lib/socket-server";
-import { initializeCronJobs } from "./lib/cron-jobs";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
@@ -28,10 +27,11 @@ const httpServer = createServer(async (req, res) => {
 initSocketServer(httpServer);
 console.log("Socket.io server initialized");
 
-app.prepare().then(() => {
+app.prepare().then(async () => {
   // Initialize cron jobs in production
   if (!dev) {
     try {
+      const { initializeCronJobs } = await import("./lib/cron-jobs");
       initializeCronJobs();
     } catch (error) {
       console.error("Failed to initialize cron jobs:", error);

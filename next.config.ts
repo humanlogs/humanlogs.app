@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_AUTH_MODE: process.env.AUTH_MODE || "auth0",
   },
+  experimental: {
+    proxyClientMaxBodySize: "1gb",
+  },
   images: {
     remotePatterns: [
       {

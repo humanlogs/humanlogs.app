@@ -174,8 +174,8 @@ export function getStorage(): StorageAdapter {
     if (
       config.aws?.region &&
       config.aws?.s3?.bucketName &&
-      process.env.AWS_ACCESS_KEY_ID &&
-      process.env.AWS_SECRET_ACCESS_KEY
+      config.aws?.accessKeyId &&
+      config.aws?.secretAccessKey
     ) {
       console.log("Using S3 storage adapter");
       storageInstance = new S3StorageAdapter();

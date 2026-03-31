@@ -467,7 +467,7 @@ export default function NewTranscriptionPage() {
       <PageLayout title={t("audioFiles")}>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Low Credits Warning */}
-          {user?.credits !== null && (user?.credits || 0 < 200) && (
+          {user?.credits !== null && (user?.credits || 0) < 200 && (
             <Alert
               variant="default"
               className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20"

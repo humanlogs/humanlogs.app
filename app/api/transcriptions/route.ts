@@ -8,16 +8,38 @@ import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
 
 export const GET = withAuthRateLimit(async (request, user) => {
   try {
-    // Fetch all transcriptions for the user (up to 1000)
-    const transcriptions = await prisma.transcription.findMany({
-      where: {
-        userId: user.id,
-      },
-      orderBy: {
-        updatedAt: "desc",
-      },
-      take: 1000,
+    // Fetch transcriptions owned by the user and transcriptions shared with the user
+    // We use raw SQL for the shared transcriptions because Prisma doesn't have great JSONB array querying
+    const [ownedTranscriptions, sharedTranscriptions] = await Promise.all([
+      // Transcriptions owned by the user
+      prisma.transcription.findMany({
+        where: {
+          userId: user.id,
+        },
+        orderBy: {
+          updatedAt: "desc",
+        },
+        take: 1000,
+      }),
+      // Transcriptions shared with the user
+      prisma.$queryRaw<Transcription[]>`
+        SELECT * FROM "Transcription"
+        WHERE "shared" IS NOT NULL
+          AND "shared"::jsonb @> ${JSON.stringify([{ userId: user.id }])}::jsonb
+        ORDER BY "updatedAt" DESC
+        LIMIT 1000
+      `,
+    ]);
+
+    // Combine and deduplicate (in case a transcription is both owned and shared)
+    const transcriptionsMap = new Map<string, Transcription>();
+    [...ownedTranscriptions, ...sharedTranscriptions].forEach((t) => {
+      transcriptionsMap.set(t.id, t);
     });
+
+    const transcriptions = Array.from(transcriptionsMap.values()).sort(
+      (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime(),
+    );
 
     // Check status for PENDING transcriptions with ElevenLabs
     if (isElevenLabsConfigured()) {
@@ -32,19 +54,38 @@ export const GET = withAuthRateLimit(async (request, user) => {
         await Promise.all(statusChecks);
 
         // Re-fetch transcriptions to get updated data
-        const updatedTranscriptions = await prisma.transcription.findMany({
-          where: {
-            userId: user.id,
-          },
-          orderBy: {
-            updatedAt: "desc",
-          },
-          take: 1000,
+        const [updatedOwned, updatedShared] = await Promise.all([
+          prisma.transcription.findMany({
+            where: {
+              userId: user.id,
+            },
+            orderBy: {
+              updatedAt: "desc",
+            },
+            take: 1000,
+          }),
+          prisma.$queryRaw<Transcription[]>`
+            SELECT * FROM "Transcription"
+            WHERE "shared" IS NOT NULL
+              AND "shared"::jsonb @> ${JSON.stringify([{ userId: user.id }])}::jsonb
+            ORDER BY "updatedAt" DESC
+            LIMIT 1000
+          `,
+        ]);
+
+        // Combine and deduplicate
+        const updatedMap = new Map<string, Transcription>();
+        [...updatedOwned, ...updatedShared].forEach((t) => {
+          updatedMap.set(t.id, t);
         });
 
+        const updatedTranscriptions = Array.from(updatedMap.values()).sort(
+          (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime(),
+        );
+
         // Transform to match the frontend format
-        const formattedTranscriptions = updatedTranscriptions.map(
-          formatTranscriptionList,
+        const formattedTranscriptions = updatedTranscriptions.map((t) =>
+          formatTranscriptionList(t, user.id),
         );
 
         return NextResponse.json(formattedTranscriptions);
@@ -52,7 +93,9 @@ export const GET = withAuthRateLimit(async (request, user) => {
     }
 
     // Transform to match the frontend format
-    const formattedTranscriptions = transcriptions.map(formatTranscriptionList);
+    const formattedTranscriptions = transcriptions.map((t) =>
+      formatTranscriptionList(t, user.id),
+    );
 
     return NextResponse.json(formattedTranscriptions);
   } catch (error) {
@@ -64,7 +107,12 @@ export const GET = withAuthRateLimit(async (request, user) => {
   }
 });
 
-const formatTranscriptionList = (t: Transcription) => {
+const formatTranscriptionList = (t: Transcription, userId: string) => {
+  type SharedUser = { userId: string; role: string };
+  const shared = (t.shared as SharedUser[]) || [];
+  const isOwner = t.userId === userId;
+  const sharedUser = shared.find((s) => s.userId === userId);
+
   return {
     id: t.id,
     title: t.title,
@@ -76,5 +124,8 @@ const formatTranscriptionList = (t: Transcription) => {
     isEncrypted: (t.audioFileEncryption as EncryptedDataEntity)?.privateKeys
       ? true
       : false,
+    isOwner,
+    role: isOwner ? "owner" : sharedUser?.role || null,
+    shared: isOwner ? shared : undefined, // Only show shared list to owner
   };
 };
