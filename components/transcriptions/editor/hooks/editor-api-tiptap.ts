@@ -9,6 +9,7 @@
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { Editor } from "@tiptap/react";
 import { segmentsToHtml } from "../utils/html";
+import _ from "lodash";
 
 /**
  * Creates an EditorAPI instance backed by a Tiptap editorRef.current.
@@ -19,7 +20,7 @@ export function createTiptapEditorAPI(
 ): EditorAPI {
   return {
     activeSegmentIndex: -1,
-    cachedSpeakerPositions: { scrollTop: 0, positions: [] },
+    cachedSpeakerPositions: { scrollTop: 0, totalLength: 0, positions: [] },
 
     ready() {
       return editorRef.current !== null;
@@ -80,7 +81,7 @@ export function createTiptapEditorAPI(
     },
 
     getSegments() {
-      return segmentsRef.current || [];
+      return _.cloneDeep(segmentsRef.current || []);
     },
 
     getSegmentNode(segmentIndex?) {
@@ -135,8 +136,24 @@ export function createTiptapEditorAPI(
 
     setSegments(segments) {
       segmentsRef.current = segments;
+      this.cachedSpeakerPositions = {
+        scrollTop: 0,
+        totalLength: 0,
+        positions: [],
+      }; // reset cached speaker positions
+
+      if (
+        segments.map((s) => s.text).join("") === editorRef.current?.getText() &&
+        segments.map((s) => s.modifiers?.join("")).join("") ===
+          segmentsRef.current.map((s) => s.modifiers?.join("")).join("")
+      ) {
+        // No change in text content, skip update to avoid disrupting cursor position
+        return;
+      }
+
       if (editorRef.current) {
         const html = segmentsToHtml(segments);
+        console.log("Generated HTML:", html);
         editorRef.current.commands.setContent(html, { emitUpdate: false });
       }
     },
@@ -179,25 +196,28 @@ export function createTiptapEditorAPI(
       if (
         this.cachedSpeakerPositions &&
         this.cachedSpeakerPositions.scrollTop ===
-          editorRef.current.view.dom.scrollTop
+          editorRef.current.view.dom.scrollTop &&
+        this.cachedSpeakerPositions.totalLength ===
+          editorRef.current.getText().length
       ) {
         try {
           // Case 2: first or last cached position changed position
-          const firstNewPos = editorRef.current.view.coordsAtPos(
-            this.cachedSpeakerPositions.positions[0]?.charOffset + 1 || 1,
-          );
-          const lastNewPos = editorRef.current.view.coordsAtPos(
-            this.cachedSpeakerPositions.positions.slice(-1)[0]?.charOffset +
-              1 || 1,
-          );
-
-          if (
-            firstNewPos.top ===
-              this.cachedSpeakerPositions.positions[0]?.charPos &&
-            lastNewPos.top ===
-              this.cachedSpeakerPositions.positions.slice(-1)[0]?.charPos
+          let foundDiff = false;
+          for (
+            let i = 0;
+            i < this.cachedSpeakerPositions.positions.length - 1;
+            i += 2
           ) {
-            // No need to recalculate, return cached positions
+            const pos = editorRef.current.view.coordsAtPos(
+              this.cachedSpeakerPositions.positions[i]?.charOffset + 1 || 1,
+            );
+            if (pos.top !== this.cachedSpeakerPositions.positions[i]?.charPos) {
+              foundDiff = true;
+              break;
+            }
+          }
+
+          if (!foundDiff && this.cachedSpeakerPositions.positions.length > 0) {
             return this.cachedSpeakerPositions.positions;
           }
         } catch (e) {
@@ -254,6 +274,7 @@ export function createTiptapEditorAPI(
       }
 
       this.cachedSpeakerPositions = {
+        totalLength: editorRef.current.getText().length,
         scrollTop: editorRef.current.view.dom.scrollTop,
         positions,
       };
@@ -262,6 +283,35 @@ export function createTiptapEditorAPI(
 
     getEditorElement() {
       return (editorRef.current?.view.dom as HTMLElement) ?? null;
+    },
+
+    execCommand(command, value) {
+      if (!editorRef.current) return;
+
+      // Map generic commands to Tiptap commands
+      switch (command) {
+        case "bold":
+          editorRef.current.commands.toggleBold();
+          break;
+        case "italic":
+          editorRef.current.commands.toggleItalic();
+          break;
+        case "underline":
+          editorRef.current.commands.toggleUnderline();
+          break;
+        case "strikethrough":
+          editorRef.current.commands.toggleStrike();
+          break;
+        case "insertText":
+          editorRef.current.commands.insertContent(value);
+          break;
+        case "delete":
+          editorRef.current.commands.deleteSelection();
+          break;
+        // Add more command mappings as needed
+        default:
+          console.warn(`[TiptapEditorAPI] Unknown command: ${command}`);
+      }
     },
 
     getBoundingClientRect() {
@@ -324,6 +374,7 @@ export interface EditorAPI {
   activeSegmentIndex: number | null;
   cachedSpeakerPositions: {
     scrollTop: number;
+    totalLength: number;
     positions: Array<{
       speakerId: string;
       index: number;
@@ -370,6 +421,7 @@ export interface EditorAPI {
 
   // DOM queries (will be deprecated later with virtual scrolling)
   getEditorElement(): HTMLElement | null;
+  execCommand(command: string, value?: any): void;
 
   // Measurements
   getBoundingClientRect(): DOMRect;

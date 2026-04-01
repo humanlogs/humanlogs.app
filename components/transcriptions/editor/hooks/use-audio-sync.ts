@@ -20,9 +20,8 @@ export function useAudioSync(editorAPI: EditorAPI) {
 
   // Part 1: Caret position → Audio seek
   useEffect(() => {
-    if (!editorAPI?.ready()) return;
-
     const handleSelectionChange = () => {
+      if (!editorAPI?.ready()) return;
       const selection = editorAPI.getSelectionOffsets();
       if (!selection) return;
 
@@ -87,7 +86,7 @@ export function useAudioSync(editorAPI: EditorAPI) {
     return () => {
       document.removeEventListener("selectionchange", handleSelectionChange);
     };
-  }, [editorAPI, seekTo]);
+  }, []);
 
   // Part 2: Audio time → Highlight segments
   // Highlights all segments whose expanded time range includes currentTime

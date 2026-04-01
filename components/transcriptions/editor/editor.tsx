@@ -87,7 +87,10 @@ export const TranscriptEditor = ({
         editorAPIRef={editorAPIRef}
         segments={segments}
         speakers={speakers}
-        onChange={onChange}
+        onChange={(newSegments) => {
+          editorAPIRef.current?.setSegments(newSegments);
+          onChange();
+        }}
         onSpeakersChange={setSpeakers}
         audioFileEncryption={transcription.audioFileEncryption}
         hasWriteAccess={hasWriteAccess}

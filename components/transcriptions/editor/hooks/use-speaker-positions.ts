@@ -1,6 +1,5 @@
 "use client";
 
-import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { useCallback, useEffect, useState } from "react";
 import { EditorAPI } from "./editor-api-tiptap";
 

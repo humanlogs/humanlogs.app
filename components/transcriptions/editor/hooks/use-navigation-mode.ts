@@ -393,7 +393,7 @@ export function useNavigationMode(
       selectSegmentByIndexAndFocus(editorAPIRef.current, currentIndex);
 
       // If a letter was typed or there's a custom shortcut replacement, insert that text
-      document.execCommand("delete");
+      editorAPIRef.current.execCommand("delete");
 
       const nextDomElement =
         editorAPIRef.current.getSegmentNode(currentIndex - 1) ||
@@ -467,9 +467,9 @@ export function useNavigationMode(
 
       // If a letter was typed or there's a custom shortcut replacement, insert that text
       if (replacement) {
-        document.execCommand("insertText", false, replacement);
+        editorAPIRef.current.execCommand("insertText", replacement);
       } else if (event.key.length === 1) {
-        document.execCommand("insertText", false, event.key);
+        editorAPIRef.current.execCommand("insertText", event.key);
       }
     },
     {

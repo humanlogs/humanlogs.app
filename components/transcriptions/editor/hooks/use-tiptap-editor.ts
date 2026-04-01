@@ -11,6 +11,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { segmentsToHtml } from "../utils/html";
 import { createTiptapEditorAPI } from "./editor-api-tiptap";
 import { normalizeEditorSegments } from "./use-normalize-editor-segments";
+import HardBreak from "@tiptap/extension-hard-break";
 
 interface UseTiptapEditorOptions {
   segments: TranscriptionSegment[];
@@ -56,6 +57,13 @@ export function useTiptapEditor({
         bulletList: false,
         orderedList: false,
       }),
+      HardBreak.extend({
+        addKeyboardShortcuts() {
+          return {
+            Enter: () => this.editor.commands.setHardBreak(),
+          };
+        },
+      }),
       Underline,
       Placeholder.configure({
         placeholder: "Start typing…",
@@ -84,6 +92,17 @@ export function useTiptapEditor({
       ) {
         return;
       }
+
+      if (
+        transaction.steps.length === 1 &&
+        transaction.steps[0] instanceof ReplaceStep &&
+        transaction.steps[0].from === 0 &&
+        transaction.steps[0].to >= editor.getText().length - 1
+      ) {
+        // This is a full replacement coming from a segmentReplaces
+        return;
+      }
+
       // console.log("[Tiptap] Transaction:", transaction);
 
       // Edit segments based on transactions steps
@@ -189,13 +208,15 @@ function applyStepToSegments(
     if (charCount + seg.text.length >= step.from - 1) {
       // +1 for Tiptap's 1-based indexing
       // The step starts in the middle of this segment, we need to split it
-      segments[segmentIndex] = applyStepToSegment(
+      const newSegments = applyStepToSegment(
         segments[segmentIndex],
         charCount,
         step,
         replacementIndex,
       );
-      replacementIndex++;
+      segments.splice(segmentIndex, 1, ...newSegments);
+      segmentIndex += newSegments.length - 1;
+      replacementIndex += newSegments.length;
     }
 
     charCount += seg.text.length;
@@ -206,26 +227,30 @@ function applyStepToSegments(
     const seg = segments[segmentIndex];
     if (!seg) break;
 
-    if (charCount + seg.text.length >= step.to - 1) {
+    if (charCount + seg.text.length > step.to - 1) {
       // +1 for Tiptap's 1-based indexing
       // The step ends in this segment, we need to split it
-      segments[segmentIndex] = applyStepToSegment(
+      const newSegments = applyStepToSegment(
         segments[segmentIndex],
         charCount,
         step,
         replacementIndex,
         true,
       );
-      replacementIndex++;
+      segments.splice(segmentIndex, 1, ...newSegments);
+      segmentIndex += newSegments.length - 1;
+      replacementIndex += newSegments.length;
     } else {
       // Apply replacement if it makes sense
-      segments[segmentIndex] = applyStepToSegment(
+      const newSegments = applyStepToSegment(
         segments[segmentIndex],
         charCount,
         step,
         replacementIndex,
       );
-      replacementIndex++;
+      segments.splice(segmentIndex, 1, ...newSegments);
+      segmentIndex += newSegments.length - 1;
+      replacementIndex += newSegments.length;
     }
 
     charCount += seg.text.length;
@@ -248,7 +273,7 @@ function applyStepToSegment(
   step: AddMarkStep | RemoveMarkStep | ReplaceStep,
   replacementIndex?: number,
   remaining = false,
-): TranscriptionSegment {
+): TranscriptionSegment[] {
   // Apply add / remove mark steps to the whole segment (can't split markers in segments)
   if (step instanceof AddMarkStep || step instanceof RemoveMarkStep) {
     const modifiers = new Set(segment.modifiers ?? []);
@@ -260,7 +285,7 @@ function applyStepToSegment(
       }
     }
 
-    return { ...segment, modifiers: Array.from(modifiers) };
+    return [{ ...segment, modifiers: Array.from(modifiers) }];
   }
 
   if (step instanceof ReplaceStep) {
@@ -279,16 +304,44 @@ function applyStepToSegment(
 
     const from = Math.max(0, step.from - offset - 1);
     const to = Math.max(0, step.to - offset - 1);
+
+    if (to === from) {
+      if (!text) {
+        return [segment];
+      }
+
+      if (from === 0) {
+        return [
+          {
+            type: "word",
+            text: text,
+          },
+          segment,
+        ];
+      }
+
+      if (from === segment.text.length) {
+        return [
+          segment,
+          {
+            type: "word",
+            text: text,
+          },
+        ];
+      }
+    }
+
     const newText =
       (segment.text.slice(0, from) || "") +
       text +
       (segment.text.slice(to) || "");
-
-    return {
-      ...segment,
-      text: newText,
-    };
+    return [
+      {
+        ...segment,
+        text: newText,
+      },
+    ];
   }
 
-  return segment;
+  return [segment];
 }

@@ -139,6 +139,12 @@ export function normalizeEditorSegments(
       i + 1 < expanded.length &&
       expanded[i + 1].type === "word"
     ) {
+      if (!expanded[i].speakerId) {
+        expanded[i].speakerId = expanded[i + 1].speakerId;
+      }
+      if (!expanded[i + 1].speakerId) {
+        expanded[i + 1].speakerId = expanded[i].speakerId;
+      }
       if (expanded[i].speakerId !== expanded[i + 1].speakerId) {
         separated.push({ type: "spacing", text: " " });
       }

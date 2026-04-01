@@ -2,6 +2,8 @@
 
 import { useCallback } from "react";
 import { getSelectionOffsets } from "../utils/selection";
+import { useHotkeys } from "react-hotkeys-hook";
+import { EditorAPI } from "./editor-api-tiptap";
 
 const BRACKET_PAIRS: Record<string, string> = {
   "(": ")",
@@ -19,71 +21,76 @@ export const bracketWrapState = {
 };
 
 export function useBracketWrap() {
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    const key = e.key;
+  useHotkeys(
+    "*",
+    (e) => {
+      const key = e.key;
 
-    // Check if the pressed key is an opening bracket
-    if (!BRACKET_PAIRS[key]) {
-      return;
-    }
+      // Check if the pressed key is an opening bracket
+      if (!BRACKET_PAIRS[key]) {
+        return;
+      }
 
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
-      return;
-    }
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) {
+        return;
+      }
 
-    const range = selection.getRangeAt(0);
+      const range = selection.getRangeAt(0);
 
-    // Only wrap if there's actually selected text
-    if (range.collapsed) {
-      return;
-    }
+      // Only wrap if there's actually selected text
+      if (range.collapsed) {
+        return;
+      }
 
-    e.preventDefault();
+      e.preventDefault();
 
-    // Capture the original selection BEFORE any modifications
-    const editorElement = (e.target as HTMLElement).closest(
-      "[contenteditable]",
-    ) as HTMLElement;
-    if (editorElement) {
-      const originalSel = getSelectionOffsets(editorElement);
-      bracketWrapState.originalSelection = originalSel;
-    }
+      // Capture the original selection BEFORE any modifications
+      const editorElement = (e.target as HTMLElement).closest(
+        "[contenteditable]",
+      ) as HTMLElement;
+      if (editorElement) {
+        const originalSel = getSelectionOffsets(editorElement);
+        bracketWrapState.originalSelection = originalSel;
+      }
 
-    // Get the selected text
-    const selectedText = range.toString();
-    const closingBracket = BRACKET_PAIRS[key];
+      // Get the selected text
+      const selectedText = range.toString();
+      const closingBracket = BRACKET_PAIRS[key];
 
-    // Create the wrapped text
-    const wrappedText = `${key}${selectedText}${closingBracket}`;
+      // Create the wrapped text
+      const wrappedText = `${key}${selectedText}${closingBracket}`;
 
-    // Use execCommand for proper undo/redo integration
-    document.execCommand("insertText", false, wrappedText);
+      // Use execCommand for proper undo/redo integration
+      document.execCommand("insertText", false, wrappedText);
 
-    // Select text inside brackets after a brief delay to ensure input event completes
-    setTimeout(() => {
-      bracketWrapState.originalSelection = null;
+      // Select text inside brackets after a brief delay to ensure input event completes
+      setTimeout(() => {
+        bracketWrapState.originalSelection = null;
 
-      const currentSelection = window.getSelection();
-      if (currentSelection && selectedText.length > 0) {
-        const newRange = document.createRange();
-        const currentNode = currentSelection.anchorNode;
-        if (currentNode && currentNode.nodeType === Node.TEXT_NODE) {
-          const textContent = currentNode.textContent || "";
-          const wrapPosition = textContent.lastIndexOf(wrappedText);
-          if (wrapPosition !== -1) {
-            newRange.setStart(currentNode, wrapPosition + 1);
-            newRange.setEnd(
-              currentNode,
-              wrapPosition + 1 + selectedText.length,
-            );
-            currentSelection.removeAllRanges();
-            currentSelection.addRange(newRange);
+        const currentSelection = window.getSelection();
+        if (currentSelection && selectedText.length > 0) {
+          const newRange = document.createRange();
+          const currentNode = currentSelection.anchorNode;
+          if (currentNode && currentNode.nodeType === Node.TEXT_NODE) {
+            const textContent = currentNode.textContent || "";
+            const wrapPosition = textContent.lastIndexOf(wrappedText);
+            if (wrapPosition !== -1) {
+              newRange.setStart(currentNode, wrapPosition + 1);
+              newRange.setEnd(
+                currentNode,
+                wrapPosition + 1 + selectedText.length,
+              );
+              currentSelection.removeAllRanges();
+              currentSelection.addRange(newRange);
+            }
           }
         }
-      }
-    }, 0);
-  }, []);
-
-  return { handleKeyDown };
+      }, 0);
+    },
+    [],
+    {
+      enableOnContentEditable: true,
+    },
+  );
 }

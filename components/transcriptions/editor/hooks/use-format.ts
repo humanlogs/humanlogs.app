@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { selectActiveSegmentAndFocus } from "./editor-utils";
 import { EditorAPI } from "./editor-api-tiptap";
+import { selectActiveSegmentAndFocus } from "./editor-utils";
+import { useHotkeys } from "react-hotkeys-hook";
 
 function expandSelectionToWords() {
   const selection = window.getSelection();
@@ -114,6 +115,7 @@ export function useFormat(editorAPI: EditorAPI) {
 
   const applyFormat = useCallback(
     (modifier: "b" | "i" | "u" | "s") => {
+      console.log("Applying format:", modifier);
       if (!editorAPI?.ready()) return;
 
       // If in navigation mode with an active segment, select it first
@@ -132,7 +134,9 @@ export function useFormat(editorAPI: EditorAPI) {
               : "strikeThrough";
       // execCommand integrates with the browser's native undo/redo stack and
       // preserves the current selection automatically.
-      document.execCommand(command, false);
+
+      console.log("Applying format:", command);
+      editorAPI.execCommand(command);
 
       // Update active formats after applying
       setActiveFormats(getActiveFormats());
@@ -142,12 +146,12 @@ export function useFormat(editorAPI: EditorAPI) {
     [],
   );
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      // Intercept Enter to insert <br> instead of letting the browser create <div>
-      if (e.key === "Enter" && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
-        e.preventDefault();
-        document.execCommand("insertLineBreak", false);
+  useHotkeys(
+    "mod+b, mod+i, mod+u, mod+shift+x",
+    (e) => {
+      // If focused do nothing
+      if (editorAPI.isFocused()) {
+        console.log("Editor is focused, skipping global shortcut handling");
         return;
       }
 
@@ -173,5 +177,5 @@ export function useFormat(editorAPI: EditorAPI) {
     [applyFormat],
   );
 
-  return { applyFormat, handleKeyDown, activeFormats };
+  return { applyFormat, activeFormats };
 }

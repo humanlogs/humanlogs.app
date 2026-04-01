@@ -6,7 +6,6 @@ import { useTranscriptionCursors } from "../../../hooks/use-transcription-cursor
 import { TranscriptionSegment } from "../../../hooks/use-transcriptions";
 import { cn } from "../../../lib/utils";
 import { PauseConfigurationData } from "../dialogs/pause-configuration-dialog";
-import { SpeakerOptionsData } from "../dialogs/speaker-options-dialog";
 import { ActiveSegmentHighlight } from "./components/active-segment-highlight";
 import { EditorToolbar } from "./components/editor-toolbar";
 import { RemoteCursors } from "./components/remote-cursors";
@@ -85,23 +84,20 @@ export function TranscriptEditorContent({
   }, [audioControls]);
 
   // Note: We don't use useEditorSync with Tiptap - it manages content through its own transaction system
-  const {
-    applyFormat,
-    handleKeyDown: handleFormatKeyDown,
-    activeFormats,
-  } = useFormat(editorAPIRef.current!);
-  const { handleKeyDown: handleBracketWrapKeyDown } = useBracketWrap();
+  const { applyFormat, activeFormats } = useFormat(editorAPIRef.current!);
+  useBracketWrap();
 
   // Navigation mode
   const { state: navigationState, currentIndex: activeSegmentIndex } =
     useNavigationMode(editorAPIRef as { current: EditorAPI }, audioControls);
 
-  const { renameSpeaker, changeSpeakerForTurn } = useSpeakerActions({
-    speakers,
-    segments,
-    onSpeakersChange,
-    onSegmentsChange: onChange,
-  });
+  const { renameSpeaker, changeSpeakerForTurn, applySpeakerOptions } =
+    useSpeakerActions({
+      speakers,
+      editorAPI: editorAPIRef.current!,
+      onSpeakersChange,
+      onSegmentsChange: onChange,
+    });
 
   // Track cursor position and emit to other users
   const handleSelectionChange = useCallback(() => {
@@ -177,81 +173,6 @@ export function TranscriptEditorContent({
       }
     }
   }, [navigationState, activeSegmentIndex, segments, updateCursorPosition]);
-
-  // Apply speaker options (modifications, merge, remove)
-  const applySpeakerOptions = (options: SpeakerOptionsData) => {
-    let updatedSegments = [...segments];
-
-    // Apply text modifications to speaker's segments
-    if (options.modification !== "none") {
-      updatedSegments = updatedSegments.map((seg) => {
-        if (seg.speakerId !== options.speakerId) return seg;
-
-        let newText = seg.text;
-
-        // Apply text transformations
-        switch (options.modification) {
-          case "uppercase":
-            newText = seg.text.toUpperCase();
-            break;
-          case "lowercase":
-            newText = seg.text.toLowerCase();
-            break;
-          case "parenthesis":
-            newText = `(${seg.text})`;
-            break;
-        }
-
-        // Apply formatting modifiers
-        const newModifiers = [...(seg.modifiers || [])];
-        if (options.modification === "bold" && !newModifiers.includes("b")) {
-          newModifiers.push("b");
-        } else if (
-          options.modification === "italic" &&
-          !newModifiers.includes("i")
-        ) {
-          newModifiers.push("i");
-        } else if (
-          options.modification === "underline" &&
-          !newModifiers.includes("u")
-        ) {
-          newModifiers.push("u");
-        }
-
-        return {
-          ...seg,
-          text: newText,
-          modifiers:
-            newModifiers.length > 0
-              ? (newModifiers as ("b" | "i" | "u" | "s")[])
-              : seg.modifiers,
-        };
-      });
-    }
-
-    // Remove content if requested
-    if (options.removeContent) {
-      updatedSegments = updatedSegments.filter(
-        (seg) => seg.speakerId !== options.speakerId,
-      );
-    }
-
-    // Merge speaker if requested
-    if (options.mergeToSpeakerId && !options.removeContent) {
-      updatedSegments = updatedSegments.map((seg) => {
-        if (seg.speakerId === options.speakerId) {
-          return { ...seg, speakerId: options.mergeToSpeakerId as string };
-        }
-        return seg;
-      });
-
-      // Keep the speaker in the speakers list for undo support (Ctrl+Z)
-      // Don't remove it from the array
-    }
-
-    // Apply changes
-    onChange(updatedSegments);
-  };
 
   // Apply pause configuration (add pause markers to spacing segments)
   const applyPauseConfiguration = (config: PauseConfigurationData) => {
@@ -507,21 +428,14 @@ export function TranscriptEditorContent({
                 }
               />
               <RemoteCursors cursors={cursors} editorRef={editorRef} />
-              <div
-                ref={editorRef}
-                onKeyDown={(e) => {
-                  handleBracketWrapKeyDown(e);
-                  handleFormatKeyDown(e);
-                }}
-              >
+              <div ref={editorRef}>
                 <TranscriptEditorContentTipTap
                   segments={segments}
                   editorAPIRef={editorAPIRef}
                   onChange={onChange}
                   onSelectionUpdate={handleSelectionChange}
                   onUpdate={() => {
-                    console.log("[TranscriptEditor] Tiptap content update");
-                    recalculateSpeakerRef.current &&
+                    if (recalculateSpeakerRef.current)
                       recalculateSpeakerRef.current();
                   }}
                   hasWriteAccess={hasWriteAccess}
