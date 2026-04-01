@@ -117,54 +117,59 @@ export function EditorToolbar({
           />
         </>
       )}
-      <Button
-        variant={activeFormats.has("b") ? "default" : "ghost"}
-        size="sm"
-        onMouseDown={(e) => {
-          e.preventDefault(); // keep focus in editor
-          applyFormat("b");
-        }}
-        className="h-7 w-7 p-0 font-bold"
-        title={t("toolbar.bold")}
-      >
-        <Bold className="h-3.5 w-3.5" />
-      </Button>
-      <Button
-        variant={activeFormats.has("i") ? "default" : "ghost"}
-        size="sm"
-        onMouseDown={(e) => {
-          e.preventDefault();
-          applyFormat("i");
-        }}
-        className="h-7 w-7 p-0 italic"
-        title={t("toolbar.italic")}
-      >
-        <Italic className="h-3.5 w-3.5" />
-      </Button>
-      <Button
-        variant={activeFormats.has("u") ? "default" : "ghost"}
-        size="sm"
-        onMouseDown={(e) => {
-          e.preventDefault();
-          applyFormat("u");
-        }}
-        className="h-7 w-7 p-0 underline"
-        title={t("toolbar.underline")}
-      >
-        <Underline className="h-3.5 w-3.5" />
-      </Button>
-      <Button
-        variant={activeFormats.has("s") ? "default" : "ghost"}
-        size="sm"
-        onMouseDown={(e) => {
-          e.preventDefault();
-          applyFormat("s");
-        }}
-        className="h-7 w-7 p-0"
-        title={t("toolbar.strikethrough")}
-      >
-        <Strikethrough className="h-3.5 w-3.5" />
-      </Button>
+
+      {hasWriteAccess && (
+        <>
+          <Button
+            variant={activeFormats.has("b") ? "default" : "ghost"}
+            size="sm"
+            onMouseDown={(e) => {
+              e.preventDefault(); // keep focus in editor
+              applyFormat("b");
+            }}
+            className="h-7 w-7 p-0 font-bold"
+            title={t("toolbar.bold")}
+          >
+            <Bold className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant={activeFormats.has("i") ? "default" : "ghost"}
+            size="sm"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              applyFormat("i");
+            }}
+            className="h-7 w-7 p-0 italic"
+            title={t("toolbar.italic")}
+          >
+            <Italic className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant={activeFormats.has("u") ? "default" : "ghost"}
+            size="sm"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              applyFormat("u");
+            }}
+            className="h-7 w-7 p-0 underline"
+            title={t("toolbar.underline")}
+          >
+            <Underline className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant={activeFormats.has("s") ? "default" : "ghost"}
+            size="sm"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              applyFormat("s");
+            }}
+            className="h-7 w-7 p-0"
+            title={t("toolbar.strikethrough")}
+          >
+            <Strikethrough className="h-3.5 w-3.5" />
+          </Button>
+        </>
+      )}
 
       <SearchReplaceToolbar
         searchTerm={searchReplace.searchTerm}
@@ -186,6 +191,7 @@ export function EditorToolbar({
         showReplace={searchReplace.isOpen}
         onToggleReplace={searchReplace.toggleReplace}
         searchInputRef={searchInputRef}
+        hideReplace={!hasWriteAccess}
       />
     </div>
   );

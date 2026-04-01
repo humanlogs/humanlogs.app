@@ -358,13 +358,15 @@ export function TranscriptEditorContent({
         {/* Sticky top section */}
         {createPortal(
           <div id="header-sub-portal-container" className={cn("space-y-2")}>
-            {hasListenAccess && (
+            {hasListenAccess ? (
               <InteractiveAudio
                 segments={segments}
                 id={id}
                 audioFileEncryption={audioFileEncryption}
                 onAudioControlsReady={setAudioControls}
               />
+            ) : (
+              <div className="pt-2"></div>
             )}
             <div className="px-4 pb-2">
               <EditorToolbar

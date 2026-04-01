@@ -1,12 +1,12 @@
 "use client";
 
 import { CannotAccessTranscription } from "@/components/encryption";
+import { EditorStateProvider } from "@/components/transcriptions/editor/editor-state-context";
+import { SaveStatus } from "@/components/transcriptions/editor/hooks/use-auto-save";
 import { TranscriptionActions } from "@/components/transcriptions/transcription-actions";
 import { TranscriptionEditor } from "@/components/transcriptions/transcription-editor";
 import { TranscriptionFailed } from "@/components/transcriptions/transcription-failed";
 import { TranscriptionLoading } from "@/components/transcriptions/transcription-loading";
-import { SaveStatus } from "@/components/transcriptions/editor/hooks/use-auto-save";
-import { EditorStateProvider } from "@/components/transcriptions/editor/editor-state-context";
 import { useEncryptionStatus } from "@/hooks/use-encryption";
 import { useTranscription } from "@/hooks/use-transcriptions";
 import { PencilIcon } from "lucide-react";
@@ -67,6 +67,15 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
     return <></>;
   }
 
+  const hasWriteAccess =
+    transcription && (transcription.isOwner || transcription.role === "write");
+  const hasListenAccess =
+    transcription &&
+    (transcription.isOwner ||
+      transcription.role === "read+listen" ||
+      transcription.role === "write");
+  const isOwner = !!transcription?.isOwner;
+
   return (
     <EditorStateProvider>
       {transcription && (
@@ -76,24 +85,28 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
               <div className="flex-1">
                 <span className="font-semibold group/label">
                   {transcription.title || transcription.audioFileName}
-                  <Button
-                    type="button"
-                    className="opacity-0 group-hover/label:opacity-100 transition-opacity"
-                    variant={"ghost"}
-                    size={"icon-xs"}
-                    onClick={() => {
-                      openRename(
-                        transcription.id,
-                        transcription.title || transcription.audioFileName,
-                      );
-                    }}
-                    aria-label="Edit name"
-                  >
-                    <PencilIcon className="h-3 w-3" />
-                  </Button>
+                  {isOwner && (
+                    <Button
+                      type="button"
+                      className="opacity-0 group-hover/label:opacity-100 transition-opacity"
+                      variant={"ghost"}
+                      size={"icon-xs"}
+                      onClick={() => {
+                        openRename(
+                          transcription.id,
+                          transcription.title || transcription.audioFileName,
+                        );
+                      }}
+                      aria-label="Edit name"
+                    >
+                      <PencilIcon className="h-3 w-3" />
+                    </Button>
+                  )}
                 </span>
               </div>
               <TranscriptionActions
+                hasWriteAccess={!!hasWriteAccess}
+                hasListenAccess={!!hasListenAccess}
                 transcriptionId={transcription.id}
                 transcriptionName={
                   transcription.title || transcription.audioFileName
@@ -103,7 +116,7 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
                 transcription={transcription.transcription}
                 audioFileEncryption={transcription.audioFileEncryption}
                 shared={transcription.shared}
-                isOwner={transcription.isOwner}
+                isOwner={isOwner}
               />
             </div>,
             document.getElementById("header-actions-portal")!,
@@ -129,6 +142,8 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
 
       {transcription?.state === "COMPLETED" && (
         <TranscriptionEditor
+          hasWriteAccess={!!hasWriteAccess}
+          hasListenAccess={!!hasListenAccess}
           transcription={transcription}
           onSaveStatusChange={setSaveStatus}
         />

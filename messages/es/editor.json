@@ -98,7 +98,7 @@
             "loading": "Cargando...",
             "unknownUser": "Usuario desconocido",
             "roles": {
-                "read": "Lectura",
+                "read": "Lectura (sin escucha)",
                 "readListen": "Lectura + Escucha",
                 "write": "Escritura",
                 "revokeAccess": "Revocar acceso"

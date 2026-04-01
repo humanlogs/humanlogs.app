@@ -31,18 +31,16 @@ function initSpeakers(
 }
 
 export const TranscriptEditor = ({
+  hasWriteAccess,
+  hasListenAccess,
   transcription,
   onSaveStatusChange,
 }: {
+  hasWriteAccess: boolean;
+  hasListenAccess: boolean;
   transcription: TranscriptionDetail;
   onSaveStatusChange?: (status: SaveStatus) => void;
 }) => {
-  const hasWriteAccess =
-    transcription.isOwner || transcription.role === "write";
-  const hasListenAccess =
-    transcription.isOwner ||
-    transcription.role === "read+listen" ||
-    transcription.role === "write";
   const t = useTranslations("editor");
   const [segments, setSegments] = useState<TranscriptionSegment[]>(
     transcription.transcription?.words ?? [],

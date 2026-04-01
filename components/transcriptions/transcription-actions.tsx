@@ -59,6 +59,8 @@ type TranscriptionActionsProps = {
   audioFileEncryption?: string;
   shared?: SharedUser[];
   isOwner?: boolean;
+  hasWriteAccess?: boolean;
+  hasListenAccess?: boolean;
 };
 
 export function TranscriptionActions({
@@ -70,6 +72,8 @@ export function TranscriptionActions({
   audioFileEncryption,
   shared,
   isOwner = true,
+  hasWriteAccess = true,
+  hasListenAccess = true,
 }: TranscriptionActionsProps) {
   const t = useTranslations("editor");
   const { openRename } = useTranscriptionRenameModal();
@@ -350,15 +354,19 @@ export function TranscriptionActions({
         {t("actions.advanced")}
       </DropdownMenuItem>
 
-      <DropdownMenuSeparator />
-      <DropdownMenuItem onClick={handleDownloadAudio}>
-        <FileAudio2Icon className="h-4 w-4 mr-2" />
-        {t("actions.downloadOriginalAudio")}
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={handleDownloadAudioAsMP3}>
-        <FileAudio2Icon className="h-4 w-4 mr-2" />
-        {t("actions.downloadAsMP3")}
-      </DropdownMenuItem>
+      {hasListenAccess && (
+        <>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleDownloadAudio}>
+            <FileAudio2Icon className="h-4 w-4 mr-2" />
+            {t("actions.downloadOriginalAudio")}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleDownloadAudioAsMP3}>
+            <FileAudio2Icon className="h-4 w-4 mr-2" />
+            {t("actions.downloadAsMP3")}
+          </DropdownMenuItem>
+        </>
+      )}
     </>
   );
 
@@ -420,9 +428,17 @@ export function TranscriptionActions({
         >
           {downloadMenu}
         </DropdownMenu>
-        <Button variant={"ghost"} size="icon-sm" onClick={handleOpenHistory}>
-          <HistoryIcon className="h-4 w-4" />
-        </Button>
+        {hasWriteAccess && (
+          <>
+            <Button
+              variant={"ghost"}
+              size="icon-sm"
+              onClick={handleOpenHistory}
+            >
+              <HistoryIcon className="h-4 w-4" />
+            </Button>
+          </>
+        )}
         <DropdownMenu
           trigger={
             <Button variant={"ghost"} size="icon-sm">
@@ -431,14 +447,18 @@ export function TranscriptionActions({
           }
           align="end"
         >
-          <DropdownMenuItem onClick={handleRename}>
-            <PencilIcon className="h-4 w-4 mr-2" />
-            {t("actions.rename")}
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleSetProject}>
-            <FolderIcon className="h-4 w-4 mr-2" />
-            {t("actions.setProject")}
-          </DropdownMenuItem>
+          {isOwner && (
+            <>
+              <DropdownMenuItem onClick={handleRename}>
+                <PencilIcon className="h-4 w-4 mr-2" />
+                {t("actions.rename")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSetProject}>
+                <FolderIcon className="h-4 w-4 mr-2" />
+                {t("actions.setProject")}
+              </DropdownMenuItem>
+            </>
+          )}
           <DropdownMenuSub
             trigger={
               <>
@@ -449,24 +469,37 @@ export function TranscriptionActions({
           >
             {downloadMenu}
           </DropdownMenuSub>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleSpeakerOptions}>
-            <UserCogIcon className="h-4 w-4 mr-2" />
-            {t("actions.speakerOptions")}
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handlePauseConfiguration}>
-            <Settings2Icon className="h-4 w-4 mr-2" />
-            Pauses
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={openShortcuts}>
-            <KeyboardIcon className="h-4 w-4 mr-2" />
-            {t("actions.keyboardShortcuts")}
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleDelete} className="text-destructive">
-            <TrashIcon className="h-4 w-4 mr-2" />
-            {t("actions.delete")}
-          </DropdownMenuItem>
+
+          {hasWriteAccess && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSpeakerOptions}>
+                <UserCogIcon className="h-4 w-4 mr-2" />
+                {t("actions.speakerOptions")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handlePauseConfiguration}>
+                <Settings2Icon className="h-4 w-4 mr-2" />
+                Pauses
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={openShortcuts}>
+                <KeyboardIcon className="h-4 w-4 mr-2" />
+                {t("actions.keyboardShortcuts")}
+              </DropdownMenuItem>
+            </>
+          )}
+
+          {isOwner && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleDelete}
+                className="text-destructive"
+              >
+                <TrashIcon className="h-4 w-4 mr-2" />
+                {t("actions.delete")}
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenu>
       </div>
     </>
