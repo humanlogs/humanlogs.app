@@ -2,6 +2,7 @@
     "sidebar": {
         "newTranscription": "New Transcription",
         "search": "Search...",
+        "shared": "Shared",
         "noResults": "No results found",
         "user": {
             "plan": "Plan",

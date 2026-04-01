@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { TranscriptionSegment } from "../../../hooks/use-transcriptions";
 import { cn } from "../../../lib/utils";
@@ -11,6 +11,7 @@ import { EditorToolbar } from "./components/editor-toolbar";
 import { SearchHighlights } from "./components/search-highlights";
 import { SpeakerColumn } from "./components/speaker-column";
 import { SpeakerRenameDialog } from "./components/speaker-rename-dialog";
+import { RemoteCursors } from "./components/remote-cursors";
 import { useOptionalEditorState } from "./editor-state-context";
 import { createEditorAPI } from "./hooks/editor-api";
 import { useAudioSync } from "./hooks/use-audio-sync";
@@ -23,6 +24,8 @@ import { useSearchReplace } from "./hooks/use-search-replace";
 import { Speaker, useSpeakerActions } from "./hooks/use-speaker-actions";
 import { useSpeakerPositions } from "./hooks/use-speaker-positions";
 import { AudioControls, InteractiveAudio } from "./interactive-audio";
+import { useTranscriptionCursors } from "../../../hooks/use-transcription-cursors";
+import { getSelectionOffsets } from "./utils/selection";
 
 interface TranscriptEditorContentProps {
   segments: TranscriptionSegment[];
@@ -33,6 +36,18 @@ interface TranscriptEditorContentProps {
   audioFileEncryption?: string;
   hasWriteAccess: boolean;
   hasListenAccess: boolean;
+}
+
+// Helper to convert segment index to character offset
+function getCharacterOffsetFromSegment(
+  segments: TranscriptionSegment[],
+  segmentIndex: number,
+): number {
+  let offset = 0;
+  for (let i = 0; i < segmentIndex && i < segments.length; i++) {
+    offset += segments[i].text.length;
+  }
+  return offset;
 }
 
 export function TranscriptEditorContent({
@@ -58,6 +73,20 @@ export function TranscriptEditorContent({
   const [audioControls, setAudioControls] = useState<AudioControls | null>(
     null,
   );
+
+  // Real-time cursor tracking
+  const { cursors, updateCursorPosition, isEditLocked, activeEditor } =
+    useTranscriptionCursors(id);
+
+  // Check if editing is currently locked by another user
+  const editLocked = hasWriteAccess && isEditLocked();
+  const currentActiveEditor = activeEditor();
+  const effectiveWriteAccess = hasWriteAccess && !editLocked;
+
+  // Track timestamps for selection vs navigation to determine which is most recent
+  const lastSelectionChangeRef = useRef<number>(0);
+  const lastNavigationChangeRef = useRef<number>(0);
+  const prevActiveSegmentRef = useRef<number>(-1);
 
   // Debug log when audio controls are set
   useEffect(() => {
@@ -88,6 +117,76 @@ export function TranscriptEditorContent({
     onSpeakersChange,
     onSegmentsChange: onChange,
   });
+
+  // Track cursor position and emit to other users
+  const handleSelectionChange = useCallback(() => {
+    if (!editorRef.current || segments.length === 0) return;
+
+    const selection = getSelectionOffsets(editorRef.current);
+    if (!selection) return;
+
+    // Update selection timestamp
+    lastSelectionChangeRef.current = Date.now();
+
+    // If there's a text selection, use it
+    if (selection.start !== selection.end) {
+      updateCursorPosition(selection.start, selection.end, hasWriteAccess);
+      return;
+    }
+
+    // For cursor (no selection), check what's most recent: navigation or selection
+    if (navigationState === "navigate" && activeSegmentIndex >= 0) {
+      // Compare timestamps
+      if (lastNavigationChangeRef.current > lastSelectionChangeRef.current) {
+        // Navigation is more recent, use active segment with full word length
+        const startOffset = getCharacterOffsetFromSegment(
+          segments,
+          activeSegmentIndex,
+        );
+        const segmentLength = segments[activeSegmentIndex]?.text.length || 0;
+        updateCursorPosition(
+          startOffset,
+          startOffset + segmentLength,
+          hasWriteAccess,
+        );
+        return;
+      }
+    }
+
+    // Use current cursor position from selection
+    updateCursorPosition(selection.start, selection.start, hasWriteAccess);
+  }, [segments, updateCursorPosition, navigationState, activeSegmentIndex]);
+
+  // Listen for selection changes
+  useEffect(() => {
+    document.addEventListener("selectionchange", handleSelectionChange);
+    return () => {
+      document.removeEventListener("selectionchange", handleSelectionChange);
+    };
+  }, [handleSelectionChange]);
+
+  // Track navigation mode changes
+  useEffect(() => {
+    if (navigationState === "navigate" && activeSegmentIndex >= 0) {
+      // Check if active segment actually changed
+      if (prevActiveSegmentRef.current !== activeSegmentIndex) {
+        lastNavigationChangeRef.current = Date.now();
+        prevActiveSegmentRef.current = activeSegmentIndex;
+
+        // Emit the active segment position with full word length
+        const startOffset = getCharacterOffsetFromSegment(
+          segments,
+          activeSegmentIndex,
+        );
+        const segmentLength = segments[activeSegmentIndex]?.text.length || 0;
+        updateCursorPosition(
+          startOffset,
+          startOffset + segmentLength,
+          hasWriteAccess,
+        );
+      }
+    }
+  }, [navigationState, activeSegmentIndex, segments, updateCursorPosition]);
 
   // Apply speaker options (modifications, merge, remove)
   const applySpeakerOptions = (options: SpeakerOptionsData) => {
@@ -355,6 +454,19 @@ export function TranscriptEditorContent({
     <>
       <SpeakerRenameDialog />
       <div className="flex flex-col h-full">
+        {editLocked && currentActiveEditor && (
+          <>
+            <div className="mb-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 border-y border-yellow-300 dark:border-yellow-700 text-sm text-yellow-800 dark:text-yellow-200 fixed w-full z-10">
+              <span className="font-semibold">
+                {currentActiveEditor.userName}
+              </span>{" "}
+              is currently editing this transcription
+            </div>
+            <div className="h-8" />{" "}
+            {/* Spacer to prevent content jump due to fixed banner */}
+          </>
+        )}
+
         {/* Sticky top section */}
         {createPortal(
           <div id="header-sub-portal-container" className={cn("space-y-2")}>
@@ -375,7 +487,7 @@ export function TranscriptEditorContent({
                 searchReplace={searchReplace}
                 searchInputRef={searchInputRef}
                 audioControls={audioControls}
-                hasWriteAccess={hasWriteAccess}
+                hasWriteAccess={effectiveWriteAccess}
                 hasListenAccess={hasListenAccess}
               />
             </div>
@@ -392,7 +504,7 @@ export function TranscriptEditorContent({
             onRenameSpeaker={renameSpeaker}
             onChangeSpeakerForTurn={changeSpeakerForTurn}
             onApplySpeakerOptions={applySpeakerOptions}
-            readOnly={!hasWriteAccess}
+            readOnly={!effectiveWriteAccess}
           />
           <div className="flex-1 px-2">
             <div className="relative">
@@ -404,9 +516,10 @@ export function TranscriptEditorContent({
                   navigationState === "navigate" && activeSegmentIndex >= 0
                 }
               />
+              <RemoteCursors cursors={cursors} editorRef={editorRef} />
               <div
                 ref={editorRef}
-                contentEditable={hasWriteAccess}
+                contentEditable={effectiveWriteAccess}
                 suppressContentEditableWarning
                 spellCheck
                 className="text-base leading-relaxed focus:outline-none relative"

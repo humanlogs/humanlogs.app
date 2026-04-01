@@ -12,6 +12,19 @@ type DatabaseChangeEvent = {
   data?: unknown;
 };
 
+export type CursorPosition = {
+  userId: string;
+  userName: string;
+  startOffset: number;
+  endOffset: number;
+  timestamp: number;
+  hasWriteAccess: boolean;
+};
+
+export type CursorPositionWithSocket = CursorPosition & {
+  socketId: string;
+};
+
 let socket: Socket | null = null;
 
 export function useSocket() {
@@ -77,5 +90,105 @@ export function disconnectSocket() {
   if (socket) {
     socket.disconnect();
     socket = null;
+  }
+}
+
+// Helper to get the socket instance
+export function getSocket(): Socket | null {
+  return socket;
+}
+
+// Transcription room management
+export function joinTranscriptionRoom(transcriptionId: string) {
+  if (socket?.connected) {
+    socket.emit("transcription:join", transcriptionId);
+  }
+}
+
+export function leaveTranscriptionRoom(transcriptionId: string) {
+  if (socket?.connected) {
+    socket.emit("transcription:leave", transcriptionId);
+  }
+}
+
+// Cursor position management
+export function emitCursorPosition(
+  transcriptionId: string,
+  position: CursorPosition,
+) {
+  if (socket?.connected) {
+    socket.emit("transcription:cursor-update", {
+      transcriptionId,
+      position,
+    });
+  }
+}
+
+// Listen for cursor updates from other users
+export function onCursorPosition(
+  callback: (position: CursorPositionWithSocket) => void,
+) {
+  if (socket) {
+    socket.on("transcription:cursor-position", callback);
+  }
+}
+
+// Listen for users joining
+export function onUserJoined(
+  callback: (data: { userId: string; socketId: string }) => void,
+) {
+  if (socket) {
+    socket.on("transcription:user-joined", callback);
+  }
+}
+
+// Listen for users leaving
+export function onUserLeft(
+  callback: (data: { userId: string; socketId: string }) => void,
+) {
+  if (socket) {
+    socket.on("transcription:user-left", callback);
+  }
+}
+
+// Listen for disconnections
+export function onUserDisconnected(
+  callback: (data: { socketId: string }) => void,
+) {
+  if (socket) {
+    socket.on("transcription:user-disconnected", callback);
+  }
+}
+
+// Cleanup listeners
+export function offCursorPosition(
+  callback?: (position: CursorPositionWithSocket) => void,
+) {
+  if (socket) {
+    socket.off("transcription:cursor-position", callback);
+  }
+}
+
+export function offUserJoined(
+  callback?: (data: { userId: string; socketId: string }) => void,
+) {
+  if (socket) {
+    socket.off("transcription:user-joined", callback);
+  }
+}
+
+export function offUserLeft(
+  callback?: (data: { userId: string; socketId: string }) => void,
+) {
+  if (socket) {
+    socket.off("transcription:user-left", callback);
+  }
+}
+
+export function offUserDisconnected(
+  callback?: (data: { socketId: string }) => void,
+) {
+  if (socket) {
+    socket.off("transcription:user-disconnected", callback);
   }
 }

@@ -137,18 +137,6 @@ export default function BillingPage() {
 
   const plans = [
     {
-      id: "free",
-      name: t("billing.plans.free.name"),
-      price: t("billing.plans.free.price"),
-      features: [
-        t("billing.plans.free.features.0"),
-        t("billing.plans.free.features.1"),
-        t("billing.plans.free.features.2"),
-      ],
-      planType: null,
-      isCurrent: billing.plan === "free",
-    },
-    {
       id: "monthly",
       name: t("billing.plans.monthly.name"),
       price: t("billing.plans.monthly.price"),
@@ -175,6 +163,18 @@ export default function BillingPage() {
       isCurrent: billing.plan === "yearly",
     },
     {
+      id: "free",
+      name: t("billing.plans.free.name"),
+      price: t("billing.plans.free.price"),
+      features: [
+        t("billing.plans.free.features.0"),
+        t("billing.plans.free.features.1"),
+        t("billing.plans.free.features.2"),
+      ],
+      planType: null,
+      isCurrent: billing.plan === "free",
+    },
+    {
       id: "one-time",
       name: t("billing.plans.one_time.name"),
       price: t("billing.plans.one_time.price"),
@@ -192,7 +192,6 @@ export default function BillingPage() {
     <PageLayout
       title={t("billing.title")}
       description={t("billing.description")}
-      maxWidth="max-w-6xl"
       className="p-6"
     >
       {/* Current Plan & Credits */}
@@ -297,13 +296,13 @@ export default function BillingPage() {
         <h2 className="text-2xl font-bold text-foreground mb-6">
           {t("billing.plans.title")}
         </h2>
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-2">
           {plans.map((plan) => (
             <div
               key={plan.id}
               className={cn(
                 "border rounded-lg p-8 hover:shadow-lg transition-shadow flex flex-col relative",
-                plan.isCurrent && "border-2 border-blue-500",
+                plan.isCurrent && "border-2 border-green-500",
                 plan.id === "monthly" &&
                   !plan.isCurrent &&
                   "border-2 border-blue-500",

@@ -3,6 +3,15 @@ import { Server as SocketIOServer } from "socket.io";
 
 let io: SocketIOServer | null = null;
 
+type CursorPosition = {
+  userId: string;
+  userName: string;
+  startOffset: number;
+  endOffset: number;
+  timestamp: number;
+  hasWriteAccess: boolean;
+};
+
 export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
   if (io) {
     return io;
@@ -30,8 +39,60 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
       console.log(`User ${userId} joined their room`);
     }
 
+    // Handle joining a transcription room
+    socket.on("transcription:join", (transcriptionId: string) => {
+      socket.join(`transcription:${transcriptionId}`);
+      console.log(
+        `Socket ${socket.id} joined transcription room: ${transcriptionId}`,
+      );
+
+      // Notify others in the room that a user joined
+      socket
+        .to(`transcription:${transcriptionId}`)
+        .emit("transcription:user-joined", {
+          userId,
+          socketId: socket.id,
+        });
+    });
+
+    // Handle leaving a transcription room
+    socket.on("transcription:leave", (transcriptionId: string) => {
+      socket.leave(`transcription:${transcriptionId}`);
+      console.log(
+        `Socket ${socket.id} left transcription room: ${transcriptionId}`,
+      );
+
+      // Notify others in the room that a user left
+      socket
+        .to(`transcription:${transcriptionId}`)
+        .emit("transcription:user-left", {
+          userId,
+          socketId: socket.id,
+        });
+    });
+
+    // Handle cursor position updates
+    socket.on(
+      "transcription:cursor-update",
+      (data: { transcriptionId: string; position: CursorPosition }) => {
+        // Broadcast cursor position to all other users in the room
+        socket
+          .to(`transcription:${data.transcriptionId}`)
+          .emit("transcription:cursor-position", {
+            socketId: socket.id,
+            ...data.position,
+          });
+      },
+    );
+
     socket.on("disconnect", () => {
       console.log("Client disconnected:", socket.id);
+
+      // Notify all rooms that this user disconnected
+      // Socket.io automatically removes the socket from all rooms on disconnect
+      io?.emit("transcription:user-disconnected", {
+        socketId: socket.id,
+      });
     });
   });
 
