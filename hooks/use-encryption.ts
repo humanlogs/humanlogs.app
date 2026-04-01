@@ -18,6 +18,7 @@ import {
 } from "../lib/encryption-entities";
 import { browserCrypto } from "../lib/encryption-entities.browser";
 import { useRef } from "react";
+import { fetchGateway } from "./fetch";
 
 export type EncryptionStatus = {
   hasEncryption: boolean;
@@ -41,7 +42,7 @@ export function useEncryptionStatus() {
   return useQuery({
     queryKey: ["encryption-status"],
     queryFn: async (): Promise<EncryptionState> => {
-      const response = await fetch("/api/user/encryption");
+      const response = await fetchGateway("/api/user/encryption");
       if (!response.ok) {
         throw new Error("Failed to fetch encryption status");
       }
@@ -104,7 +105,7 @@ export function useEnableEncryption() {
       trustDevice?: boolean;
     }) => {
       // Store public key and device secret on server
-      const response = await fetch("/api/user/encryption", {
+      const response = await fetchGateway("/api/user/encryption", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -141,7 +142,7 @@ export function useDisableEncryption() {
 
   return useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/user/encryption", {
+      const response = await fetchGateway("/api/user/encryption", {
         method: "DELETE",
       });
 
@@ -177,7 +178,7 @@ export function useUploadCertificate() {
       const certificate = parseCertificate(certificateContent);
 
       // Update public key on the server
-      const response = await fetch("/api/user/encryption", {
+      const response = await fetchGateway("/api/user/encryption", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

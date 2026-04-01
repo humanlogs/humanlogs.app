@@ -13,6 +13,8 @@ import { segmentsToHtml } from "../utils/html";
 import { getSelectionOffsets, restoreSelection } from "../utils/selection";
 
 export interface EditorAPI {
+  activeSegmentIndex: number | null;
+
   ready(): boolean;
   isFocused(): boolean;
 
@@ -73,6 +75,8 @@ export function createEditorAPI(
   let currentSegments: TranscriptionSegment[] = [];
 
   return {
+    activeSegmentIndex: -1,
+
     ready() {
       return editorRef.current !== null;
     },
@@ -90,7 +94,13 @@ export function createEditorAPI(
     focus(segmentIndex?: number, selectContent: boolean = false) {
       if (!editorRef.current) return;
 
+      segmentIndex = segmentIndex ?? this.activeSegmentIndex ?? 0;
+
       if (segmentIndex !== undefined) {
+        console.log(
+          `[EditorAPI] Focusing segment ${segmentIndex} (selectContent=${selectContent})`,
+        );
+
         // Calculate character offset for this segment
         let charOffset = 0;
         for (let i = 0; i < segmentIndex && i < currentSegments.length; i++) {
@@ -143,6 +153,10 @@ export function createEditorAPI(
         }
 
         if (startNode) {
+          console.log(
+            `[EditorAPI] Found start node for segment ${segmentIndex} at offset ${startOffset}`,
+          );
+
           range.setStart(startNode, startOffset);
 
           if (selectContent && endNode) {
@@ -256,11 +270,13 @@ export function createEditorAPI(
       // In the new approach, we don't use CSS classes for active segments
       // This will be handled by a positioned overlay div
       // For now, just focus the segment
+      this.activeSegmentIndex = segmentIndex;
       this.focus(segmentIndex);
     },
 
     clearActiveSegments() {
       // No-op in the new approach
+      this.activeSegmentIndex = null;
     },
 
     setSegments(segments) {

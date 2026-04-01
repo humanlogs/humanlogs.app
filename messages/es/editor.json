@@ -88,6 +88,35 @@
             "pdf": "PDF",
             "json": "JSON",
             "advanced": "Avanzado"
+        },
+        "share": {
+            "title": "Compartir transcripción",
+            "sharedWith": "Compartido con",
+            "description": "Agregue personas para colaborar en esta transcripción",
+            "enterEmail": "Ingrese la dirección de correo electrónico para compartir",
+            "add": "Agregar",
+            "loading": "Cargando...",
+            "unknownUser": "Usuario desconocido",
+            "roles": {
+                "read": "Lectura",
+                "readListen": "Lectura + Escucha",
+                "write": "Escritura",
+                "revokeAccess": "Revocar acceso"
+            },
+            "errors": {
+                "enterEmail": "Por favor ingrese una dirección de correo electrónico",
+                "userNotFound": "Usuario no encontrado en la plataforma",
+                "failedFindUser": "Error al buscar usuario",
+                "noEncryption": "Este usuario aún no ha habilitado el cifrado. Necesita configurar el cifrado de extremo a extremo antes de que pueda compartir transcripciones cifradas con él.",
+                "failedShare": "Error al compartir la transcripción",
+                "failedUpdatePermission": "Error al actualizar el permiso",
+                "failedRevoke": "Error al revocar el acceso"
+            },
+            "success": {
+                "shared": "Compartido con {email}",
+                "permissionUpdated": "Permiso actualizado",
+                "accessRevoked": "Acceso revocado"
+            }
         }
     }
 }

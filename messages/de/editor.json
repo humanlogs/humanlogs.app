@@ -88,6 +88,35 @@
             "pdf": "PDF",
             "json": "JSON",
             "advanced": "Erweitert"
+        },
+        "share": {
+            "title": "Transkription teilen",
+            "sharedWith": "Geteilt mit",
+            "description": "Fügen Sie Personen hinzu, um an dieser Transkription zusammenzuarbeiten",
+            "enterEmail": "E-Mail-Adresse zum Teilen eingeben",
+            "add": "Hinzufügen",
+            "loading": "Laden...",
+            "unknownUser": "Unbekannter Benutzer",
+            "roles": {
+                "read": "Lesen",
+                "readListen": "Lesen + Hören",
+                "write": "Schreiben",
+                "revokeAccess": "Zugriff widerrufen"
+            },
+            "errors": {
+                "enterEmail": "Bitte geben Sie eine E-Mail-Adresse ein",
+                "userNotFound": "Benutzer auf der Plattform nicht gefunden",
+                "failedFindUser": "Benutzer konnte nicht gefunden werden",
+                "noEncryption": "Dieser Benutzer hat die Verschlüsselung noch nicht aktiviert. Er muss die Ende-zu-Ende-Verschlüsselung einrichten, bevor Sie verschlüsselte Transkriptionen mit ihm teilen können.",
+                "failedShare": "Transkription konnte nicht geteilt werden",
+                "failedUpdatePermission": "Berechtigung konnte nicht aktualisiert werden",
+                "failedRevoke": "Zugriff konnte nicht widerrufen werden"
+            },
+            "success": {
+                "shared": "Geteilt mit {email}",
+                "permissionUpdated": "Berechtigung aktualisiert",
+                "accessRevoked": "Zugriff widerrufen"
+            }
         }
     }
 }

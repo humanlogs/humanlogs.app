@@ -32,6 +32,7 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
 import { useUserProfile } from "../../../../hooks/use-api";
+import { fetchGateway } from "@/hooks/fetch";
 
 type AudioFile = {
   id: string;
@@ -427,7 +428,7 @@ export default function NewTranscriptionPage() {
       });
 
       // Submit to API
-      const response = await fetch("/api/transcriptions/create", {
+      const response = await fetchGateway("/api/transcriptions/create", {
         method: "POST",
         body: formData,
       });

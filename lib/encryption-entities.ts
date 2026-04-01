@@ -337,6 +337,31 @@ export class EncryptionUtils {
     };
   }
 
+  public hasEncryption(encryptedEntity: EncryptedDataEntity): boolean {
+    if (
+      !encryptedEntity ||
+      typeof encryptedEntity !== "object" ||
+      encryptedEntity === null
+    ) {
+      // If it's not an object, we assume it's not encrypted and return as is
+      return false;
+    }
+
+    // Automatically handle encrypted part lower in the object structure
+    if (!encryptedEntity.privateKeys) {
+      let isEncrypted = false;
+      for (const value of Object.values(encryptedEntity as any)) {
+        isEncrypted =
+          isEncrypted ||
+          (typeof value === "object" && (value as any)?.privateKeys)
+            ? this.hasEncryption(value as unknown as EncryptedDataEntity)
+            : false;
+      }
+    }
+
+    return encryptedEntity.privateKeys?.length > 0;
+  }
+
   /**
    * Decrypts an encrypted data entity using the user's private key.
    *
@@ -350,7 +375,11 @@ export class EncryptionUtils {
     userPrivateKey: string,
     userPublicKey: string,
   ): Promise<T> {
-    if (typeof encryptedEntity !== "object" || encryptedEntity === null) {
+    if (
+      !encryptedEntity ||
+      typeof encryptedEntity !== "object" ||
+      encryptedEntity === null
+    ) {
       // If it's not an object, we assume it's not encrypted and return as is
       return encryptedEntity as unknown as T;
     }

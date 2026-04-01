@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
 import { notifyDatabaseChange } from "@/lib/socket-helpers";
+import { serverEncryption } from "@/lib/encryption-entities";
 
 type RouteParams = {
   params: Promise<{
@@ -106,12 +107,41 @@ export const POST = withAuthRateLimit(
         ];
       }
 
+      // Prepare update data
+      const updateData: any = {
+        shared: updatedShared as never,
+      };
+
+      // Surgically update encrypted data if provided
+      if (body.encryptedData) {
+        // Update audioFileEncryption privateKeys if provided
+        if (body.encryptedData.audioFileEncryption?.privateKeys) {
+          const currentAudioFileEncryption =
+            transcription.audioFileEncryption as any;
+          if (currentAudioFileEncryption?.privateKeys) {
+            updateData.audioFileEncryption = {
+              ...currentAudioFileEncryption,
+              privateKeys: body.encryptedData.audioFileEncryption.privateKeys,
+            };
+          }
+        }
+
+        // Update transcription privateKeys if provided
+        if (body.encryptedData.transcription?.privateKeys) {
+          const currentTranscription = transcription.transcription as any;
+          if (currentTranscription?.privateKeys) {
+            updateData.transcription = {
+              ...currentTranscription,
+              privateKeys: body.encryptedData.transcription.privateKeys,
+            };
+          }
+        }
+      }
+
       // Update the transcription
       const updated = await prisma.transcription.update({
         where: { id },
-        data: {
-          shared: updatedShared as never,
-        },
+        data: updateData,
       });
 
       // Notify both owner and shared user of the change
@@ -174,15 +204,42 @@ export const DELETE = withAuthRateLimit(
         (s) => s.userId !== userIdToRemove,
       );
 
+      // Prepare update data
+      const updateData: any = {
+        shared:
+          updatedShared.length > 0 ? (updatedShared as never) : (null as never),
+      };
+
+      // Use serverEncryption to unshare encrypted data
+      if (serverEncryption) {
+        // Unshare audioFileEncryption if it exists and has privateKeys
+        if (transcription.audioFileEncryption) {
+          const currentAudioFileEncryption =
+            transcription.audioFileEncryption as any;
+          if (currentAudioFileEncryption?.privateKeys) {
+            updateData.audioFileEncryption = await serverEncryption.unshare(
+              currentAudioFileEncryption,
+              userIdToRemove,
+            );
+          }
+        }
+
+        // Unshare transcription data if it exists and has privateKeys
+        if (transcription.transcription) {
+          const currentTranscription = transcription.transcription as any;
+          if (currentTranscription?.privateKeys) {
+            updateData.transcription = await serverEncryption.unshare(
+              currentTranscription,
+              userIdToRemove,
+            );
+          }
+        }
+      }
+
       // Update the transcription
       await prisma.transcription.update({
         where: { id },
-        data: {
-          shared:
-            updatedShared.length > 0
-              ? (updatedShared as never)
-              : (null as never),
-        },
+        data: updateData,
       });
 
       // Notify both owner and removed user of the change

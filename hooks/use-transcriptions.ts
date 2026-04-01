@@ -12,6 +12,7 @@ import {
   useDecryptData,
   useEncryptionStatus,
 } from "./use-encryption";
+import { fetchGateway } from "./fetch";
 
 type Transcription = {
   id: string;
@@ -105,7 +106,7 @@ export function useTranscriptions() {
   const query = useQuery({
     queryKey: ["transcriptions"],
     queryFn: async () => {
-      const response = await fetch("/api/transcriptions");
+      const response = await fetchGateway("/api/transcriptions");
       if (!response.ok) {
         throw new Error("Failed to fetch transcriptions");
       }
@@ -136,7 +137,7 @@ export function useTranscriptions() {
       // Start polling every 10 seconds
       pollingInterval = setInterval(() => {
         queryClient.invalidateQueries({ queryKey: ["transcriptions"] });
-      }, 10000);
+      }, 30000);
     } else if (!hasPending && pollingInterval) {
       // Stop polling when no pending transcriptions
       clearInterval(pollingInterval);
@@ -153,7 +154,7 @@ export function useTranscription(id: string) {
   return useQuery({
     queryKey: ["transcriptions", id],
     queryFn: async () => {
-      const response = await fetch(`/api/transcriptions/${id}`);
+      const response = await fetchGateway(`/api/transcriptions/${id}`);
       if (!response.ok) {
         if (response.status === 404) {
           throw new Error("Transcription not found");
@@ -182,7 +183,7 @@ export function useTranscriptionHistory(transcriptionId: string) {
     queryKey: ["transcription-history", transcriptionId],
     queryFn: async () => {
       if (!transcriptionId) return [];
-      const response = await fetch(
+      const response = await fetchGateway(
         `/api/transcriptions/${transcriptionId}/history`,
       );
       if (!response.ok) {
@@ -204,7 +205,7 @@ export function useTranscriptionVersion(
     queryKey: ["transcription-version", transcriptionId, versionId],
     queryFn: async () => {
       if (!transcriptionId || !versionId) return null;
-      const response = await fetch(
+      const response = await fetchGateway(
         `/api/transcriptions/${transcriptionId}/history/${versionId}`,
       );
       if (!response.ok) throw new Error("Failed to fetch version");
@@ -309,16 +310,19 @@ export function useSaveTranscription(transcriptionId: string) {
         );
       }
 
-      const response = await fetch(`/api/transcriptions/${transcriptionId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetchGateway(
+        `/api/transcriptions/${transcriptionId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            transcription: transcriptionData,
+            changeStats,
+          }),
         },
-        body: JSON.stringify({
-          transcription: transcriptionData,
-          changeStats,
-        }),
-      });
+      );
 
       const responseData = await response.json();
 
@@ -348,7 +352,7 @@ export function useRevertTranscription(transcriptionId: string) {
   return useMutation({
     mutationFn: async (versionId: string) => {
       if (!transcriptionId) throw new Error("No transcription ID");
-      const response = await fetch(
+      const response = await fetchGateway(
         `/api/transcriptions/${transcriptionId}/revert`,
         {
           method: "POST",
@@ -381,9 +385,10 @@ export function useShareTranscription(transcriptionId: string) {
     mutationFn: async (data: {
       email: string;
       role: "read" | "read+listen" | "write";
+      encryptedData?: any;
     }) => {
       if (!transcriptionId) throw new Error("No transcription ID");
-      const response = await fetch(
+      const response = await fetchGateway(
         `/api/transcriptions/${transcriptionId}/share`,
         {
           method: "POST",
@@ -415,7 +420,7 @@ export function useRemoveShare(transcriptionId: string) {
   return useMutation({
     mutationFn: async (userId: string) => {
       if (!transcriptionId) throw new Error("No transcription ID");
-      const response = await fetch(
+      const response = await fetchGateway(
         `/api/transcriptions/${transcriptionId}/share?userId=${encodeURIComponent(userId)}`,
         {
           method: "DELETE",

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchGateway } from "./fetch";
 
 type Project = {
   id: string;
@@ -24,7 +25,7 @@ export function useProjects() {
   return useQuery({
     queryKey: ["projects"],
     queryFn: async () => {
-      const response = await fetch("/api/projects");
+      const response = await fetchGateway("/api/projects");
       if (!response.ok) {
         throw new Error("Failed to fetch projects");
       }
@@ -38,7 +39,7 @@ export function useUserProfile() {
   return useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const response = await fetch("/api/user");
+      const response = await fetchGateway("/api/user");
       if (!response.ok) {
         throw new Error("Failed to fetch user profile");
       }
@@ -55,7 +56,7 @@ export function useUpdateUser() {
     mutationFn: async (
       updateData: Partial<Pick<UserProfile, "language" | "isWelcomeDone">>,
     ) => {
-      const response = await fetch("/api/user", {
+      const response = await fetchGateway("/api/user", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

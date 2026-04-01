@@ -325,6 +325,7 @@ export const DELETE = withAuthRateLimit(
 export const pollPendingTranscriptions = async (
   transcription: Transcription,
 ): Promise<Transcription> => {
+  console.log("Polling transcription status for ID:", transcription.id);
   if (
     transcription.state === "PENDING" &&
     transcription.elevenLabsTranscriptionId &&
@@ -381,6 +382,24 @@ export const pollPendingTranscriptions = async (
       console.error("Error checking transcription status:", error);
       // Continue with original transcription data
     }
+  }
+
+  console.log("Transcription status is:", transcription);
+
+  if (
+    (!transcription.elevenLabsTranscriptionId ||
+      new Date(transcription.createdAt).getTime() <
+        Date.now() - 24 * 60 * 60 * 1000) &&
+    transcription.state === "PENDING" &&
+    isElevenLabsConfigured()
+  ) {
+    // Update the transcription with the result
+    return await prisma.transcription.update({
+      where: { id: transcription.id },
+      data: {
+        state: "ERROR",
+      },
+    });
   }
 
   return transcription;

@@ -8,6 +8,7 @@ const userSelectPublic = {
   name: true,
   email: true,
   picture: true,
+  publicKey: true,
 };
 
 type RouteParams = {

@@ -88,6 +88,35 @@
             "pdf": "PDF",
             "json": "JSON",
             "advanced": "Avancé"
+        },
+        "share": {
+            "title": "Partager la transcription",
+            "sharedWith": "Partagé avec",
+            "description": "Ajoutez des personnes pour collaborer sur cette transcription",
+            "enterEmail": "Entrez une adresse e-mail pour partager",
+            "add": "Ajouter",
+            "loading": "Chargement...",
+            "unknownUser": "Utilisateur inconnu",
+            "roles": {
+                "read": "Lecture",
+                "readListen": "Lecture + Écoute",
+                "write": "Écriture",
+                "revokeAccess": "Révoquer l'accès"
+            },
+            "errors": {
+                "enterEmail": "Veuillez entrer une adresse e-mail",
+                "userNotFound": "Utilisateur introuvable sur la plateforme",
+                "failedFindUser": "Échec de la recherche de l'utilisateur",
+                "noEncryption": "Cet utilisateur n'a pas encore activé le chiffrement. Il doit configurer le chiffrement de bout en bout avant que vous puissiez partager des transcriptions chiffrées avec lui.",
+                "failedShare": "Échec du partage de la transcription",
+                "failedUpdatePermission": "Échec de la mise à jour de la permission",
+                "failedRevoke": "Échec de la révocation de l'accès"
+            },
+            "success": {
+                "shared": "Partagé avec {email}",
+                "permissionUpdated": "Permission mise à jour",
+                "accessRevoked": "Accès révoqué"
+            }
         }
     }
 }

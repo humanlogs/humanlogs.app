@@ -88,6 +88,35 @@
             "pdf": "PDF",
             "json": "JSON",
             "advanced": "Advanced"
+        },
+        "share": {
+            "title": "Share transcription",
+            "sharedWith": "Shared with",
+            "description": "Add people to collaborate on this transcription",
+            "enterEmail": "Enter email address to share",
+            "add": "Add",
+            "loading": "Loading...",
+            "unknownUser": "Unknown User",
+            "roles": {
+                "read": "Read",
+                "readListen": "Read + Listen",
+                "write": "Write",
+                "revokeAccess": "Revoke access"
+            },
+            "errors": {
+                "enterEmail": "Please enter an email address",
+                "userNotFound": "User not found on platform",
+                "failedFindUser": "Failed to find user",
+                "noEncryption": "This user hasn't enabled encryption yet. They need to set up end-to-end encryption before you can share encrypted transcriptions with them.",
+                "failedShare": "Failed to share transcription",
+                "failedUpdatePermission": "Failed to update permission",
+                "failedRevoke": "Failed to revoke access"
+            },
+            "success": {
+                "shared": "Shared with {email}",
+                "permissionUpdated": "Permission updated",
+                "accessRevoked": "Access revoked"
+            }
         }
     }
 }
