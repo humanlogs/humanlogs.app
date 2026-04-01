@@ -126,6 +126,6 @@ const formatTranscriptionList = (t: Transcription, userId: string) => {
       : false,
     isOwner,
     role: isOwner ? "owner" : sharedUser?.role || null,
-    shared: isOwner ? shared : undefined, // Only show shared list to owner
+    shared: shared,
   };
 };

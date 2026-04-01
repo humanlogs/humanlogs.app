@@ -92,6 +92,7 @@
         "share": {
             "title": "Share transcription",
             "sharedWith": "Shared with",
+            "sharedBy": "Shared by",
             "description": "Add people to collaborate on this transcription",
             "enterEmail": "Enter email address to share",
             "add": "Add",
@@ -101,7 +102,8 @@
                 "read": "Read (Without listen)",
                 "readListen": "Read + Listen",
                 "write": "Write",
-                "revokeAccess": "Revoke access"
+                "revokeAccess": "Revoke access",
+                "setAsOwner": "Set as owner"
             },
             "errors": {
                 "enterEmail": "Please enter an email address",
@@ -115,7 +117,14 @@
             "success": {
                 "shared": "Shared with {email}",
                 "permissionUpdated": "Permission updated",
-                "accessRevoked": "Access revoked"
+                "accessRevoked": "Access revoked",
+                "ownershipTransferred": "Ownership transferred successfully"
+            },
+            "transferOwnership": {
+                "title": "Transfer Ownership?",
+                "description": "Are you sure you want to transfer ownership of this transcription to {name}? This action cannot be undone. You will become a collaborator with Write access.",
+                "cancel": "Cancel",
+                "confirm": "Transfer Ownership"
             }
         }
     }

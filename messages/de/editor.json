@@ -92,6 +92,7 @@
         "share": {
             "title": "Transkription teilen",
             "sharedWith": "Geteilt mit",
+            "sharedBy": "Geteilt von",
             "description": "Fügen Sie Personen hinzu, um an dieser Transkription zusammenzuarbeiten",
             "enterEmail": "E-Mail-Adresse zum Teilen eingeben",
             "add": "Hinzufügen",
@@ -101,6 +102,7 @@
                 "read": "Lesen (Ohne hören)",
                 "readListen": "Lesen + Hören",
                 "write": "Schreiben",
+                "setAsOwner": "Als Eigentümer festlegen",
                 "revokeAccess": "Zugriff widerrufen"
             },
             "errors": {
@@ -115,7 +117,14 @@
             "success": {
                 "shared": "Geteilt mit {email}",
                 "permissionUpdated": "Berechtigung aktualisiert",
-                "accessRevoked": "Zugriff widerrufen"
+                "accessRevoked": "Zugriff widerrufen",
+                "ownershipTransferred": "Eigentum erfolgreich übertragen"
+            },
+            "transferOwnership": {
+                "title": "Eigentum übertragen?",
+                "description": "Möchten Sie wirklich das Eigentum an dieser Transkription auf {name} übertragen? Diese Aktion kann nicht rückgängig gemacht werden. Sie werden ein Mitarbeiter mit Schreibzugriff.",
+                "cancel": "Abbrechen",
+                "confirm": "Eigentum übertragen"
             }
         }
     }

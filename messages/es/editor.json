@@ -92,6 +92,7 @@
         "share": {
             "title": "Compartir transcripción",
             "sharedWith": "Compartido con",
+            "sharedBy": "Compartido por",
             "description": "Agregue personas para colaborar en esta transcripción",
             "enterEmail": "Ingrese la dirección de correo electrónico para compartir",
             "add": "Agregar",
@@ -101,6 +102,7 @@
                 "read": "Lectura (sin escucha)",
                 "readListen": "Lectura + Escucha",
                 "write": "Escritura",
+                "setAsOwner": "Establecer como propietario",
                 "revokeAccess": "Revocar acceso"
             },
             "errors": {
@@ -115,7 +117,14 @@
             "success": {
                 "shared": "Compartido con {email}",
                 "permissionUpdated": "Permiso actualizado",
-                "accessRevoked": "Acceso revocado"
+                "accessRevoked": "Acceso revocado",
+                "ownershipTransferred": "Propiedad transferida con éxito"
+            },
+            "transferOwnership": {
+                "title": "¿Transferir propiedad?",
+                "description": "¿Está seguro de que desea transferir la propiedad de esta transcripción a {name}? Esta acción no se puede deshacer. Se convertirá en un colaborador con acceso de Escritura.",
+                "cancel": "Cancelar",
+                "confirm": "Transferir propiedad"
             }
         }
     }

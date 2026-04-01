@@ -53,6 +53,7 @@ export type TranscriptionDetail = {
   shared?: SharedUser[];
   isOwner?: boolean;
   role?: "owner" | "read" | "read+listen" | "write" | null;
+  userId?: string;
 };
 
 export type TranscriptionContent = {
@@ -427,6 +428,38 @@ export function useRemoveShare(transcriptionId: string) {
         },
       );
       if (!response.ok) throw new Error("Failed to remove share");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["transcriptions", transcriptionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["transcriptions"],
+      });
+    },
+  });
+}
+
+// Transfer ownership mutation
+export function useTransferOwnership(transcriptionId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newOwnerId: string) => {
+      if (!transcriptionId) throw new Error("No transcription ID");
+      const response = await fetchGateway(
+        `/api/transcriptions/${transcriptionId}/transfer-ownership`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ newOwnerId }),
+        },
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to transfer ownership");
+      }
       return response.json();
     },
     onSuccess: () => {

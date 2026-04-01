@@ -20,6 +20,7 @@ import {
 export interface SelectOption {
   label: string;
   value: string;
+  separator?: boolean;
 }
 
 export interface SelectProps {
@@ -78,25 +79,32 @@ export function Select({
           <CommandList>
             <CommandEmpty>{emptyText}</CommandEmpty>
             <CommandGroup>
-              {options.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.value}
-                  onSelect={(currentValue) => {
-                    onChange?.(currentValue === value ? "" : currentValue);
-                    setOpen(false);
-                  }}
-                  keywords={[option.label]}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === option.value ? "opacity-100" : "opacity-0",
-                    )}
+              {options.map((option) =>
+                option.separator ? (
+                  <div
+                    key={option.value}
+                    className="mx-2 my-1 border-t border-border"
                   />
-                  {option.label}
-                </CommandItem>
-              ))}
+                ) : (
+                  <CommandItem
+                    key={option.value}
+                    value={option.value}
+                    onSelect={(currentValue) => {
+                      onChange?.(currentValue === value ? "" : currentValue);
+                      setOpen(false);
+                    }}
+                    keywords={[option.label]}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === option.value ? "opacity-100" : "opacity-0",
+                      )}
+                    />
+                    {option.label}
+                  </CommandItem>
+                ),
+              )}
             </CommandGroup>
           </CommandList>
         </Command>

@@ -90,7 +90,7 @@ export const GET = withAuthRateLimit(
         isOwner: access.isOwner,
         role: access.role,
         // Only include shared list for owners
-        shared: access.isOwner ? details.shared : undefined,
+        shared: details.shared,
       });
     } catch (error) {
       console.error("Error fetching transcription:", error);
@@ -425,4 +425,5 @@ export const mapTransactionDetails = (transcription: Transcription) =>
     "completedAt",
     "isTutorial",
     "shared",
+    "userId",
   ]);
