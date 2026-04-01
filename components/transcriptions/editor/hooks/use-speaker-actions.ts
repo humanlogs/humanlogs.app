@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
+import { EditorAPI } from "./editor-api-tiptap";
 
 export interface Speaker {
   id: string;
@@ -15,19 +16,12 @@ export interface Speaker {
 export function getSpeakerLabel(
   speakerId: string,
   speakers: Speaker[],
-  segments: TranscriptionSegment[],
 ): string {
   const found = speakers.find((s) => s.id === speakerId);
   if (found?.name) return found.name;
 
   // Build order-of-appearance index as fallback
-  const order: string[] = [];
-  for (const seg of segments) {
-    if (seg.speakerId && !order.includes(seg.speakerId)) {
-      order.push(seg.speakerId);
-    }
-  }
-  const idx = order.indexOf(speakerId);
+  const idx = speakers.map((a) => a.id).indexOf(speakerId);
   return `Speaker ${idx >= 0 ? idx + 1 : "?"}`;
 }
 

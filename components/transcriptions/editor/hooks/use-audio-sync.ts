@@ -1,19 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
+import { useEffect, useRef, useState } from "react";
 import { useAudio } from "../audio-context";
-import { EditorAPI } from "./editor-api";
+import { EditorAPI } from "./editor-api-tiptap";
 
 /**
  * Two-way sync between editor cursor and audio playback:
  * 1. When caret moves in editor → seek audio to segment's start time (works for both words and spacing)
  * 2. When audio time changes → highlight all segments within ±0.1s of current time (CSS only)
  */
-export function useAudioSync(
-  editorAPI: EditorAPI,
-  segments: TranscriptionSegment[],
-) {
+export function useAudioSync(editorAPI: EditorAPI) {
   const { currentTime, seekTo } = useAudio();
   const lastSelectionRef = useRef<{ start: number; end: number } | null>(null);
   const lastSyncTimeRef = useRef<number>(0);
@@ -23,7 +20,7 @@ export function useAudioSync(
 
   // Part 1: Caret position → Audio seek
   useEffect(() => {
-    if (!editorAPI.ready()) return;
+    if (!editorAPI?.ready()) return;
 
     const handleSelectionChange = () => {
       const selection = editorAPI.getSelectionOffsets();
@@ -50,8 +47,8 @@ export function useAudioSync(
 
       // Find which segment the cursor is in
       let charCount = 0;
-      for (let i = 0; i < segments.length; i++) {
-        const segment = segments[i];
+      for (let i = 0; i < editorAPI.getSegments().length; i++) {
+        const segment = editorAPI.getSegments()[i];
         const segmentLength = segment.text.length;
         const segmentStart = charCount;
         const segmentEnd = charCount + segmentLength;
@@ -63,9 +60,9 @@ export function useAudioSync(
           if (
             segment.type === "spacing" &&
             selection.start === segmentEnd &&
-            i + 1 < segments.length
+            i + 1 < editorAPI.getSegments().length
           ) {
-            const nextSegment = segments[i + 1];
+            const nextSegment = editorAPI.getSegments()[i + 1];
             if (
               nextSegment.type === "word" &&
               nextSegment.start !== undefined
@@ -90,22 +87,16 @@ export function useAudioSync(
     return () => {
       document.removeEventListener("selectionchange", handleSelectionChange);
     };
-  }, [editorAPI, segments, seekTo]);
+  }, [editorAPI, seekTo]);
 
   // Part 2: Audio time → Highlight segments
   // Highlights all segments whose expanded time range includes currentTime
   useEffect(() => {
-    if (!editorAPI.ready()) return;
-
-    // Remove all previous highlights (legacy support for span-based mode)
-    const previousHighlights = editorAPI.querySelectorAll(
-      ".word-span.active, .spacing-span.active",
-    );
-    previousHighlights.forEach((el) => el.classList.remove("active"));
+    if (!editorAPI?.ready()) return;
 
     // Find all segments that should be highlighted
     const indicesToHighlight: number[] = [];
-    segments.forEach((segment, index) => {
+    editorAPI.getSegments().forEach((segment, index) => {
       if (segment.start !== undefined && segment.end !== undefined) {
         const expandedStart = segment.start;
         const expandedEnd = segment.end;
@@ -117,7 +108,7 @@ export function useAudioSync(
     });
 
     setActiveSegmentIndices(indicesToHighlight);
-  }, [currentTime, editorAPI, segments]);
+  }, [currentTime, editorAPI]);
 
   return {
     activeSegmentIndices,

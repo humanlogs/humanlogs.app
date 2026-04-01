@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "@/components/locale-provider";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -10,15 +11,17 @@ import {
 import _ from "lodash";
 import { UserCog, UserRoundPen, UserRoundPlus, Users } from "lucide-react";
 import { getSpeakerColorClass } from "../../../../lib/utils";
-import { TranscriptionSegment } from "@/hooks/use-transcriptions";
-import { getSpeakerLabel, Speaker } from "../hooks/use-speaker-actions";
-import { SpeakerPosition } from "../hooks/use-speaker-positions";
-import { useSpeakerRenameModal } from "./speaker-rename-dialog";
 import {
-  useSpeakerOptionsModal,
   SpeakerOptionsData,
+  useSpeakerOptionsModal,
 } from "../../dialogs/speaker-options-dialog";
-import { useTranslations } from "@/components/locale-provider";
+import { EditorAPI } from "../hooks/editor-api-tiptap";
+import { getSpeakerLabel, Speaker } from "../hooks/use-speaker-actions";
+import {
+  SpeakerPosition,
+  useSpeakerPositions,
+} from "../hooks/use-speaker-positions";
+import { useSpeakerRenameModal } from "./speaker-rename-dialog";
 
 /** Shared badge chip — used for interactive badges and the invisible decoy row. */
 export function SpeakerBadgeChip({
@@ -41,19 +44,19 @@ export function SpeakerBadgeChip({
 }
 
 interface SpeakerColumnProps {
-  positions: SpeakerPosition[];
   speakers: Speaker[];
-  segments: TranscriptionSegment[];
+  editorAPIRef: { current: EditorAPI };
   onRenameSpeaker: (speakerId: string, name: string) => void;
   onChangeSpeakerForTurn: (turnIndex: number, targetId: string | null) => void;
   onApplySpeakerOptions?: (options: SpeakerOptionsData) => void;
   readOnly?: boolean;
+  recalculateSpeakerRef: React.MutableRefObject<() => void>;
 }
 
 interface SpeakerBadgeProps {
   position: SpeakerPosition;
   speakers: Speaker[];
-  segments: TranscriptionSegment[];
+  editorAPIRef: { current: EditorAPI };
   onRenameSpeaker: (speakerId: string, name: string) => void;
   onChangeSpeakerForTurn: (turnIndex: number, targetId: string | null) => void;
   onApplySpeakerOptions?: (options: SpeakerOptionsData) => void;
@@ -63,7 +66,7 @@ interface SpeakerBadgeProps {
 function SpeakerBadge({
   position,
   speakers,
-  segments,
+  editorAPIRef,
   onRenameSpeaker,
   onChangeSpeakerForTurn,
   onApplySpeakerOptions,
@@ -74,7 +77,7 @@ function SpeakerBadge({
   const { openRename } = useSpeakerRenameModal();
   const { openSpeakerOptions } = useSpeakerOptionsModal();
 
-  const label = getSpeakerLabel(speakerId, speakers, segments);
+  const label = getSpeakerLabel(speakerId, speakers);
   const speakerArrayIndex = speakers.findIndex((s) => s.id === speakerId);
   const colorClass = getSpeakerColorClass(
     speakerArrayIndex >= 0 ? speakerArrayIndex : index,
@@ -84,22 +87,19 @@ function SpeakerBadge({
   const handleOpenSpeakerOptions = () => {
     const transcription = {
       speakers: speakers.map((s) => ({ id: s.id, name: s.name })),
-      words: segments,
+      words: editorAPIRef.current.getSegments(),
     };
     openSpeakerOptions(
       transcription,
       speakers,
-      segments,
+      editorAPIRef.current.getSegments(),
       onApplySpeakerOptions || (() => {}),
       speakerId, // Pre-select the clicked speaker
     );
   };
 
   return (
-    <div
-      className="absolute left-0 -translate-y-1/2 whitespace-nowrap"
-      style={{ top }}
-    >
+    <div className="absolute left-0 whitespace-nowrap" style={{ top: top - 4 }}>
       {readOnly ? (
         <SpeakerBadgeChip
           label={label}
@@ -148,7 +148,7 @@ function SpeakerBadge({
                 key={s.id}
                 onClick={() => onChangeSpeakerForTurn(index, s.id)}
               >
-                {getSpeakerLabel(s.id, speakers, segments)}
+                {getSpeakerLabel(s.id, speakers)}
               </DropdownMenuItem>
             ))}
             {otherSpeakers.length > 0 && <DropdownMenuSeparator />}
@@ -166,24 +166,29 @@ function SpeakerBadge({
 }
 
 export function SpeakerColumn({
-  positions,
   speakers,
-  segments,
+  editorAPIRef,
   onRenameSpeaker,
   onChangeSpeakerForTurn,
   onApplySpeakerOptions,
+  recalculateSpeakerRef,
   readOnly = false,
 }: SpeakerColumnProps) {
+  const { positions, recalculate } = useSpeakerPositions(
+    editorAPIRef as { current: EditorAPI },
+  );
+  recalculateSpeakerRef.current = recalculate;
+
   if (positions.length === 0) return <div className="w-24 shrink-0" />;
 
   return (
-    <div className="relative w-max shrink-0 whitespace-nowrap">
+    <div className="relative w-max shrink-0 whitespace-nowrap overflow-hidden">
       {positions.map((pos) => (
         <SpeakerBadge
           key={`${pos.speakerId}-${pos.index}`}
           position={pos}
           speakers={speakers}
-          segments={segments}
+          editorAPIRef={editorAPIRef}
           onRenameSpeaker={onRenameSpeaker}
           onChangeSpeakerForTurn={onChangeSpeakerForTurn}
           onApplySpeakerOptions={onApplySpeakerOptions}
@@ -198,7 +203,7 @@ export function SpeakerColumn({
           return (
             <SpeakerBadgeChip
               key={s.speakerId}
-              label={getSpeakerLabel(s.speakerId, speakers, segments)}
+              label={getSpeakerLabel(s.speakerId, speakers)}
               colorClass={getSpeakerColorClass(idx >= 0 ? idx : s.index)}
             />
           );

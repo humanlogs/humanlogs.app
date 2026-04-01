@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
 import { TranscriptionSegment } from "../../../hooks/use-transcriptions";
-import { getSpeakerColor } from "../../../lib/utils";
 import { downloadAndDecryptAudio } from "../../../lib/audio-decryption.browser";
+import { getSpeakerColor } from "../../../lib/utils";
 import { useAudio } from "./audio-context";
+import { EditorAPI } from "./hooks/editor-api-tiptap";
 import "./index.css"; // Import custom styles for canvas
 
 // Audio controls interface
@@ -70,12 +71,12 @@ const getSpeakerSegments = (oSegments: TranscriptionSegment[]) => {
 };
 
 export const InteractiveAudio = ({
-  segments,
+  editorAPIRef,
   id,
   audioFileEncryption,
   onAudioControlsReady,
 }: {
-  segments: TranscriptionSegment[];
+  editorAPIRef: { current: EditorAPI };
   id: string;
   audioFileEncryption?: string;
   onAudioControlsReady?: (controls: AudioControls) => void;
@@ -167,7 +168,9 @@ export const InteractiveAudio = ({
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const speakerSegments = getSpeakerSegments(segments);
+    const speakerSegments = getSpeakerSegments(
+      editorAPIRef.current.getSegments(),
+    );
 
     // Initialize wavesurfer with symmetrical mono waveform
     const wavesurfer = WaveSurfer.create({
@@ -247,7 +250,7 @@ export const InteractiveAudio = ({
       try {
         wavesurfer.seekTo(time / wavesurfer.getDuration());
       } catch (e) {
-        console.error("Error seeking audio:", e);
+        console.log("Error seeking audio:", e);
       }
     });
 
@@ -315,15 +318,7 @@ export const InteractiveAudio = ({
       }
       wavesurfer.destroy();
     };
-  }, [
-    id,
-    registerSeekHandler,
-    setCurrentTime,
-    segments
-      .map((s) => s.speakerId)
-      .filter((a, i) => a != segments[i - 1]?.speakerId)
-      .join(","),
-  ]); // Re-run if speaker segments change only
+  }, [id, registerSeekHandler, setCurrentTime]); // Re-run if speaker segments change only
 
   // Notify parent of audio controls whenever they change
   useEffect(() => {

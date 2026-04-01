@@ -1,33 +1,32 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranscriptionCursors } from "../../../hooks/use-transcription-cursors";
 import { TranscriptionSegment } from "../../../hooks/use-transcriptions";
 import { cn } from "../../../lib/utils";
 import { PauseConfigurationData } from "../dialogs/pause-configuration-dialog";
 import { SpeakerOptionsData } from "../dialogs/speaker-options-dialog";
 import { ActiveSegmentHighlight } from "./components/active-segment-highlight";
 import { EditorToolbar } from "./components/editor-toolbar";
+import { RemoteCursors } from "./components/remote-cursors";
 import { SearchHighlights } from "./components/search-highlights";
 import { SpeakerColumn } from "./components/speaker-column";
 import { SpeakerRenameDialog } from "./components/speaker-rename-dialog";
-import { RemoteCursors } from "./components/remote-cursors";
 import { useOptionalEditorState } from "./editor-state-context";
-import { createEditorAPI } from "./hooks/editor-api";
+import { EditorAPI } from "./hooks/editor-api-tiptap";
 import { useAudioSync } from "./hooks/use-audio-sync";
 import { useBracketWrap } from "./hooks/use-bracket-wrap";
-import { useEditorSync } from "./hooks/use-editor-sync";
 import { useFormat } from "./hooks/use-format";
 import { useNavigationMode } from "./hooks/use-navigation-mode";
 import { useSearchHighlights } from "./hooks/use-search-highlights";
 import { useSearchReplace } from "./hooks/use-search-replace";
 import { Speaker, useSpeakerActions } from "./hooks/use-speaker-actions";
-import { useSpeakerPositions } from "./hooks/use-speaker-positions";
 import { AudioControls, InteractiveAudio } from "./interactive-audio";
-import { useTranscriptionCursors } from "../../../hooks/use-transcription-cursors";
-import { getSelectionOffsets } from "./utils/selection";
+import { TranscriptEditorContentTipTap } from "./transcript-editor-content-tiptap";
 
 interface TranscriptEditorContentProps {
+  editorAPIRef: React.MutableRefObject<EditorAPI | null>;
   segments: TranscriptionSegment[];
   speakers: Speaker[];
   id: string;
@@ -59,15 +58,18 @@ export function TranscriptEditorContent({
   audioFileEncryption,
   hasWriteAccess,
   hasListenAccess,
+  editorAPIRef,
 }: TranscriptEditorContentProps) {
+  // console.log("Rebuilding");
+
   const editorRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  // Tracks the last segments value that produced the current DOM so redundant
-  // re-renders are skipped when the parent echoes back what we already set.
-  const segmentsRef = useRef<TranscriptionSegment[] | null>(null);
+  const recalculateSpeakerRef = useRef<() => void>(() => {});
 
-  // Create EditorAPI from editorRef
-  const editorAPI = useMemo(() => createEditorAPI(editorRef), []);
+  // Track timestamps for selection vs navigation to determine which is most recent
+  const lastSelectionChangeRef = useRef<number>(0);
+  const lastNavigationChangeRef = useRef<number>(0);
+  const prevActiveSegmentRef = useRef<number>(-1);
 
   // Audio controls from InteractiveAudio
   const [audioControls, setAudioControls] = useState<AudioControls | null>(
@@ -77,34 +79,23 @@ export function TranscriptEditorContent({
   // Real-time cursor tracking
   const { cursors, updateCursorPosition } = useTranscriptionCursors(id);
 
-  // Track timestamps for selection vs navigation to determine which is most recent
-  const lastSelectionChangeRef = useRef<number>(0);
-  const lastNavigationChangeRef = useRef<number>(0);
-  const prevActiveSegmentRef = useRef<number>(-1);
-
   // Debug log when audio controls are set
   useEffect(() => {
     console.log("[TranscriptEditor] Audio controls updated:", audioControls);
   }, [audioControls]);
 
-  const { handleInput, handleBeforeInput, handleUndoKeyDown } = useEditorSync(
-    editorAPI,
-    segmentsRef,
-    segments,
-    onChange,
-  );
+  // Note: We don't use useEditorSync with Tiptap - it manages content through its own transaction system
   const {
     applyFormat,
     handleKeyDown: handleFormatKeyDown,
     activeFormats,
-  } = useFormat(editorAPI);
+  } = useFormat(editorAPIRef.current!);
   const { handleKeyDown: handleBracketWrapKeyDown } = useBracketWrap();
 
   // Navigation mode
   const { state: navigationState, currentIndex: activeSegmentIndex } =
-    useNavigationMode(editorAPI, segments, audioControls);
+    useNavigationMode(editorAPIRef as { current: EditorAPI }, audioControls);
 
-  const speakerPositions = useSpeakerPositions(editorAPI, segments);
   const { renameSpeaker, changeSpeakerForTurn } = useSpeakerActions({
     speakers,
     segments,
@@ -114,17 +105,21 @@ export function TranscriptEditorContent({
 
   // Track cursor position and emit to other users
   const handleSelectionChange = useCallback(() => {
-    if (!editorRef.current || segments.length === 0) return;
+    if (!editorAPIRef.current || segments.length === 0) return;
 
-    const selection = getSelectionOffsets(editorRef.current);
+    const selection = editorAPIRef.current?.getSelectionOffsets();
     if (!selection) return;
 
     // Update selection timestamp
     lastSelectionChangeRef.current = Date.now();
 
+    // Get selection offsets (Tiptap uses 1-based, we need 0-based)
+    const start = selection.start;
+    const end = selection.end;
+
     // If there's a text selection, use it
-    if (selection.start !== selection.end) {
-      updateCursorPosition(selection.start, selection.end, hasWriteAccess);
+    if (start !== end) {
+      updateCursorPosition(start, end, hasWriteAccess);
       return;
     }
 
@@ -148,16 +143,17 @@ export function TranscriptEditorContent({
     }
 
     // Use current cursor position from selection
-    updateCursorPosition(selection.start, selection.start, hasWriteAccess);
-  }, [segments, updateCursorPosition, navigationState, activeSegmentIndex]);
+    updateCursorPosition(start, start, hasWriteAccess);
+  }, [
+    segments,
+    updateCursorPosition,
+    navigationState,
+    activeSegmentIndex,
+    hasWriteAccess,
+  ]);
 
-  // Listen for selection changes
-  useEffect(() => {
-    document.addEventListener("selectionchange", handleSelectionChange);
-    return () => {
-      document.removeEventListener("selectionchange", handleSelectionChange);
-    };
-  }, [handleSelectionChange]);
+  // Listen for selection changes - Tiptap handles this through onSelectionUpdate
+  // No need for document.selectionchange listener anymore
 
   // Track navigation mode changes
   useEffect(() => {
@@ -391,18 +387,20 @@ export function TranscriptEditorContent({
   }, [editorStateContext, applyPauseConfiguration, applySpeakerOptions]);
 
   // Search and replace
-  const searchReplace = useSearchReplace(segments, onChange);
+  const searchReplace = useSearchReplace(
+    editorAPIRef as { current: EditorAPI },
+    onChange,
+  );
 
   // Search highlights
   const highlights = useSearchHighlights(
-    editorAPI,
-    segments,
+    editorAPIRef.current!,
     searchReplace.matches,
     searchReplace.currentMatchIndex,
   );
 
   // Two-way sync between cursor position and audio playback
-  const { activeSegmentIndices } = useAudioSync(editorAPI, segments);
+  useAudioSync(editorAPIRef.current!);
 
   // Global keyboard shortcuts for search
   useEffect(() => {
@@ -464,7 +462,7 @@ export function TranscriptEditorContent({
           <div id="header-sub-portal-container" className={cn("space-y-2")}>
             {hasListenAccess ? (
               <InteractiveAudio
-                segments={segments}
+                editorAPIRef={editorAPIRef as { current: EditorAPI }}
                 id={id}
                 audioFileEncryption={audioFileEncryption}
                 onAudioControlsReady={setAudioControls}
@@ -490,9 +488,9 @@ export function TranscriptEditorContent({
         {/* Scrollable content area */}
         <div className="flex flex-row px-4 gap-2 flex-1 pb-6 pt-4 pb-16">
           <SpeakerColumn
-            positions={speakerPositions}
+            recalculateSpeakerRef={recalculateSpeakerRef}
             speakers={speakers}
-            segments={segments}
+            editorAPIRef={editorAPIRef as { current: EditorAPI }}
             onRenameSpeaker={renameSpeaker}
             onChangeSpeakerForTurn={changeSpeakerForTurn}
             onApplySpeakerOptions={applySpeakerOptions}
@@ -502,7 +500,7 @@ export function TranscriptEditorContent({
             <div className="relative">
               <SearchHighlights highlights={highlights} />
               <ActiveSegmentHighlight
-                editorAPI={editorAPI}
+                editorAPIRef={editorAPIRef as { current: EditorAPI }}
                 segmentIndex={activeSegmentIndex}
                 visible={
                   navigationState === "navigate" && activeSegmentIndex >= 0
@@ -511,19 +509,24 @@ export function TranscriptEditorContent({
               <RemoteCursors cursors={cursors} editorRef={editorRef} />
               <div
                 ref={editorRef}
-                contentEditable={hasWriteAccess}
-                suppressContentEditableWarning
-                spellCheck
-                className="text-base leading-relaxed focus:outline-none relative"
-                onBeforeInput={handleBeforeInput}
-                onInput={handleInput}
                 onKeyDown={(e) => {
                   handleBracketWrapKeyDown(e);
-                  handleUndoKeyDown(e);
                   handleFormatKeyDown(e);
                 }}
-                data-placeholder="Start typing…"
-              />
+              >
+                <TranscriptEditorContentTipTap
+                  segments={segments}
+                  editorAPIRef={editorAPIRef}
+                  onChange={onChange}
+                  onSelectionUpdate={handleSelectionChange}
+                  onUpdate={() => {
+                    console.log("[TranscriptEditor] Tiptap content update");
+                    recalculateSpeakerRef.current &&
+                      recalculateSpeakerRef.current();
+                  }}
+                  hasWriteAccess={hasWriteAccess}
+                />
+              </div>
             </div>
           </div>
         </div>

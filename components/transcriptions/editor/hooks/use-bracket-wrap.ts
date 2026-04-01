@@ -7,6 +7,9 @@ const BRACKET_PAIRS: Record<string, string> = {
   "(": ")",
   "[": "]",
   "{": "}",
+  '"': '"',
+  "“": "”",
+  "‘": "’",
 };
 
 // Store the original selection before bracket wrap for undo history

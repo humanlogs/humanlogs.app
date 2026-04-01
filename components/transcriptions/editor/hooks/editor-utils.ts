@@ -1,4 +1,4 @@
-import { EditorAPI } from "./editor-api";
+import { EditorAPI } from "./editor-api-tiptap";
 
 /**
  * Selects the currently active segment (marked with .active-segment class)

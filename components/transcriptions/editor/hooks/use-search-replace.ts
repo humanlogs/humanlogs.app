@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { EditorAPI } from "./editor-api-tiptap";
 
 export interface SearchMatch {
   segmentIndex: number;
@@ -15,9 +16,11 @@ function normalizeText(text: string): string {
 }
 
 export function useSearchReplace(
-  segments: TranscriptionSegment[],
+  editorAPIRef: { current: EditorAPI },
   onChange: (segments: TranscriptionSegment[]) => void,
 ) {
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [replaceTerm, setReplaceTerm] = useState("");
@@ -42,7 +45,7 @@ export function useSearchReplace(
       const pattern = isWholeWord ? `\\b${escapedTerm}\\b` : escapedTerm;
       const searchRegex = new RegExp(pattern, isCaseSensitive ? "g" : "gi");
 
-      segments.forEach((segment, segmentIndex) => {
+      editorAPIRef.current.getSegments().forEach((segment, segmentIndex) => {
         if (segment.type !== "word") return;
 
         const text = shouldIgnoreAccents
@@ -61,7 +64,7 @@ export function useSearchReplace(
 
       return matches;
     },
-    [segments],
+    [],
   );
 
   // Get all matches
@@ -114,7 +117,7 @@ export function useSearchReplace(
     if (allMatches.length === 0) return;
 
     // Create new segments array with replacements
-    const newSegments = [...segments];
+    const newSegments = [...editorAPIRef.current.getSegments()];
     const normalizedSearchTerm = ignoreAccents
       ? normalizeText(searchTerm)
       : searchTerm;
@@ -145,7 +148,6 @@ export function useSearchReplace(
     caseSensitive,
     wholeWord,
     ignoreAccents,
-    segments,
     onChange,
     findMatches,
   ]);
@@ -155,7 +157,7 @@ export function useSearchReplace(
     if (!searchTerm || matches.length === 0) return;
 
     const match = matches[currentMatchIndex];
-    const newSegments = [...segments];
+    const newSegments = [...editorAPIRef.current.getSegments()];
     const segment = newSegments[match.segmentIndex];
 
     if (segment.type === "word") {
@@ -176,7 +178,7 @@ export function useSearchReplace(
     if (currentMatchIndex >= matches.length - 1) {
       setCurrentMatchIndex(0);
     }
-  }, [searchTerm, replaceTerm, matches, currentMatchIndex, segments, onChange]);
+  }, [searchTerm, replaceTerm, matches, currentMatchIndex, onChange]);
 
   const open = useCallback(() => setIsOpen(true), []);
   const close = useCallback(() => setIsOpen(false), []);
@@ -184,6 +186,46 @@ export function useSearchReplace(
 
   // Reset current match index when search or case sensitivity changes
   const effectiveCurrentIndex = matchCount > 0 ? currentMatchIndex : 0;
+
+  // Global keyboard shortcuts for search
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Cmd+F / Ctrl+F to focus search
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        searchInputRef.current?.se();
+        return;
+      }
+
+      // Cmd+G / Ctrl+G or F3 for next match (browser standard)
+      if (
+        ((e.metaKey || e.ctrlKey) && e.key === "g" && !e.shiftKey) ||
+        (e.key === "F3" && !e.shiftKey)
+      ) {
+        e.preventDefault();
+        if (matchCount > 0) {
+          nextMatch();
+        }
+        return;
+      }
+
+      // Cmd+Shift+G / Ctrl+Shift+G or Shift+F3 for previous match
+      if (
+        ((e.metaKey || e.ctrlKey) && e.key === "g" && e.shiftKey) ||
+        (e.key === "F3" && e.shiftKey)
+      ) {
+        e.preventDefault();
+        if (matchCount > 0) {
+          previousMatch();
+        }
+        return;
+      }
+    };
+
+    document.addEventListener("keydown", handleGlobalKeyDown);
+    return () => document.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [nextMatch, previousMatch, matchCount]);
 
   return {
     isOpen,

@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
-import { EditorAPI } from "./editor-api";
+import { useCallback, useEffect, useState } from "react";
+import { EditorAPI } from "./editor-api-tiptap";
 
 export interface SpeakerPosition {
   speakerId: string;
@@ -17,28 +17,28 @@ export interface SpeakerPosition {
  * i.e. each time the speakerId on word spans transitions to a different value.
  * Re-measures on: segment changes, editor scroll, resize, and DOM mutations.
  */
-export function useSpeakerPositions(
-  editorAPI: EditorAPI,
-  segments: TranscriptionSegment[],
-): SpeakerPosition[] {
+export function useSpeakerPositions(editorAPIRef: { current: EditorAPI }): {
+  positions: SpeakerPosition[];
+  recalculate: () => void;
+} {
   const [positions, setPositions] = useState<SpeakerPosition[]>([]);
 
   const recalculate = useCallback(() => {
     // Use the EditorAPI method directly
-    setPositions(editorAPI.getSpeakerPositions());
+    setPositions(editorAPIRef.current.getSpeakerPositions());
     // editorAPI is a stable ref
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Re-measure after React has committed the new segments to the DOM
+  // Re-measure after React has committed the new editorAPIRef.current.getSegments() to the DOM
   useEffect(() => {
     const id = requestAnimationFrame(recalculate);
     return () => cancelAnimationFrame(id);
-  }, [segments, recalculate]);
+  }, [recalculate]);
 
   // Re-measure on editor scroll
   useEffect(() => {
-    const cleanup = editorAPI.addEventListener("scroll", recalculate, {
+    const cleanup = window.addEventListener("scroll", recalculate, {
       passive: true,
     });
     return cleanup;
@@ -47,17 +47,17 @@ export function useSpeakerPositions(
 
   // Re-measure when the editor is resized (window resize, sidebar toggle, etc.)
   useEffect(() => {
-    const cleanup = editorAPI.observeResize(recalculate);
+    const cleanup = editorAPIRef.current.observeResize(recalculate);
     return cleanup;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recalculate]);
 
   // Re-measure on any DOM mutation inside the editor (typing reflows layout)
   useEffect(() => {
-    const cleanup = editorAPI.observeMutations(recalculate);
+    const cleanup = editorAPIRef.current.observeMutations(recalculate);
     return cleanup;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recalculate]);
 
-  return positions;
+  return { positions, recalculate };
 }

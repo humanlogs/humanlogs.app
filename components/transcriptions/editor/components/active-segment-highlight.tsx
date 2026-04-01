@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { EditorAPI } from "../hooks/editor-api";
+import { EditorAPI } from "../hooks/editor-api-tiptap";
 
 interface ActiveSegmentHighlightProps {
-  editorAPI: EditorAPI;
+  editorAPIRef: { current: EditorAPI };
   segmentIndex: number;
   visible: boolean;
 }
@@ -21,7 +21,7 @@ interface HighlightPosition {
  * Uses Range API to calculate precise bounding rectangles
  */
 export function ActiveSegmentHighlight({
-  editorAPI,
+  editorAPIRef,
   segmentIndex,
   visible,
 }: ActiveSegmentHighlightProps) {
@@ -59,14 +59,14 @@ export function ActiveSegmentHighlight({
   }, [segmentIndex]);
 
   useEffect(() => {
-    if (!visible || segmentIndex < 0 || !editorAPI.ready()) {
+    if (!visible || segmentIndex < 0 || !editorAPIRef.current.ready()) {
       setPosition(null);
       return;
     }
 
     const updatePosition = () => {
-      const segmentBounds = editorAPI.getSegmentBounds(segmentIndex);
-      const editorBounds = editorAPI.getBoundingClientRect();
+      const segmentBounds = editorAPIRef.current.getSegmentBounds(segmentIndex);
+      const editorBounds = editorAPIRef.current.getBoundingClientRect();
 
       if (!segmentBounds || !editorBounds) {
         setPosition(null);
@@ -86,7 +86,10 @@ export function ActiveSegmentHighlight({
     updatePosition();
 
     // Update on scroll (the editor itself might scroll)
-    const cleanupScroll = editorAPI.addEventListener("scroll", updatePosition);
+    const cleanupScroll = editorAPIRef.current.addEventListener(
+      "scroll",
+      updatePosition,
+    );
 
     // Update on window resize/scroll
     const handleWindowEvent = () => updatePosition();
@@ -94,7 +97,8 @@ export function ActiveSegmentHighlight({
     window.addEventListener("resize", handleWindowEvent);
 
     // Update on editor mutations (content changes)
-    const cleanupMutations = editorAPI.observeMutations(updatePosition);
+    const cleanupMutations =
+      editorAPIRef.current.observeMutations(updatePosition);
 
     return () => {
       cleanupScroll();
@@ -102,7 +106,7 @@ export function ActiveSegmentHighlight({
       window.removeEventListener("scroll", handleWindowEvent, true);
       window.removeEventListener("resize", handleWindowEvent);
     };
-  }, [editorAPI, segmentIndex, visible]);
+  }, [segmentIndex, visible]);
 
   if (!position) {
     return null;

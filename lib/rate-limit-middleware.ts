@@ -7,7 +7,7 @@ import { checkRateLimit, RateLimitConfig } from "@/lib/rate-limiter";
  * 60 requests per minute
  */
 const DEFAULT_AUTH_RATE_LIMIT: RateLimitConfig = {
-  maxRequests: 60,
+  maxRequests: 600,
   windowMs: 60 * 1000, // 1 minute
   keyPrefix: "auth",
 };

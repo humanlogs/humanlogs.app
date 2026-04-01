@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useTranslations } from "@/components/locale-provider";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   TranscriptionDetail,
   TranscriptionSegment,
 } from "../../../hooks/use-transcriptions";
+import { useEditorStateRegister } from "./editor-state-context";
+import { EditorAPI } from "./hooks/editor-api-tiptap";
 import { SaveStatus, useAutoSave } from "./hooks/use-auto-save";
 import { Speaker } from "./hooks/use-speaker-actions";
 import "./index.css";
 import { TranscriptEditorContent } from "./transcript-editor-content";
-import { useEditorStateRegister } from "./editor-state-context";
-import { useTranslations } from "@/components/locale-provider";
 
 /**
  * Ensures every speakerId referenced in segments has a speaker entry with a name.
@@ -42,7 +43,8 @@ export const TranscriptEditor = ({
   onSaveStatusChange?: (status: SaveStatus) => void;
 }) => {
   const t = useTranslations("editor");
-  const [segments, setSegments] = useState<TranscriptionSegment[]>(
+  const editorAPIRef = useRef<EditorAPI>(null);
+  const [segments] = useState<TranscriptionSegment[]>(
     transcription.transcription?.words ?? [],
   );
   const [speakers, setSpeakers] = useState<Speaker[]>(() =>
@@ -53,9 +55,9 @@ export const TranscriptEditor = ({
   );
 
   // Auto-save with debounce
-  const { saveStatus } = useAutoSave({
+  const { saveStatus, onChange } = useAutoSave({
     transcriptionId: transcription.id,
-    segments,
+    editorAPIRef: editorAPIRef as { current: EditorAPI },
     speakers,
   });
 
@@ -66,9 +68,8 @@ export const TranscriptEditor = ({
 
   // Provide getter for current editor state and register with context
   const getState = useCallback(() => {
-    return { segments, speakers };
-  }, [segments, speakers]);
-
+    return { segments: editorAPIRef.current?.getSegments() || [], speakers };
+  }, [speakers]);
   useEditorStateRegister(getState);
 
   if (!transcription.transcription) {
@@ -83,9 +84,10 @@ export const TranscriptEditor = ({
     <div className="h-full">
       <TranscriptEditorContent
         id={transcription.id}
+        editorAPIRef={editorAPIRef}
         segments={segments}
         speakers={speakers}
-        onChange={setSegments}
+        onChange={onChange}
         onSpeakersChange={setSpeakers}
         audioFileEncryption={transcription.audioFileEncryption}
         hasWriteAccess={hasWriteAccess}

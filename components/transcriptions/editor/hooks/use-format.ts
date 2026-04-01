@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { selectActiveSegmentAndFocus } from "./editor-utils";
-import { EditorAPI } from "./editor-api";
+import { EditorAPI } from "./editor-api-tiptap";
 
 function expandSelectionToWords() {
   const selection = window.getSelection();
@@ -89,6 +89,8 @@ export function useFormat(editorAPI: EditorAPI) {
 
   // Update active formats on selection change
   useEffect(() => {
+    if (!editorAPI?.ready()) return;
+
     const updateFormats = () => {
       setActiveFormats(getActiveFormats());
     };
@@ -112,7 +114,7 @@ export function useFormat(editorAPI: EditorAPI) {
 
   const applyFormat = useCallback(
     (modifier: "b" | "i" | "u" | "s") => {
-      if (!editorAPI.ready()) return;
+      if (!editorAPI?.ready()) return;
 
       // If in navigation mode with an active segment, select it first
       selectActiveSegmentAndFocus(editorAPI);

@@ -1,14 +1,14 @@
 "use client";
 
+import { useCustomShortcuts } from "@/hooks/use-shortcuts";
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
+import { CustomShortcut } from "@/lib/shortcuts";
 import { useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useCustomShortcuts } from "@/hooks/use-shortcuts";
-import { CustomShortcut } from "@/lib/shortcuts";
 import { useAnyModalOpen } from "../../../use-modal";
 import { AudioControls } from "../interactive-audio";
+import { EditorAPI } from "./editor-api-tiptap";
 import { selectSegmentByIndexAndFocus } from "./editor-utils";
-import { EditorAPI } from "./editor-api";
 
 export type NavigationState = "edit" | "navigate";
 
@@ -38,8 +38,7 @@ const createSmartScroll = () => {
 };
 
 export function useNavigationMode(
-  editorAPI: EditorAPI,
-  segments: TranscriptionSegment[],
+  editorAPIRef: { current: EditorAPI },
   audioControls: AudioControls | null,
 ) {
   const [state, setState] = useState<NavigationState>("navigate");
@@ -51,33 +50,41 @@ export function useNavigationMode(
 
   useEffect(() => {
     if (isModalOpen) {
-      editorAPI.blur();
+      editorAPIRef.current.blur();
       audioControls?.pause();
     }
-  }, [isModalOpen, audioControls, editorAPI]);
+  }, [isModalOpen, audioControls]);
 
   useEffect(() => {
     if (audioControls)
       audioControls.onTimeUpdate((currentTime) => {
         if (Date.now() - lastNavigationTime.current < 500) return;
         // Update the current index based on the current time
-        const currentSegmentIndex = segments.findIndex(
-          (segment) =>
-            segment.start !== undefined &&
-            segment.end !== undefined &&
-            currentTime >= segment.start &&
-            currentTime <= segment.end,
+        const currentSegmentIndex = editorAPIRef.current
+          .getSegments()
+          .findIndex(
+            (segment) =>
+              segment.start !== undefined &&
+              segment.end !== undefined &&
+              currentTime >= segment.start &&
+              currentTime <= segment.end,
+          );
+        setCurrentIndex(
+          ensureWord(
+            currentSegmentIndex,
+            editorAPIRef.current.getSegments(),
+            "r",
+          ),
         );
-        setCurrentIndex(ensureWord(currentSegmentIndex, segments, "r"));
       });
-  }, [audioControls, segments, state]);
+  }, [audioControls, state]);
 
   // Show the currently selected segment in the editor
   useEffect(() => {
     if (state === "navigate") {
       if (currentIndex !== -1) {
-        editorAPI.clearActiveSegments();
-        const rect = editorAPI.getSegmentBounds(currentIndex);
+        editorAPIRef.current.clearActiveSegments();
+        const rect = editorAPIRef.current.getSegmentBounds(currentIndex);
         if (rect) {
           // Scrolling strategy
           const headerHeight =
@@ -98,9 +105,9 @@ export function useNavigationMode(
         }
       }
     } else {
-      editorAPI.clearActiveSegments();
+      editorAPIRef.current.clearActiveSegments();
     }
-  }, [currentIndex, state, editorAPI]);
+  }, [currentIndex, state]);
 
   // Bind the state to the focus of the editor
   useEffect(() => {
@@ -116,22 +123,28 @@ export function useNavigationMode(
       }
       setState("navigate");
     };
-    const cleanupFocus = editorAPI.addEventListener("focus", handleFocus);
-    const cleanupBlur = editorAPI.addEventListener("blur", handleBlur);
+    const cleanupFocus = editorAPIRef.current.addEventListener(
+      "focus",
+      handleFocus,
+    );
+    const cleanupBlur = editorAPIRef.current.addEventListener(
+      "blur",
+      handleBlur,
+    );
     return () => {
       cleanupFocus();
       cleanupBlur();
     };
-  }, [editorAPI, audioControls, setState]);
+  }, [audioControls, setState]);
 
   // Bind the state of the playing audio to the navigate mode: if the audio is playing, we are in navigate mode, if it's paused, we are in edit mode
   useEffect(() => {
     if (audioControls?.isPlaying && state !== "navigate") {
-      editorAPI.blur();
+      editorAPIRef.current.blur();
     }
-  }, [audioControls?.isPlaying, setState, state, editorAPI]);
+  }, [audioControls?.isPlaying, setState, state]);
 
-  // Arrows: move into segments
+  // Arrows: move into editorAPIRef.current.getSegments()
   // Space = play / pause
   // Arrow on the right or bottom, do not stop play
   // Arrow on the left / top: stop playback
@@ -157,7 +170,7 @@ export function useNavigationMode(
       // Ignore if the editor is not focused
       if (state !== "edit") return;
       // Blur the editor to trigger the navigate mode and then toggle play/pause
-      editorAPI.blur();
+      editorAPIRef.current.blur();
       audioControls?.togglePlayPause();
     },
     {
@@ -189,7 +202,7 @@ export function useNavigationMode(
     [state, audioControls],
   );
 
-  // Navigate in segments
+  // Navigate in editorAPIRef.current.getSegments()
   useHotkeys(
     [
       "ArrowRight",
@@ -225,24 +238,31 @@ export function useNavigationMode(
           // - Word or spacing contains a dot, exclamation mark or question mark (end of sentence) -> go to next word segment
           if (event.key === "ArrowRight") {
             let found = false;
-            for (let i = currentIndex + 1; i < segments.length; i++) {
+            for (
+              let i = currentIndex + 1;
+              i < editorAPIRef.current.getSegments().length;
+              i++
+            ) {
               if (
-                /.*[.!?].*/.test(segments[i].text) ||
-                (segments[i].type === "spacing" && duration(segments[i]) > 1)
+                /.*[.!?].*/.test(editorAPIRef.current.getSegments()[i].text) ||
+                (editorAPIRef.current.getSegments()[i].type === "spacing" &&
+                  duration(editorAPIRef.current.getSegments()[i]) > 1)
               ) {
                 selection = i;
                 found = true;
                 break;
               }
             }
-            if (!found) selection = segments.length - 1;
+            if (!found)
+              selection = editorAPIRef.current.getSegments().length - 1;
           } else if (event.key === "ArrowLeft") {
             let found = false;
             for (let i = currentIndex - 3; i >= 0; i--) {
-              console.log(segments[i]);
+              console.log(editorAPIRef.current.getSegments()[i]);
               if (
-                /.*[.!?].*/.test(segments[i].text) ||
-                (segments[i].type === "spacing" && duration(segments[i]) > 1)
+                /.*[.!?].*/.test(editorAPIRef.current.getSegments()[i].text) ||
+                (editorAPIRef.current.getSegments()[i].type === "spacing" &&
+                  duration(editorAPIRef.current.getSegments()[i]) > 1)
               ) {
                 selection = i;
                 found = true;
@@ -253,10 +273,10 @@ export function useNavigationMode(
           }
           for (
             let i = selection + (selection > 0 ? 1 : 0);
-            i < segments.length;
+            i < editorAPIRef.current.getSegments().length;
             i++
           ) {
-            if (segments[i].type === "word") {
+            if (editorAPIRef.current.getSegments()[i].type === "word") {
               selection = i;
               break;
             }
@@ -271,9 +291,10 @@ export function useNavigationMode(
 
         // For up and down, find the segment that is the closest in the DOM
         // TODO: In plain text mode, this needs to be reimplemented using getSegmentBounds()
-        // to find segments on different lines
+        // to find editorAPIRef.current.getSegments() on different lines
         if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-          const currentRect = editorAPI.getSegmentBounds(currentIndex);
+          const currentRect =
+            editorAPIRef.current.getSegmentBounds(currentIndex);
           if (!currentRect) {
             // Fallback to simple left/right navigation
             selection =
@@ -285,9 +306,13 @@ export function useNavigationMode(
             let foundLineChange = false;
             let closest = { index: currentIndex, distance: Infinity };
 
-            // Scan segments to find one on a different line
-            while (candidateIndex >= 0 && candidateIndex < segments.length) {
-              const candidateRect = editorAPI.getSegmentBounds(candidateIndex);
+            // Scan editorAPIRef.current.getSegments() to find one on a different line
+            while (
+              candidateIndex >= 0 &&
+              candidateIndex < editorAPIRef.current.getSegments().length
+            ) {
+              const candidateRect =
+                editorAPIRef.current.getSegmentBounds(candidateIndex);
               if (!candidateRect) {
                 candidateIndex += direction;
                 continue;
@@ -335,18 +360,23 @@ export function useNavigationMode(
         // Ensure the selection is a word
         selection = ensureWord(
           selection,
-          segments,
+          editorAPIRef.current.getSegments(),
           event.key === "ArrowRight" || event.key === "ArrowDown" ? "r" : "l",
         );
       }
 
       audioControls?.seekTo(
-        segments[Math.max(0, Math.min(segments.length, selection))].start || 0,
+        editorAPIRef.current.getSegments()[
+          Math.max(
+            0,
+            Math.min(editorAPIRef.current.getSegments().length, selection),
+          )
+        ].start || 0,
       );
       setCurrentIndex(selection);
     },
     {},
-    [state, audioControls, segments, currentIndex],
+    [state, audioControls, currentIndex],
   );
 
   useHotkeys(
@@ -360,14 +390,14 @@ export function useNavigationMode(
       event.preventDefault();
 
       // Select the current segment and focus the editor
-      selectSegmentByIndexAndFocus(editorAPI, currentIndex);
+      selectSegmentByIndexAndFocus(editorAPIRef.current, currentIndex);
 
       // If a letter was typed or there's a custom shortcut replacement, insert that text
       document.execCommand("delete");
 
       const nextDomElement =
-        editorAPI.getSegmentNode(currentIndex - 1) ||
-        editorAPI.getSegmentNode(currentIndex + 1);
+        editorAPIRef.current.getSegmentNode(currentIndex - 1) ||
+        editorAPIRef.current.getSegmentNode(currentIndex + 1);
       if (nextDomElement) {
         const range = document.createRange();
         range.selectNodeContents(nextDomElement);
@@ -381,7 +411,7 @@ export function useNavigationMode(
       }
     },
     {},
-    [isModalOpen, state, segments, currentIndex],
+    [isModalOpen, state, currentIndex],
   );
 
   // "Enter" key enters in focus mode and select the current word
@@ -399,7 +429,7 @@ export function useNavigationMode(
           document.activeElement.tagName,
         ) &&
         // Is focussing an element outside of the editor
-        editorAPI.isFocused() === false
+        editorAPIRef.current.isFocused() === false
       ) {
         return;
       }
@@ -429,10 +459,10 @@ export function useNavigationMode(
 
       // Set the selection range
       if (state === "navigate") {
-        selectSegmentByIndexAndFocus(editorAPI, currentIndex);
+        selectSegmentByIndexAndFocus(editorAPIRef.current, currentIndex);
       } else {
         // In edit mode, just focus to maintain existing selection
-        editorAPI.focus();
+        editorAPIRef.current.focus();
       }
 
       // If a letter was typed or there's a custom shortcut replacement, insert that text
@@ -455,7 +485,7 @@ export function useNavigationMode(
       if (isModalOpen) return;
       if (state !== "edit") return;
       event.preventDefault();
-      editorAPI.blur();
+      editorAPIRef.current.blur();
     },
     {
       enableOnContentEditable: true,

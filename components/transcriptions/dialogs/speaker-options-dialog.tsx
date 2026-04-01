@@ -133,7 +133,7 @@ export function SpeakerOptionsDialog() {
   // Get speaker label for selected speaker
   const selectedSpeakerLabel = React.useMemo(() => {
     if (!data || !selectedSpeaker) return "";
-    return getSpeakerLabel(selectedSpeaker, data.speakers, data.segments);
+    return getSpeakerLabel(selectedSpeaker, data.speakers);
   }, [data, selectedSpeaker]);
 
   return (
@@ -166,11 +166,7 @@ export function SpeakerOptionsDialog() {
                     <p>
                       {t("confirmMerge", {
                         from: selectedSpeakerLabel,
-                        to: getSpeakerLabel(
-                          mergeTo,
-                          data?.speakers || [],
-                          data?.segments || [],
-                        ),
+                        to: getSpeakerLabel(mergeTo, data?.speakers || []),
                       })}
                     </p>
                   )}
@@ -178,11 +174,7 @@ export function SpeakerOptionsDialog() {
                     <p className="mt-2">
                       And merge the remaining content into{" "}
                       <strong>
-                        {getSpeakerLabel(
-                          mergeTo,
-                          data?.speakers || [],
-                          data?.segments || [],
-                        )}
+                        {getSpeakerLabel(mergeTo, data?.speakers || [])}
                       </strong>
                       .
                     </p>
@@ -205,11 +197,7 @@ export function SpeakerOptionsDialog() {
                 className="w-full"
                 options={
                   data?.speakers.map((speaker) => ({
-                    label: getSpeakerLabel(
-                      speaker.id,
-                      data.speakers,
-                      data.segments,
-                    ),
+                    label: getSpeakerLabel(speaker.id, data.speakers),
                     value: speaker.id,
                   })) || []
                 }
@@ -248,11 +236,7 @@ export function SpeakerOptionsDialog() {
                 options={[
                   { label: t("noMerge"), value: "no-merge" },
                   ...availableMergeSpeakers.map((speaker) => ({
-                    label: getSpeakerLabel(
-                      speaker.id,
-                      data?.speakers || [],
-                      data?.segments || [],
-                    ),
+                    label: getSpeakerLabel(speaker.id, data?.speakers || []),
                     value: speaker.id,
                   })),
                 ]}

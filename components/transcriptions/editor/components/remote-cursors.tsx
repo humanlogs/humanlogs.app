@@ -39,9 +39,14 @@ function getUserColor(userId: string): string {
 
 // Get position for a character offset
 function getPositionAtOffset(
-  editor: HTMLElement,
+  editorRef: React.RefObject<HTMLDivElement | null>,
   characterOffset: number,
 ): { x: number; y: number } | null {
+  // Get the actual editor element (may be Tiptap's DOM)
+  const editor =
+    (editorRef.current as any)?._tiptapElement || editorRef.current;
+  if (!editor) return null;
+
   const range = document.createRange();
   const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT, null);
 
@@ -76,11 +81,16 @@ function getPositionAtOffset(
 
 // Get selection rectangles between two character offsets
 function getSelectionRects(
-  editor: HTMLElement,
+  editorRef: React.RefObject<HTMLDivElement | null>,
   startOffset: number,
   endOffset: number,
 ): DOMRect[] {
   if (startOffset === endOffset) return [];
+
+  // Get the actual editor element (may be Tiptap's DOM)
+  const editor =
+    (editorRef.current as any)?._tiptapElement || editorRef.current;
+  if (!editor) return [];
 
   const range = document.createRange();
   const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT, null);
@@ -132,18 +142,17 @@ export function RemoteCursors({ cursors, editorRef }: CursorDisplayProps) {
     const updateCursorPositions = () => {
       if (!editorRef.current) return;
 
-      const editor = editorRef.current;
       const newPositions: PositionedCursor[] = [];
 
       for (const cursor of cursors) {
         try {
-          const startPos = getPositionAtOffset(editor, cursor.startOffset);
-          const endPos = getPositionAtOffset(editor, cursor.endOffset);
+          const startPos = getPositionAtOffset(editorRef, cursor.startOffset);
+          const endPos = getPositionAtOffset(editorRef, cursor.endOffset);
 
           if (!startPos || !endPos) continue;
 
           const selectionRects = getSelectionRects(
-            editor,
+            editorRef,
             cursor.startOffset,
             cursor.endOffset,
           );
