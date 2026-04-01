@@ -75,13 +75,7 @@ export function TranscriptEditorContent({
   );
 
   // Real-time cursor tracking
-  const { cursors, updateCursorPosition, isEditLocked, activeEditor } =
-    useTranscriptionCursors(id);
-
-  // Check if editing is currently locked by another user
-  const editLocked = hasWriteAccess && isEditLocked();
-  const currentActiveEditor = activeEditor();
-  const effectiveWriteAccess = hasWriteAccess && !editLocked;
+  const { cursors, updateCursorPosition } = useTranscriptionCursors(id);
 
   // Track timestamps for selection vs navigation to determine which is most recent
   const lastSelectionChangeRef = useRef<number>(0);
@@ -454,13 +448,11 @@ export function TranscriptEditorContent({
     <>
       <SpeakerRenameDialog />
       <div className="flex flex-col h-full">
-        {editLocked && currentActiveEditor && (
+        {false && (
           <>
             <div className="mb-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 border-y border-yellow-300 dark:border-yellow-700 text-sm text-yellow-800 dark:text-yellow-200 fixed w-full z-10">
-              <span className="font-semibold">
-                {currentActiveEditor.userName}
-              </span>{" "}
-              is currently editing this transcription
+              <span className="font-semibold">{"Someone"}</span> is currently
+              editing this transcription
             </div>
             <div className="h-8" />{" "}
             {/* Spacer to prevent content jump due to fixed banner */}
@@ -487,7 +479,7 @@ export function TranscriptEditorContent({
                 searchReplace={searchReplace}
                 searchInputRef={searchInputRef}
                 audioControls={audioControls}
-                hasWriteAccess={effectiveWriteAccess}
+                hasWriteAccess={hasWriteAccess}
                 hasListenAccess={hasListenAccess}
               />
             </div>
@@ -504,7 +496,7 @@ export function TranscriptEditorContent({
             onRenameSpeaker={renameSpeaker}
             onChangeSpeakerForTurn={changeSpeakerForTurn}
             onApplySpeakerOptions={applySpeakerOptions}
-            readOnly={!effectiveWriteAccess}
+            readOnly={!hasWriteAccess}
           />
           <div className="flex-1 px-2">
             <div className="relative">
@@ -519,7 +511,7 @@ export function TranscriptEditorContent({
               <RemoteCursors cursors={cursors} editorRef={editorRef} />
               <div
                 ref={editorRef}
-                contentEditable={effectiveWriteAccess}
+                contentEditable={hasWriteAccess}
                 suppressContentEditableWarning
                 spellCheck
                 className="text-base leading-relaxed focus:outline-none relative"

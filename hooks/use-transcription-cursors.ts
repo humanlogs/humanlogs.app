@@ -14,7 +14,17 @@ import {
   offUserJoined,
   offUserLeft,
   offUserDisconnected,
+  claimLeadership,
+  releaseLeadership,
+  leaderKeepalive,
+  onLeaderChanged,
+  onLeaderGranted,
+  onLeaderDenied,
+  offLeaderChanged,
+  offLeaderGranted,
+  offLeaderDenied,
   CursorPositionWithSocket,
+  Leader,
 } from "@/lib/socket-client";
 
 export type UserCursor = {
@@ -30,8 +40,14 @@ export type UserCursor = {
 export function useTranscriptionCursors(transcriptionId: string) {
   const { data: userProfile } = useUserProfile();
   const [cursors, setCursors] = useState<Map<string, UserCursor>>(new Map());
+  const [currentLeader, setCurrentLeader] = useState<Leader | null>(null);
+  const [isLeader, setIsLeader] = useState(false);
   const lastEmitRef = useRef<number>(0);
-  const lastPositionRef = useRef<{ startOffset: number; endOffset: number; hasWriteAccess: boolean } | null>(null);
+  const lastPositionRef = useRef<{
+    startOffset: number;
+    endOffset: number;
+    hasWriteAccess: boolean;
+  } | null>(null);
   const EMIT_THROTTLE = 100; // Throttle cursor updates to 100ms
 
   // Join/leave transcription room
@@ -100,20 +116,90 @@ export function useTranscriptionCursors(transcriptionId: string) {
     };
   }, []);
 
+  // Listen for leader changes
+  useEffect(() => {
+    const handleLeaderChanged = (data: {
+      transcriptionId: string;
+      leader: Leader | null;
+    }) => {
+      if (data.transcriptionId === transcriptionId) {
+        setCurrentLeader(data.leader);
+        // Check if we are the leader
+        setIsLeader(data.leader?.userId === userProfile?.id);
+      }
+    };
+
+    const handleLeaderGranted = (data: { transcriptionId: string }) => {
+      if (data.transcriptionId === transcriptionId) {
+        setIsLeader(true);
+        console.log("Leadership granted for transcription:", transcriptionId);
+      }
+    };
+
+    const handleLeaderDenied = (data: {
+      transcriptionId: string;
+      currentLeader: Leader;
+    }) => {
+      if (data.transcriptionId === transcriptionId) {
+        setIsLeader(false);
+        console.log(
+          "Leadership denied. Current leader:",
+          data.currentLeader.userName,
+        );
+      }
+    };
+
+    onLeaderChanged(handleLeaderChanged);
+    onLeaderGranted(handleLeaderGranted);
+    onLeaderDenied(handleLeaderDenied);
+
+    return () => {
+      offLeaderChanged(handleLeaderChanged);
+      offLeaderGranted(handleLeaderGranted);
+      offLeaderDenied(handleLeaderDenied);
+    };
+  }, [transcriptionId, userProfile?.id]);
+
   // Function to emit cursor position (throttled)
   const updateCursorPosition = useCallback(
     (startOffset: number, endOffset: number, hasWriteAccess: boolean) => {
       if (!userProfile?.id || !userProfile?.name) return;
 
       const now = Date.now();
-      
+
       // Save the last position for keepalive
       lastPositionRef.current = { startOffset, endOffset, hasWriteAccess };
-      
+
       if (now - lastEmitRef.current < EMIT_THROTTLE) {
         return;
       }
 
+      lastEmitRef.current = now;
+
+      emitCursorPosition(transcriptionId, {
+        userId: userProfile.id,
+        userName: userProfile.name,
+        startOffset,
+        endOffset,
+        timestamp: now,
+        hasWriteAccess,
+      });
+    },
+    [transcriptionId, userProfile?.id, userProfile?.name],
+  );
+
+  // Function to emit cursor position immediately (bypasses throttle)
+  // Used for focus events to lock editing quickly
+  const updateCursorPositionImmediate = useCallback(
+    (startOffset: number, endOffset: number, hasWriteAccess: boolean) => {
+      if (!userProfile?.id || !userProfile?.name) return;
+
+      const now = Date.now();
+
+      // Save the last position for keepalive
+      lastPositionRef.current = { startOffset, endOffset, hasWriteAccess };
+
+      // Update throttle timestamp to prevent immediate re-emit
       lastEmitRef.current = now;
 
       emitCursorPosition(transcriptionId, {
@@ -152,14 +238,14 @@ export function useTranscriptionCursors(transcriptionId: string) {
     return () => clearInterval(interval);
   }, []);
 
-  // Keepalive: Periodically re-emit cursor position to maintain active status
+  // Keepalive: Periodically re-emit cursor position and leader keepalive
   useEffect(() => {
     const interval = setInterval(() => {
-      if (!userProfile?.id || !userProfile?.name || !lastPositionRef.current) return;
-      
+      if (!userProfile?.id || !userProfile?.name) return;
+
       const now = Date.now();
-      
-      // Only send if we have a position to send
+
+      // Send cursor position keepalive if we have a position
       if (lastPositionRef.current) {
         emitCursorPosition(transcriptionId, {
           userId: userProfile.id,
@@ -170,47 +256,37 @@ export function useTranscriptionCursors(transcriptionId: string) {
           hasWriteAccess: lastPositionRef.current.hasWriteAccess,
         });
       }
+
+      // Send leader keepalive if we are the leader
+      if (isLeader) {
+        leaderKeepalive(transcriptionId);
+      }
     }, 15000); // Send keepalive every 15 seconds
 
     return () => clearInterval(interval);
+  }, [transcriptionId, userProfile?.id, userProfile?.name, isLeader]);
+
+  // Functions to claim and release leadership
+  const claimLeader = useCallback(() => {
+    if (!userProfile?.id || !userProfile?.name) return;
+    claimLeadership(transcriptionId, userProfile.id, userProfile.name);
   }, [transcriptionId, userProfile?.id, userProfile?.name]);
+
+  const releaseLeader = useCallback(() => {
+    if (!isLeader) return;
+    releaseLeadership(transcriptionId);
+    setIsLeader(false);
+  }, [transcriptionId, isLeader]);
 
   return {
     cursors: Array.from(cursors.values()),
     updateCursorPosition,
-    // Determine if editing should be locked
-    // Locked if another user with write access was active within last 30s
-    isEditLocked: () => {
-      if (!userProfile?.id) return false;
-      
-      const now = Date.now();
-      const ACTIVE_THRESHOLD = 30000; // 30 seconds
-      
-      for (const cursor of cursors.values()) {
-        // Skip self
-        if (cursor.userId === userProfile.id) continue;
-        
-        // Check if this user has write access and is recently active
-        if (cursor.hasWriteAccess && now - cursor.lastUpdate < ACTIVE_THRESHOLD) {
-          return true;
-        }
-      }
-      
-      return false;
-    },
-    // Get the active editor (user with write access who was active most recently)
-    activeEditor: () => {
-      let mostRecentEditor: UserCursor | null = null;
-      
-      for (const cursor of cursors.values()) {
-        if (!cursor.hasWriteAccess) continue;
-        
-        if (!mostRecentEditor || cursor.lastUpdate > mostRecentEditor.lastUpdate) {
-          mostRecentEditor = cursor;
-        }
-      }
-      
-      return mostRecentEditor;
-    },
+    updateCursorPositionImmediate,
+    // Leader-based locking
+    isEditLocked: !isLeader, // Locked if we are not the leader
+    currentLeader,
+    isLeader,
+    claimLeader,
+    releaseLeader,
   };
 }
