@@ -1,101 +1,102 @@
 "use client";
 
-import { useTranslations } from "@/components/locale-provider";
-import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  TranscriptionDetail,
-  TranscriptionSegment,
-} from "../../../hooks/use-transcriptions";
-import { useEditorStateRegister } from "./editor-state-context";
-import { EditorAPI } from "./hooks/editor-api-tiptap";
-import { SaveStatus, useAutoSave } from "./hooks/use-auto-save";
-import { Speaker } from "./hooks/use-speaker-actions";
-import "./index.css";
-import { TranscriptEditorContent } from "./transcript-editor-content";
+import { cn } from "@/lib/utils";
+import { useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { TranscriptionDetail } from "../../../hooks/use-transcriptions";
+import { AudioControls, InteractiveAudio } from "./audio";
+import { EditorAPI } from "./text/api";
+import { SpeakerColumn } from "./text/components/speaker-column";
+import { SpeakerRenameDialog } from "./text/components/speaker-rename-dialog";
+import { TranscriptEditorContentTipTap } from "./text/tiptap";
+import { useNavigationMode } from "./text/hooks/use-navigation-mode";
+import { ActiveSegmentHighlight } from "./text/components/active-segment-highlight";
+import { useAudioSync } from "./text/hooks/use-audio-sync";
 
-/**
- * Ensures every speakerId referenced in segments has a speaker entry with a name.
- * Fills in "Speaker N" (order of first appearance) for any missing entries.
- */
-function initSpeakers(
-  raw: Speaker[],
-  segments: TranscriptionSegment[],
-): Speaker[] {
-  const ids: string[] = [];
-  for (const seg of segments) {
-    if (seg.speakerId && !ids.includes(seg.speakerId)) ids.push(seg.speakerId);
-  }
-  return ids.map((id, i) => {
-    const existing = raw.find((s) => s.id === id);
-    return existing?.name ? existing : { id, name: `Speaker ${i + 1}` };
-  });
-}
-
-export const TranscriptEditor = ({
+export function TranscriptEditor({
   hasWriteAccess,
   hasListenAccess,
   transcription,
-  onSaveStatusChange,
 }: {
   hasWriteAccess: boolean;
   hasListenAccess: boolean;
   transcription: TranscriptionDetail;
-  onSaveStatusChange?: (status: SaveStatus) => void;
-}) => {
-  const t = useTranslations("editor");
-  const editorAPIRef = useRef<EditorAPI>(null);
-  const [segments] = useState<TranscriptionSegment[]>(
-    transcription.transcription?.words ?? [],
+}) {
+  const editorAPIRef = useRef(new EditorAPI());
+  const editorAPI = editorAPIRef.current;
+  const [audioControls, setAudioControls] = useState<AudioControls | null>(
+    null,
   );
-  const [speakers, setSpeakers] = useState<Speaker[]>(() =>
-    initSpeakers(
-      transcription.transcription?.speakers ?? [],
-      transcription.transcription?.words ?? [],
-    ),
-  );
-
-  // Auto-save with debounce
-  const { saveStatus, onChange } = useAutoSave({
-    transcriptionId: transcription.id,
-    editorAPIRef: editorAPIRef as { current: EditorAPI },
-    speakers,
-  });
-
-  // Propagate save status changes to parent
-  useEffect(() => {
-    onSaveStatusChange?.(saveStatus);
-  }, [saveStatus, onSaveStatusChange]);
-
-  // Provide getter for current editor state and register with context
-  const getState = useCallback(() => {
-    return { segments: editorAPIRef.current?.getSegments() || [], speakers };
-  }, [speakers]);
-  useEditorStateRegister(getState);
-
-  if (!transcription.transcription) {
-    return (
-      <div className="p-8 text-center text-muted-foreground">
-        {t("content.noContentAvailable")}
-      </div>
-    );
-  }
+  const { selectionUpdate } = useAudioSync(editorAPI);
+  const { state, currentIndex } = useNavigationMode(editorAPI, audioControls);
 
   return (
     <div className="h-full">
-      <TranscriptEditorContent
-        id={transcription.id}
-        editorAPIRef={editorAPIRef}
-        segments={segments}
-        speakers={speakers}
-        onChange={(newSegments) => {
-          editorAPIRef.current?.setSegments(newSegments);
-          onChange();
-        }}
-        onSpeakersChange={setSpeakers}
-        audioFileEncryption={transcription.audioFileEncryption}
-        hasWriteAccess={hasWriteAccess}
-        hasListenAccess={hasListenAccess}
-      />
+      <SpeakerRenameDialog />
+      <div className="flex flex-col h-full">
+        {false && (
+          <>
+            <div className="mb-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 border-y border-yellow-300 dark:border-yellow-700 text-sm text-yellow-800 dark:text-yellow-200 fixed w-full z-10">
+              <span className="font-semibold">{"Someone"}</span> is currently
+              editing this transcription
+            </div>
+            <div className="h-8" />{" "}
+            {/* Spacer to prevent content jump due to fixed banner */}
+          </>
+        )}
+
+        {/* Sticky top section */}
+        {createPortal(
+          <div id="header-sub-portal-container" className={cn("space-y-2")}>
+            {hasListenAccess ? (
+              <InteractiveAudio
+                editorAPI={editorAPI}
+                id={transcription.id}
+                audioFileEncryption={transcription.audioFileEncryption}
+                onAudioControlsReady={setAudioControls}
+              />
+            ) : (
+              <div className="pt-2"></div>
+            )}
+            <div className="px-4 pb-2">TODO</div>
+          </div>,
+          document.getElementById("header-sub-portal")!,
+        )}
+
+        {/* Scrollable content area */}
+        <div className="flex flex-row px-4 gap-2 flex-1 pb-6 pt-4 pb-16">
+          <SpeakerColumn
+            editorAPI={editorAPI}
+            onRenameSpeaker={() => {}}
+            readOnly={!hasWriteAccess}
+          />
+          <div className="flex-1 px-2">
+            <div className="relative">
+              {false && "TODO Cursors and highlights"}
+              <ActiveSegmentHighlight
+                editorAPI={editorAPI}
+                segmentIndex={currentIndex}
+                visible={state === "navigate" && currentIndex >= 0}
+              />
+              <div>
+                <TranscriptEditorContentTipTap
+                  speakers={transcription.transcription?.speakers || []}
+                  segments={transcription.transcription?.words || []}
+                  editorAPI={editorAPI}
+                  onChange={(segments) => {
+                    editorAPI.emit("change");
+                  }}
+                  onSelectionUpdate={(selection) => {
+                    selectionUpdate();
+                  }}
+                  onUpdate={() => {}}
+                  hasWriteAccess={hasWriteAccess}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
-};
+}

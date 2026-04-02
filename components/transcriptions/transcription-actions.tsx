@@ -46,9 +46,9 @@ import { useTranscriptionExportModal } from "./dialogs/transcription-export-dial
 import { useTranscriptionRenameModal } from "./dialogs/transcription-rename-dialog";
 import { useTranscriptionSetProjectModal } from "./dialogs/transcription-set-project-dialog";
 import { useTranscriptionShareDialog } from "./dialogs/transcription-share-dialog";
-import { useOptionalEditorState } from "./editor/editor-state-context";
-import { SaveStatus } from "./editor/hooks/use-auto-save";
-import { useTranscriptionHistoryModal } from "./transcription-history-sheet";
+import { useOptionalEditorState } from "./old-editor/editor-state-context";
+import { SaveStatus } from "./old-editor/hooks/use-auto-save";
+import { useTranscriptionHistoryModal } from "./dialogs/transcription-history-sheet";
 
 type TranscriptionActionsProps = {
   transcriptionId: string;

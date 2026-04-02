@@ -34,5 +34,7 @@ export function segmentsToHtml(segments: TranscriptionSegment[]): string {
     html += content;
   }
 
+  html = "<p>" + html.replace(/<br><br>/gm, "</p><p>") + "</p>"; // Wrap in a paragraph for better structure
+
   return html;
 }

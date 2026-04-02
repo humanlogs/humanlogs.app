@@ -10,7 +10,7 @@ import { TranscriptionExportDialog } from "@/components/transcriptions/dialogs/t
 import { TranscriptionRenameDialog } from "@/components/transcriptions/dialogs/transcription-rename-dialog";
 import { TranscriptionSetProjectDialog } from "@/components/transcriptions/dialogs/transcription-set-project-dialog";
 import { TranscriptionShareDialog } from "@/components/transcriptions/dialogs/transcription-share-dialog";
-import { TranscriptionHistorySheet } from "@/components/transcriptions/transcription-history-sheet";
+import { TranscriptionHistorySheet } from "@/components/transcriptions/dialogs/transcription-history-sheet";
 import {
   SidebarInset,
   SidebarProvider,

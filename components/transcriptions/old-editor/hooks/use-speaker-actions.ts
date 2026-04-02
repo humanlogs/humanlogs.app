@@ -109,8 +109,8 @@ export function useSpeakerActions({
         updatedSegments[i]?.speakerId === currentId &&
         !updatedSegments[i].text.includes("\n\n")
       ) {
-        i++;
         if (updatedSegments[i]) updatedSegments[i].speakerId = targetSpeakerId; // skip following segments with target speakerId to avoid unnecessary updates
+        i++;
       }
 
       onSegmentsChange(updatedSegments);
@@ -136,9 +136,6 @@ export function useSpeakerActions({
             break;
           case "lowercase":
             newText = seg.text.toLowerCase();
-            break;
-          case "parenthesis":
-            newText = `(${seg.text})`;
             break;
         }
 

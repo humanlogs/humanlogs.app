@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import _ from "lodash";
 import { UserCog, UserRoundPen, UserRoundPlus, Users } from "lucide-react";
+import { useEffect } from "react";
 import { getSpeakerColorClass } from "../../../../lib/utils";
 import {
   SpeakerOptionsData,
@@ -178,6 +179,14 @@ export function SpeakerColumn({
     editorAPIRef as { current: EditorAPI },
   );
   recalculateSpeakerRef.current = recalculate;
+  useEffect(() => {
+    console.log(
+      "[SpeakerColumn] Subscribing to segment changes for speaker position recalculation",
+    );
+    editorAPIRef.current.onSegmentsChange(() =>
+      recalculateSpeakerRef.current(),
+    );
+  }, []);
 
   if (positions.length === 0) return <div className="w-24 shrink-0" />;
 

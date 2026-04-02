@@ -307,6 +307,9 @@ export function TranscriptEditorContent({
     }
   }, [editorStateContext, applyPauseConfiguration, applySpeakerOptions]);
 
+  // Two-way sync between cursor position and audio playback
+  useAudioSync(editorAPIRef.current!);
+
   // Search and replace
   const searchReplace = useSearchReplace(
     editorAPIRef as { current: EditorAPI },
@@ -319,9 +322,6 @@ export function TranscriptEditorContent({
     searchReplace.matches,
     searchReplace.currentMatchIndex,
   );
-
-  // Two-way sync between cursor position and audio playback
-  useAudioSync(editorAPIRef.current!);
 
   // Global keyboard shortcuts for search
   useEffect(() => {

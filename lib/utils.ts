@@ -5,6 +5,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export const UNKNOWN_SPEAKER_COLORS = {
+  hex: "#6b7280",
+  tailwind: "bg-gray-500/10 border-gray-500/50 text-gray-500",
+};
+
 // Shared speaker color palette for consistent coloring across components
 export const SPEAKER_COLORS = [
   {

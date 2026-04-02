@@ -34,14 +34,19 @@ export function useSearchHighlights(
       const editorRect = editorAPI.getBoundingClientRect();
       const positions: HighlightPosition[] = [];
 
-      matches.forEach((match, matchIdx) => {
-        // Calculate absolute character offset for this match
-        let charOffset = 0;
-        for (let i = 0; i < match.segmentIndex; i++) {
-          charOffset += editorAPI.getSegments()[i].text.length;
-        }
-        charOffset += match.matchIndex;
+      // Pre-compute cumulative character offsets for each segment (performance optimization)
+      const segments = editorAPI.getSegments();
+      const segmentOffsets: number[] = [];
+      let cumulativeOffset = 0;
+      for (let i = 0; i < segments.length; i++) {
+        segmentOffsets[i] = cumulativeOffset;
+        cumulativeOffset += segments[i].text.length;
+      }
 
+      matches.forEach((match, matchIdx) => {
+        // Use pre-computed offset instead of recalculating for each match
+        const charOffset =
+          segmentOffsets[match.segmentIndex] + match.matchIndex;
         const matchEnd = charOffset + match.length;
 
         // Use EditorAPI to get the bounding rect for this range
@@ -61,24 +66,34 @@ export function useSearchHighlights(
       setHighlights(positions);
     };
 
-    // Initial update
+    // Debounced version for event handlers (500ms)
+    let debounceTimer: NodeJS.Timeout;
+    const debouncedUpdateHighlights = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(updateHighlights, 500);
+    };
+
+    // Initial update (immediate, no debounce)
     updateHighlights();
 
-    // Update on scroll
+    // Update on scroll (debounced)
     const cleanupScroll = editorAPI.addEventListener(
       "scroll",
-      updateHighlights,
+      debouncedUpdateHighlights,
     );
 
-    // Update on window events
-    const handleWindowEvent = () => updateHighlights();
+    // Update on window events (debounced)
+    const handleWindowEvent = () => debouncedUpdateHighlights();
     window.addEventListener("scroll", handleWindowEvent, true);
     window.addEventListener("resize", handleWindowEvent);
 
-    // Update on editor mutations
-    const cleanupMutations = editorAPI.observeMutations(updateHighlights);
+    // Update on editor mutations (debounced)
+    const cleanupMutations = editorAPI.observeMutations(
+      debouncedUpdateHighlights,
+    );
 
     return () => {
+      clearTimeout(debounceTimer);
       cleanupScroll();
       cleanupMutations();
       window.removeEventListener("scroll", handleWindowEvent, true);

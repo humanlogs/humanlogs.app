@@ -6,22 +6,19 @@ import {
   TutorialWelcomeDialog,
   useTutorialWelcomeModal,
 } from "../dialogs/tutorial-welcome-dialog";
-import { AudioProvider } from "./editor/audio-context";
+import { AudioProvider } from "./editor/audio/audio-context";
 import { TranscriptEditor } from "./editor/editor";
-import { SaveStatus } from "./editor/hooks/use-auto-save";
 
 type TranscriptionEditorProps = {
   hasWriteAccess: boolean;
   hasListenAccess: boolean;
   transcription: TranscriptionDetail;
-  onSaveStatusChange?: (status: SaveStatus) => void;
 };
 
 export function TranscriptionEditor({
   hasWriteAccess,
   hasListenAccess,
   transcription,
-  onSaveStatusChange,
 }: TranscriptionEditorProps) {
   const tutorialWelcomeModal = useTutorialWelcomeModal();
 
@@ -44,7 +41,6 @@ export function TranscriptionEditor({
           hasWriteAccess={hasWriteAccess}
           hasListenAccess={hasListenAccess}
           transcription={transcription}
-          onSaveStatusChange={onSaveStatusChange}
         />
         <TutorialWelcomeDialog />
       </div>

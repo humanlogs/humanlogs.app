@@ -18,12 +18,11 @@ import { TranscriptionSegment } from "@/hooks/use-transcriptions";
  * -> To ensure space/word/space pattern, we'll replace the spacing by [spacing, word, spacing] to be exact
  * - Spacing segments where word before or word after have a different speakerId get changed to text="\n\n" and use the speakerId of the previous word
  * -> This makes the tailing or heading spaces disappear, it needs a smarter replacements to keep the merged spacing in case the text already includes a \n\n
+ *
+ * 5. We will NEVER change the user text whatever he's doing in the editor we'll try to adapt
  */
 export function normalizeEditorSegments(
   segments: TranscriptionSegment[],
-  options?: {
-    addPauses?: boolean; // whether to add (pause) segments for long silences, default: true
-  },
 ): TranscriptionSegment[] {
   if (segments.length === 0) return segments;
 
@@ -211,90 +210,5 @@ export function normalizeEditorSegments(
     };
   });
 
-  // ---------------------------------------------------------------------------
-  // Step 4: Transform special spacing segments.
-  //   a) Duration > 2 s → expand to [spacing(" "), word("(pause)"), spacing(" ")]
-  //   b) Speaker change at boundary → replace text with "\n\n"
-  //      If text already contains "\n\n" the existing text is preserved so we
-  //      don't double-insert line breaks.
-  // ---------------------------------------------------------------------------
-  const result: TranscriptionSegment[] = [];
-
-  for (let i = 0; i < withMeta.length; i++) {
-    const seg = withMeta[i];
-
-    if (seg.type !== "spacing") {
-      result.push(seg);
-      continue;
-    }
-
-    let beforeWord: TranscriptionSegment | undefined;
-    let afterWord: TranscriptionSegment | undefined;
-    for (let j = i - 1; j >= 0; j--) {
-      if (withMeta[j].type === "word") {
-        beforeWord = withMeta[j];
-        break;
-      }
-    }
-    for (let j = i + 1; j < withMeta.length; j++) {
-      if (withMeta[j].type === "word") {
-        afterWord = withMeta[j];
-        break;
-      }
-    }
-
-    const speakerChange =
-      beforeWord?.speakerId !== undefined &&
-      afterWord?.speakerId !== undefined &&
-      beforeWord.speakerId !== afterWord.speakerId;
-
-    const duration =
-      seg.start !== undefined && seg.end !== undefined
-        ? seg.end - seg.start
-        : 0;
-    const tooLong = duration > 2 && !seg.text.includes("\n");
-
-    if (tooLong && !speakerChange && options?.addPauses) {
-      // Expand to spacing + (pause) + spacing
-      const mid =
-        seg.start !== undefined && seg.end !== undefined
-          ? (seg.start + seg.end) / 2
-          : undefined;
-      result.push({
-        type: "spacing",
-        text: " ",
-        start: seg.start,
-        end: mid,
-        speakerId: seg.speakerId,
-      });
-      result.push({
-        type: "word",
-        text: "(pause)",
-        start: seg.start,
-        end: seg.end,
-        speakerId: seg.speakerId,
-      });
-      result.push({
-        type: "spacing",
-        text: " ",
-        start: mid,
-        end: seg.end,
-        speakerId: seg.speakerId,
-      });
-    } else if (speakerChange) {
-      // Use "\n\n" as the separator text (preserve if already present)
-      const text = seg.text.includes("\n\n") ? seg.text : "\n\n";
-      result.push({ ...seg, text, speakerId: beforeWord?.speakerId });
-    } else {
-      result.push(seg);
-    }
-  }
-
-  const cleaned = result.map((seg) =>
-    seg.type === "spacing"
-      ? { ...seg, text: seg.text.replace(/ +/gm, " ") }
-      : seg,
-  );
-
-  return cleaned;
+  return withMeta;
 }

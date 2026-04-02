@@ -1,8 +1,8 @@
 "use client";
 
 import { CannotAccessTranscription } from "@/components/encryption";
-import { EditorStateProvider } from "@/components/transcriptions/editor/editor-state-context";
-import { SaveStatus } from "@/components/transcriptions/editor/hooks/use-auto-save";
+import { EditorStateProvider } from "@/components/transcriptions/old-editor/editor-state-context";
+import { SaveStatus } from "@/components/transcriptions/old-editor/hooks/use-auto-save";
 import { TranscriptionActions } from "@/components/transcriptions/transcription-actions";
 import { TranscriptionEditor } from "@/components/transcriptions/transcription-editor";
 import { TranscriptionFailed } from "@/components/transcriptions/transcription-failed";
@@ -145,7 +145,6 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
           hasWriteAccess={!!hasWriteAccess}
           hasListenAccess={!!hasListenAccess}
           transcription={transcription}
-          onSaveStatusChange={setSaveStatus}
         />
       )}
     </EditorStateProvider>

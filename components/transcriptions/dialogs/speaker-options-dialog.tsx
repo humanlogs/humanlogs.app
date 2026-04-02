@@ -18,7 +18,10 @@ import { useTranslations } from "@/components/locale-provider";
 import * as React from "react";
 import { toast } from "sonner";
 import { useModal } from "../../use-modal";
-import { getSpeakerLabel, Speaker } from "../editor/hooks/use-speaker-actions";
+import {
+  getSpeakerLabel,
+  Speaker,
+} from "../old-editor/hooks/use-speaker-actions";
 import { AlertCircle } from "lucide-react";
 
 export type SpeakerOptionsModalData = {
@@ -220,7 +223,6 @@ export function SpeakerOptionsDialog() {
                   { label: "Bold", value: "bold" },
                   { label: "Italic", value: "italic" },
                   { label: "Underline", value: "underline" },
-                  { label: "Parenthesis", value: "parenthesis" },
                 ]}
                 value={modification}
                 onChange={setModification}

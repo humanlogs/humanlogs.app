@@ -8,8 +8,8 @@
 
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { Editor } from "@tiptap/react";
-import { segmentsToHtml } from "../utils/html";
 import _ from "lodash";
+import { segmentsToHtml } from "../utils/html";
 
 /**
  * Creates an EditorAPI instance backed by a Tiptap editorRef.current.
@@ -135,7 +135,6 @@ export function createTiptapEditorAPI(
     },
 
     setSegments(segments) {
-      segmentsRef.current = segments;
       this.cachedSpeakerPositions = {
         scrollTop: 0,
         totalLength: 0,
@@ -148,14 +147,29 @@ export function createTiptapEditorAPI(
           segmentsRef.current.map((s) => s.modifiers?.join("")).join("")
       ) {
         // No change in text content, skip update to avoid disrupting cursor position
+        segmentsRef.current = segments;
+        this.segmentChangesCallbacks.forEach((cb) => cb());
         return;
       }
+      segmentsRef.current = segments;
+      this.segmentChangesCallbacks.forEach((cb) => cb());
 
       if (editorRef.current) {
         const html = segmentsToHtml(segments);
-        console.log("Generated HTML:", html);
         editorRef.current.commands.setContent(html, { emitUpdate: false });
       }
+    },
+
+    segmentChangesCallbacks: [] as Array<() => void>,
+
+    onSegmentsChange(callback: () => void) {
+      this.segmentChangesCallbacks.push(callback);
+    },
+
+    offSegmentsChange(callback: () => void) {
+      this.segmentChangesCallbacks = this.segmentChangesCallbacks.filter(
+        (cb) => cb !== callback,
+      );
     },
 
     getSelectionOffsets() {
@@ -198,7 +212,10 @@ export function createTiptapEditorAPI(
         this.cachedSpeakerPositions.scrollTop ===
           editorRef.current.view.dom.scrollTop &&
         this.cachedSpeakerPositions.totalLength ===
-          editorRef.current.getText().length
+          editorRef.current.getText().length &&
+        this.cachedSpeakerPositions.positions.every((pos) => {
+          pos.speakerId === segmentsRef.current[pos.index]?.speakerId;
+        })
       ) {
         try {
           // Case 2: first or last cached position changed position
@@ -238,10 +255,11 @@ export function createTiptapEditorAPI(
         const seg = segmentsRef.current[i];
 
         if (
+          seg.speakerId &&
           seg.type === "word" &&
           (i === 0 || segmentsRef.current[i - 1].text.includes("\n\n"))
         ) {
-          seenSpeakers.add(seg.speakerId || "?");
+          seenSpeakers.add(seg.speakerId);
 
           try {
             // Get absolute coordinates from Tiptap
@@ -258,7 +276,7 @@ export function createTiptapEditorAPI(
 
             if (visible) {
               positions.push({
-                speakerId: seg.speakerId || "?",
+                speakerId: seg.speakerId,
                 index: i,
                 top: relativeTop,
                 charOffset: charOffset,
@@ -432,4 +450,9 @@ export interface EditorAPI {
 
   // Range measurements
   getRangeRect(start: number, end: number): DOMRect | null;
+
+  // Events
+  segmentChangesCallbacks: Array<() => void>;
+  onSegmentsChange(callback: () => void): void;
+  offSegmentsChange(callback: () => void): void;
 }
