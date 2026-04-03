@@ -2,11 +2,12 @@
 
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { Editor, EditorContent } from "@tiptap/react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { EditorAPI } from "./api";
 import { useTiptapEditor } from "./hooks/use-tiptap-editor";
 
 interface TranscriptEditorContentProps {
+  transcriptionId: string;
   editorAPI: EditorAPI;
   segments: TranscriptionSegment[];
   speakers: Array<{ id: string; name?: string }>;
@@ -17,6 +18,7 @@ interface TranscriptEditorContentProps {
 }
 
 export function TranscriptEditorContentTipTap({
+  transcriptionId,
   editorAPI,
   segments,
   speakers,
@@ -27,6 +29,7 @@ export function TranscriptEditorContentTipTap({
 }: TranscriptEditorContentProps) {
   // Initialize Tiptap editor with transaction events
   const { editor: tiptapEditor, segmentsRef } = useTiptapEditor({
+    transcriptionId,
     segments, // Replace \n\n with space for better handling in Tiptap
     onChange,
     editable: hasWriteAccess,

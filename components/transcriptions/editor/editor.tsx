@@ -66,8 +66,6 @@ export function TranscriptEditor({
     onSaveStatusChange?.(saveStatus);
   }, [saveStatus, onSaveStatusChange]);
 
-  // useBracketWrap();
-
   return (
     <div className="h-full">
       <SpeakerRenameDialog />
@@ -114,6 +112,7 @@ export function TranscriptEditor({
               />
               <div>
                 <TranscriptEditorContentTipTap
+                  transcriptionId={transcription.id}
                   speakers={transcription.transcription?.speakers || []}
                   segments={transcription.transcription?.words || []}
                   editorAPI={editorAPI}

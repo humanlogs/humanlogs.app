@@ -180,5 +180,27 @@ export function useAutoSave({
     };
   }, []);
 
+  // Warn user before leaving page if there are unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Check if there are pending saves or unsaved changes
+      const hasPendingSave =
+        saveTimeoutRef.current !== null ||
+        maxDebounceTimeoutRef.current !== null;
+
+      if (hasPendingSave) {
+        // Standard way to trigger browser warning
+        e.preventDefault();
+        e.returnValue = ""; // Chrome requires returnValue to be set
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
   return { saveStatus, onChange };
 }

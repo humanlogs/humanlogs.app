@@ -1,7 +1,18 @@
 import { Server as HTTPServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
+import * as Y from "yjs";
+import * as syncProtocol from "y-protocols/sync";
+import * as awarenessProtocol from "y-protocols/awareness";
 
 let io: SocketIOServer | null = null;
+
+// Store Y.js documents for each transcription
+// Map<transcriptionId, Y.Doc>
+const yjsDocuments = new Map<string, Y.Doc>();
+
+// Store awareness states for each transcription
+// Map<transcriptionId, Awareness>
+const yjsAwareness = new Map<string, awarenessProtocol.Awareness>();
 
 // Track the current editor (leader) for each transcription
 // Map<transcriptionId, { userId: string; userName: string; socketId: string; timestamp: number }>
@@ -184,6 +195,91 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
             socketId: socket.id,
             ...data.position,
           });
+      },
+    );
+
+    // Handle Y.js sync request
+    socket.on(
+      "yjs:sync-request",
+      (data: { transcriptionId: string; stateVector: number[] }) => {
+        const transcriptionId = data.transcriptionId;
+
+        // Get or create Y.js document for this transcription
+        let doc = yjsDocuments.get(transcriptionId);
+        if (!doc) {
+          doc = new Y.Doc();
+          yjsDocuments.set(transcriptionId, doc);
+          console.log(`[Y.js] Created new document for ${transcriptionId}`);
+        }
+
+        // Get or create awareness for this transcription
+        let awareness = yjsAwareness.get(transcriptionId);
+        if (!awareness) {
+          awareness = new awarenessProtocol.Awareness(doc);
+          yjsAwareness.set(transcriptionId, awareness);
+        }
+
+        // Send state update to the requesting client
+        const stateVector = new Uint8Array(data.stateVector);
+        const update = Y.encodeStateAsUpdate(doc, stateVector);
+
+        socket.emit(`yjs:sync:${transcriptionId}`, update.buffer);
+        socket.emit(`yjs:synced:${transcriptionId}`);
+        console.log(`[Y.js] Sent sync response to ${socket.id}`);
+      },
+    );
+
+    // Handle Y.js document updates
+    socket.on(
+      "yjs:update",
+      (data: { transcriptionId: string; update: number[] }) => {
+        const transcriptionId = data.transcriptionId;
+
+        // Get or create document
+        let doc = yjsDocuments.get(transcriptionId);
+        if (!doc) {
+          doc = new Y.Doc();
+          yjsDocuments.set(transcriptionId, doc);
+        }
+
+        // Apply the update to the server's document
+        const update = new Uint8Array(data.update);
+        Y.applyUpdate(doc, update);
+
+        // Broadcast the update to all other clients in the room
+        socket
+          .to(`transcription:${transcriptionId}`)
+          .emit(`yjs:sync:${transcriptionId}`, update.buffer);
+      },
+    );
+
+    // Handle Y.js awareness updates
+    socket.on(
+      "yjs:awareness",
+      (data: { transcriptionId: string; update: number[] }) => {
+        const transcriptionId = data.transcriptionId;
+
+        // Get or create awareness
+        let doc = yjsDocuments.get(transcriptionId);
+        if (!doc) {
+          doc = new Y.Doc();
+          yjsDocuments.set(transcriptionId, doc);
+        }
+
+        let awareness = yjsAwareness.get(transcriptionId);
+        if (!awareness) {
+          awareness = new awarenessProtocol.Awareness(doc);
+          yjsAwareness.set(transcriptionId, awareness);
+        }
+
+        // Apply the awareness update
+        const update = new Uint8Array(data.update);
+        awarenessProtocol.applyAwarenessUpdate(awareness, update, socket.id);
+
+        // Broadcast the awareness update to all other clients
+        socket
+          .to(`transcription:${transcriptionId}`)
+          .emit(`yjs:awareness:${transcriptionId}`, update.buffer);
       },
     );
 

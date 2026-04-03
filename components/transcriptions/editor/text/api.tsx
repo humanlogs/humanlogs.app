@@ -9,7 +9,6 @@
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { Editor } from "@tiptap/react";
 import EventEmitter from "events";
-import _ from "lodash";
 import { segmentsToHtml } from "./utils/html";
 
 /**
@@ -48,6 +47,12 @@ export class EditorAPI extends EventEmitter {
     this.emit("segmentsChange");
     this.emit("speakersChange");
     this.emit("change");
+
+    this.emit("ready");
+  }
+
+  isReady() {
+    return this.editorRef.current !== null;
   }
 
   getEditor() {
