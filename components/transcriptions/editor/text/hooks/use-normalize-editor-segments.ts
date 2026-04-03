@@ -23,6 +23,7 @@ import { TranscriptionSegment } from "@/hooks/use-transcriptions";
  */
 export function normalizeEditorSegments(
   segments: TranscriptionSegment[],
+  options?: { initialFormatting?: boolean },
 ): TranscriptionSegment[] {
   if (segments.length === 0) return segments;
 
@@ -218,6 +219,22 @@ export function normalizeEditorSegments(
       modifiers,
     };
   });
+
+  if (options?.initialFormatting) {
+    // Ensure any change of speaker is separated by a double char element (preferably \n\n)
+    for (let i = 1; i < withMeta.length - 1; i++) {
+      const current = withMeta[i];
+      if (current.type === "spacing" && current.text.length < 2) {
+        if (
+          withMeta[i - 1] &&
+          withMeta[i + 1] &&
+          withMeta[i - 1]?.speakerId !== withMeta[i + 1]?.speakerId
+        ) {
+          withMeta[i].text = "\n\n";
+        }
+      }
+    }
+  }
 
   return withMeta;
 }

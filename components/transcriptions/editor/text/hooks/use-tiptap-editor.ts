@@ -20,6 +20,7 @@ import * as Y from "yjs";
 import { AutoWrapExtension } from "../extensions/auto-wrap-extension";
 import { segmentsToHtml } from "../utils/html";
 import { applyTransactionOnSegments } from "../utils/transaction-on-segments";
+import { normalizeEditorSegments } from "./use-normalize-editor-segments";
 
 const SpeakerParagraph = Paragraph.extend({
   addAttributes() {
@@ -85,7 +86,9 @@ export function useTiptapEditor({
   onSelectionUpdate,
 }: UseTiptapEditorOptions) {
   // Track the last segments to avoid redundant updates
-  const segmentsRef = useRef<TranscriptionSegment[] | null>(segments);
+  const segmentsRef = useRef<TranscriptionSegment[] | null>(
+    normalizeEditorSegments(segments, { initialFormatting: true }),
+  );
   const segmentsHtmlRef = useRef<any>("");
   if (!segmentsHtmlRef.current)
     segmentsHtmlRef.current = segmentsToHtml(segments);
@@ -180,19 +183,6 @@ export function useTiptapEditor({
         }),
         // Auto-wrap selected text with matching pairs
         AutoWrapExtension,
-        // Collaboration extensions - only on client side after mount
-        ...(isMounted && yjsDoc.current
-          ? (console.log("[Y.js] Adding Collaboration extension to editor"),
-            [
-              Collaboration.configure({
-                document: yjsDoc.current,
-                field: "default", // Explicitly set the field name
-              }),
-            ])
-          : (console.log(
-              "[Y.js] Skipping Collaboration extension (not mounted yet)",
-            ),
-            [])),
       ],
       editable,
       // When collaboration is enabled, start empty - Y.js will handle content

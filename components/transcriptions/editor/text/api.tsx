@@ -9,7 +9,6 @@
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { Editor } from "@tiptap/react";
 import EventEmitter from "events";
-import { segmentsToHtml } from "./utils/html";
 
 /**
  * Creates an EditorAPI instance backed by a Tiptap editorRef.current.
@@ -38,6 +37,19 @@ export class EditorAPI extends EventEmitter {
     this.editorRef = editorRef;
     this.segmentsRef = segmentsRef;
     this.speakersRef.current = speakers;
+
+    // Init speakers with default names
+    for (const seg of segmentsRef.current) {
+      if (
+        seg.speakerId &&
+        !this.speakersRef.current.find((s) => s.id === seg.speakerId)
+      ) {
+        this.speakersRef.current.push({
+          id: seg.speakerId,
+          name: `Speaker ${this.speakersRef.current.length + 1}`,
+        });
+      }
+    }
 
     (window as any).editorAPI = this; // Expose for debugging
 
