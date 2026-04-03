@@ -124,7 +124,7 @@ export const InteractiveAudio = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeedVal] = useState(1);
   const [totalDuration, setTotalDuration] = useState<number | undefined>(0);
-  const [segmentsVersion, setSegmentsVersion] = useState(0); // Force re-render on segment changes
+  const [segmentsVersion, setSegmentsVersion] = useState(""); // Force re-render on segment changes
 
   // Toggle play/pause
   const togglePlayPause = useCallback(() => {
@@ -306,7 +306,7 @@ export const InteractiveAudio = ({
       setTotalDuration(duration);
 
       // Restore playback position and state after re-creation
-      if (lastPositionRef.current > 0 && segmentsVersion > 0) {
+      if (lastPositionRef.current > 0) {
         wavesurfer.seekTo(lastPositionRef.current / duration);
 
         // Restore playback speed
@@ -361,17 +361,8 @@ export const InteractiveAudio = ({
 
     loadAudio();
 
-    // Listen for segment changes to update speaker colors
-    const handleSegmentsChange = () => {
-      // Trigger re-creation of waveform with new segment colors
-      setSegmentsVersion((v) => v + 1);
-    };
-
-    editorAPI.on("segmentsChange", handleSegmentsChange);
-
     // Cleanup
     return () => {
-      editorAPI.off("segmentsChange", handleSegmentsChange);
       if (segmentTimeoutRef.current) {
         clearTimeout(segmentTimeoutRef.current);
       }
@@ -382,14 +373,7 @@ export const InteractiveAudio = ({
       }
       wavesurfer.destroy();
     };
-  }, [
-    id,
-    registerSeekHandler,
-    setCurrentTime,
-    editorAPI,
-    segmentsVersion,
-    playbackSpeed,
-  ]); // Re-create when segments change
+  }, [id, segmentsVersion]); // Re-create when segments change
 
   // Notify parent of audio controls whenever they change
   useEffect(() => {
