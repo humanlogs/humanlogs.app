@@ -15,6 +15,7 @@ import { useEffect, useRef } from "react";
 import { segmentsToHtml } from "../utils/html";
 import { normalizeEditorSegments } from "./use-normalize-editor-segments";
 import { applyTransactionOnSegments } from "../utils/transaction-on-segments";
+import { AutoWrapExtension } from "../extensions/auto-wrap-extension";
 
 const SpeakerParagraph = Paragraph.extend({
   addAttributes() {
@@ -110,6 +111,8 @@ export function useTiptapEditor({
       Placeholder.configure({
         placeholder: "Start typing…",
       }),
+      // Auto-wrap selected text with matching pairs
+      AutoWrapExtension,
     ],
     editable,
     content: segmentsHtmlRef.current,
@@ -121,8 +124,6 @@ export function useTiptapEditor({
       },
     },
     onTransaction: ({ editor, transaction }) => {
-      console.log("[Tiptap] Transaction:", transaction.steps);
-
       if (
         transaction.steps.length === 0 ||
         !segmentsRef.current ||

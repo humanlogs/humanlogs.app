@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
+import { UserCursor } from "../../../../hooks/use-transcription-cursors";
 import { TranscriptionSegment } from "../../../../hooks/use-transcriptions";
 import { downloadAndDecryptAudio } from "../../../../lib/audio-decryption.browser";
 import { getSpeakerColor } from "../../../../lib/utils";
-import { EditorAPI } from "../text/api";
-import { useAudio } from "./audio-context";
 import "../index.css"; // Import custom styles for canvas
+import { EditorAPI } from "../text/api";
+import { getUserColor } from "../text/components/remote-cursors";
+import { useAudio } from "./audio-context";
 
 // Audio controls interface
 export interface AudioControls {
@@ -70,26 +72,59 @@ const getSpeakerSegments = (oSegments: TranscriptionSegment[]) => {
   return segments;
 };
 
+// Convert character offset to time using segments
+function offsetToTime(
+  offset: number,
+  segments: TranscriptionSegment[],
+): number {
+  let currentOffset = 0;
+
+  for (const segment of segments) {
+    const segmentLength = segment.text.length;
+
+    if (currentOffset + segmentLength >= offset) {
+      // Cursor is within this segment
+      const positionInSegment = offset - currentOffset;
+      const ratio = positionInSegment / segmentLength;
+      const segmentDuration = (segment.end || 0) - (segment.start || 0);
+      return (segment.start || 0) + segmentDuration * ratio;
+    }
+
+    currentOffset += segmentLength;
+  }
+
+  // If offset is beyond all segments, return the end time of the last segment
+  return segments[segments.length - 1]?.end || 0;
+}
+
 export const InteractiveAudio = ({
   editorAPI,
   id,
   audioFileEncryption,
   onAudioControlsReady,
+  cursors = [],
 }: {
   editorAPI: EditorAPI;
   id: string;
   audioFileEncryption?: string;
   onAudioControlsReady?: (controls: AudioControls) => void;
+  cursors?: UserCursor[];
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
   const onTimeUpdateRef = useRef<(currentTime: number) => void>(() => {});
+  const speakerSegmentsRef = useRef<
+    (Partial<TranscriptionSegment> & { color: string })[]
+  >([]);
+  const lastPositionRef = useRef<number>(0); // Track position across re-renders
+  const wasPlayingRef = useRef<boolean>(false); // Track playing state across re-renders
   const { setCurrentTime, registerSeekHandler } = useAudio();
   const segmentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const blobUrlRef = useRef<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeedVal] = useState(1);
   const [totalDuration, setTotalDuration] = useState<number | undefined>(0);
+  const [segmentsVersion, setSegmentsVersion] = useState(0); // Force re-render on segment changes
 
   // Toggle play/pause
   const togglePlayPause = useCallback(() => {
@@ -167,8 +202,8 @@ export const InteractiveAudio = ({
 
   useEffect(() => {
     if (!containerRef.current) return;
-
-    const speakerSegments = getSpeakerSegments(editorAPI.getSegments());
+    // Initialize speaker segments from current segments
+    speakerSegmentsRef.current = getSpeakerSegments(editorAPI.getSegments());
 
     // Initialize wavesurfer with symmetrical mono waveform
     const wavesurfer = WaveSurfer.create({
@@ -216,8 +251,8 @@ export const InteractiveAudio = ({
           const timePosition = (i / width) * wavesurfer.getDuration();
           let barColor = "#4a5568"; // default gray
 
-          // Find which speaker segment this position belongs to
-          for (const segment of speakerSegments) {
+          // Find which speaker segment this position belongs to - use ref for latest segments
+          for (const segment of speakerSegmentsRef.current) {
             if (
               timePosition >= (segment.start || 0) &&
               timePosition <= (segment.end || 0)
@@ -252,28 +287,50 @@ export const InteractiveAudio = ({
       }
     });
 
-    // Update current time as audio plays
-    wavesurfer.on("timeupdate", (currentTime) => {
+    // Update time as audio plays
+    wavesurfer.on("audioprocess", (currentTime: number) => {
+      lastPositionRef.current = currentTime; // Save position
       setCurrentTime(currentTime);
       if (onTimeUpdateRef.current) onTimeUpdateRef.current(currentTime);
     });
 
     // Also update on seek
-    wavesurfer.on("seeking", (currentTime) => {
+    wavesurfer.on("seeking", (currentTime: number) => {
+      lastPositionRef.current = currentTime; // Save position
       setCurrentTime(currentTime);
+      if (onTimeUpdateRef.current) onTimeUpdateRef.current(currentTime);
     });
 
     wavesurfer.on("ready", () => {
       const duration = wavesurfer.getDuration();
       setTotalDuration(duration);
+
+      // Restore playback position and state after re-creation
+      if (lastPositionRef.current > 0 && segmentsVersion > 0) {
+        wavesurfer.seekTo(lastPositionRef.current / duration);
+
+        // Restore playback speed
+        const mediaElement = wavesurfer.getMediaElement();
+        if (mediaElement) {
+          mediaElement.preservesPitch = true;
+          mediaElement.playbackRate = playbackSpeed;
+        }
+
+        // Restore playing state
+        if (wasPlayingRef.current) {
+          wavesurfer.play();
+        }
+      }
     });
 
     // Track play/pause state
     wavesurfer.on("play", () => {
+      wasPlayingRef.current = true;
       setIsPlaying(true);
     });
 
     wavesurfer.on("pause", () => {
+      wasPlayingRef.current = false;
       setIsPlaying(false);
     });
 
@@ -304,8 +361,17 @@ export const InteractiveAudio = ({
 
     loadAudio();
 
+    // Listen for segment changes to update speaker colors
+    const handleSegmentsChange = () => {
+      // Trigger re-creation of waveform with new segment colors
+      setSegmentsVersion((v) => v + 1);
+    };
+
+    editorAPI.on("segmentsChange", handleSegmentsChange);
+
     // Cleanup
     return () => {
+      editorAPI.off("segmentsChange", handleSegmentsChange);
       if (segmentTimeoutRef.current) {
         clearTimeout(segmentTimeoutRef.current);
       }
@@ -316,7 +382,14 @@ export const InteractiveAudio = ({
       }
       wavesurfer.destroy();
     };
-  }, [id, registerSeekHandler, setCurrentTime]); // Re-run if speaker segments change only
+  }, [
+    id,
+    registerSeekHandler,
+    setCurrentTime,
+    editorAPI,
+    segmentsVersion,
+    playbackSpeed,
+  ]); // Re-create when segments change
 
   // Notify parent of audio controls whenever they change
   useEffect(() => {
@@ -351,8 +424,48 @@ export const InteractiveAudio = ({
 
   return (
     <div className="w-full pb-0 px-4">
-      <div className="w-full bg-slate-100 dark:bg-slate-900 h-10 relative overflow-hidden rounded-b-md">
+      <div className="w-full bg-slate-100 dark:bg-slate-900 h-10 relative overflow-visible rounded-b-md mb-5">
         <div ref={containerRef} className="w-full h-full" />
+        {/* Render cursor indicators */}
+        {cursors.map((cursor) => {
+          const segments = editorAPI.getSegments();
+          const cursorTime = offsetToTime(cursor.endOffset, segments);
+          const duration = totalDuration || 1;
+          const leftPercent = (cursorTime / duration) * 100;
+          const color = getUserColor(cursor.userId);
+
+          return (
+            <div
+              key={cursor.socketId}
+              className="absolute bottom-0 pointer-events-none z-10 transition-all duration-100 ease-out"
+              style={{
+                left: `${leftPercent}%`,
+                transform: "translateX(-50%)",
+                bottom: "-3px",
+              }}
+            >
+              {/* Cursor line */}
+              <div
+                className="w-0.5 h-2 animate-pulse"
+                style={{ backgroundColor: color }}
+              />
+              {/* Small label */}
+              <div
+                className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-medium px-1 rounded-full shadow-lg"
+                style={{
+                  backgroundColor: color,
+                  color: "white",
+                }}
+              >
+                {cursor.userName
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toLocaleUpperCase()}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

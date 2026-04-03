@@ -1,35 +1,43 @@
 "use client";
 
+import { useTranscriptionCursors } from "@/hooks/use-transcription-cursors";
 import { cn } from "@/lib/utils";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { TranscriptionDetail } from "../../../hooks/use-transcriptions";
 import { AudioControls, InteractiveAudio } from "./audio";
 import { EditorAPI } from "./text/api";
 import { ActiveSegmentHighlight } from "./text/components/active-segment-highlight";
 import { EditorToolbar } from "./text/components/editor-toolbar";
+import { RemoteCursors } from "./text/components/remote-cursors";
+import { SearchHighlights } from "./text/components/search-highlights";
 import { SpeakerColumn } from "./text/components/speaker-column";
 import { SpeakerRenameDialog } from "./text/components/speaker-rename-dialog";
 import { useAudioSync } from "./text/hooks/use-audio-sync";
+import { SaveStatus, useAutoSave } from "./text/hooks/use-auto-save";
 import { useFormat } from "./text/hooks/use-format";
 import { useNavigationMode } from "./text/hooks/use-navigation-mode";
-import { TranscriptEditorContentTipTap } from "./text/tiptap";
 import { useSearchReplace } from "./text/hooks/use-search-replace";
-import { SearchHighlights } from "./text/components/search-highlights";
+import { TranscriptEditorContentTipTap } from "./text/tiptap";
 
 export function TranscriptEditor({
   hasWriteAccess,
   hasListenAccess,
   transcription,
-  onChange,
+  onEditorReady,
+  onSaveStatusChange,
 }: {
   hasWriteAccess: boolean;
   hasListenAccess: boolean;
   transcription: TranscriptionDetail;
-  onChange: (update: TranscriptionDetail["transcription"]) => void;
+  onEditorReady?: (editorAPI: EditorAPI) => void;
+  onSaveStatusChange?: (status: SaveStatus) => void;
 }) {
   const editorAPIRef = useRef(new EditorAPI());
   const editorAPI = editorAPIRef.current;
+  const { cursors, updateCursorPosition } = useTranscriptionCursors(
+    transcription.id,
+  );
   const [audioControls, setAudioControls] = useState<AudioControls | null>(
     null,
   );
@@ -42,23 +50,28 @@ export function TranscriptEditor({
   } = useFormat(editorAPI, currentIndex);
   const searchReplace = useSearchReplace(editorAPI);
 
+  // Auto-save with debounce
+  const { onChange: autoSaveOnChange, saveStatus } = useAutoSave({
+    transcriptionId: transcription.id,
+    editorAPI,
+  });
+
+  // Notify parent when editor is ready
+  useEffect(() => {
+    onEditorReady?.(editorAPI);
+  }, [editorAPI, onEditorReady]);
+
+  // Notify parent when save status changes
+  useEffect(() => {
+    onSaveStatusChange?.(saveStatus);
+  }, [saveStatus, onSaveStatusChange]);
+
   // useBracketWrap();
 
   return (
     <div className="h-full">
       <SpeakerRenameDialog />
       <div className="flex flex-col h-full">
-        {false && (
-          <>
-            <div className="mb-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 border-y border-yellow-300 dark:border-yellow-700 text-sm text-yellow-800 dark:text-yellow-200 fixed w-full z-10">
-              <span className="font-semibold">{"Someone"}</span> is currently
-              editing this transcription
-            </div>
-            <div className="h-8" />{" "}
-            {/* Spacer to prevent content jump due to fixed banner */}
-          </>
-        )}
-
         {/* Sticky top section */}
         {createPortal(
           <div id="header-sub-portal-container" className={cn("space-y-2")}>
@@ -68,6 +81,7 @@ export function TranscriptEditor({
                 id={transcription.id}
                 audioFileEncryption={transcription.audioFileEncryption}
                 onAudioControlsReady={setAudioControls}
+                cursors={cursors}
               />
             ) : (
               <div className="pt-2"></div>
@@ -91,7 +105,7 @@ export function TranscriptEditor({
           <SpeakerColumn editorAPI={editorAPI} readOnly={!hasWriteAccess} />
           <div className="flex-1 px-2">
             <div className="relative">
-              {false && "TODO Cursors and highlights"}
+              <RemoteCursors editorAPI={editorAPI} cursors={cursors} />
               <SearchHighlights highlights={searchReplace.highlights} />
               <ActiveSegmentHighlight
                 editorAPI={editorAPI}
@@ -103,12 +117,18 @@ export function TranscriptEditor({
                   speakers={transcription.transcription?.speakers || []}
                   segments={transcription.transcription?.words || []}
                   editorAPI={editorAPI}
-                  onChange={(segments) => {
+                  onChange={() => {
                     editorAPI.emit("change");
+                    autoSaveOnChange();
                   }}
-                  onSelectionUpdate={(selection) => {
+                  onSelectionUpdate={(editor) => {
+                    updateCursorPosition(
+                      editor.state.selection.from - 1,
+                      editor.state.selection.to - 1,
+                      hasWriteAccess,
+                    );
                     selectionUpdate();
-                    formatSelectionUpdate(selection);
+                    formatSelectionUpdate(editor);
                   }}
                   onUpdate={() => {}}
                   hasWriteAccess={hasWriteAccess}

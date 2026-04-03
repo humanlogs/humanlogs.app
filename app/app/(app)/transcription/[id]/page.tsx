@@ -1,8 +1,6 @@
 "use client";
 
 import { CannotAccessTranscription } from "@/components/encryption";
-import { EditorStateProvider } from "@/components/transcriptions/old-editor/editor-state-context";
-import { SaveStatus } from "@/components/transcriptions/old-editor/hooks/use-auto-save";
 import { TranscriptionActions } from "@/components/transcriptions/transcription-actions";
 import { TranscriptionEditor } from "@/components/transcriptions/transcription-editor";
 import { TranscriptionFailed } from "@/components/transcriptions/transcription-failed";
@@ -16,6 +14,7 @@ import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { useTranscriptionRenameModal } from "../../../../../components/transcriptions/dialogs/transcription-rename-dialog";
 import { Button } from "../../../../../components/ui/button";
+import { SaveStatus } from "@/components/transcriptions/editor/text/hooks/use-auto-save";
 
 type TranscriptionPageProps = {
   params: Promise<{
@@ -29,6 +28,7 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
   const { data: encryptionState } = useEncryptionStatus();
   const { openRename } = useTranscriptionRenameModal();
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [editorAPI, setEditorAPI] = useState<any>(null);
   const router = useRouter();
 
   const isEncryptionError = error?.message === "error_encrypted";
@@ -77,7 +77,7 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
   const isOwner = !!transcription?.isOwner;
 
   return (
-    <EditorStateProvider>
+    <>
       {transcription && (
         <>
           {createPortal(
@@ -117,6 +117,7 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
                 audioFileEncryption={transcription.audioFileEncryption}
                 shared={transcription.shared}
                 isOwner={isOwner}
+                editorAPI={editorAPI}
               />
             </div>,
             document.getElementById("header-actions-portal")!,
@@ -145,8 +146,10 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
           hasWriteAccess={!!hasWriteAccess}
           hasListenAccess={!!hasListenAccess}
           transcription={transcription}
+          onEditorReady={setEditorAPI}
+          onSaveStatusChange={setSaveStatus}
         />
       )}
-    </EditorStateProvider>
+    </>
   );
 }

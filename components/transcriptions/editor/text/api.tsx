@@ -352,14 +352,14 @@ export class EditorAPI extends EventEmitter {
     );
   }
 
-  getRangeRect(start: number, end: number) {
+  getRangeRect(start: number, end?: number) {
     if (!this.editorRef.current) return null;
 
     try {
       const view = this.editorRef.current.view;
       // TipTap uses 1-based positions
       const from = start + 1;
-      const to = end + 1;
+      const to = end !== undefined ? end + 1 : from;
 
       // Get DOM nodes and offsets for the range
       const startPos = view.domAtPos(from);
@@ -376,6 +376,62 @@ export class EditorAPI extends EventEmitter {
     }
 
     return null;
+  }
+
+  /**
+   * Get the coordinates at a specific character offset
+   */
+  getCoordinatesAtOffset(offset: number) {
+    if (!this.editorRef.current) return null;
+
+    try {
+      const view = this.editorRef.current.view;
+      // TipTap uses 1-based positions
+      const pos = offset + 1;
+      const coords = view.coordsAtPos(pos);
+
+      return {
+        x: coords.left,
+        y: coords.top,
+        left: coords.left,
+        top: coords.top,
+        right: coords.right,
+        bottom: coords.bottom,
+      };
+    } catch (e) {
+      console.error("[TiptapEditorAPI] Error getting coordinates:", e);
+      return null;
+    }
+  }
+
+  /**
+   * Get all client rects for a text range (useful for multi-line selections)
+   */
+  getRangeClientRects(startOffset: number, endOffset: number): DOMRect[] {
+    if (!this.editorRef.current) return [];
+    if (startOffset === endOffset) return [];
+
+    try {
+      const view = this.editorRef.current.view;
+      // TipTap uses 1-based positions
+      const from = startOffset + 1;
+      const to = endOffset + 1;
+
+      // Get DOM nodes and offsets for the range
+      const startPos = view.domAtPos(from);
+      const endPos = view.domAtPos(to);
+
+      if (startPos && endPos) {
+        const range = document.createRange();
+        range.setStart(startPos.node, startPos.offset);
+        range.setEnd(endPos.node, endPos.offset);
+        return Array.from(range.getClientRects());
+      }
+    } catch (e) {
+      console.error("[TiptapEditorAPI] Error getting range client rects:", e);
+    }
+
+    return [];
   }
 
   /**
@@ -471,5 +527,250 @@ export class EditorAPI extends EventEmitter {
     );
 
     this.setSpeakers(updatedSpeakers);
+  }
+
+  /**
+   * Applies speaker options (modifications, merge, remove) directly to the TipTap editor.
+   * All changes are batched into a single transaction for proper undo/redo.
+   * @param options The speaker options to apply
+   */
+  applySpeakerOptions(options: {
+    speakerId: string;
+    modification: string;
+    mergeToSpeakerId: string | null;
+    removeContent: boolean;
+  }) {
+    if (!this.editorRef.current) return;
+
+    const editor = this.editorRef.current;
+    const { speakerId, modification, mergeToSpeakerId, removeContent } =
+      options;
+
+    // Use a custom transaction to batch all changes into a single undo/redo entry
+    const { state, view } = editor;
+    let tr = state.tr;
+
+    // If removing content, delete all paragraphs with this speaker
+    if (removeContent) {
+      // Collect all paragraphs to delete
+      const paragraphsToDelete: Array<{ pos: number; size: number }> = [];
+      state.doc.descendants((node, pos) => {
+        if (
+          node.type.name === "paragraph" &&
+          node.attrs.speakerId === speakerId
+        ) {
+          paragraphsToDelete.push({ pos, size: node.nodeSize });
+        }
+      });
+
+      // Delete in reverse order to maintain position accuracy
+      for (let i = paragraphsToDelete.length - 1; i >= 0; i--) {
+        const { pos, size } = paragraphsToDelete[i];
+        tr = tr.delete(pos, pos + size);
+      }
+
+      view.dispatch(tr);
+      this.emit("change");
+      this.emit("segmentsChange");
+      return;
+    }
+
+    // Collect all matching paragraphs
+    const paragraphs: Array<{ pos: number; node: any }> = [];
+    state.doc.descendants((node, pos) => {
+      if (
+        node.type.name === "paragraph" &&
+        node.attrs.speakerId === speakerId
+      ) {
+        paragraphs.push({ pos, node });
+      }
+    });
+
+    // Apply text transformations
+    if (modification === "uppercase" || modification === "lowercase") {
+      // Process in reverse order to maintain position accuracy
+      for (let i = paragraphs.length - 1; i >= 0; i--) {
+        const { pos, node } = paragraphs[i];
+        const from = pos + 1; // Inside the paragraph
+        const to = pos + node.nodeSize - 1; // Before closing paragraph tag
+
+        // Get the text content and transform it
+        const textSlice = state.doc.textBetween(from, to);
+        const transformedText =
+          modification === "uppercase"
+            ? textSlice.toUpperCase()
+            : textSlice.toLowerCase();
+
+        // Replace the text
+        tr = tr.delete(from, to);
+        tr = tr.insertText(transformedText, from);
+      }
+    }
+
+    // Apply formatting marks
+    if (
+      modification === "bold" ||
+      modification === "italic" ||
+      modification === "underline"
+    ) {
+      // Re-scan paragraphs in case positions changed
+      const freshParagraphs: Array<{ pos: number; node: any }> = [];
+      tr.doc.descendants((node, pos) => {
+        if (
+          node.type.name === "paragraph" &&
+          node.attrs.speakerId === speakerId
+        ) {
+          freshParagraphs.push({ pos, node });
+        }
+      });
+
+      for (const { pos, node } of freshParagraphs) {
+        const from = pos + 1;
+        const to = pos + node.nodeSize - 1;
+
+        const markType =
+          modification === "bold"
+            ? state.schema.marks.bold
+            : modification === "italic"
+              ? state.schema.marks.italic
+              : state.schema.marks.underline;
+
+        if (markType) {
+          tr = tr.addMark(from, to, markType.create());
+        }
+      }
+    }
+
+    // Merge speaker if requested
+    if (mergeToSpeakerId) {
+      // Re-scan paragraphs after all modifications
+      const finalParagraphs: Array<{ pos: number }> = [];
+      tr.doc.descendants((node, pos) => {
+        if (
+          node.type.name === "paragraph" &&
+          node.attrs.speakerId === speakerId
+        ) {
+          finalParagraphs.push({ pos });
+        }
+      });
+
+      for (const { pos } of finalParagraphs) {
+        tr = tr.setNodeMarkup(pos, undefined, {
+          speakerId: mergeToSpeakerId,
+        });
+      }
+    }
+
+    // Dispatch the transaction once with all changes
+    view.dispatch(tr);
+
+    this.emit("change");
+    this.emit("segmentsChange");
+  }
+
+  /**
+   * Applies pause configuration to spacing segments in the editor.
+   * Replaces spacing segments with visible pause markers based on duration.
+   * @param options The pause configuration options
+   */
+  applyPauseConfiguration(options: {
+    shortPauseMarker: string;
+    longPauseMarker: string;
+    addDoubleLineBreak: boolean;
+  }) {
+    if (!this.editorRef.current) return;
+
+    const editor = this.editorRef.current;
+    const segments = this.segmentsRef.current;
+    const { shortPauseMarker, longPauseMarker, addDoubleLineBreak } = options;
+
+    if (!segments || segments.length === 0) return;
+
+    // Build a list of replacements to make (in reverse order to maintain positions)
+    const replacements: Array<{
+      from: number;
+      to: number;
+      text: string;
+      isLongPause: boolean;
+    }> = [];
+
+    let charOffset = 0;
+
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i];
+      const segmentLength = segment.text.length;
+
+      // Check if this is a spacing segment with timing information
+      if (
+        segment.type === "spacing" &&
+        segment.start !== undefined &&
+        segment.end !== undefined
+      ) {
+        const duration = segment.end - segment.start;
+
+        // Check if this spacing is between words of the same speaker (not a speaker change)
+        const prevSegment = i > 0 ? segments[i - 1] : null;
+        const nextSegment = i < segments.length - 1 ? segments[i + 1] : null;
+
+        const isSameSpeakerPause =
+          prevSegment &&
+          nextSegment &&
+          prevSegment.speakerId === nextSegment.speakerId;
+
+        if (isSameSpeakerPause) {
+          let replacementText = "";
+          let isLongPause = false;
+
+          if (duration >= 3) {
+            // Long pause (>= 3 seconds)
+            replacementText = longPauseMarker;
+            isLongPause = true;
+            if (addDoubleLineBreak) {
+              replacementText += "\n\n";
+            }
+          } else if (duration >= 1) {
+            // Short pause (>= 1 second)
+            replacementText = shortPauseMarker;
+          }
+
+          // Only add replacement if we determined a marker should be used
+          if (replacementText) {
+            replacements.push({
+              from: charOffset,
+              to: charOffset + segmentLength,
+              text: replacementText,
+              isLongPause,
+            });
+          }
+        }
+      }
+
+      charOffset += segmentLength;
+    }
+
+    // Apply all replacements in a single transaction for proper undo/redo
+    if (replacements.length > 0) {
+      const { state, view } = editor;
+      let tr = state.tr;
+
+      // Process in reverse order to maintain position accuracy
+      for (let i = replacements.length - 1; i >= 0; i--) {
+        const { from, to, text } = replacements[i];
+
+        // Convert to TipTap's 1-based positions
+        const tipTapFrom = from + 1;
+        const tipTapTo = to + 1;
+
+        // Replace the spacing text with the marker
+        tr = tr.delete(tipTapFrom, tipTapTo);
+        tr = tr.insertText(text, tipTapFrom);
+      }
+
+      // Dispatch the transaction once with all changes
+      view.dispatch(tr);
+
+      this.emit("change");
+      this.emit("segmentsChange");
+    }
   }
 }

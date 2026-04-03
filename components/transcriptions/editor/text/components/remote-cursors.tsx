@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
 import { UserCursor } from "@/hooks/use-transcription-cursors";
+import { useEffect, useRef, useState } from "react";
+import { EditorAPI } from "../api";
 
 type CursorDisplayProps = {
   cursors: UserCursor[];
-  editorRef: React.RefObject<HTMLDivElement | null>;
+  editorAPI: EditorAPI;
 };
 
 type PositionedCursor = UserCursor & {
@@ -17,11 +18,11 @@ type PositionedCursor = UserCursor & {
 };
 
 // Generate a consistent color from a userId
-function getUserColor(userId: string): string {
+export function getUserColor(userId: string): string {
   const colors = [
+    "#f59e0b", // amber
     "#3b82f6", // blue
     "#10b981", // green
-    "#f59e0b", // amber
     "#ef4444", // red
     "#8b5cf6", // violet
     "#ec4899", // pink
@@ -37,101 +38,7 @@ function getUserColor(userId: string): string {
   return colors[Math.abs(hash) % colors.length];
 }
 
-// Get position for a character offset
-function getPositionAtOffset(
-  editorRef: React.RefObject<HTMLDivElement | null>,
-  characterOffset: number,
-): { x: number; y: number } | null {
-  // Get the actual editor element (may be Tiptap's DOM)
-  const editor =
-    (editorRef.current as any)?._tiptapElement || editorRef.current;
-  if (!editor) return null;
-
-  const range = document.createRange();
-  const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT, null);
-
-  let currentOffset = 0;
-  let node: Node | null;
-
-  while ((node = walker.nextNode())) {
-    const nodeLength = node.textContent?.length || 0;
-
-    if (currentOffset + nodeLength >= characterOffset) {
-      const offsetInNode = Math.min(
-        characterOffset - currentOffset,
-        nodeLength,
-      );
-      range.setStart(node, offsetInNode);
-      range.setEnd(node, offsetInNode);
-
-      const rect = range.getBoundingClientRect();
-      const editorRect = editor.getBoundingClientRect();
-
-      return {
-        x: rect.left - editorRect.left + editor.scrollLeft,
-        y: rect.top - editorRect.top + editor.scrollTop,
-      };
-    }
-
-    currentOffset += nodeLength;
-  }
-
-  return null;
-}
-
-// Get selection rectangles between two character offsets
-function getSelectionRects(
-  editorRef: React.RefObject<HTMLDivElement | null>,
-  startOffset: number,
-  endOffset: number,
-): DOMRect[] {
-  if (startOffset === endOffset) return [];
-
-  // Get the actual editor element (may be Tiptap's DOM)
-  const editor =
-    (editorRef.current as any)?._tiptapElement || editorRef.current;
-  if (!editor) return [];
-
-  const range = document.createRange();
-  const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT, null);
-
-  let currentOffset = 0;
-  let startNode: Node | null = null;
-  let startNodeOffset = 0;
-  let endNode: Node | null = null;
-  let endNodeOffset = 0;
-
-  let node: Node | null;
-  while ((node = walker.nextNode())) {
-    const nodeLength = node.textContent?.length || 0;
-
-    if (!startNode && currentOffset + nodeLength >= startOffset) {
-      startNode = node;
-      startNodeOffset = startOffset - currentOffset;
-    }
-
-    if (!endNode && currentOffset + nodeLength >= endOffset) {
-      endNode = node;
-      endNodeOffset = endOffset - currentOffset;
-      break;
-    }
-
-    currentOffset += nodeLength;
-  }
-
-  if (!startNode || !endNode) return [];
-
-  try {
-    range.setStart(startNode, startNodeOffset);
-    range.setEnd(endNode, endNodeOffset);
-    return Array.from(range.getClientRects());
-  } catch (error) {
-    console.warn("Failed to get selection rects:", error);
-    return [];
-  }
-}
-
-export function RemoteCursors({ cursors, editorRef }: CursorDisplayProps) {
+export function RemoteCursors({ cursors, editorAPI }: CursorDisplayProps) {
   const [positionedCursors, setPositionedCursors] = useState<
     PositionedCursor[]
   >([]);
@@ -140,29 +47,45 @@ export function RemoteCursors({ cursors, editorRef }: CursorDisplayProps) {
 
   useEffect(() => {
     const updateCursorPositions = () => {
-      if (!editorRef.current) return;
+      if (!editorAPI) return;
+
+      const editorElement = editorAPI.getEditorElement();
+      if (!editorElement) return;
+
+      const editorRect = editorElement.getBoundingClientRect();
+      const scrollLeft = editorElement.scrollLeft || 0;
+      const scrollTop = editorElement.scrollTop || 0;
 
       const newPositions: PositionedCursor[] = [];
 
       for (const cursor of cursors) {
         try {
-          const startPos = getPositionAtOffset(editorRef, cursor.startOffset);
-          const endPos = getPositionAtOffset(editorRef, cursor.endOffset);
+          // Get the start and end coordinates (viewport-relative)
+          const startCoords = editorAPI.getCoordinatesAtOffset(
+            cursor.startOffset,
+          );
+          const endCoords = editorAPI.getCoordinatesAtOffset(cursor.endOffset);
 
-          if (!startPos || !endPos) continue;
+          if (!startCoords || !endCoords) continue;
 
-          const selectionRects = getSelectionRects(
-            editorRef,
+          // Convert to editor-relative coordinates
+          const startX = startCoords.left - editorRect.left + scrollLeft;
+          const startY = startCoords.top - editorRect.top + scrollTop;
+          const endX = endCoords.left - editorRect.left + scrollLeft;
+          const endY = endCoords.top - editorRect.top + scrollTop;
+
+          // Get selection rectangles for multi-line selections
+          const selectionRects = editorAPI.getRangeClientRects(
             cursor.startOffset,
             cursor.endOffset,
           );
 
           newPositions.push({
             ...cursor,
-            startX: startPos.x,
-            startY: startPos.y,
-            endX: endPos.x,
-            endY: endPos.y,
+            startX,
+            startY,
+            endX,
+            endY,
             selectionRects,
           });
         } catch (error) {
@@ -184,7 +107,7 @@ export function RemoteCursors({ cursors, editorRef }: CursorDisplayProps) {
       animationFrameRef.current = requestAnimationFrame(updateCursorPositions);
     };
 
-    editorRef.current?.addEventListener("scroll", handleUpdate);
+    window.addEventListener("scroll", handleUpdate);
     window.addEventListener("resize", handleUpdate);
 
     // Update when cursors change
@@ -194,17 +117,17 @@ export function RemoteCursors({ cursors, editorRef }: CursorDisplayProps) {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-      editorRef.current?.removeEventListener("scroll", handleUpdate);
+      window.removeEventListener("scroll", handleUpdate);
       window.removeEventListener("resize", handleUpdate);
       clearInterval(interval);
     };
-  }, [cursors, editorRef]);
+  }, [cursors, editorAPI]);
 
   // Adjust label positions to prevent cutoff
   useEffect(() => {
-    if (!editorRef.current) return;
+    if (!editorAPI) return;
 
-    const editorRect = editorRef.current.getBoundingClientRect();
+    const editorRect = editorAPI.getBoundingClientRect();
     const editorWidth = editorRect.width;
 
     labelRefs.current.forEach((label, socketId) => {
@@ -237,7 +160,7 @@ export function RemoteCursors({ cursors, editorRef }: CursorDisplayProps) {
         label.style.transform = "none";
       }
     });
-  }, [positionedCursors, editorRef]);
+  }, [positionedCursors, editorAPI]);
 
   return (
     <>
@@ -250,7 +173,9 @@ export function RemoteCursors({ cursors, editorRef }: CursorDisplayProps) {
             {/* Selection highlight */}
             {hasSelection &&
               cursor.selectionRects.map((rect, index) => {
-                const editorRect = editorRef.current?.getBoundingClientRect();
+                const editorRect = editorAPI
+                  ?.getEditorElement()
+                  ?.getBoundingClientRect();
                 if (!editorRect) return null;
 
                 return (
@@ -258,8 +183,8 @@ export function RemoteCursors({ cursors, editorRef }: CursorDisplayProps) {
                     key={`${cursor.socketId}-selection-${index}`}
                     className="pointer-events-none absolute"
                     style={{
-                      left: `${rect.left - editorRect.left + (editorRef.current?.scrollLeft || 0)}px`,
-                      top: `${rect.top - editorRect.top + (editorRef.current?.scrollTop || 0)}px`,
+                      left: `${rect.left - editorRect.left + (editorAPI?.getEditorElement()?.scrollLeft || 0)}px`,
+                      top: `${rect.top - editorRect.top + (editorAPI?.getEditorElement()?.scrollTop || 0)}px`,
                       width: `${rect.width}px`,
                       height: `${rect.height}px`,
                       backgroundColor: color,
@@ -293,12 +218,16 @@ export function RemoteCursors({ cursors, editorRef }: CursorDisplayProps) {
                     labelRefs.current.delete(cursor.socketId);
                   }
                 }}
-                className="absolute -top-6 whitespace-nowrap rounded px-2 py-0.5 text-xs font-medium text-white shadow-lg"
+                className="absolute -top-6 whitespace-nowrap rounded px-1 py-0.5 text-xs font-medium text-white shadow-lg"
                 style={{
                   backgroundColor: color,
                 }}
               >
-                {cursor.userName}
+                {cursor.userName
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toLocaleUpperCase()}
               </div>
             </div>
           </div>

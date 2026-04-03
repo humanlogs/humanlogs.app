@@ -3,15 +3,13 @@
 import { useSaveTranscription } from "@/hooks/use-transcriptions";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { EditorAPI } from "./editor-api-tiptap";
-import { Speaker } from "./use-speaker-actions";
+import { EditorAPI } from "../api";
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 type UseAutoSaveOptions = {
   transcriptionId: string;
-  editorAPIRef: { current: EditorAPI };
-  speakers: Speaker[];
+  editorAPI: EditorAPI;
   debounceMs?: number;
   maxDebounceMs?: number;
   onSaveStart?: () => void;
@@ -21,8 +19,7 @@ type UseAutoSaveOptions = {
 
 export function useAutoSave({
   transcriptionId,
-  editorAPIRef,
-  speakers,
+  editorAPI,
   debounceMs = 3000,
   maxDebounceMs = 60000,
   onSaveStart,
@@ -43,8 +40,8 @@ export function useAutoSave({
     isMountedRef.current = true;
     // Initialize last saved to current state to avoid immediate save on mount
     lastSavedRef.current = JSON.stringify({
-      segments: editorAPIRef.current.getSegments(),
-      speakers,
+      segments: editorAPI.getSegments(),
+      speakers: editorAPI.getSpeakers(),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -52,8 +49,8 @@ export function useAutoSave({
   // Manual save function
   const performSave = async (isManual = false, forceSave = false) => {
     const currentState = JSON.stringify({
-      segments: editorAPIRef.current.getSegments(),
-      speakers,
+      segments: editorAPI.getSegments(),
+      speakers: editorAPI.getSpeakers(),
     });
 
     // Skip if no changes (unless force save is enabled)
@@ -69,8 +66,8 @@ export function useAutoSave({
 
     try {
       await saveTranscription.mutateAsync({
-        words: editorAPIRef.current.getSegments(),
-        speakers,
+        words: editorAPI.getSegments(),
+        speakers: editorAPI.getSpeakers(),
       });
 
       lastSavedRef.current = currentState;
@@ -120,7 +117,7 @@ export function useAutoSave({
       window.removeEventListener("keydown", handleKeyDown);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [speakers]);
+  }, []);
 
   const onChange = useCallback(() => {
     // Skip auto-save on initial mount
@@ -135,8 +132,8 @@ export function useAutoSave({
 
     // Create a snapshot of current state
     const currentState = JSON.stringify({
-      segments: editorAPIRef.current.getSegments(),
-      speakers,
+      segments: editorAPI.getSegments(),
+      speakers: editorAPI.getSpeakers(),
     });
 
     // Skip if no changes
@@ -172,7 +169,7 @@ export function useAutoSave({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [transcriptionId, speakers, debounceMs, maxDebounceMs]);
+  }, [transcriptionId, debounceMs, maxDebounceMs]);
 
   // Cleanup max debounce timer on unmount
   useEffect(() => {

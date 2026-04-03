@@ -34,6 +34,38 @@ export type Leader = {
 
 let socket: Socket | null = null;
 
+// Cache for pending operations when socket is not connected
+const pendingOperations: Map<
+  string,
+  { type: "join" | "leave"; transcriptionId: string }
+> = new Map();
+
+// Cache for event listeners registered before socket connects
+type EventCallback = (...args: any[]) => void;
+const pendingListeners: Map<string, Set<EventCallback>> = new Map();
+
+function attachListener(event: string, callback: EventCallback) {
+  if (socket) {
+    socket.on(event, callback);
+  } else {
+    // Cache listener for when socket connects
+    if (!pendingListeners.has(event)) {
+      pendingListeners.set(event, new Set());
+    }
+    pendingListeners.get(event)!.add(callback);
+  }
+}
+
+function detachListener(event: string, callback?: EventCallback) {
+  if (socket) {
+    socket.off(event, callback);
+  }
+  // Also remove from pending listeners
+  if (callback && pendingListeners.has(event)) {
+    pendingListeners.get(event)!.delete(callback);
+  }
+}
+
 export function useSocket() {
   const queryClient = useQueryClient();
   const { data: userProfile } = useUserProfile();
@@ -55,6 +87,32 @@ export function useSocket() {
 
       socket.on("connect", () => {
         console.log("Socket connected:", socket?.id);
+
+        // Attach all pending event listeners
+        pendingListeners.forEach((callbacks, event) => {
+          callbacks.forEach((callback) => {
+            socket?.on(event, callback);
+            console.log("Attached cached listener for:", event);
+          });
+        });
+        pendingListeners.clear();
+
+        // Execute all pending operations
+        pendingOperations.forEach((operation) => {
+          if (operation.type === "join") {
+            socket?.emit("transcription:join", operation.transcriptionId);
+            console.log("Executed cached join for:", operation.transcriptionId);
+          } else if (operation.type === "leave") {
+            socket?.emit("transcription:leave", operation.transcriptionId);
+            console.log(
+              "Executed cached leave for:",
+              operation.transcriptionId,
+            );
+          }
+        });
+
+        // Clear pending operations after execution
+        pendingOperations.clear();
       });
 
       socket.on("disconnect", () => {
@@ -109,12 +167,38 @@ export function getSocket(): Socket | null {
 export function joinTranscriptionRoom(transcriptionId: string) {
   if (socket?.connected) {
     socket.emit("transcription:join", transcriptionId);
+    // Remove from pending operations if it was cached
+    pendingOperations.delete(transcriptionId);
+  } else {
+    // Cache the join operation to execute when socket connects
+    pendingOperations.set(transcriptionId, {
+      type: "join",
+      transcriptionId,
+    });
+    console.log("Cached join operation for:", transcriptionId);
   }
 }
 
 export function leaveTranscriptionRoom(transcriptionId: string) {
   if (socket?.connected) {
     socket.emit("transcription:leave", transcriptionId);
+    // Remove from pending operations if it was cached
+    pendingOperations.delete(transcriptionId);
+  } else {
+    // Check if there's a pending join operation
+    const pendingOp = pendingOperations.get(transcriptionId);
+    if (pendingOp?.type === "join") {
+      // Cancel the pending join operation
+      pendingOperations.delete(transcriptionId);
+      console.log("Cancelled cached join operation for:", transcriptionId);
+    } else {
+      // Cache the leave operation to execute when socket connects
+      pendingOperations.set(transcriptionId, {
+        type: "leave",
+        transcriptionId,
+      });
+      console.log("Cached leave operation for:", transcriptionId);
+    }
   }
 }
 
@@ -135,69 +219,53 @@ export function emitCursorPosition(
 export function onCursorPosition(
   callback: (position: CursorPositionWithSocket) => void,
 ) {
-  if (socket) {
-    socket.on("transcription:cursor-position", callback);
-  }
+  attachListener("transcription:cursor-position", callback);
 }
 
 // Listen for users joining
 export function onUserJoined(
   callback: (data: { userId: string; socketId: string }) => void,
 ) {
-  if (socket) {
-    socket.on("transcription:user-joined", callback);
-  }
+  attachListener("transcription:user-joined", callback);
 }
 
 // Listen for users leaving
 export function onUserLeft(
   callback: (data: { userId: string; socketId: string }) => void,
 ) {
-  if (socket) {
-    socket.on("transcription:user-left", callback);
-  }
+  attachListener("transcription:user-left", callback);
 }
 
 // Listen for disconnections
 export function onUserDisconnected(
   callback: (data: { socketId: string }) => void,
 ) {
-  if (socket) {
-    socket.on("transcription:user-disconnected", callback);
-  }
+  attachListener("transcription:user-disconnected", callback);
 }
 
 // Cleanup listeners
 export function offCursorPosition(
   callback?: (position: CursorPositionWithSocket) => void,
 ) {
-  if (socket) {
-    socket.off("transcription:cursor-position", callback);
-  }
+  detachListener("transcription:cursor-position", callback);
 }
 
 export function offUserJoined(
   callback?: (data: { userId: string; socketId: string }) => void,
 ) {
-  if (socket) {
-    socket.off("transcription:user-joined", callback);
-  }
+  detachListener("transcription:user-joined", callback);
 }
 
 export function offUserLeft(
   callback?: (data: { userId: string; socketId: string }) => void,
 ) {
-  if (socket) {
-    socket.off("transcription:user-left", callback);
-  }
+  detachListener("transcription:user-left", callback);
 }
 
 export function offUserDisconnected(
   callback?: (data: { socketId: string }) => void,
 ) {
-  if (socket) {
-    socket.off("transcription:user-disconnected", callback);
-  }
+  detachListener("transcription:user-disconnected", callback);
 }
 
 // Leader management
@@ -235,48 +303,36 @@ export function leaderKeepalive(transcriptionId: string) {
 export function onLeaderChanged(
   callback: (data: { transcriptionId: string; leader: Leader | null }) => void,
 ) {
-  if (socket) {
-    socket.on("transcription:leader-changed", callback);
-  }
+  attachListener("transcription:leader-changed", callback);
 }
 
 export function onLeaderGranted(
   callback: (data: { transcriptionId: string }) => void,
 ) {
-  if (socket) {
-    socket.on("transcription:leader-granted", callback);
-  }
+  attachListener("transcription:leader-granted", callback);
 }
 
 export function onLeaderDenied(
   callback: (data: { transcriptionId: string; currentLeader: Leader }) => void,
 ) {
-  if (socket) {
-    socket.on("transcription:leader-denied", callback);
-  }
+  attachListener("transcription:leader-denied", callback);
 }
 
 // Cleanup leader listeners
 export function offLeaderChanged(
   callback?: (data: { transcriptionId: string; leader: Leader | null }) => void,
 ) {
-  if (socket) {
-    socket.off("transcription:leader-changed", callback);
-  }
+  detachListener("transcription:leader-changed", callback);
 }
 
 export function offLeaderGranted(
   callback?: (data: { transcriptionId: string }) => void,
 ) {
-  if (socket) {
-    socket.off("transcription:leader-granted", callback);
-  }
+  detachListener("transcription:leader-granted", callback);
 }
 
 export function offLeaderDenied(
   callback?: (data: { transcriptionId: string; currentLeader: Leader }) => void,
 ) {
-  if (socket) {
-    socket.off("transcription:leader-denied", callback);
-  }
+  detachListener("transcription:leader-denied", callback);
 }

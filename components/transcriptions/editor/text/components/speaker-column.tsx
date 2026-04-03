@@ -86,7 +86,10 @@ function SpeakerBadge({
       transcription,
       speakers,
       editorAPI.getSegments(),
-      () => {},
+      (options) => {
+        // Apply the speaker options directly to the TipTap editor
+        editorAPI.applySpeakerOptions(options);
+      },
       speakerId, // Pre-select the clicked speaker
     );
   };

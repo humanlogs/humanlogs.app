@@ -43,12 +43,12 @@ import { useShortcutsModal } from "./dialogs/shortcuts-dialog";
 import { useSpeakerOptionsModal } from "./dialogs/speaker-options-dialog";
 import { useTranscriptionDeleteModal } from "./dialogs/transcription-delete-dialog";
 import { useTranscriptionExportModal } from "./dialogs/transcription-export-dialog";
+import { useTranscriptionHistoryModal } from "./dialogs/transcription-history-sheet";
 import { useTranscriptionRenameModal } from "./dialogs/transcription-rename-dialog";
 import { useTranscriptionSetProjectModal } from "./dialogs/transcription-set-project-dialog";
 import { useTranscriptionShareDialog } from "./dialogs/transcription-share-dialog";
-import { useOptionalEditorState } from "./old-editor/editor-state-context";
-import { SaveStatus } from "./old-editor/hooks/use-auto-save";
-import { useTranscriptionHistoryModal } from "./dialogs/transcription-history-sheet";
+import { SaveStatus } from "./editor/text/hooks/use-auto-save";
+import { EditorAPI } from "./editor/text/api";
 
 type TranscriptionActionsProps = {
   transcriptionId: string;
@@ -61,6 +61,7 @@ type TranscriptionActionsProps = {
   isOwner?: boolean;
   hasWriteAccess?: boolean;
   hasListenAccess?: boolean;
+  editorAPI?: EditorAPI;
 };
 
 export function TranscriptionActions({
@@ -74,6 +75,7 @@ export function TranscriptionActions({
   isOwner = true,
   hasWriteAccess = true,
   hasListenAccess = true,
+  editorAPI,
 }: TranscriptionActionsProps) {
   const t = useTranslations("editor");
   const { openRename } = useTranscriptionRenameModal();
@@ -86,22 +88,16 @@ export function TranscriptionActions({
   const { open: openShortcuts } = useShortcutsModal();
   const { openShare } = useTranscriptionShareDialog();
 
-  // Get live editor state if available, otherwise use the original transcription
-  const editorStateContext = useOptionalEditorState();
-
   /**
    * Get the current transcription content to export.
    * Prefers live editor state if available, falls back to original transcription.
    */
   const getTranscriptionContent = (): TranscriptionContent | undefined => {
-    if (editorStateContext) {
-      const state = editorStateContext.getState();
-      if (state) {
-        return {
-          words: state.segments,
-          speakers: state.speakers,
-        };
-      }
+    if (editorAPI) {
+      return {
+        words: editorAPI.getSegments(),
+        speakers: editorAPI.getSpeakers(),
+      };
     }
     return transcription;
   };
@@ -296,9 +292,9 @@ export function TranscriptionActions({
       name: s.name,
     }));
     openSpeakerOptions(content, speakers, content.words, (options) => {
-      // Apply speaker options via editor context if available
-      if (editorStateContext?.operations?.applySpeakerOptions) {
-        editorStateContext.operations.applySpeakerOptions(options);
+      // Apply speaker options via editor API if available
+      if (editorAPI) {
+        editorAPI.applySpeakerOptions(options);
         toast.success("Speaker options applied");
       } else {
         // Fallback: log for future API implementation
@@ -315,9 +311,9 @@ export function TranscriptionActions({
       return;
     }
     openPauseConfiguration(content, content.words, (options) => {
-      // Use the editor context to apply pause configuration
-      if (editorStateContext?.operations?.applyPauseConfiguration) {
-        editorStateContext.operations.applyPauseConfiguration(options);
+      // Use the editor API to apply pause configuration
+      if (editorAPI) {
+        editorAPI.applyPauseConfiguration(options);
         toast.success("Pause configuration applied");
       } else {
         // Fallback: log for future API implementation

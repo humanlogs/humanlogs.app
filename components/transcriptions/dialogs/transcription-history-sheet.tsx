@@ -30,6 +30,7 @@ import {
   type TranscriptionSegment,
 } from "@/hooks/use-transcriptions";
 import { useRouter } from "next/navigation";
+import diff from "fast-diff";
 
 export type TranscriptionHistoryModalData = {
   transcriptionId: string;
@@ -155,22 +156,27 @@ export function TranscriptionHistorySheet() {
     }
   };
 
-  // Generate diff view
+  // Generate diff view with context around changes
   const renderDiff = () => {
-    let currentWords: TranscriptionSegment[] = [];
-    let previousWords: TranscriptionSegment[] = [];
+    const CONTEXT_ITEMS = 10; // Number of segments to show before/after changes
+    const MIN_GAP_TO_SKIP = 30; // Only skip if there are more than this many unchanged segments
+
+    let currentSegments: TranscriptionSegment[] = [];
+    let previousSegments: TranscriptionSegment[] = [];
+    let speakers: { id: string; name?: string }[] = [];
 
     if (isViewingCurrent) {
       // For current version, compare live data with most recent history
       if (!currentTranscription?.transcription) return null;
-      currentWords = currentTranscription.transcription.words || [];
+      currentSegments = currentTranscription.transcription.words || [];
+      speakers = currentTranscription.transcription.speakers || [];
 
       // If there's no history yet, show current version without diff
       if (!history || history.length === 0) {
         return (
           <div className="text-sm leading-relaxed whitespace-pre-wrap">
-            {currentWords.map((word, idx) => (
-              <span key={idx}>{word.text} </span>
+            {currentSegments.map((seg, idx) => (
+              <span key={idx}>{seg.text}</span>
             ))}
           </div>
         );
@@ -178,93 +184,320 @@ export function TranscriptionHistorySheet() {
 
       // Use the most recent history version data for comparison
       if (mostRecentVersionData) {
-        // The "current" field in mostRecentVersionData is actually the most recent history entry
-        previousWords = mostRecentVersionData.current.words || [];
+        previousSegments = mostRecentVersionData.current.words || [];
       }
     } else {
       // For historical versions, use the version data from the API
       if (!versionData) return null;
-      currentWords = versionData.current.words || [];
-      previousWords = versionData.previous?.words || [];
+      currentSegments = versionData.current.words || [];
+      previousSegments = versionData.previous?.words || [];
+      // Get speakers from current transcription - they don't change between versions
+      speakers = currentTranscription?.transcription?.speakers || [];
     }
 
-    // Use word.start as unique identifier for accurate diffing
-    const currentMap = new Map<number, TranscriptionSegment>();
-    const previousMap = new Map<number, TranscriptionSegment>();
+    // Create speaker lookup map
+    const speakerMap = new Map(speakers.map((s) => [s.id, s.name || s.id]));
 
-    for (const word of currentWords) {
-      if (word.start !== undefined) {
-        currentMap.set(word.start, word);
-      }
+    // Convert segments to text for fast-diff
+    const currentText = currentSegments.map((s) => s.text).join("");
+    const previousText = previousSegments.map((s) => s.text).join("");
+
+    // If no changes, show the current text
+    if (currentText === previousText) {
+      return (
+        <div className="text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">
+          {t("noChanges")}
+        </div>
+      );
     }
 
-    for (const word of previousWords) {
-      if (word.start !== undefined) {
-        previousMap.set(word.start, word);
-      }
-    }
+    // Use fast-diff to compute differences
+    const diffs = diff(previousText, currentText);
 
-    // Get all unique start times and sort them chronologically
-    const allStarts = new Set([...currentMap.keys(), ...previousMap.keys()]);
-    const sortedStarts = Array.from(allStarts).sort((a, b) => a - b);
+    // Build a unified segment list with diff markers by processing diffs
+    type SegmentWithDiff = {
+      segment: TranscriptionSegment;
+      diffType: "equal" | "add" | "remove";
+      index: number;
+    };
 
-    const elements: React.ReactNode[] = [];
+    const unifiedSegments: SegmentWithDiff[] = [];
+    let prevIndex = 0;
+    let currIndex = 0;
+    let segmentIndex = 0;
 
-    for (const start of sortedStarts) {
-      const currentWord = currentMap.get(start);
-      const previousWord = previousMap.get(start);
-
-      if (currentWord && !previousWord) {
-        // Added word (exists in current but not in previous)
-        elements.push(
-          <span
-            key={`add-${start}`}
-            className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-0.5 rounded"
-          >
-            {currentWord.text}
-          </span>,
-          " ",
-        );
-      } else if (!currentWord && previousWord) {
-        // Removed word (exists in previous but not in current)
-        elements.push(
-          <span
-            key={`remove-${start}`}
-            className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 line-through px-0.5 rounded"
-          >
-            {previousWord.text}
-          </span>,
-          " ",
-        );
-      } else if (currentWord && previousWord) {
-        if (currentWord.text !== previousWord.text) {
-          // Changed word (same start time but different text)
-          elements.push(
-            <span key={`change-${start}`}>
-              <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 line-through px-0.5 rounded">
-                {previousWord.text}
-              </span>{" "}
-              <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-0.5 rounded">
-                {currentWord.text}
-              </span>
-            </span>,
-            " ",
-          );
-        } else {
-          // Unchanged word
-          elements.push(
-            <span key={`same-${start}`}>{currentWord.text}</span>,
-            " ",
-          );
+    for (const [type, text] of diffs) {
+      if (type === diff.EQUAL) {
+        // Add segments from current (they're the same in both)
+        let remaining = text.length;
+        while (remaining > 0 && currIndex < currentSegments.length) {
+          const seg = currentSegments[currIndex];
+          if (seg.text.length <= remaining) {
+            unifiedSegments.push({
+              segment: seg,
+              diffType: "equal",
+              index: segmentIndex++,
+            });
+            remaining -= seg.text.length;
+            currIndex++;
+            prevIndex++;
+          } else {
+            break;
+          }
+        }
+      } else if (type === diff.INSERT) {
+        // Add segments from current (additions)
+        let remaining = text.length;
+        while (remaining > 0 && currIndex < currentSegments.length) {
+          const seg = currentSegments[currIndex];
+          if (seg.text.length <= remaining) {
+            unifiedSegments.push({
+              segment: seg,
+              diffType: "add",
+              index: segmentIndex++,
+            });
+            remaining -= seg.text.length;
+            currIndex++;
+          } else {
+            break;
+          }
+        }
+      } else if (type === diff.DELETE) {
+        // Add segments from previous (deletions)
+        let remaining = text.length;
+        while (remaining > 0 && prevIndex < previousSegments.length) {
+          const seg = previousSegments[prevIndex];
+          if (seg.text.length <= remaining) {
+            unifiedSegments.push({
+              segment: seg,
+              diffType: "remove",
+              index: segmentIndex++,
+            });
+            remaining -= seg.text.length;
+            prevIndex++;
+          } else {
+            break;
+          }
         }
       }
     }
 
-    return (
-      <div className="text-sm leading-relaxed whitespace-pre-wrap">
-        {elements}
-      </div>
-    );
+    // Find indices of all changed segments
+    const changedIndices = unifiedSegments
+      .map((s, i) => (s.diffType !== "equal" ? i : -1))
+      .filter((i) => i !== -1);
+
+    if (changedIndices.length === 0) {
+      return (
+        <div className="text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">
+          {t("noChanges")}
+        </div>
+      );
+    }
+
+    // Group changes into chunks with context
+    type Chunk = { start: number; end: number };
+    const chunks: Chunk[] = [];
+    let currentChunk: Chunk | null = null;
+
+    for (const idx of changedIndices) {
+      const chunkStart = Math.max(0, idx - CONTEXT_ITEMS);
+      const chunkEnd = Math.min(
+        unifiedSegments.length - 1,
+        idx + CONTEXT_ITEMS,
+      );
+
+      if (!currentChunk) {
+        currentChunk = { start: chunkStart, end: chunkEnd };
+      } else if (chunkStart <= currentChunk.end + MIN_GAP_TO_SKIP) {
+        // Merge overlapping or close chunks
+        currentChunk.end = Math.max(currentChunk.end, chunkEnd);
+      } else {
+        // Start a new chunk
+        chunks.push(currentChunk);
+        currentChunk = { start: chunkStart, end: chunkEnd };
+      }
+    }
+
+    if (currentChunk) {
+      chunks.push(currentChunk);
+    }
+
+    // Count lines (newlines) between chunks
+    const countLinesBetween = (start: number, end: number): number => {
+      let count = 0;
+      for (let i = start; i < end && i < unifiedSegments.length; i++) {
+        if (unifiedSegments[i].segment.text === "\n") {
+          count++;
+        }
+      }
+      return count;
+    };
+
+    // Render chunks with ellipses between them
+    const elements: React.ReactNode[] = [];
+
+    chunks.forEach((chunk, chunkIdx) => {
+      // Add ellipsis before chunk if not at start
+      if (chunk.start > 0) {
+        const skippedLines = countLinesBetween(
+          chunkIdx > 0 ? chunks[chunkIdx - 1].end + 1 : 0,
+          chunk.start,
+        );
+        elements.push(
+          <div
+            key={`ellipsis-before-${chunkIdx}`}
+            className="text-muted-foreground italic text-xs py-2"
+          >
+            [{skippedLines} {skippedLines === 1 ? "line" : "lines"}]
+          </div>,
+        );
+      }
+
+      // Render segments in chunk
+      const chunkElements: React.ReactNode[] = [];
+      let lastSpeakerId: string | undefined = undefined;
+      const firstSegment = unifiedSegments[chunk.start]?.segment;
+      const isStartTruncated = chunk.start > 0;
+      let addedLeadingEllipsis = false;
+
+      for (
+        let i = chunk.start;
+        i <= chunk.end && i < unifiedSegments.length;
+        i++
+      ) {
+        const { segment, diffType } = unifiedSegments[i];
+        const key = `seg-${chunkIdx}-${i}`;
+
+        // Show speaker name when it changes
+        if (
+          segment.speakerId &&
+          segment.speakerId !== lastSpeakerId &&
+          segment.text !== "\n"
+        ) {
+          const speakerName =
+            speakerMap.get(segment.speakerId) || segment.speakerId;
+          chunkElements.push(
+            <span key={`speaker-${i}`} className="font-semibold text-primary">
+              {speakerName}:{" "}
+            </span>,
+          );
+          lastSpeakerId = segment.speakerId;
+
+          // Add leading [...] after speaker name if this is the start and we're truncated
+          if (!addedLeadingEllipsis && isStartTruncated && i === chunk.start) {
+            chunkElements.push(
+              <span
+                key="leading-ellipsis"
+                className="text-muted-foreground italic"
+              >
+                [...]
+              </span>,
+              " ",
+            );
+            addedLeadingEllipsis = true;
+          }
+        } else if (
+          !addedLeadingEllipsis &&
+          isStartTruncated &&
+          i === chunk.start &&
+          segment.text !== "\n"
+        ) {
+          // Add leading [...] if starting mid-sentence without a speaker change
+          chunkElements.push(
+            <span
+              key="leading-ellipsis"
+              className="text-muted-foreground italic"
+            >
+              [...]
+            </span>,
+            " ",
+          );
+          addedLeadingEllipsis = true;
+        }
+
+        // Handle line breaks
+        if (segment.text === "\n") {
+          chunkElements.push(<br key={key} />);
+          lastSpeakerId = undefined; // Reset speaker on new line
+          continue;
+        }
+
+        // Render segment based on diff type
+        if (diffType === "add") {
+          chunkElements.push(
+            <span
+              key={key}
+              className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-0.5 rounded"
+            >
+              {segment.text}
+            </span>,
+          );
+        } else if (diffType === "remove") {
+          chunkElements.push(
+            <span
+              key={key}
+              className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 line-through px-0.5 rounded"
+            >
+              {segment.text}
+            </span>,
+          );
+        } else {
+          chunkElements.push(
+            <span key={key} className="text-muted-foreground/70">
+              {segment.text}
+            </span>,
+          );
+        }
+      }
+
+      // Add trailing [...] if we're ending mid-sentence
+      const lastSegment =
+        unifiedSegments[Math.min(chunk.end, unifiedSegments.length - 1)]
+          ?.segment;
+      const isEndTruncated = chunk.end < unifiedSegments.length - 1;
+      if (isEndTruncated && lastSegment && lastSegment.text !== "\n") {
+        chunkElements.push(
+          <span
+            key="trailing-ellipsis"
+            className="text-muted-foreground italic"
+          >
+            {" "}
+            [...]
+          </span>,
+        );
+      }
+
+      elements.push(
+        <div
+          key={`chunk-${chunkIdx}`}
+          className="leading-relaxed whitespace-pre-wrap"
+        >
+          {chunkElements}
+        </div>,
+      );
+    });
+
+    // Add final ellipsis if needed
+    if (
+      chunks.length > 0 &&
+      chunks[chunks.length - 1].end < unifiedSegments.length - 1
+    ) {
+      const skippedLines = countLinesBetween(
+        chunks[chunks.length - 1].end + 1,
+        unifiedSegments.length,
+      );
+      elements.push(
+        <div
+          key="ellipsis-end"
+          className="text-muted-foreground italic text-xs py-2"
+        >
+          [{skippedLines} {skippedLines === 1 ? "line" : "lines"}]
+        </div>,
+      );
+    }
+
+    return <div className="text-sm space-y-1">{elements}</div>;
   };
 
   const formatDateTime = (dateString: string) => {

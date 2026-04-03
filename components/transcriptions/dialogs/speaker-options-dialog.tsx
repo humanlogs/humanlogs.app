@@ -18,11 +18,11 @@ import { useTranslations } from "@/components/locale-provider";
 import * as React from "react";
 import { toast } from "sonner";
 import { useModal } from "../../use-modal";
+import { AlertCircle } from "lucide-react";
 import {
   getSpeakerLabel,
   Speaker,
-} from "../old-editor/hooks/use-speaker-actions";
-import { AlertCircle } from "lucide-react";
+} from "../editor/text/hooks/use-speaker-actions";
 
 export type SpeakerOptionsModalData = {
   transcription: TranscriptionContent;

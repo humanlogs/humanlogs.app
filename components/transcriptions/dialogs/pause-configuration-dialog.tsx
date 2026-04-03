@@ -16,11 +16,10 @@ import {
   TranscriptionContent,
   TranscriptionSegment,
 } from "@/hooks/use-transcriptions";
-import { useTranslations } from "@/components/locale-provider";
+import { InfoIcon } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 import { useModal } from "../../use-modal";
-import { InfoIcon } from "lucide-react";
 
 export type PauseConfigurationModalData = {
   transcription: TranscriptionContent;

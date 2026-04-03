@@ -1,31 +1,24 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import { useUserProfile } from "./use-api";
 import {
-  joinTranscriptionRoom,
-  leaveTranscriptionRoom,
+  claimLeadership,
+  CursorPositionWithSocket,
   emitCursorPosition,
-  onCursorPosition,
-  onUserJoined,
-  onUserLeft,
-  onUserDisconnected,
+  joinTranscriptionRoom,
+  leaderKeepalive,
+  leaveTranscriptionRoom,
   offCursorPosition,
+  offUserDisconnected,
   offUserJoined,
   offUserLeft,
-  offUserDisconnected,
-  claimLeadership,
+  onCursorPosition,
+  onUserDisconnected,
+  onUserJoined,
+  onUserLeft,
   releaseLeadership,
-  leaderKeepalive,
-  onLeaderChanged,
-  onLeaderGranted,
-  onLeaderDenied,
-  offLeaderChanged,
-  offLeaderGranted,
-  offLeaderDenied,
-  CursorPositionWithSocket,
-  Leader,
 } from "@/lib/socket-client";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useUserProfile } from "./use-api";
 
 export type UserCursor = {
   socketId: string;
@@ -40,7 +33,6 @@ export type UserCursor = {
 export function useTranscriptionCursors(transcriptionId: string) {
   const { data: userProfile } = useUserProfile();
   const [cursors, setCursors] = useState<Map<string, UserCursor>>(new Map());
-  const [currentLeader, setCurrentLeader] = useState<Leader | null>(null);
   const [isLeader, setIsLeader] = useState(false);
   const lastEmitRef = useRef<number>(0);
   const lastPositionRef = useRef<{
@@ -115,50 +107,6 @@ export function useTranscriptionCursors(transcriptionId: string) {
       offUserDisconnected(handleUserDisconnected);
     };
   }, []);
-
-  // Listen for leader changes
-  useEffect(() => {
-    const handleLeaderChanged = (data: {
-      transcriptionId: string;
-      leader: Leader | null;
-    }) => {
-      if (data.transcriptionId === transcriptionId) {
-        setCurrentLeader(data.leader);
-        // Check if we are the leader
-        setIsLeader(data.leader?.userId === userProfile?.id);
-      }
-    };
-
-    const handleLeaderGranted = (data: { transcriptionId: string }) => {
-      if (data.transcriptionId === transcriptionId) {
-        setIsLeader(true);
-        console.log("Leadership granted for transcription:", transcriptionId);
-      }
-    };
-
-    const handleLeaderDenied = (data: {
-      transcriptionId: string;
-      currentLeader: Leader;
-    }) => {
-      if (data.transcriptionId === transcriptionId) {
-        setIsLeader(false);
-        console.log(
-          "Leadership denied. Current leader:",
-          data.currentLeader.userName,
-        );
-      }
-    };
-
-    onLeaderChanged(handleLeaderChanged);
-    onLeaderGranted(handleLeaderGranted);
-    onLeaderDenied(handleLeaderDenied);
-
-    return () => {
-      offLeaderChanged(handleLeaderChanged);
-      offLeaderGranted(handleLeaderGranted);
-      offLeaderDenied(handleLeaderDenied);
-    };
-  }, [transcriptionId, userProfile?.id]);
 
   // Function to emit cursor position (throttled)
   const updateCursorPosition = useCallback(
@@ -284,7 +232,6 @@ export function useTranscriptionCursors(transcriptionId: string) {
     updateCursorPositionImmediate,
     // Leader-based locking
     isEditLocked: !isLeader, // Locked if we are not the leader
-    currentLeader,
     isLeader,
     claimLeader,
     releaseLeader,
