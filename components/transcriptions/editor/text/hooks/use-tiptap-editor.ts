@@ -3,6 +3,10 @@
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import Paragraph from "@tiptap/extension-paragraph";
 import Placeholder from "@tiptap/extension-placeholder";
+import Bold from "@tiptap/extension-bold";
+import Italic from "@tiptap/extension-italic";
+import Strike from "@tiptap/extension-strike";
+import Underline from "@tiptap/extension-underline";
 import { AddMarkStep, RemoveMarkStep, ReplaceStep } from "@tiptap/pm/transform";
 import { Editor, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -26,6 +30,31 @@ const SpeakerParagraph = Paragraph.extend({
         },
       },
     };
+  },
+});
+
+// Extend the marks to disable their keyboard shortcuts
+const BoldNoShortcut = Bold.extend({
+  addKeyboardShortcuts() {
+    return {};
+  },
+});
+
+const ItalicNoShortcut = Italic.extend({
+  addKeyboardShortcuts() {
+    return {};
+  },
+});
+
+const StrikeNoShortcut = Strike.extend({
+  addKeyboardShortcuts() {
+    return {};
+  },
+});
+
+const UnderlineNoShortcut = Underline.extend({
+  addKeyboardShortcuts() {
+    return {};
   },
 });
 
@@ -59,11 +88,10 @@ export function useTiptapEditor({
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        // Keep useful features (pass empty object to enable with defaults)
-        bold: {},
-        italic: {},
-        strike: {},
-        underline: {},
+        // Disable marks - we'll add custom versions without keyboard shortcuts
+        bold: false,
+        italic: false,
+        strike: false,
         // Disable some features we don't need
         heading: false,
         blockquote: false,
@@ -73,6 +101,11 @@ export function useTiptapEditor({
         orderedList: false,
         paragraph: false, // We'll use our custom SpeakerParagraph instead
       }),
+      // Add custom marks without keyboard shortcuts
+      BoldNoShortcut,
+      ItalicNoShortcut,
+      StrikeNoShortcut,
+      UnderlineNoShortcut,
       SpeakerParagraph,
       Placeholder.configure({
         placeholder: "Start typing…",

@@ -69,6 +69,7 @@ export function EditorToolbar({
       enableOnContentEditable: true,
     },
   );
+
   useHotkeys(
     ["mod+shift+f", "ctrl+shift+f", "cmd+shift+f"],
     (e) => {
@@ -77,6 +78,54 @@ export function EditorToolbar({
       searchReplace.toggleReplace(true);
     },
     [searchReplace],
+    {
+      enableOnContentEditable: true,
+    },
+  );
+
+  useHotkeys(
+    ["mod+b", "cmd+b", "ctrl+b"],
+    (e) => {
+      e.preventDefault();
+      applyFormat("b");
+    },
+    [applyFormat],
+    {
+      enableOnContentEditable: true,
+    },
+  );
+
+  useHotkeys(
+    ["mod+i", "cmd+i", "ctrl+i"],
+    (e) => {
+      e.preventDefault();
+      applyFormat("i");
+    },
+    [applyFormat],
+    {
+      enableOnContentEditable: true,
+    },
+  );
+
+  useHotkeys(
+    ["mod+u", "cmd+u", "ctrl+u"],
+    (e) => {
+      e.preventDefault();
+      applyFormat("u");
+    },
+    [applyFormat],
+    {
+      enableOnContentEditable: true,
+    },
+  );
+
+  useHotkeys(
+    ["mod+shift+s", "ctrl+shift+s", "cmd+shift+s"],
+    (e) => {
+      e.preventDefault();
+      applyFormat("s");
+    },
+    [applyFormat],
     {
       enableOnContentEditable: true,
     },

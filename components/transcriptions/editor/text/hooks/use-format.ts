@@ -90,8 +90,9 @@ export const useFormat = (editorAPI: EditorAPI, currentIndex: number) => {
       // Apply format without changing focus state
       const chain = editor.chain();
 
-      // Only focus if was already focused
-      if (wasFocused) {
+      // Only focus if was already focused AND there's no selection
+      // (focus() can interfere with existing selections)
+      if (wasFocused && isEmptySelection) {
         chain.focus();
       }
 

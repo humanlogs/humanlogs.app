@@ -370,10 +370,8 @@ export function useNavigationMode(
       if (state !== "navigate") return;
       event.preventDefault();
 
-      event.preventDefault();
-
       // Select the current segment and focus the editor
-      editorAPI.focus(currentIndex);
+      editorAPI.focus(currentIndex, true); // true = select the segment content
 
       // If a letter was typed or there's a custom shortcut replacement, insert that text
       editorAPI.execCommand("delete");
@@ -442,7 +440,7 @@ export function useNavigationMode(
 
       // Set the selection range
       if (state === "navigate") {
-        editorAPI.focus(currentIndex);
+        editorAPI.focus(currentIndex, true); // true = select the segment content
       } else {
         // In edit mode, just focus to maintain existing selection
         editorAPI.focus();

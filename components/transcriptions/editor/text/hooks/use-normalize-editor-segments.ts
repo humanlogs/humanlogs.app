@@ -177,7 +177,7 @@ export function normalizeEditorSegments(
   //         - start  → end of nearest word before
   //         - end    → start of nearest word after
   //         - speakerId → if neighbors agree, use shared value; else use before
-  //         - modifiers → cleared (spacings carry no formatting)
+  //         - modifiers → intersection of both neighbors' modifiers if both have them
   // ---------------------------------------------------------------------------
   const withMeta: TranscriptionSegment[] = merged.map((seg, i) => {
     if (seg.type === "word") return seg;
@@ -197,6 +197,15 @@ export function normalizeEditorSegments(
       }
     }
 
+    // Compute modifiers intersection if both neighbors have modifiers
+    let modifiers: ("b" | "i" | "u" | "s")[] | undefined = undefined;
+    if (beforeWord?.modifiers && afterWord?.modifiers) {
+      const intersection = beforeWord.modifiers.filter((mod) =>
+        afterWord.modifiers!.includes(mod),
+      );
+      modifiers = intersection.length > 0 ? intersection : undefined;
+    }
+
     return {
       ...seg,
       start: beforeWord?.end ?? seg.start,
@@ -206,7 +215,7 @@ export function normalizeEditorSegments(
         beforeWord?.speakerId === afterWord?.speakerId
           ? beforeWord?.speakerId
           : beforeWord?.speakerId,
-      modifiers: undefined,
+      modifiers,
     };
   });
 
