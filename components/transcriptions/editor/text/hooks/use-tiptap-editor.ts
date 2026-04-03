@@ -39,61 +39,6 @@ interface UseTiptapEditorOptions {
 }
 
 /**
- * Syncs speaker IDs from the editor's paragraph attributes to the segments.
- * This ensures that when a paragraph's speakerId changes in the editor,
- * all segments within that paragraph are updated to match.
- */
-function syncSpeakerIdsFromEditor(
-  editor: Editor,
-  segments: TranscriptionSegment[],
-): TranscriptionSegment[] {
-  const doc = editor.state.doc;
-  const paragraphSpeakers: Array<{
-    from: number;
-    to: number;
-    speakerId: string;
-  }> = [];
-
-  // Walk through the document and collect paragraph ranges with their speaker IDs
-  doc.descendants((node, pos) => {
-    if (node.type.name === "paragraph") {
-      const speakerId = node.attrs.speakerId;
-      if (speakerId) {
-        // pos is the position before the node, pos + 1 is the start of content
-        paragraphSpeakers.push({
-          from: pos + 1,
-          to: pos + node.nodeSize - 1, // -1 to exclude the closing tag
-          speakerId,
-        });
-      }
-    }
-    return true; // Continue traversing
-  });
-
-  // Now map character positions to segments and update speaker IDs
-  let charOffset = 0;
-  for (let i = 0; i < segments.length; i++) {
-    const seg = segments[i];
-    const segStart = charOffset;
-    const segEnd = charOffset + seg.text.length;
-
-    // Find which paragraph this segment belongs to
-    for (const para of paragraphSpeakers) {
-      // Check if segment overlaps with this paragraph
-      if (segStart < para.to && segEnd > para.from) {
-        // Update the segment's speaker ID
-        segments[i] = { ...seg, speakerId: para.speakerId };
-        break;
-      }
-    }
-
-    charOffset += seg.text.length;
-  }
-
-  return segments;
-}
-
-/**
  * Creates a Tiptap editor instance configured for transcription editing.
  * This hook manages the editor lifecycle and provides transaction events.
  */
@@ -170,12 +115,6 @@ export function useTiptapEditor({
       segmentsRef.current = applyTransactionOnSegments(
         segmentsRef.current ?? [],
         transaction,
-      );
-
-      // Sync speaker IDs from editor document to segments
-      segmentsRef.current = syncSpeakerIdsFromEditor(
-        editor,
-        segmentsRef.current ?? [],
       );
 
       console.log("[Tiptap] Updated segments:", segmentsRef.current);

@@ -1,6 +1,11 @@
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { Transaction } from "@tiptap/pm/state";
-import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
+import {
+  AddMarkStep,
+  RemoveMarkStep,
+  ReplaceAroundStep,
+  ReplaceStep,
+} from "@tiptap/pm/transform";
 import _ from "lodash";
 import { normalizeEditorSegments } from "../hooks/use-normalize-editor-segments";
 
@@ -35,8 +40,11 @@ export const applyTransactionOnSegments = (
       result = applyReplaceStep(result, step);
     } else if (step instanceof ReplaceAroundStep) {
       result = applyReplaceAroundStep(result, step);
+    } else if (step instanceof AddMarkStep) {
+      result = applyAddMarkStep(result, step);
+    } else if (step instanceof RemoveMarkStep) {
+      result = applyRemoveMarkStep(result, step);
     }
-    // ReplaceAroundStep is not currently handled as it's not used in the codebase
   }
 
   result = normalizeEditorSegments(result);
@@ -128,7 +136,157 @@ const applyReplaceAroundStep = (
   segments: TranscriptionSegment[],
   step: ReplaceAroundStep,
 ): TranscriptionSegment[] => {
-  console.log(step);
+  // ReplaceAroundStep is used to wrap/unwrap content or change node attributes
+  // In our case, it's primarily used to change paragraph speakerId attributes
 
-  return segments; // Placeholder, the actual implementation of this function would be quite complex and is not provided here.
+  // Adjust positions (tiptap uses 1-based offset)
+  const gapFrom = step.gapFrom - 1;
+  const gapTo = step.gapTo - 1;
+
+  // Extract the new speakerId from the slice if it's a paragraph change
+  let newSpeakerId: string | undefined;
+  step.slice.content.forEach((node) => {
+    if (node.type.name === "paragraph" && node.attrs.speakerId) {
+      newSpeakerId = node.attrs.speakerId;
+    }
+    return true;
+  });
+
+  // If no speaker ID change detected, return unchanged
+  if (!newSpeakerId) {
+    return segments;
+  }
+
+  // Find the segments that fall within the gap (the content that's being wrapped/affected)
+  let charIndex = 0;
+  let segmentStartIndex = 0;
+
+  // Find the first segment that intersects with gapFrom
+  while (charIndex < gapFrom && segmentStartIndex < segments.length) {
+    charIndex += segments[segmentStartIndex].text.length;
+    segmentStartIndex++;
+  }
+  segmentStartIndex = Math.max(0, segmentStartIndex - 1);
+
+  // Find the last segment that intersects with gapTo
+  let segmentEndIndex = segmentStartIndex;
+  charIndex = segments
+    .slice(0, segmentStartIndex)
+    .reduce((sum, seg) => sum + seg.text.length, 0);
+
+  while (charIndex < gapTo && segmentEndIndex < segments.length) {
+    charIndex += segments[segmentEndIndex].text.length;
+    segmentEndIndex++;
+  }
+  segmentEndIndex = Math.min(segments.length - 1, segmentEndIndex);
+
+  // Update speakerId for all segments in the affected range
+  for (let i = segmentStartIndex; i <= segmentEndIndex; i++) {
+    segments[i] = {
+      ...segments[i],
+      speakerId: newSpeakerId,
+    };
+  }
+
+  return segments;
+};
+
+const applyAddMarkStep = (
+  segments: TranscriptionSegment[],
+  step: AddMarkStep,
+): TranscriptionSegment[] => {
+  // Get the modifier type from the mark
+  const markType = step.mark.type.name;
+  const modifier = modifiersMap[markType];
+
+  if (!modifier) {
+    // Unknown mark type, skip
+    return segments;
+  }
+
+  // Adjust positions (tiptap uses 1-based offset)
+  const from = step.from - 1;
+  const to = step.to - 1;
+
+  // Find all segments that are affected by this mark
+  let charIndex = 0;
+  let segmentIndex = 0;
+
+  // Find segments within the from-to range
+  while (segmentIndex < segments.length) {
+    const segmentStart = charIndex;
+    const segmentEnd = charIndex + segments[segmentIndex].text.length;
+
+    // Check if this segment overlaps with the marked range
+    if (segmentStart < to && segmentEnd > from) {
+      // Add the modifier to this segment (apply to the whole word)
+      const currentModifiers = segments[segmentIndex].modifiers || [];
+      if (!currentModifiers.includes(modifier)) {
+        segments[segmentIndex] = {
+          ...segments[segmentIndex],
+          modifiers: [...currentModifiers, modifier],
+        };
+      }
+    }
+
+    charIndex = segmentEnd;
+    segmentIndex++;
+
+    // Stop if we're past the marked range
+    if (charIndex >= to) {
+      break;
+    }
+  }
+
+  return segments;
+};
+
+const applyRemoveMarkStep = (
+  segments: TranscriptionSegment[],
+  step: RemoveMarkStep,
+): TranscriptionSegment[] => {
+  // Get the modifier type from the mark
+  const markType = step.mark.type.name;
+  const modifier = modifiersMap[markType];
+
+  if (!modifier) {
+    // Unknown mark type, skip
+    return segments;
+  }
+
+  // Adjust positions (tiptap uses 1-based offset)
+  const from = step.from - 1;
+  const to = step.to - 1;
+
+  // Find all segments that are affected by this mark removal
+  let charIndex = 0;
+  let segmentIndex = 0;
+
+  // Find segments within the from-to range
+  while (segmentIndex < segments.length) {
+    const segmentStart = charIndex;
+    const segmentEnd = charIndex + segments[segmentIndex].text.length;
+
+    // Check if this segment overlaps with the unmarked range
+    if (segmentStart < to && segmentEnd > from) {
+      // Remove the modifier from this segment (apply to the whole word)
+      const currentModifiers = segments[segmentIndex].modifiers || [];
+      if (currentModifiers.includes(modifier)) {
+        segments[segmentIndex] = {
+          ...segments[segmentIndex],
+          modifiers: currentModifiers.filter((m) => m !== modifier),
+        };
+      }
+    }
+
+    charIndex = segmentEnd;
+    segmentIndex++;
+
+    // Stop if we're past the unmarked range
+    if (charIndex >= to) {
+      break;
+    }
+  }
+
+  return segments;
 };

@@ -45,21 +45,18 @@ export function SpeakerBadgeChip({
 
 interface SpeakerColumnProps {
   editorAPI: EditorAPI;
-  onRenameSpeaker: (speakerId: string, name: string) => void;
   readOnly?: boolean;
 }
 
 interface SpeakerBadgeProps {
   position: SpeakerPosition;
   editorAPI: EditorAPI;
-  onRenameSpeaker: (speakerId: string, name: string) => void;
   readOnly?: boolean;
 }
 
 function SpeakerBadge({
   position,
   editorAPI,
-  onRenameSpeaker,
   readOnly = false,
 }: SpeakerBadgeProps) {
   const t = useTranslations("editor");
@@ -116,8 +113,6 @@ function SpeakerBadge({
   const handleRenameSpeaker = () => {
     openRename(speakerId, label, (name) => {
       editorAPI.renameSpeaker(speakerId, name);
-      // Also call the parent callback for any additional logic
-      onRenameSpeaker(speakerId, name);
     });
   };
 
@@ -186,7 +181,6 @@ function SpeakerBadge({
 
 export function SpeakerColumn({
   editorAPI,
-  onRenameSpeaker,
   readOnly = false,
 }: SpeakerColumnProps) {
   const { positions } = useSpeakerPositions(editorAPI);
@@ -199,7 +193,6 @@ export function SpeakerColumn({
           key={`${pos.speakerId}-${pos.index}`}
           position={pos}
           editorAPI={editorAPI}
-          onRenameSpeaker={onRenameSpeaker}
           readOnly={readOnly}
         />
       ))}

@@ -26,7 +26,7 @@ export interface SearchReplaceToolbarProps {
   onReplaceCurrent: () => void;
   onReplaceAll: () => void;
   showReplace: boolean;
-  onToggleReplace: () => void;
+  onToggleReplace: (value?: boolean) => void;
   searchInputRef?: React.RefObject<HTMLInputElement | null>;
   hideReplace?: boolean;
 }
@@ -55,7 +55,6 @@ export function SearchReplaceToolbar({
 }: SearchReplaceToolbarProps) {
   const t = useTranslations("editor");
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showReplaceInput, setShowReplaceInput] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -163,8 +162,8 @@ export function SearchReplaceToolbar({
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="replace-toggle-toolbar"
-                      checked={showReplaceInput}
-                      onCheckedChange={(value) => setShowReplaceInput(!!value)}
+                      checked={showReplace}
+                      onCheckedChange={(value) => onToggleReplace(!!value)}
                     />
                     <Label
                       htmlFor="replace-toggle-toolbar"
@@ -177,7 +176,7 @@ export function SearchReplaceToolbar({
               </div>
 
               {/* Replace Input */}
-              {showReplaceInput && (
+              {showReplace && (
                 <div>
                   <Label htmlFor="replace-input" className="text-xs mb-1 block">
                     {t("search.replaceWith")}
@@ -195,7 +194,7 @@ export function SearchReplaceToolbar({
               )}
 
               {/* Replace Actions */}
-              {showReplaceInput && (
+              {showReplace && (
                 <div className="flex gap-2">
                   <Button
                     onClick={() => {

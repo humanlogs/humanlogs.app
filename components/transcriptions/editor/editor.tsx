@@ -6,21 +6,27 @@ import { createPortal } from "react-dom";
 import { TranscriptionDetail } from "../../../hooks/use-transcriptions";
 import { AudioControls, InteractiveAudio } from "./audio";
 import { EditorAPI } from "./text/api";
+import { ActiveSegmentHighlight } from "./text/components/active-segment-highlight";
+import { EditorToolbar } from "./text/components/editor-toolbar";
 import { SpeakerColumn } from "./text/components/speaker-column";
 import { SpeakerRenameDialog } from "./text/components/speaker-rename-dialog";
-import { TranscriptEditorContentTipTap } from "./text/tiptap";
-import { useNavigationMode } from "./text/hooks/use-navigation-mode";
-import { ActiveSegmentHighlight } from "./text/components/active-segment-highlight";
 import { useAudioSync } from "./text/hooks/use-audio-sync";
+import { useFormat } from "./text/hooks/use-format";
+import { useNavigationMode } from "./text/hooks/use-navigation-mode";
+import { TranscriptEditorContentTipTap } from "./text/tiptap";
+import { useSearchReplace } from "./text/hooks/use-search-replace";
+import { SearchHighlights } from "./text/components/search-highlights";
 
 export function TranscriptEditor({
   hasWriteAccess,
   hasListenAccess,
   transcription,
+  onChange,
 }: {
   hasWriteAccess: boolean;
   hasListenAccess: boolean;
   transcription: TranscriptionDetail;
+  onChange: (update: TranscriptionDetail["transcription"]) => void;
 }) {
   const editorAPIRef = useRef(new EditorAPI());
   const editorAPI = editorAPIRef.current;
@@ -29,6 +35,14 @@ export function TranscriptEditor({
   );
   const { selectionUpdate } = useAudioSync(editorAPI);
   const { state, currentIndex } = useNavigationMode(editorAPI, audioControls);
+  const {
+    applyFormat,
+    activeFormats,
+    selectionUpdate: formatSelectionUpdate,
+  } = useFormat(editorAPI, currentIndex);
+  const searchReplace = useSearchReplace(editorAPI);
+
+  // useBracketWrap();
 
   return (
     <div className="h-full">
@@ -58,21 +72,27 @@ export function TranscriptEditor({
             ) : (
               <div className="pt-2"></div>
             )}
-            <div className="px-4 pb-2">TODO</div>
+            <div className="px-4 pb-2">
+              <EditorToolbar
+                applyFormat={applyFormat}
+                activeFormats={activeFormats}
+                searchReplace={searchReplace}
+                audioControls={audioControls}
+                hasWriteAccess={hasWriteAccess}
+                hasListenAccess={hasListenAccess}
+              />
+            </div>
           </div>,
           document.getElementById("header-sub-portal")!,
         )}
 
         {/* Scrollable content area */}
         <div className="flex flex-row px-4 gap-2 flex-1 pb-6 pt-4 pb-16">
-          <SpeakerColumn
-            editorAPI={editorAPI}
-            onRenameSpeaker={() => {}}
-            readOnly={!hasWriteAccess}
-          />
+          <SpeakerColumn editorAPI={editorAPI} readOnly={!hasWriteAccess} />
           <div className="flex-1 px-2">
             <div className="relative">
               {false && "TODO Cursors and highlights"}
+              <SearchHighlights highlights={searchReplace.highlights} />
               <ActiveSegmentHighlight
                 editorAPI={editorAPI}
                 segmentIndex={currentIndex}
@@ -88,6 +108,7 @@ export function TranscriptEditor({
                   }}
                   onSelectionUpdate={(selection) => {
                     selectionUpdate();
+                    formatSelectionUpdate(selection);
                   }}
                   onUpdate={() => {}}
                   hasWriteAccess={hasWriteAccess}

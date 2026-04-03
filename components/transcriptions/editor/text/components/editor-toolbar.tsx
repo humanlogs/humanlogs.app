@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "@/components/locale-provider";
 import { DropdownMenu, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Separator } from "@base-ui/react";
 import {
@@ -10,11 +11,12 @@ import {
   Strikethrough,
   Underline,
 } from "lucide-react";
+import { useRef } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 import { Button } from "../../../../ui/button";
-import { useAudio } from "../audio-context";
-import { AudioControls } from "../interactive-audio";
+import { AudioControls } from "../../audio";
+import { useAudio } from "../../audio/audio-context";
 import { SearchReplaceToolbar } from "./search-replace-toolbar";
-import { useTranslations } from "@/components/locale-provider";
 
 interface EditorToolbarProps {
   applyFormat: (modifier: "b" | "i" | "u" | "s") => void;
@@ -37,9 +39,8 @@ interface EditorToolbarProps {
     replaceCurrent: () => void;
     replaceAll: () => void;
     isOpen: boolean;
-    toggleReplace: () => void;
+    toggleReplace: (value?: boolean) => void;
   };
-  searchInputRef?: React.RefObject<HTMLInputElement | null>;
   audioControls: AudioControls | null;
   hasWriteAccess: boolean;
   hasListenAccess: boolean;
@@ -49,12 +50,37 @@ export function EditorToolbar({
   applyFormat,
   activeFormats,
   searchReplace,
-  searchInputRef,
   audioControls,
   hasWriteAccess,
   hasListenAccess,
 }: EditorToolbarProps) {
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const t = useTranslations("editor");
+
+  useHotkeys(
+    ["mod+f", "cmd+f", "ctrl+f"],
+    (e) => {
+      e.preventDefault();
+      searchInputRef.current?.focus();
+      searchReplace.toggleReplace(false);
+    },
+    [searchReplace],
+    {
+      enableOnContentEditable: true,
+    },
+  );
+  useHotkeys(
+    ["mod+shift+f", "ctrl+shift+f", "cmd+shift+f"],
+    (e) => {
+      e.preventDefault();
+      searchInputRef.current?.focus();
+      searchReplace.toggleReplace(true);
+    },
+    [searchReplace],
+    {
+      enableOnContentEditable: true,
+    },
+  );
 
   return (
     <div className="flex items-center gap-0 shrink-0">

@@ -12,7 +12,7 @@ interface TranscriptEditorContentProps {
   speakers: Array<{ id: string; name?: string }>;
   onChange: (segments: TranscriptionSegment[]) => void;
   hasWriteAccess: boolean;
-  onSelectionUpdate: (selection: { from: number; to: number }) => void;
+  onSelectionUpdate: (editor: Editor) => void;
   onUpdate: () => void;
 }
 
@@ -38,7 +38,7 @@ export function TranscriptEditorContentTipTap({
 
   if (!tiptapEditorRef.current && tiptapEditor) {
     tiptapEditorRef.current = tiptapEditor;
-    editorAPI.init(tiptapEditorRef, segmentsRef, speakers);
+    editorAPI.init(tiptapEditorRef, segmentsRef as any, speakers);
   }
 
   return <EditorContent editor={tiptapEditor} />;

@@ -40,12 +40,18 @@ export class EditorAPI extends EventEmitter {
     this.segmentsRef = segmentsRef;
     this.speakersRef.current = speakers;
 
+    (window as any).editorAPI = this; // Expose for debugging
+
     // Set up focus/blur event listeners on the TipTap editor
     this.setupEditorEventListeners();
 
     this.emit("segmentsChange");
     this.emit("speakersChange");
     this.emit("change");
+  }
+
+  getEditor() {
+    return this.editorRef.current;
   }
 
   private setupEditorEventListeners() {
@@ -138,11 +144,11 @@ export class EditorAPI extends EventEmitter {
   }
 
   getSegments() {
-    return _.cloneDeep(this.segmentsRef.current || []);
+    return this.segmentsRef.current || [];
   }
 
   getSpeakers() {
-    return _.cloneDeep(this.speakersRef.current || []);
+    return this.speakersRef.current || [];
   }
 
   getSegmentNode(segmentIndex?: number) {
