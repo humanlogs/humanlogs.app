@@ -56,34 +56,41 @@ const applyReplaceStep = (
   segments: TranscriptionSegment[],
   step: ReplaceStep,
 ): TranscriptionSegment[] => {
+  if (!segments.length) {
+    return segments;
+  }
+
   // Careful tiptap from/to are 1 offset
   const from = step.from - 1;
   const to = step.to - 1;
+  const totalLength = segments.reduce((sum, seg) => sum + seg.text.length, 0);
+  const safeFrom = Math.max(0, Math.min(from, totalLength));
+  const safeTo = Math.max(safeFrom, Math.min(to, totalLength));
 
   let charIndex = 0;
   let segmentStartIndex = 0;
-  while (charIndex < from) {
+  while (
+    segmentStartIndex < segments.length &&
+    charIndex + segments[segmentStartIndex].text.length < safeFrom
+  ) {
     charIndex += segments[segmentStartIndex].text.length;
     segmentStartIndex++;
   }
-  segmentStartIndex = Math.max(0, segmentStartIndex - 1);
-  let segmentStartCharIndex =
-    charIndex - segments[segmentStartIndex].text.length; // Start index of the current segment
+  segmentStartIndex = Math.min(
+    Math.max(0, segmentStartIndex),
+    segments.length - 1,
+  );
+  const segmentStartCharIndex = charIndex;
 
   let segmentEndIndex = segmentStartIndex;
-  while (charIndex <= to) {
-    segmentEndIndex++;
-    charIndex += segments[segmentEndIndex].text.length;
-  }
-  let segmentEndCharIndex = charIndex; // Start index of the current segment
-
-  if (
-    segments[segmentStartIndex].text.length ===
-    from - segmentStartCharIndex
+  while (
+    segmentEndIndex < segments.length - 1 &&
+    charIndex + segments[segmentEndIndex].text.length < safeTo
   ) {
-    segmentStartCharIndex = from;
-    segmentStartIndex++;
+    charIndex += segments[segmentEndIndex].text.length;
+    segmentEndIndex++;
   }
+  const segmentEndCharIndex = charIndex;
 
   let inside = "";
   step.slice.content.forEach((node, i) => {
@@ -95,9 +102,14 @@ const applyReplaceStep = (
   });
 
   const replacement =
-    segments[segmentStartIndex].text.slice(0, from - segmentStartCharIndex) +
-      inside +
-      segments[segmentEndIndex].text.slice(to - segmentEndCharIndex) || "";
+    segments[segmentStartIndex].text.slice(
+      0,
+      safeFrom - segmentStartCharIndex,
+    ) +
+    inside +
+    segments[segmentEndIndex].text.slice(
+      Math.max(0, safeTo - segmentEndCharIndex),
+    );
 
   const multipleSpeakersInvolved =
     new Set(
@@ -106,16 +118,28 @@ const applyReplaceStep = (
         .map((s) => s.speakerId),
     ).size > 1;
 
-  segments.splice(segmentStartIndex, segmentEndIndex - segmentStartIndex + 1, {
-    type: "word",
-    text: replacement,
-    start: segments[segmentStartIndex].start, // This is a simplification, ideally we should calculate the new start/end based on the replaced text length and the original segments
-    end: segments[segmentEndIndex].end,
-    speakerId: segments[segmentStartIndex].speakerId, // This is a simplification, ideally we should determine the speakerId based on the replaced segments
-  });
+  const startSegment = segments[segmentStartIndex];
+  const endSegment = segments[segmentEndIndex];
+
+  if (replacement.length === 0) {
+    segments.splice(segmentStartIndex, segmentEndIndex - segmentStartIndex + 1);
+  } else {
+    segments.splice(
+      segmentStartIndex,
+      segmentEndIndex - segmentStartIndex + 1,
+      {
+        type: "word",
+        text: replacement,
+        start: startSegment?.start ?? 0,
+        end: endSegment?.end ?? startSegment?.end ?? 0,
+        speakerId:
+          startSegment?.speakerId ?? endSegment?.speakerId ?? "unknown",
+      },
+    );
+  }
 
   // If we had multiple speaker ids in the replaced segments, we should update all the following segments to have the same speakerId as the first one, to avoid having incoherent speakerId in the middle of a sentence
-  if (multipleSpeakersInvolved) {
+  if (multipleSpeakersInvolved && segments[segmentStartIndex]) {
     // We start at the added segment (it's a single segment with all the text right now)
     // Then continue up to the next speaker change
     for (let i = segmentStartIndex + 1; i < segments.length; i++) {
@@ -123,7 +147,7 @@ const applyReplaceStep = (
       segments[i].speakerId = segments[segmentStartIndex].speakerId;
 
       // Up to the next speaker change
-      if (segments[i + 1].speakerId !== originalSpeaker) {
+      if (!segments[i + 1] || segments[i + 1].speakerId !== originalSpeaker) {
         break;
       }
     }
@@ -136,6 +160,10 @@ const applyReplaceAroundStep = (
   segments: TranscriptionSegment[],
   step: ReplaceAroundStep,
 ): TranscriptionSegment[] => {
+  if (!segments.length) {
+    return segments;
+  }
+
   // ReplaceAroundStep is used to wrap/unwrap content or change node attributes
   // In our case, it's primarily used to change paragraph speakerId attributes
 

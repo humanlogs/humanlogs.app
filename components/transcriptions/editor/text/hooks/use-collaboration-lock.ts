@@ -3,6 +3,7 @@
 import { useUserProfile } from "@/hooks/use-api";
 import {
   claimLeadership,
+  getSocket,
   leaderKeepalive,
   onLeaderChanged,
   onLeaderDenied,
@@ -26,6 +27,11 @@ export function useCollaborationLock(transcriptionId: string): LockStatus {
   const [leader, setLeader] = useState<Leader | null>(null);
   const keepaliveIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const attemptedClaimRef = useRef(false);
+  const leaderRef = useRef<Leader | null>(null);
+
+  useEffect(() => {
+    leaderRef.current = leader;
+  }, [leader]);
 
   // Determine if the current user has the lock
   const isLockedByMe = leader !== null && userProfile?.id === leader.userId;
@@ -59,6 +65,15 @@ export function useCollaborationLock(transcriptionId: string): LockStatus {
     const handleLeaderGranted = (data: { transcriptionId: string }) => {
       if (data.transcriptionId === transcriptionId) {
         console.log("[Collaboration Lock] Leadership granted to me");
+
+        // In some flows, leader-changed may not be received by this client.
+        // Ensure local lock state is immediately consistent when grant is confirmed.
+        setLeader({
+          userId: userProfile.id,
+          userName: userProfile.name || "Unknown User",
+          socketId: getSocket()?.id || "",
+          timestamp: Date.now(),
+        });
 
         // Start sending keepalive heartbeats every 10 seconds
         if (keepaliveIntervalRef.current) {
@@ -106,7 +121,7 @@ export function useCollaborationLock(transcriptionId: string): LockStatus {
       console.log("[Collaboration Lock] Cleaning up");
 
       // Release leadership if we have it
-      if (leader?.userId === userProfile.id) {
+      if (leaderRef.current?.userId === userProfile.id) {
         releaseLeadership(transcriptionId);
       }
 
@@ -124,7 +139,7 @@ export function useCollaborationLock(transcriptionId: string): LockStatus {
       // Reset attempt flag for next mount
       attemptedClaimRef.current = false;
     };
-  }, [transcriptionId, userProfile?.id, userProfile?.name, leader?.userId]);
+  }, [transcriptionId, userProfile?.id, userProfile?.name]);
 
   return {
     isLocked: leader !== null,

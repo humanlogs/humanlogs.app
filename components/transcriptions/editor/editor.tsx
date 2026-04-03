@@ -20,6 +20,34 @@ import { useFormat } from "./text/hooks/use-format";
 import { useNavigationMode } from "./text/hooks/use-navigation-mode";
 import { useSearchReplace } from "./text/hooks/use-search-replace";
 import { TranscriptEditorContentTipTap } from "./text/tiptap";
+import { segmentsToHtml } from "./text/utils/html";
+
+function SegmentsHtmlDebugPanel({ editorAPI }: { editorAPI: EditorAPI }) {
+  const [html, setHtml] = useState("");
+
+  useEffect(() => {
+    const update = () => {
+      const segments = editorAPI.getSegments();
+      setHtml(segments.length ? segmentsToHtml(segments) : "");
+    };
+
+    update();
+
+    editorAPI.on("segmentsChange", update);
+    editorAPI.on("change", update);
+
+    return () => {
+      editorAPI.off("segmentsChange", update);
+      editorAPI.off("change", update);
+    };
+  }, [editorAPI]);
+
+  return (
+    <div className="tiptap ProseMirror text-base leading-relaxed focus:outline-none relative ProseMirror-focused w-[50%] shrink-0 flex-col">
+      <div className="ProseMirror" dangerouslySetInnerHTML={{ __html: html }} />
+    </div>
+  );
+}
 
 export function TranscriptEditor({
   hasWriteAccess,
@@ -50,6 +78,7 @@ export function TranscriptEditor({
     selectionUpdate: formatSelectionUpdate,
   } = useFormat(editorAPI, currentIndex);
   const searchReplace = useSearchReplace(editorAPI);
+  const showSegmentsHtmlDebug = document.location.href.includes("?dev");
 
   // Collaboration lock
   const { isLocked, lockedBy, isLockedByMe } = useCollaborationLock(
@@ -123,8 +152,8 @@ export function TranscriptEditor({
             editorAPI={editorAPI}
             readOnly={!(isLockedByMe && hasWriteAccess)}
           />
-          <div className="flex-1 px-2">
-            <div className="relative">
+          <div className="flex-1 px-2 min-w-0 flex gap-4">
+            <div className="relative flex-1 min-w-0">
               <RemoteCursors editorAPI={editorAPI} cursors={cursors} />
               <SearchHighlights highlights={searchReplace.highlights} />
               <ActiveSegmentHighlight
@@ -156,6 +185,9 @@ export function TranscriptEditor({
                 />
               </div>
             </div>
+            {showSegmentsHtmlDebug && (
+              <SegmentsHtmlDebugPanel editorAPI={editorAPI} />
+            )}
           </div>
         </div>
       </div>

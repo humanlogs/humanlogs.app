@@ -75,10 +75,9 @@ export function RemoteCursors({ cursors, editorAPI }: CursorDisplayProps) {
           const endY = endCoords.top - editorRect.top + scrollTop;
 
           // Get selection rectangles for multi-line selections
-          const selectionRects = editorAPI.getRangeClientRects(
-            cursor.startOffset,
-            cursor.endOffset,
-          );
+          const selectionRects = editorAPI
+            .getRangeClientRects(cursor.startOffset, cursor.endOffset)
+            .filter((a) => a.width < editorRect.width); // Filter out any rects that are wider than the editor (can happen with certain node types)
 
           newPositions.push({
             ...cursor,
@@ -110,16 +109,12 @@ export function RemoteCursors({ cursors, editorAPI }: CursorDisplayProps) {
     window.addEventListener("scroll", handleUpdate);
     window.addEventListener("resize", handleUpdate);
 
-    // Update when cursors change
-    const interval = setInterval(updateCursorPositions, 100);
-
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
       window.removeEventListener("scroll", handleUpdate);
       window.removeEventListener("resize", handleUpdate);
-      clearInterval(interval);
     };
   }, [cursors, editorAPI]);
 

@@ -16,6 +16,10 @@ export function escapeHtml(text: string): string {
  * Tags are kept open across segments until modifiers change, respecting proper nesting hierarchy.
  */
 export function segmentsToHtml(segments: TranscriptionSegment[]): string {
+  if (!segments.length) {
+    return "<p></p>";
+  }
+
   let html = "";
   let currentModifiers: string[] = []; // Track currently open tags in order
 
@@ -55,7 +59,10 @@ export function segmentsToHtml(segments: TranscriptionSegment[]): string {
       html += `<${newModifiers[i]}>`;
     }
 
-    if (nextSegment && nextSegment.speakerId !== seg.speakerId) {
+    if (
+      (nextSegment && nextSegment.speakerId !== seg.speakerId) ||
+      seg.text.includes("\n\n")
+    ) {
       // <p></p> count as 2 characters in tiptap, it must be removed from the previous or next segment
       // Good news: all change of speaker always have a spacing forced
 
@@ -79,7 +86,7 @@ export function segmentsToHtml(segments: TranscriptionSegment[]): string {
     } else {
       // Add content
       let content = escapeHtml(seg.text);
-      content = seg.text.replace(/\n/g, "<br>");
+      content = content.replace(/\n/g, "<br>");
       html += content;
 
       currentModifiers = newModifiers;
