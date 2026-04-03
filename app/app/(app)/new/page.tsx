@@ -209,21 +209,43 @@ export default function NewTranscriptionPage() {
 
     const newFiles: AudioFile[] = [];
     const supportedFormats = [
+      // Audio formats
       "audio/mpeg",
+      "audio/mp3",
       "audio/wav",
       "audio/x-wav",
       "audio/mp4",
       "audio/x-m4a",
+      "audio/m4a",
       "audio/flac",
+      "audio/aac",
+      "audio/ogg",
+      "audio/opus",
+      "audio/webm",
+      "audio/x-ms-wma",
+      "audio/aiff",
+      "audio/x-aiff",
+      // Video formats (audio will be extracted)
+      "video/mp4",
+      "video/quicktime",
+      "video/x-msvideo",
+      "video/x-matroska",
+      "video/webm",
+      "video/x-flv",
+      "video/x-ms-wmv",
+      "video/mpeg",
+      "video/3gpp",
     ];
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
 
-      // Check file type
+      // Check file type - accept common audio and video extensions
       if (
         !supportedFormats.includes(file.type) &&
-        !file.name.match(/\.(mp3|wav|m4a|flac)$/i)
+        !file.name.match(
+          /\.(mp3|wav|m4a|flac|aac|ogg|opus|wma|aiff|mp4|mov|avi|mkv|webm|flv|wmv|mpeg|mpg|3gp)$/i,
+        )
       ) {
         continue;
       }
@@ -513,7 +535,7 @@ export default function NewTranscriptionPage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="audio/mpeg,audio/wav,audio/x-wav,audio/mp4,audio/x-m4a,audio/flac,.mp3,.wav,.m4a,.flac"
+                accept="audio/*,video/*,.mp3,.wav,.m4a,.flac,.aac,.ogg,.opus,.wma,.aiff,.mp4,.mov,.avi,.mkv,.webm,.flv,.wmv,.mpeg,.mpg,.3gp"
                 multiple
                 className="hidden"
                 onChange={handleFileInputChange}

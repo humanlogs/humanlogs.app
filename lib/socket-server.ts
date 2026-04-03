@@ -203,13 +203,22 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
       "yjs:sync-request",
       (data: { transcriptionId: string; stateVector: number[] }) => {
         const transcriptionId = data.transcriptionId;
+        console.log(
+          `[Y.js Server] Sync request from ${socket.id} for ${transcriptionId}`,
+        );
 
         // Get or create Y.js document for this transcription
         let doc = yjsDocuments.get(transcriptionId);
         if (!doc) {
           doc = new Y.Doc();
           yjsDocuments.set(transcriptionId, doc);
-          console.log(`[Y.js] Created new document for ${transcriptionId}`);
+          console.log(
+            `[Y.js Server] Created new document for ${transcriptionId}`,
+          );
+        } else {
+          console.log(
+            `[Y.js Server] Using existing document for ${transcriptionId}`,
+          );
         }
 
         // Get or create awareness for this transcription
@@ -222,10 +231,13 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
         // Send state update to the requesting client
         const stateVector = new Uint8Array(data.stateVector);
         const update = Y.encodeStateAsUpdate(doc, stateVector);
+        console.log(
+          `[Y.js Server] Sending ${update.length} bytes to ${socket.id}`,
+        );
 
         socket.emit(`yjs:sync:${transcriptionId}`, update.buffer);
         socket.emit(`yjs:synced:${transcriptionId}`);
-        console.log(`[Y.js] Sent sync response to ${socket.id}`);
+        console.log(`[Y.js Server] Sent sync response to ${socket.id}`);
       },
     );
 
@@ -234,22 +246,34 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
       "yjs:update",
       (data: { transcriptionId: string; update: number[] }) => {
         const transcriptionId = data.transcriptionId;
+        console.log(
+          `[Y.js Server] Received update from ${socket.id} for ${transcriptionId}: ${data.update.length} bytes`,
+        );
 
         // Get or create document
         let doc = yjsDocuments.get(transcriptionId);
         if (!doc) {
           doc = new Y.Doc();
           yjsDocuments.set(transcriptionId, doc);
+          console.log(
+            `[Y.js Server] Created new document for ${transcriptionId}`,
+          );
         }
 
         // Apply the update to the server's document
         const update = new Uint8Array(data.update);
         Y.applyUpdate(doc, update);
+        console.log(
+          `[Y.js Server] Applied update to server document for ${transcriptionId}`,
+        );
 
         // Broadcast the update to all other clients in the room
         socket
           .to(`transcription:${transcriptionId}`)
           .emit(`yjs:sync:${transcriptionId}`, update.buffer);
+        console.log(
+          `[Y.js Server] Broadcasted update to other clients in ${transcriptionId}`,
+        );
       },
     );
 

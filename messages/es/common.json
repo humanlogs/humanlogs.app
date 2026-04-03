@@ -33,7 +33,7 @@
         "subtitle": "Sube archivos de audio para crear una nueva transcripción",
         "audioFiles": "Archivos de Audio",
         "dragDrop": "Arrastra y suelta archivos de audio aquí, o haz clic para explorar",
-        "supportedFormats": "Formatos soportados: MP3, WAV, M4A, FLAC (máx 500MB por archivo)",
+        "supportedFormats": "Formatos soportados: Audio (MP3, WAV, M4A, FLAC, AAC, OGG, etc.) y Video (MP4, MOV, AVI, MKV, etc.) - máx 1GB por archivo",
         "noFiles": "No se han añadido archivos de audio",
         "fileName": "Nombre del archivo",
         "duration": "Duración",

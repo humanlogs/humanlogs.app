@@ -182,15 +182,21 @@ export function useTiptapEditor({
         AutoWrapExtension,
         // Collaboration extensions - only on client side after mount
         ...(isMounted && yjsDoc.current
-          ? [
+          ? (console.log("[Y.js] Adding Collaboration extension to editor"),
+            [
               Collaboration.configure({
                 document: yjsDoc.current,
+                field: "default", // Explicitly set the field name
               }),
-            ]
-          : []),
+            ])
+          : (console.log(
+              "[Y.js] Skipping Collaboration extension (not mounted yet)",
+            ),
+            [])),
       ],
       editable,
-      content: segmentsHtmlRef.current,
+      // When collaboration is enabled, start empty - Y.js will handle content
+      content: isMounted && yjsDoc.current ? "" : segmentsHtmlRef.current,
       immediatelyRender: false,
       editorProps: {
         attributes: {
@@ -244,6 +250,26 @@ export function useTiptapEditor({
       editor.setEditable(editable);
     }
   }, [editor, editable]);
+
+  // Load initial content into Y.js document if it's empty
+  // This ensures the first user to connect populates the shared document
+  useEffect(() => {
+    if (!editor || !isMounted || !yjsDoc.current) return;
+
+    // Check if the Y.js document is empty (no content yet)
+    const yjsFragment = yjsDoc.current.getXmlFragment("default");
+    const isEmpty = yjsFragment.length === 0;
+
+    // If Y.js is empty and we have initial segments, load them
+    if (isEmpty && segmentsHtmlRef.current) {
+      console.log("[Y.js] Loading initial content into Y.js document");
+      editor.commands.setContent(segmentsHtmlRef.current);
+    } else {
+      console.log(
+        "[Y.js] Y.js document already has content, skipping initial load",
+      );
+    }
+  }, [editor, isMounted]);
 
   editorRef.current = editor;
 

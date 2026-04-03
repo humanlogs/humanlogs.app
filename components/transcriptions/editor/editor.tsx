@@ -15,6 +15,7 @@ import { SpeakerColumn } from "./text/components/speaker-column";
 import { SpeakerRenameDialog } from "./text/components/speaker-rename-dialog";
 import { useAudioSync } from "./text/hooks/use-audio-sync";
 import { SaveStatus, useAutoSave } from "./text/hooks/use-auto-save";
+import { useCollaborationLock } from "./text/hooks/use-collaboration-lock";
 import { useFormat } from "./text/hooks/use-format";
 import { useNavigationMode } from "./text/hooks/use-navigation-mode";
 import { useSearchReplace } from "./text/hooks/use-search-replace";
@@ -50,6 +51,11 @@ export function TranscriptEditor({
   } = useFormat(editorAPI, currentIndex);
   const searchReplace = useSearchReplace(editorAPI);
 
+  // Collaboration lock
+  const { isLocked, lockedBy, isLockedByMe } = useCollaborationLock(
+    transcription.id,
+  );
+
   // Auto-save with debounce
   const { onChange: autoSaveOnChange, saveStatus } = useAutoSave({
     transcriptionId: transcription.id,
@@ -70,6 +76,19 @@ export function TranscriptEditor({
     <div className="h-full">
       <SpeakerRenameDialog />
       <div className="flex flex-col h-full">
+        {isLocked && !isLockedByMe && (
+          <>
+            <div className="mb-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 border-y border-yellow-300 dark:border-yellow-700 text-sm text-yellow-800 dark:text-yellow-200 fixed w-full z-10">
+              <span className="font-semibold">
+                {lockedBy?.userName || "Someone"}
+              </span>{" "}
+              is currently editing this transcription
+            </div>
+            <div className="h-8" />{" "}
+            {/* Spacer to prevent content jump due to fixed banner */}
+          </>
+        )}
+
         {/* Sticky top section */}
         {createPortal(
           <div id="header-sub-portal-container" className={cn("space-y-2")}>
@@ -90,7 +109,7 @@ export function TranscriptEditor({
                 activeFormats={activeFormats}
                 searchReplace={searchReplace}
                 audioControls={audioControls}
-                hasWriteAccess={hasWriteAccess}
+                hasWriteAccess={isLockedByMe && hasWriteAccess}
                 hasListenAccess={hasListenAccess}
               />
             </div>
@@ -100,7 +119,10 @@ export function TranscriptEditor({
 
         {/* Scrollable content area */}
         <div className="flex flex-row px-4 gap-2 flex-1 pb-6 pt-4 pb-16">
-          <SpeakerColumn editorAPI={editorAPI} readOnly={!hasWriteAccess} />
+          <SpeakerColumn
+            editorAPI={editorAPI}
+            readOnly={!(isLockedByMe && hasWriteAccess)}
+          />
           <div className="flex-1 px-2">
             <div className="relative">
               <RemoteCursors editorAPI={editorAPI} cursors={cursors} />
@@ -124,13 +146,13 @@ export function TranscriptEditor({
                     updateCursorPosition(
                       editor.state.selection.from - 1,
                       editor.state.selection.to - 1,
-                      hasWriteAccess,
+                      isLockedByMe && hasWriteAccess,
                     );
                     selectionUpdate();
                     formatSelectionUpdate(editor);
                   }}
                   onUpdate={() => {}}
-                  hasWriteAccess={hasWriteAccess}
+                  hasWriteAccess={isLockedByMe && hasWriteAccess}
                 />
               </div>
             </div>

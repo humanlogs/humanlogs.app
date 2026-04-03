@@ -95,6 +95,7 @@ export function TranscriptionHistorySheet() {
     if (revertMutation.isSuccess) {
       toast.success(t("revertSuccess"));
       setSelectedVersionIndex(null);
+      window.location.reload();
     }
     if (revertMutation.isError) {
       toast.error(t("revertError"));

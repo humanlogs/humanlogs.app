@@ -17,14 +17,34 @@ export const dynamic = "force-dynamic";
 // Maximum file size: 1GB
 const MAX_FILE_SIZE = 1024 * 1024 * 1024;
 
-// Supported audio formats
+// Supported audio and video formats (ffmpeg can handle these)
 const SUPPORTED_FORMATS = [
+  // Audio formats
   "audio/mpeg",
+  "audio/mp3",
   "audio/wav",
   "audio/x-wav",
   "audio/mp4",
   "audio/x-m4a",
+  "audio/m4a",
   "audio/flac",
+  "audio/aac",
+  "audio/ogg",
+  "audio/opus",
+  "audio/webm",
+  "audio/x-ms-wma",
+  "audio/aiff",
+  "audio/x-aiff",
+  // Video formats (audio will be extracted)
+  "video/mp4",
+  "video/quicktime",
+  "video/x-msvideo",
+  "video/x-matroska",
+  "video/webm",
+  "video/x-flv",
+  "video/x-ms-wmv",
+  "video/mpeg",
+  "video/3gpp",
 ];
 
 export const POST = withAuthRateLimit(async (request, user) => {
@@ -82,7 +102,9 @@ export const POST = withAuthRateLimit(async (request, user) => {
 
       if (
         !SUPPORTED_FORMATS.includes(file.type) &&
-        !file.name.match(/\.(mp3|wav|m4a|flac)$/i)
+        !file.name.match(
+          /\.(mp3|wav|m4a|flac|aac|ogg|opus|wma|aiff|mp4|mov|avi|mkv|webm|flv|wmv|mpeg|mpg|3gp)$/i,
+        )
       ) {
         return NextResponse.json(
           { error: `File ${file.name} has unsupported format` },

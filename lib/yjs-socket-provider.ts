@@ -33,6 +33,7 @@ export class YjsSocketIOProvider {
     this.socket.on(
       `yjs:sync:${this.transcriptionId}`,
       (update: ArrayBuffer) => {
+        console.log("[Y.js] Received sync update:", update.byteLength, "bytes");
         Y.applyUpdate(this.doc, new Uint8Array(update), "socket");
       },
     );
@@ -41,6 +42,7 @@ export class YjsSocketIOProvider {
     this.socket.on(
       `yjs:awareness:${this.transcriptionId}`,
       (update: ArrayBuffer) => {
+        console.log("[Y.js] Received awareness update");
         awarenessProtocol.applyAwarenessUpdate(
           this.awareness,
           new Uint8Array(update),
@@ -60,6 +62,13 @@ export class YjsSocketIOProvider {
     this.doc.on("update", (update: Uint8Array, origin: any) => {
       // Don't send updates that came from the socket
       if (origin !== "socket") {
+        console.log(
+          "[Y.js] Sending update to server:",
+          update.length,
+          "bytes",
+          "origin:",
+          origin,
+        );
         this.socket.emit("yjs:update", {
           transcriptionId: this.transcriptionId,
           update: Array.from(update),
@@ -84,6 +93,10 @@ export class YjsSocketIOProvider {
   private _requestSync() {
     // Request initial state vector from server
     const stateVector = Y.encodeStateVector(this.doc);
+    console.log(
+      "[Y.js] Requesting initial sync, state vector:",
+      Array.from(stateVector),
+    );
     this.socket.emit("yjs:sync-request", {
       transcriptionId: this.transcriptionId,
       stateVector: Array.from(stateVector),
