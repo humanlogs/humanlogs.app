@@ -269,18 +269,19 @@ export function offUserDisconnected(
 }
 
 // Leader management
-export function claimLeadership(
+export async function claimLeadership(
   transcriptionId: string,
   userId: string,
   userName: string,
 ) {
-  if (socket?.connected) {
-    socket.emit("transcription:claim-leader", {
-      transcriptionId,
-      userId,
-      userName,
-    });
+  while (!socket?.connected) {
+    await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for 100ms before checking again
   }
+  socket.emit("transcription:claim-leader", {
+    transcriptionId,
+    userId,
+    userName,
+  });
 }
 
 export function releaseLeadership(transcriptionId: string) {

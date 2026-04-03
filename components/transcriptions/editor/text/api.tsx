@@ -15,7 +15,6 @@ import EventEmitter from "events";
  */
 export class EditorAPI extends EventEmitter {
   private activeSegmentIndex = -1;
-  private segmentChangesCallbacks = [] as Array<() => void>;
   private onFocusHandler: (() => void) | null = null;
   private onBlurHandler: (() => void) | null = null;
 
@@ -222,16 +221,6 @@ export class EditorAPI extends EventEmitter {
     this.speakersRef.current = speakers;
     this.emit("speakersChange");
     this.emit("change");
-  }
-
-  onSegmentsChange(callback: () => void) {
-    this.segmentChangesCallbacks.push(callback);
-  }
-
-  offSegmentsChange(callback: () => void) {
-    this.segmentChangesCallbacks = this.segmentChangesCallbacks.filter(
-      (cb) => cb !== callback,
-    );
   }
 
   getSelectionOffsets() {

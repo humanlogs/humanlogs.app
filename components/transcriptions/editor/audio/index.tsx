@@ -124,7 +124,6 @@ export const InteractiveAudio = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeedVal] = useState(1);
   const [totalDuration, setTotalDuration] = useState<number | undefined>(0);
-  const [segmentsVersion, setSegmentsVersion] = useState(""); // Force re-render on segment changes
 
   // Toggle play/pause
   const togglePlayPause = useCallback(() => {
@@ -216,7 +215,7 @@ export const InteractiveAudio = ({
       barGap: 1,
       barRadius: 2,
       height: 40,
-      minPxPerSec: 1,
+      minPxPerSec: 0.05,
       normalize: true,
       backend: "MediaElement",
       renderFunction: (channels, ctx) => {
@@ -373,7 +372,21 @@ export const InteractiveAudio = ({
       }
       wavesurfer.destroy();
     };
-  }, [id, segmentsVersion]); // Re-create when segments change
+  }, [id]);
+
+  useEffect(() => {
+    const handleSegmentsChange = () => {
+      // Update segment colors in-place and ask WaveSurfer to redraw bars.
+      speakerSegmentsRef.current = getSpeakerSegments(editorAPI.getSegments());
+      wavesurferRef.current?.setOptions({});
+    };
+
+    editorAPI.addListener("change", handleSegmentsChange);
+
+    return () => {
+      editorAPI.removeListener("change", handleSegmentsChange);
+    };
+  }, [editorAPI]);
 
   // Notify parent of audio controls whenever they change
   useEffect(() => {

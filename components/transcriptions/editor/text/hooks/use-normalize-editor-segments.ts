@@ -34,8 +34,14 @@ export function normalizeEditorSegments(
   // ---------------------------------------------------------------------------
   const expanded: TranscriptionSegment[] = [];
 
+  let lastSpeakerId: string | undefined = "speaker_0";
   for (const seg of segments) {
     if (!seg.text) continue;
+
+    if (!seg.speakerId) {
+      seg.speakerId = lastSpeakerId;
+    }
+    lastSpeakerId = seg.speakerId;
 
     if (seg.type === "word") {
       if (!/\s/.test(seg.text)) {
