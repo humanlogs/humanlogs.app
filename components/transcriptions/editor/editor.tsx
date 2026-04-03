@@ -43,8 +43,13 @@ function SegmentsHtmlDebugPanel({ editorAPI }: { editorAPI: EditorAPI }) {
   }, [editorAPI]);
 
   return (
-    <div className="tiptap ProseMirror text-base leading-relaxed focus:outline-none relative ProseMirror-focused w-[50%] shrink-0 flex-col">
-      <div className="ProseMirror" dangerouslySetInnerHTML={{ __html: html }} />
+    <div className="hidden xl:flex xl:basis-[40%] xl:min-w-[320px] xl:max-w-[640px] shrink min-w-0 flex-col overflow-hidden">
+      <div className="h-full w-full overflow-auto rounded-md border bg-background p-3">
+        <div
+          className="ProseMirror text-base leading-relaxed focus:outline-none relative"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      </div>
     </div>
   );
 }
@@ -62,6 +67,7 @@ export function TranscriptEditor({
   onEditorReady?: (editorAPI: EditorAPI) => void;
   onSaveStatusChange?: (status: SaveStatus) => void;
 }) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const editorAPIRef = useRef(new EditorAPI());
   const editorAPI = editorAPIRef.current;
   const { cursors, updateCursorPosition } = useTranscriptionCursors(
@@ -78,7 +84,78 @@ export function TranscriptEditor({
     selectionUpdate: formatSelectionUpdate,
   } = useFormat(editorAPI, currentIndex);
   const searchReplace = useSearchReplace(editorAPI);
-  const showSegmentsHtmlDebug = document.location.href.includes("?dev");
+  const [showSegmentsHtmlDebug, setShowSegmentsHtmlDebug] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setShowSegmentsHtmlDebug(window.location.search.includes("dev"));
+  }, []);
+
+  useEffect(() => {
+    if (!showSegmentsHtmlDebug || !containerRef.current) return;
+
+    const root = containerRef.current;
+
+    const elementPath = (el: HTMLElement) => {
+      const parts: string[] = [];
+      let cur: HTMLElement | null = el;
+      for (let i = 0; i < 4 && cur; i++) {
+        const cls = (cur.className || "")
+          .toString()
+          .trim()
+          .split(/\s+/)
+          .slice(0, 2)
+          .join(".");
+        parts.push(`${cur.tagName.toLowerCase()}${cls ? `.${cls}` : ""}`);
+        cur = cur.parentElement;
+      }
+      return parts.join(" <- ");
+    };
+
+    const scanOverflow = () => {
+      const all = [
+        root,
+        ...Array.from(root.querySelectorAll("*")),
+      ] as HTMLElement[];
+      const offenders = all
+        .map((el) => {
+          const delta = el.scrollWidth - el.clientWidth;
+          return {
+            el,
+            delta,
+            clientWidth: el.clientWidth,
+            scrollWidth: el.scrollWidth,
+            style: getComputedStyle(el).display,
+          };
+        })
+        .filter((x) => x.delta > 1)
+        .sort((a, b) => b.delta - a.delta)
+        .slice(0, 8)
+        .map((x) => ({
+          overflowBy: x.delta,
+          clientWidth: x.clientWidth,
+          scrollWidth: x.scrollWidth,
+          display: x.style,
+          path: elementPath(x.el),
+        }));
+
+      if (offenders.length) {
+        console.groupCollapsed("[Editor Overflow Debug] Top overflow culprits");
+        console.table(offenders);
+        console.groupEnd();
+      }
+    };
+
+    scanOverflow();
+    const ro = new ResizeObserver(scanOverflow);
+    ro.observe(root);
+    window.addEventListener("resize", scanOverflow);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", scanOverflow);
+    };
+  }, [showSegmentsHtmlDebug]);
 
   // Collaboration lock
   const { isLocked, lockedBy, isLockedByMe } = useCollaborationLock(
@@ -102,7 +179,7 @@ export function TranscriptEditor({
   }, [saveStatus, onSaveStatusChange]);
 
   return (
-    <div className="h-full">
+    <div ref={containerRef} className="h-full min-w-0 overflow-x-hidden">
       <SpeakerRenameDialog />
       <div className="flex flex-col h-full">
         {isLocked && !isLockedByMe && (
@@ -147,13 +224,13 @@ export function TranscriptEditor({
         )}
 
         {/* Scrollable content area */}
-        <div className="flex flex-row px-4 gap-2 flex-1 pb-6 pt-4 pb-16">
+        <div className="flex flex-row px-4 gap-2 flex-1 min-w-0 overflow-hidden pb-6 pt-4 pb-16">
           <SpeakerColumn
             editorAPI={editorAPI}
             readOnly={!(isLockedByMe && hasWriteAccess)}
           />
-          <div className="flex-1 px-2 min-w-0 flex gap-4">
-            <div className="relative flex-1 min-w-0">
+          <div className="flex-[1_1_0%] px-2 min-w-0 flex gap-4 overflow-hidden">
+            <div className="relative flex-[1_1_0%] min-w-0 overflow-hidden">
               <RemoteCursors editorAPI={editorAPI} cursors={cursors} />
               <SearchHighlights highlights={searchReplace.highlights} />
               <ActiveSegmentHighlight
@@ -161,7 +238,7 @@ export function TranscriptEditor({
                 segmentIndex={currentIndex}
                 visible={state === "navigate" && currentIndex >= 0}
               />
-              <div>
+              <div className="w-full min-w-0 max-w-full overflow-hidden">
                 <TranscriptEditorContentTipTap
                   transcriptionId={transcription.id}
                   speakers={transcription.transcription?.speakers || []}

@@ -200,7 +200,8 @@ export function useTiptapEditor({
       immediatelyRender: false,
       editorProps: {
         attributes: {
-          class: "text-base leading-relaxed focus:outline-none relative",
+          class:
+            "text-base leading-relaxed focus:outline-none relative w-full max-w-full min-w-0 break-words",
           spellcheck: "true",
         },
       },

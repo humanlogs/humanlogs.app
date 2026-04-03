@@ -100,7 +100,9 @@ export function segmentsToHtml(segments: TranscriptionSegment[]): string {
 
   html = `<p data-speaker-id="${segments[0].speakerId}">${html}</p>`; // Wrap in a paragraph for better structure
 
-  console.log("Generated HTML:", html);
+  // Fix &nbsp; between words to normal space for better copy-paste
+  // Also for break points
+  html = html.replace(/([a-zA-Z1-9])&nbsp;([a-zA-Z1-9])/g, "$1 $2");
 
   return html;
 }

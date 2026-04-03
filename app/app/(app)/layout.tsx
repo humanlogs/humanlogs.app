@@ -44,7 +44,9 @@ export default async function AppLayout({
             </div>
             <div id="header-sub-portal" className="w-full" />
           </header>
-          <main className="flex-1 overflow-y-auto">{children}</main>
+          <main className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto">
+            {children}
+          </main>
         </SidebarInset>
       </AppSidebar>
       <TranscriptionRenameDialog />

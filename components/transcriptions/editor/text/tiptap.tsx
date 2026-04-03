@@ -44,5 +44,12 @@ export function TranscriptEditorContentTipTap({
     editorAPI.init(tiptapEditorRef, segmentsRef as any, speakers);
   }
 
-  return <EditorContent editor={tiptapEditor} />;
+  return (
+    <div className="w-full min-w-0 max-w-full overflow-x-hidden">
+      <EditorContent
+        editor={tiptapEditor}
+        className="tiptap w-full min-w-0 max-w-full overflow-x-hidden"
+      />
+    </div>
+  );
 }

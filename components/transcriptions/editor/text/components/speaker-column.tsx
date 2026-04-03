@@ -36,7 +36,7 @@ export function SpeakerBadgeChip({
   return (
     <Badge
       variant="outline"
-      className={`h-5 text-xs ${colorClass} ${className ?? ""}`}
+      className={`h-5 max-w-[11rem] text-xs truncate ${colorClass} ${className ?? ""}`}
     >
       {label}
     </Badge>
@@ -187,10 +187,10 @@ export function SpeakerColumn({
   readOnly = false,
 }: SpeakerColumnProps) {
   const { positions } = useSpeakerPositions(editorAPI);
-  if (positions.length === 0) return <div className="w-24 shrink-0" />;
+  if (positions.length === 0) return <div className="w-24 shrink-0 min-w-0" />;
 
   return (
-    <div className="relative w-max shrink-0 whitespace-nowrap overflow-hidden">
+    <div className="relative w-max max-w-[12rem] shrink-0 min-w-0 whitespace-nowrap overflow-hidden">
       {positions.map((pos) => (
         <SpeakerBadge
           key={`${pos.speakerId}-${pos.index}`}

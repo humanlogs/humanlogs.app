@@ -42,7 +42,7 @@ export function TranscriptionEditor({
 
   return (
     <AudioProvider>
-      <div>
+      <div className="w-full min-w-0">
         <TranscriptEditor
           hasWriteAccess={hasWriteAccess}
           hasListenAccess={hasListenAccess}

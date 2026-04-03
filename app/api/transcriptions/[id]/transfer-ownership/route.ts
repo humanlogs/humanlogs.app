@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
 import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
 import { notifyDatabaseChange } from "@/lib/socket-helpers";
+import { NextResponse } from "next/server";
 
 type RouteParams = {
   params: Promise<{
@@ -104,7 +104,7 @@ export const POST = withAuthRateLimit(
         },
       });
 
-      await prisma.transcriptionHistory.update({
+      await prisma.transcriptionHistory.updateMany({
         where: { transcriptionId: id },
         data: {
           userId: body.newOwnerId,

@@ -212,30 +212,6 @@ export class EditorAPI extends EventEmitter {
     this.emit("change");
   }
 
-  setSegments(segments: TranscriptionSegment[]) {
-    if (
-      segments.map((s) => s.text).join("") ===
-        this.editorRef.current?.getText() &&
-      segments.map((s) => s.modifiers?.join("")).join("") ===
-        this.segmentsRef.current.map((s) => s.modifiers?.join("")).join("")
-    ) {
-      // No change in text content, skip update to avoid disrupting cursor position
-      this.segmentsRef.current = segments;
-      this.emit("segmentsChange");
-      this.emit("change");
-      return;
-    }
-    this.segmentsRef.current = segments;
-    this.emit("segmentsChange");
-    this.emit("change");
-
-    if (this.editorRef.current) {
-      this.editorRef.current.commands.setContent(segmentsToHtml(segments), {
-        emitUpdate: false,
-      });
-    }
-  }
-
   onSegmentsChange(callback: () => void) {
     this.segmentChangesCallbacks.push(callback);
   }
