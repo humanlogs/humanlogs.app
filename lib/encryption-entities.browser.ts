@@ -87,7 +87,15 @@ const BrowserBuffer = {
 
   toString(buffer: Uint8Array, encoding: string): string {
     if (encoding === "base64") {
-      return btoa(String.fromCharCode(...buffer));
+      // Process buffer in chunks to avoid "Maximum call stack size exceeded"
+      // String.fromCharCode has a max argument limit (~65k on most engines)
+      const chunkSize = 32768;
+      let binary = "";
+      for (let i = 0; i < buffer.length; i += chunkSize) {
+        const chunk = buffer.subarray(i, i + chunkSize);
+        binary += String.fromCharCode(...chunk);
+      }
+      return btoa(binary);
     }
     if (encoding === "utf8" || encoding === "utf-8") {
       return new TextDecoder().decode(buffer);
