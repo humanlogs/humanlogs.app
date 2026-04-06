@@ -86,14 +86,19 @@ export function useTiptapEditor({
   onSelectionUpdate,
 }: UseTiptapEditorOptions) {
   // Track the last segments to avoid redundant updates
-  const segmentsRef = useRef<TranscriptionSegment[] | null>(
-    normalizeEditorSegments(segments, { initialFormatting: true }),
-  );
+  const segmentsRef = useRef<TranscriptionSegment[] | null>(null);
+  if (segmentsRef.current === null) {
+    segmentsRef.current = normalizeEditorSegments(segments, {
+      initialFormatting: true,
+    });
+  }
+
   const segmentsHtmlRef = useRef<any>("");
   if (!segmentsHtmlRef.current)
     segmentsHtmlRef.current = segmentsToHtml(segments);
   const editorRef = useRef<Editor>(null);
   const isUpdatingFromSegmentsRef = useRef(false);
+  const normalizeDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const { data: userProfile } = useUserProfile();
   const [isMounted, setIsMounted] = useState(false);
 
@@ -221,9 +226,23 @@ export function useTiptapEditor({
           transaction,
         );
 
-        // Call custom transaction handler
+        // Debounce normalize and onChange call
         if (onChange) {
-          onChange(segmentsRef.current ?? []);
+          // Clear existing debounce timeout
+          if (normalizeDebounceRef.current) {
+            clearTimeout(normalizeDebounceRef.current);
+          }
+
+          // Schedule normalize + onChange after debounce
+          normalizeDebounceRef.current = setTimeout(() => {
+            if (segmentsRef.current) {
+              segmentsRef.current = normalizeEditorSegments(
+                segmentsRef.current,
+              );
+              onChange(segmentsRef.current ?? []);
+            }
+            normalizeDebounceRef.current = null;
+          }, 300);
         }
       },
       onSelectionUpdate: ({ editor }) => {
@@ -241,6 +260,15 @@ export function useTiptapEditor({
       editor.setEditable(editable);
     }
   }, [editor, editable]);
+
+  // Cleanup debounce timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (normalizeDebounceRef.current) {
+        clearTimeout(normalizeDebounceRef.current);
+      }
+    };
+  }, []);
 
   // Load initial content into Y.js document if it's empty
   // This ensures the first user to connect populates the shared document

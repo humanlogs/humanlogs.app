@@ -7,7 +7,6 @@ import {
   ReplaceStep,
 } from "@tiptap/pm/transform";
 import _ from "lodash";
-import { normalizeEditorSegments } from "../hooks/use-normalize-editor-segments";
 
 /**
  * Types of transactions:
@@ -46,8 +45,6 @@ export const applyTransactionOnSegments = (
       result = applyRemoveMarkStep(result, step);
     }
   }
-
-  result = normalizeEditorSegments(result);
 
   return result;
 };

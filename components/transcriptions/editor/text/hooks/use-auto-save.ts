@@ -183,12 +183,20 @@ export function useAutoSave({
   // Warn user before leaving page if there are unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Check if there are pending saves or unsaved changes
+      // Check if there are pending saves
       const hasPendingSave =
         saveTimeoutRef.current !== null ||
         maxDebounceTimeoutRef.current !== null;
 
-      if (hasPendingSave) {
+      // Check if current state differs from last saved state
+      const currentState = JSON.stringify({
+        segments: editorAPI.getSegments(),
+        speakers: editorAPI.getSpeakers(),
+      });
+      const hasUnsavedChanges = currentState !== lastSavedRef.current;
+
+      // Only warn if there are pending saves or unsaved changes
+      if (hasPendingSave || hasUnsavedChanges) {
         // Standard way to trigger browser warning
         e.preventDefault();
         e.returnValue = ""; // Chrome requires returnValue to be set
@@ -200,7 +208,7 @@ export function useAutoSave({
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, []);
+  }, [editorAPI]);
 
   return { saveStatus, onChange };
 }

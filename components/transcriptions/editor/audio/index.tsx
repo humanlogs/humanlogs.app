@@ -302,6 +302,7 @@ export const InteractiveAudio = ({
 
     wavesurfer.on("ready", () => {
       const duration = wavesurfer.getDuration();
+      console.log("[Audio] Wavesurfer finished loading, duration:", duration);
       setTotalDuration(duration);
 
       // Restore playback position and state after re-creation
@@ -339,13 +340,17 @@ export const InteractiveAudio = ({
         if (!audioFileEncryption) {
           // No encryption, load directly
           const audioUrl = `/api/transcriptions/${id}/audio`;
+          console.log("[Audio] Loading audio from server:", audioUrl);
           await wavesurfer.load(audioUrl);
+          console.log("[Audio] Got audio from server");
         } else {
           // Download and decrypt the audio file
+          console.log("[Audio] Downloading encrypted audio from server");
           const decryptedBlob = await downloadAndDecryptAudio(
             id,
             audioFileEncryption,
           );
+          console.log("[Audio] Got audio from server and decrypted it");
 
           // Create blob URL and load into wavesurfer
           // Keep the blob URL alive for the entire component lifecycle to support seeking
