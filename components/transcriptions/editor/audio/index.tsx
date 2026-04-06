@@ -98,22 +98,41 @@ function offsetToTime(
 }
 
 // Cache keys for waveform peaks
-const WAVEFORM_CACHE_PREFIX = "waveform_peaks_";
-const WAVEFORM_VERSION = "v1";
+const WAVEFORM_DB_NAME = "waveform_cache";
+const WAVEFORM_STORE_NAME = "peaks";
+const WAVEFORM_VERSION = 1;
+
+// Initialize IndexedDB for waveform peaks
+function getWaveformDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(WAVEFORM_DB_NAME, WAVEFORM_VERSION);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+
+    request.onupgradeneeded = (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      if (!db.objectStoreNames.contains(WAVEFORM_STORE_NAME)) {
+        db.createObjectStore(WAVEFORM_STORE_NAME);
+      }
+    };
+  });
+}
 
 // Loading placeholder with animated bars
 const WaveformLoader = () => {
-  const bars = 150; // Number of bars to show
+  const bars = 600; // Number of bars to show (4x more since they're smaller)
   return (
-    <div className="w-full h-full flex items-center justify-center gap-[1px] px-2">
+    <div className="w-full h-full flex items-center justify-center gap-[0.5px] px-2">
       {Array.from({ length: bars }).map((_, i) => {
-        const randomHeight = Math.random() * 60 + 20; // 20-80% height
+        const randomHeight = Math.random() * 30 + 10; // 10-40% height (2x smaller)
         const randomDelay = Math.random() * 2; // 0-2s delay
         return (
           <div
             key={i}
-            className="flex-1 bg-gray-400 dark:bg-gray-600 rounded-sm animate-pulse"
+            className="bg-gray-400 dark:bg-gray-600 rounded-sm animate-pulse"
             style={{
+              width: "1px", // 4x smaller width
               height: `${randomHeight}%`,
               animationDelay: `${randomDelay}s`,
               animationDuration: "1.5s",
@@ -125,30 +144,55 @@ const WaveformLoader = () => {
   );
 };
 
-// Save waveform peaks to localStorage
-function saveWaveformPeaks(transcriptionId: string, peaks: number[][]) {
+// Save waveform peaks to IndexedDB
+async function saveWaveformPeaks(
+  transcriptionId: string,
+  peaks: number[][],
+): Promise<void> {
   try {
-    const key = `${WAVEFORM_CACHE_PREFIX}${WAVEFORM_VERSION}_${transcriptionId}`;
-    localStorage.setItem(key, JSON.stringify(peaks));
-    console.log("[Audio] Cached waveform peaks");
+    const db = await getWaveformDB();
+    const transaction = db.transaction([WAVEFORM_STORE_NAME], "readwrite");
+    const store = transaction.objectStore(WAVEFORM_STORE_NAME);
+    await store.put(peaks, transcriptionId);
+    console.log(
+      "[Audio] Cached waveform peaks in IndexedDB, size:",
+      (JSON.stringify(peaks).length / 1024).toFixed(2),
+      "KB",
+    );
   } catch (e) {
     console.warn("[Audio] Failed to cache waveform peaks:", e);
   }
 }
 
-// Load waveform peaks from localStorage
-function loadWaveformPeaks(transcriptionId: string): number[][] | null {
+// Load waveform peaks from IndexedDB
+async function loadWaveformPeaks(
+  transcriptionId: string,
+): Promise<number[][] | null> {
   try {
-    const key = `${WAVEFORM_CACHE_PREFIX}${WAVEFORM_VERSION}_${transcriptionId}`;
-    const cached = localStorage.getItem(key);
-    if (cached) {
-      console.log("[Audio] Found cached waveform peaks");
-      return JSON.parse(cached);
-    }
+    const db = await getWaveformDB();
+    const transaction = db.transaction([WAVEFORM_STORE_NAME], "readonly");
+    const store = transaction.objectStore(WAVEFORM_STORE_NAME);
+
+    return new Promise((resolve, reject) => {
+      const request = store.get(transcriptionId);
+      request.onsuccess = () => {
+        if (request.result) {
+          console.log(
+            "[Audio] Found cached waveform peaks in IndexedDB, size:",
+            (JSON.stringify(request.result).length / 1024).toFixed(2),
+            "KB",
+          );
+          resolve(request.result);
+        } else {
+          resolve(null);
+        }
+      };
+      request.onerror = () => reject(request.error);
+    });
   } catch (e) {
     console.warn("[Audio] Failed to load cached waveform peaks:", e);
+    return null;
   }
-  return null;
 }
 
 export const InteractiveAudio = ({
@@ -263,191 +307,204 @@ export const InteractiveAudio = ({
     // Initialize speaker segments from current segments
     speakerSegmentsRef.current = getSpeakerSegments(editorAPI.getSegments());
 
-    // Check for cached waveform peaks
-    const cachedPeaks = loadWaveformPeaks(id);
-    if (cachedPeaks) {
-      console.log("[Audio] Using cached waveform, skipping audio decode");
-    }
+    // Initialize wavesurfer and load cached peaks asynchronously
+    const initWavesurfer = async () => {
+      // Check for cached waveform peaks
+      const cachedPeaks = await loadWaveformPeaks(id);
+      if (cachedPeaks) {
+        console.log("[Audio] Using cached waveform, skipping audio decode");
+      }
 
-    // Initialize wavesurfer with symmetrical mono waveform
-    const wavesurfer = WaveSurfer.create({
-      container: containerRef.current,
-      waveColor: "#4a5568",
-      progressColor: "#FFFFFF44",
-      cursorColor: "rgb(255, 0, 0)",
-      cursorWidth: 2,
-      barWidth: 2,
-      barGap: 1,
-      barRadius: 2,
-      height: 40,
-      minPxPerSec: 0.05,
-      normalize: false, // Disable normalization to speed up loading for long files
-      backend: "MediaElement",
-      peaks: cachedPeaks || undefined, // Use cached peaks if available
-      renderFunction: (channels, ctx) => {
-        const { width, height } = ctx.canvas;
-        const halfHeight = height / 2;
+      // Initialize wavesurfer with symmetrical mono waveform
+      const wavesurfer = WaveSurfer.create({
+        container: containerRef.current!,
+        waveColor: "#4a5568",
+        progressColor: "#FFFFFF44",
+        cursorColor: "rgb(255, 0, 0)",
+        cursorWidth: 2,
+        barWidth: 2,
+        barGap: 1,
+        barRadius: 2,
+        height: 40,
+        minPxPerSec: 0.05,
+        normalize: false, // Disable normalization to speed up loading for long files
+        backend: "MediaElement",
+        peaks: cachedPeaks || undefined, // Use cached peaks if available
+        renderFunction: (channels, ctx) => {
+          const { width, height } = ctx.canvas;
+          const halfHeight = height / 2;
 
-        // Merge all channels into a single signal by averaging
-        const channelLength = channels[0].length;
-        const mergedChannel = new Float32Array(channelLength);
+          // Merge all channels into a single signal by averaging
+          const channelLength = channels[0].length;
+          const mergedChannel = new Float32Array(channelLength);
 
-        for (let i = 0; i < channelLength; i++) {
-          let sum = 0;
-          for (let ch = 0; ch < channels.length; ch++) {
-            sum += channels[ch][i] || 0;
-          }
-          mergedChannel[i] = sum / channels.length;
-        }
-
-        ctx.clearRect(0, 0, width, height);
-
-        // Draw symmetrical waveform with speaker colors
-        const barWidth = 3;
-        const barGap = 1;
-        const step = barWidth + barGap;
-
-        for (let i = 0; i < width; i += step) {
-          const index = Math.floor((i / width) * mergedChannel.length);
-          const value = Math.abs(mergedChannel[index] || 0);
-          const barHeight = value * halfHeight * 2;
-
-          // Determine color based on time position and speaker
-          const timePosition = (i / width) * wavesurfer.getDuration();
-          let barColor = "#4a5568"; // default gray
-
-          // Find which speaker segment this position belongs to - use ref for latest segments
-          for (const segment of speakerSegmentsRef.current) {
-            if (
-              timePosition >= (segment.start || 0) &&
-              timePosition <= (segment.end || 0)
-            ) {
-              barColor = segment.color;
-              break;
+          for (let i = 0; i < channelLength; i++) {
+            let sum = 0;
+            for (let ch = 0; ch < channels.length; ch++) {
+              sum += channels[ch][i] || 0;
             }
+            mergedChannel[i] = sum / channels.length;
           }
 
-          ctx.fillStyle = barColor;
-          ctx.beginPath();
-          ctx.roundRect(
-            i - barWidth / 2,
-            halfHeight - barHeight,
-            barWidth,
-            barHeight * 2,
-            4,
-          );
-          ctx.fill();
-        }
-      },
-    });
+          ctx.clearRect(0, 0, width, height);
 
-    wavesurferRef.current = wavesurfer;
+          // Draw symmetrical waveform with speaker colors
+          const barWidth = 3;
+          const barGap = 1;
+          const step = barWidth + barGap;
 
-    // Register seek handler for audio context
-    registerSeekHandler((time: number) => {
-      try {
-        wavesurfer.seekTo(time / wavesurfer.getDuration());
-      } catch (e) {
-        console.log("Error seeking audio:", e);
-      }
-    });
+          for (let i = 0; i < width; i += step) {
+            const index = Math.floor((i / width) * mergedChannel.length);
+            const value = Math.abs(mergedChannel[index] || 0);
+            const barHeight = value * halfHeight * 2;
 
-    // Update time as audio plays
-    wavesurfer.on("audioprocess", (currentTime: number) => {
-      lastPositionRef.current = currentTime; // Save position
-      setCurrentTime(currentTime);
-      if (onTimeUpdateRef.current) onTimeUpdateRef.current(currentTime);
-    });
+            // Determine color based on time position and speaker
+            const timePosition = (i / width) * wavesurfer.getDuration();
+            let barColor = "#4a5568"; // default gray
 
-    // Also update on seek
-    wavesurfer.on("seeking", (currentTime: number) => {
-      lastPositionRef.current = currentTime; // Save position
-      setCurrentTime(currentTime);
-      if (onTimeUpdateRef.current) onTimeUpdateRef.current(currentTime);
-    });
+            // Find which speaker segment this position belongs to - use ref for latest segments
+            for (const segment of speakerSegmentsRef.current) {
+              if (
+                timePosition >= (segment.start || 0) &&
+                timePosition <= (segment.end || 0)
+              ) {
+                barColor = segment.color;
+                break;
+              }
+            }
 
-    wavesurfer.on("ready", () => {
-      const duration = wavesurfer.getDuration();
-      console.log("[Audio] Wavesurfer finished loading, duration:", duration);
-      setTotalDuration(duration);
-      setIsLoadingWaveform(false);
+            ctx.fillStyle = barColor;
+            ctx.beginPath();
+            ctx.roundRect(
+              i - barWidth / 2,
+              halfHeight - barHeight,
+              barWidth,
+              barHeight * 2,
+              4,
+            );
+            ctx.fill();
+          }
+        },
+      });
 
-      // Cache the waveform peaks if not already cached
-      if (!cachedPeaks) {
+      wavesurferRef.current = wavesurfer;
+
+      // Register seek handler for audio context
+      registerSeekHandler((time: number) => {
         try {
-          const peaks = wavesurfer.exportPeaks();
-          saveWaveformPeaks(id, peaks);
+          wavesurfer.seekTo(time / wavesurfer.getDuration());
         } catch (e) {
-          console.warn("[Audio] Failed to export/cache peaks:", e);
+          console.log("Error seeking audio:", e);
         }
-      }
+      });
 
-      // Restore playback position and state after re-creation
-      if (lastPositionRef.current > 0) {
-        wavesurfer.seekTo(lastPositionRef.current / duration);
+      // Update time as audio plays
+      wavesurfer.on("audioprocess", (currentTime: number) => {
+        lastPositionRef.current = currentTime; // Save position
+        setCurrentTime(currentTime);
+        if (onTimeUpdateRef.current) onTimeUpdateRef.current(currentTime);
+      });
 
-        // Restore playback speed
-        const mediaElement = wavesurfer.getMediaElement();
-        if (mediaElement) {
-          mediaElement.preservesPitch = true;
-          mediaElement.playbackRate = playbackSpeed;
+      // Also update on seek
+      wavesurfer.on("seeking", (currentTime: number) => {
+        lastPositionRef.current = currentTime; // Save position
+        setCurrentTime(currentTime);
+        if (onTimeUpdateRef.current) onTimeUpdateRef.current(currentTime);
+      });
+
+      wavesurfer.on("ready", () => {
+        const duration = wavesurfer.getDuration();
+        console.log("[Audio] Wavesurfer finished loading, duration:", duration);
+        setTotalDuration(duration);
+        setIsLoadingWaveform(false);
+
+        // Cache the waveform peaks if not already cached
+        if (!cachedPeaks) {
+          (async () => {
+            try {
+              const peaks = wavesurfer.exportPeaks();
+              await saveWaveformPeaks(id, peaks);
+            } catch (e) {
+              console.warn("[Audio] Failed to export/cache peaks:", e);
+            }
+          })();
         }
 
-        // Restore playing state
-        if (wasPlayingRef.current) {
-          wavesurfer.play();
+        // Restore playback position and state after re-creation
+        if (lastPositionRef.current > 0) {
+          wavesurfer.seekTo(lastPositionRef.current / duration);
+
+          // Restore playback speed
+          const mediaElement = wavesurfer.getMediaElement();
+          if (mediaElement) {
+            mediaElement.preservesPitch = true;
+            mediaElement.playbackRate = playbackSpeed;
+          }
+
+          // Restore playing state
+          if (wasPlayingRef.current) {
+            wavesurfer.play();
+          }
         }
-      }
-    });
+      });
 
-    // Track play/pause state
-    wavesurfer.on("play", () => {
-      wasPlayingRef.current = true;
-      setIsPlaying(true);
-    });
+      // Track play/pause state
+      wavesurfer.on("play", () => {
+        wasPlayingRef.current = true;
+        setIsPlaying(true);
+      });
 
-    wavesurfer.on("pause", () => {
-      wasPlayingRef.current = false;
-      setIsPlaying(false);
-    });
+      wavesurfer.on("pause", () => {
+        wasPlayingRef.current = false;
+        setIsPlaying(false);
+      });
 
-    // Fetch and load the audio
-    const loadAudio = async () => {
-      try {
-        if (!audioFileEncryption) {
-          // No encryption, load directly
-          const audioUrl = `/api/transcriptions/${id}/audio`;
-          console.log("[Audio] Loading audio from server:", audioUrl);
-          await wavesurfer.load(audioUrl);
-          console.log("[Audio] Got audio from server");
-        } else {
-          // Download and decrypt the audio file
-          console.log("[Audio] Downloading encrypted audio from server");
-          const decryptedBlob = await downloadAndDecryptAudio(
-            id,
-            audioFileEncryption,
-          );
-          console.log(
-            "[Audio] Got audio from server and decrypted it - blob size:",
-            (decryptedBlob.size / 1024 / 1024).toFixed(2),
-            "MB, type:",
-            decryptedBlob.type,
-          );
+      // Fetch and load the audio
+      const loadAudio = async () => {
+        try {
+          if (!audioFileEncryption) {
+            // No encryption, load directly
+            const audioUrl = `/api/transcriptions/${id}/audio`;
+            console.log("[Audio] Loading audio from server:", audioUrl);
+            await wavesurfer.load(audioUrl);
+            console.log("[Audio] Got audio from server");
+          } else {
+            // Download and decrypt the audio file
+            console.log("[Audio] Downloading encrypted audio from server");
+            const decryptedBlob = await downloadAndDecryptAudio(
+              id,
+              audioFileEncryption,
+            );
+            console.log(
+              "[Audio] Got audio from server and decrypted it - blob size:",
+              (decryptedBlob.size / 1024 / 1024).toFixed(2),
+              "MB, type:",
+              decryptedBlob.type,
+            );
 
-          // Create blob URL and load into wavesurfer
-          // Keep the blob URL alive for the entire component lifecycle to support seeking
-          const blobUrl = URL.createObjectURL(decryptedBlob);
-          blobUrlRef.current = blobUrl;
-          console.log("[Audio] Created blob URL, loading into WaveSurfer...");
-          await wavesurfer.load(blobUrl);
-          console.log("[Audio] WaveSurfer load() completed");
+            // Create blob URL and load into wavesurfer
+            // Keep the blob URL alive for the entire component lifecycle to support seeking
+            const blobUrl = URL.createObjectURL(decryptedBlob);
+            blobUrlRef.current = blobUrl;
+            console.log("[Audio] Created blob URL, loading into WaveSurfer...");
+            await wavesurfer.load(blobUrl);
+            console.log("[Audio] WaveSurfer load() completed");
+          }
+        } catch (err) {
+          console.error("Error loading audio:", err);
         }
-      } catch (err) {
-        console.error("Error loading audio:", err);
-      }
+      };
+
+      loadAudio();
+
+      return wavesurfer;
     };
 
-    loadAudio();
+    // Initialize and store wavesurfer instance
+    let wavesurferInstance: WaveSurfer | null = null;
+    initWavesurfer().then((ws) => {
+      wavesurferInstance = ws;
+    });
 
     // Cleanup
     return () => {
@@ -459,7 +516,9 @@ export const InteractiveAudio = ({
         URL.revokeObjectURL(blobUrlRef.current);
         blobUrlRef.current = null;
       }
-      wavesurfer.destroy();
+      if (wavesurferInstance) {
+        wavesurferInstance.destroy();
+      }
     };
   }, [id]);
 

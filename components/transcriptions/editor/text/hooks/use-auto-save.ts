@@ -72,6 +72,7 @@ export function useAutoSave({
 
       lastSavedRef.current = currentState;
       lastSaveTimestampRef.current = Date.now();
+      setBeforeUnloadWarning(false);
       setSaveStatus("saved");
       onSaveComplete?.();
 
@@ -141,6 +142,8 @@ export function useAutoSave({
       return;
     }
 
+    setBeforeUnloadWarning(true);
+
     // Show "Saving..." immediately when change is detected
     setSaveStatus("saving");
     onSaveStart?.();
@@ -180,35 +183,14 @@ export function useAutoSave({
     };
   }, []);
 
-  // Warn user before leaving page if there are unsaved changes
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Check if there are pending saves
-      const hasPendingSave =
-        saveTimeoutRef.current !== null ||
-        maxDebounceTimeoutRef.current !== null;
-
-      // Check if current state differs from last saved state
-      const currentState = JSON.stringify({
-        segments: editorAPI.getSegments(),
-        speakers: editorAPI.getSpeakers(),
-      });
-      const hasUnsavedChanges = currentState !== lastSavedRef.current;
-
-      // Only warn if there are pending saves or unsaved changes
-      if (hasPendingSave || hasUnsavedChanges) {
-        // Standard way to trigger browser warning
-        e.preventDefault();
-        e.returnValue = ""; // Chrome requires returnValue to be set
-      }
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [editorAPI]);
-
   return { saveStatus, onChange };
 }
+
+const setBeforeUnloadWarning = (enabled: boolean) => {
+  if (enabled) {
+    window.onbeforeunload = () =>
+      "You have unsaved changes. Are you sure you want to leave?";
+  } else {
+    window.onbeforeunload = null;
+  }
+};
