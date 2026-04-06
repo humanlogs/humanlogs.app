@@ -97,6 +97,60 @@ function offsetToTime(
   return segments[segments.length - 1]?.end || 0;
 }
 
+// Cache keys for waveform peaks
+const WAVEFORM_CACHE_PREFIX = "waveform_peaks_";
+const WAVEFORM_VERSION = "v1";
+
+// Loading placeholder with animated bars
+const WaveformLoader = () => {
+  const bars = 150; // Number of bars to show
+  return (
+    <div className="w-full h-full flex items-center justify-center gap-[1px] px-2">
+      {Array.from({ length: bars }).map((_, i) => {
+        const randomHeight = Math.random() * 60 + 20; // 20-80% height
+        const randomDelay = Math.random() * 2; // 0-2s delay
+        return (
+          <div
+            key={i}
+            className="flex-1 bg-gray-400 dark:bg-gray-600 rounded-sm animate-pulse"
+            style={{
+              height: `${randomHeight}%`,
+              animationDelay: `${randomDelay}s`,
+              animationDuration: "1.5s",
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+};
+
+// Save waveform peaks to localStorage
+function saveWaveformPeaks(transcriptionId: string, peaks: number[][]) {
+  try {
+    const key = `${WAVEFORM_CACHE_PREFIX}${WAVEFORM_VERSION}_${transcriptionId}`;
+    localStorage.setItem(key, JSON.stringify(peaks));
+    console.log("[Audio] Cached waveform peaks");
+  } catch (e) {
+    console.warn("[Audio] Failed to cache waveform peaks:", e);
+  }
+}
+
+// Load waveform peaks from localStorage
+function loadWaveformPeaks(transcriptionId: string): number[][] | null {
+  try {
+    const key = `${WAVEFORM_CACHE_PREFIX}${WAVEFORM_VERSION}_${transcriptionId}`;
+    const cached = localStorage.getItem(key);
+    if (cached) {
+      console.log("[Audio] Found cached waveform peaks");
+      return JSON.parse(cached);
+    }
+  } catch (e) {
+    console.warn("[Audio] Failed to load cached waveform peaks:", e);
+  }
+  return null;
+}
+
 export const InteractiveAudio = ({
   editorAPI,
   id,
@@ -124,6 +178,7 @@ export const InteractiveAudio = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeedVal] = useState(1);
   const [totalDuration, setTotalDuration] = useState<number | undefined>(0);
+  const [isLoadingWaveform, setIsLoadingWaveform] = useState(true);
 
   // Toggle play/pause
   const togglePlayPause = useCallback(() => {
@@ -201,8 +256,18 @@ export const InteractiveAudio = ({
 
   useEffect(() => {
     if (!containerRef.current) return;
+
+    // Show loading state
+    setIsLoadingWaveform(true);
+
     // Initialize speaker segments from current segments
     speakerSegmentsRef.current = getSpeakerSegments(editorAPI.getSegments());
+
+    // Check for cached waveform peaks
+    const cachedPeaks = loadWaveformPeaks(id);
+    if (cachedPeaks) {
+      console.log("[Audio] Using cached waveform, skipping audio decode");
+    }
 
     // Initialize wavesurfer with symmetrical mono waveform
     const wavesurfer = WaveSurfer.create({
@@ -216,8 +281,9 @@ export const InteractiveAudio = ({
       barRadius: 2,
       height: 40,
       minPxPerSec: 0.05,
-      normalize: true,
+      normalize: false, // Disable normalization to speed up loading for long files
       backend: "MediaElement",
+      peaks: cachedPeaks || undefined, // Use cached peaks if available
       renderFunction: (channels, ctx) => {
         const { width, height } = ctx.canvas;
         const halfHeight = height / 2;
@@ -304,6 +370,17 @@ export const InteractiveAudio = ({
       const duration = wavesurfer.getDuration();
       console.log("[Audio] Wavesurfer finished loading, duration:", duration);
       setTotalDuration(duration);
+      setIsLoadingWaveform(false);
+
+      // Cache the waveform peaks if not already cached
+      if (!cachedPeaks) {
+        try {
+          const peaks = wavesurfer.exportPeaks();
+          saveWaveformPeaks(id, peaks);
+        } catch (e) {
+          console.warn("[Audio] Failed to export/cache peaks:", e);
+        }
+      }
 
       // Restore playback position and state after re-creation
       if (lastPositionRef.current > 0) {
@@ -350,13 +427,20 @@ export const InteractiveAudio = ({
             id,
             audioFileEncryption,
           );
-          console.log("[Audio] Got audio from server and decrypted it");
+          console.log(
+            "[Audio] Got audio from server and decrypted it - blob size:",
+            (decryptedBlob.size / 1024 / 1024).toFixed(2),
+            "MB, type:",
+            decryptedBlob.type,
+          );
 
           // Create blob URL and load into wavesurfer
           // Keep the blob URL alive for the entire component lifecycle to support seeking
           const blobUrl = URL.createObjectURL(decryptedBlob);
           blobUrlRef.current = blobUrl;
+          console.log("[Audio] Created blob URL, loading into WaveSurfer...");
           await wavesurfer.load(blobUrl);
+          console.log("[Audio] WaveSurfer load() completed");
         }
       } catch (err) {
         console.error("Error loading audio:", err);
@@ -427,6 +511,12 @@ export const InteractiveAudio = ({
   return (
     <div className="w-full pb-0 px-4">
       <div className="w-full bg-slate-100 dark:bg-slate-900 h-10 relative overflow-visible rounded-b-md mb-5">
+        {/* Show loading placeholder while waveform is loading */}
+        {isLoadingWaveform && (
+          <div className="absolute inset-0 z-20">
+            <WaveformLoader />
+          </div>
+        )}
         <div ref={containerRef} className="w-full h-full" />
         {/* Render cursor indicators */}
         {cursors.map((cursor) => {
