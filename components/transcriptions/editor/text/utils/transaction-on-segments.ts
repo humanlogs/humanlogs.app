@@ -7,6 +7,7 @@ import {
   ReplaceStep,
 } from "@tiptap/pm/transform";
 import _ from "lodash";
+import { matchTimestampsToReplacement } from "./segment-smart-matching";
 
 /**
  * Types of transactions:
@@ -31,8 +32,6 @@ export const applyTransactionOnSegments = (
   segments: TranscriptionSegment[],
   transaction: Transaction,
 ): TranscriptionSegment[] => {
-  console.log("Applying transaction on segments", { segments, transaction });
-
   let result = _.cloneDeep(segments);
 
   // Apply each step in the transaction sequentially
@@ -47,8 +46,6 @@ export const applyTransactionOnSegments = (
       result = applyRemoveMarkStep(result, step);
     }
   }
-
-  console.log("Resulting segments after applying transaction", result);
 
   return result;
 };
@@ -117,17 +114,12 @@ const applyReplaceStep = (
       Math.max(0, safeTo - segmentEndCharIndex),
     );
 
+  const replacedSlice = segments.slice(segmentStartIndex, segmentEndIndex + 1);
   const multipleSpeakersInvolved =
-    new Set(
-      segments
-        .slice(segmentStartIndex, segmentEndIndex + 1)
-        .map((s) => s.speakerId),
-    ).size > 1;
+    new Set(replacedSlice.map((s) => s.speakerId)).size > 1;
 
   const startSegment = segments[segmentStartIndex];
   const endSegment = segments[segmentEndIndex];
-
-  console.log(startSegment, endSegment, replacement);
 
   if (replacement.length === 0) {
     segments.splice(segmentStartIndex, segmentEndIndex - segmentStartIndex + 1);
@@ -135,14 +127,14 @@ const applyReplaceStep = (
     segments.splice(
       segmentStartIndex,
       segmentEndIndex - segmentStartIndex + 1,
-      {
+      ...matchTimestampsToReplacement(replacedSlice, {
         type: "word",
         text: replacement,
         start: startSegment?.start ?? 0,
         end: endSegment?.end ?? startSegment?.end ?? 0,
         speakerId:
           startSegment?.speakerId ?? endSegment?.speakerId ?? "unknown",
-      },
+      }),
     );
   }
 
@@ -326,3 +318,16 @@ const applyRemoveMarkStep = (
 
   return segments;
 };
+
+// Examples:
+
+// - Hi, I'm John -> Hi, I'm Jack
+// Same length, every word keep the same timestamps and modifiers
+
+// - Hi, I'm John -> hello i'm jack
+// Same length too, every words keep the same timestamps
+
+// - Hi, I'm John -> hi i am John
+// Here we'll first convert to normalised no puntuation no capitalization
+// We'll find the closest anchors: hi, john
+// i am get's the timestamps of "I'm" evenly between "i" and "am"

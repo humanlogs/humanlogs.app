@@ -115,16 +115,15 @@ function getWaveformDB(): Promise<IDBDatabase> {
 export const WaveformLoader = () => {
   const bars = 300; // Number of bars to show (4x more since they're smaller)
   return (
-    <div className="w-full h-full flex items-center justify-between px-2">
+    <div className="w-full h-full flex items-center justify-between gap-px px-2">
       {Array.from({ length: bars }).map((_, i) => {
-        const randomHeight = Math.random() * 30 + 10; // 10-40% height (2x smaller)
+        const randomHeight = Math.random() * 10 + 5; // 10-40% height (2x smaller)
         const randomDelay = Math.random() * 2; // 0-2s delay
         return (
           <div
             key={i}
-            className="bg-gray-400 dark:bg-gray-600 rounded-sm animate-pulse"
+            className="bg-gray-400 dark:bg-gray-600 rounded-sm animate-pulse grow"
             style={{
-              width: "2px", // 4x smaller width
               height: `${randomHeight}%`,
               animationDelay: `${randomDelay}s`,
               animationDuration: "1.5s",

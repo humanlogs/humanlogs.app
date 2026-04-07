@@ -143,6 +143,7 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
 
       {transcription?.state === "COMPLETED" && (
         <TranscriptionEditor
+          key={transcription.id} // Force remount editor on transcription change
           hasWriteAccess={!!hasWriteAccess}
           hasListenAccess={!!hasListenAccess}
           transcription={transcription}

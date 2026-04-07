@@ -17,8 +17,6 @@ import {
   WaveformLoader,
 } from "./helpers";
 
-let initOnce = false;
-
 export const InteractiveAudio = ({
   editorAPI,
   id,
@@ -32,11 +30,11 @@ export const InteractiveAudio = ({
   onAudioControlsReady?: (controls: AudioControls) => void;
   cursors?: UserCursor[];
 }) => {
-  const audioMediaRef = useRef<HTMLAudioElement | null>(new Audio());
+  const audioMediaRef = useRef<HTMLAudioElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
-  const wavesurferInstanceRef = useRef<WaveSurfer | null>(null);
   const onTimeUpdateRef = useRef<(currentTime: number) => void>(() => {});
+  const timeUpdateIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const speakerSegmentsRef = useRef<
     (Partial<TranscriptionSegment> & { color: string })[]
   >([]);
@@ -84,8 +82,8 @@ export const InteractiveAudio = ({
       const duration = audioMediaRef.current.duration;
       if (duration > 0) {
         audioMediaRef.current.currentTime = Math.min(time, duration);
-        if (wavesurferInstanceRef.current) {
-          wavesurferInstanceRef.current.seekTo(time / duration);
+        if (wavesurferRef.current) {
+          wavesurferRef.current.seekTo(time / duration);
         }
       }
     }
@@ -94,7 +92,6 @@ export const InteractiveAudio = ({
   // Set playback speed (with pitch preservation)
   const setPlaybackSpeed = useCallback((speed: number) => {
     if (audioMediaRef.current) {
-      console.log("Setting playback speed to", speed);
       audioMediaRef.current.preservesPitch = true;
       audioMediaRef.current.playbackRate = speed;
       setPlaybackSpeedVal(speed);
@@ -103,7 +100,9 @@ export const InteractiveAudio = ({
 
   useEffect(() => {
     if (!containerRef.current) return;
-    if (!audioMediaRef.current) return;
+
+    // Create audio element for this effect lifecycle
+    audioMediaRef.current = new Audio();
 
     // Show loading state
     setIsLoadingWaveform(true);
@@ -113,9 +112,6 @@ export const InteractiveAudio = ({
 
     // Initialize wavesurfer and load cached peaks asynchronously
     const initWavesurfer = async () => {
-      if (initOnce) return;
-      initOnce = true;
-
       // Check for cached waveform peaks and duration
       const cachedData = await loadWaveformPeaks(id);
       if (cachedData) {
@@ -196,6 +192,9 @@ export const InteractiveAudio = ({
         },
       });
 
+      if (wavesurferRef.current) {
+        wavesurferRef.current.destroy();
+      }
       wavesurferRef.current = wavesurfer;
 
       wavesurfer.on("ready", () => {
@@ -229,13 +228,6 @@ export const InteractiveAudio = ({
         }
       });
 
-      // Update time as audio plays
-      audioMediaRef.current?.addEventListener("timeupdate", () => {
-        const currentTime = audioMediaRef.current?.currentTime || 0;
-        setCurrentTime(currentTime);
-        if (onTimeUpdateRef.current) onTimeUpdateRef.current(currentTime);
-      });
-
       // Also update on seek
       audioMediaRef.current?.addEventListener("seeking", () => {
         const currentTime = audioMediaRef.current?.currentTime || 0;
@@ -250,11 +242,19 @@ export const InteractiveAudio = ({
 
       // Track play/pause state
       audioMediaRef.current?.addEventListener("play", () => {
+        clearInterval(timeUpdateIntervalRef.current!);
+        timeUpdateIntervalRef.current = setInterval(() => {
+          // Update time as audio plays
+          const currentTime = audioMediaRef.current?.currentTime || 0;
+          setCurrentTime(currentTime);
+          if (onTimeUpdateRef.current) onTimeUpdateRef.current(currentTime);
+        }, 43);
         wasPlayingRef.current = true;
         setIsPlaying(true);
       });
 
       audioMediaRef.current?.addEventListener("pause", () => {
+        clearInterval(timeUpdateIntervalRef.current!);
         wasPlayingRef.current = false;
         setIsPlaying(false);
       });
@@ -299,15 +299,9 @@ export const InteractiveAudio = ({
       };
 
       loadAudio();
-
-      return wavesurfer;
     };
 
-    // Initialize and store wavesurfer instance
-    // By pass Strict mode
-    initWavesurfer().then((ws) => {
-      wavesurferInstanceRef.current = ws || null;
-    });
+    initWavesurfer();
 
     // Cleanup
     return () => {
@@ -319,19 +313,19 @@ export const InteractiveAudio = ({
         URL.revokeObjectURL(blobUrlRef.current);
         blobUrlRef.current = null;
       }
-      if (wavesurferInstanceRef.current) {
-        wavesurferInstanceRef.current.destroy();
+      if (wavesurferRef.current) {
+        wavesurferRef.current.destroy();
       }
-      /* Disabled because called by strict mode
+      clearInterval(timeUpdateIntervalRef.current!);
       if (audioMediaRef.current) {
         console.log("[Audio] Cleaning up audio element");
+        audioMediaRef.current.pause();
         audioMediaRef.current.src = "";
-        // Destroy the audio element to free resources
         audioMediaRef.current.load();
         audioMediaRef.current = null;
-      }*/
+      }
     };
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     const handleSegmentsChange = () => {
