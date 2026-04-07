@@ -1,5 +1,6 @@
 import { getElevenLabsClient, isElevenLabsConfigured } from "@/lib/elevenlabs";
 import { prisma } from "@/lib/prisma";
+import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
 import { notifyDatabaseChange } from "@/lib/socket-helpers";
 import { Transcription } from "@prisma/client";
 import crypto from "crypto";
@@ -10,7 +11,6 @@ import {
   EncryptionUtils,
 } from "../../../../lib/encryption-entities";
 import { getStorage } from "../../../../lib/storage";
-import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
 
 type RouteParams = {
   params: Promise<{
@@ -387,9 +387,15 @@ export const pollPendingTranscriptions = async (
   console.log("Transcription status is:", transcription);
 
   if (
-    (!transcription.elevenLabsTranscriptionId ||
+    // No eleven labs ID after 1 hour is not normal
+    // Normal not to have one for the first few minutes as we convert the file
+    ((!transcription.elevenLabsTranscriptionId &&
+      new Date(transcription.createdAt).getTime() <
+        Date.now() - 60 * 60 * 1000) ||
+      // If we have an ID but it's been pending for more than 24h, something is wrong
       new Date(transcription.createdAt).getTime() <
         Date.now() - 24 * 60 * 60 * 1000) &&
+    // Only target pending transcriptions as completed or error ones should be updated with the result, we don't want to override any manual update on completed transcriptions
     transcription.state === "PENDING" &&
     isElevenLabsConfigured()
   ) {
