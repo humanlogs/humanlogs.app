@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { TranscriptionDetail } from "../../../hooks/use-transcriptions";
-import { AudioControls, InteractiveAudio } from "./audio";
+import { InteractiveAudio } from "./audio";
 import { EditorAPI } from "./text/api";
 import { ActiveSegmentHighlight } from "./text/components/active-segment-highlight";
 import { EditorToolbar } from "./text/components/editor-toolbar";
@@ -21,6 +21,7 @@ import { useNavigationMode } from "./text/hooks/use-navigation-mode";
 import { useSearchReplace } from "./text/hooks/use-search-replace";
 import { TranscriptEditorContentTipTap } from "./text/tiptap";
 import { segmentsToHtml } from "./text/utils/html";
+import { AudioControls } from "./audio/helpers";
 
 function SegmentsHtmlDebugPanel({ editorAPI }: { editorAPI: EditorAPI }) {
   const [html, setHtml] = useState("");

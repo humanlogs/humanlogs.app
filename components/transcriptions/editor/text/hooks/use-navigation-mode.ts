@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useAnyModalOpen } from "../../../../use-modal";
 import { EditorAPI } from "../api";
-import { AudioControls } from "../../audio";
+import { AudioControls } from "../../audio/helpers";
 
 export type NavigationState = "edit" | "navigate";
 

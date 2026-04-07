@@ -14,9 +14,9 @@ import {
 import { useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Button } from "../../../../ui/button";
-import { AudioControls } from "../../audio";
 import { useAudio } from "../../audio/audio-context";
 import { SearchReplaceToolbar } from "./search-replace-toolbar";
+import { AudioControls } from "../../audio/helpers";
 
 interface EditorToolbarProps {
   applyFormat: (modifier: "b" | "i" | "u" | "s") => void;
