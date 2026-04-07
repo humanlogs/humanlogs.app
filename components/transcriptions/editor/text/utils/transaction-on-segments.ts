@@ -31,6 +31,8 @@ export const applyTransactionOnSegments = (
   segments: TranscriptionSegment[],
   transaction: Transaction,
 ): TranscriptionSegment[] => {
+  console.log("Applying transaction on segments", { segments, transaction });
+
   let result = _.cloneDeep(segments);
 
   // Apply each step in the transaction sequentially
@@ -45,6 +47,8 @@ export const applyTransactionOnSegments = (
       result = applyRemoveMarkStep(result, step);
     }
   }
+
+  console.log("Resulting segments after applying transaction", result);
 
   return result;
 };
@@ -77,6 +81,11 @@ const applyReplaceStep = (
     Math.max(0, segmentStartIndex),
     segments.length - 1,
   );
+  if (safeFrom - charIndex === segments[segmentStartIndex].text.length) {
+    // If the from is exactly at the end of a segment, we consider it as the start of the next segment (this can happen when adding text at the end of a word for example)
+    charIndex += segments[segmentStartIndex].text.length;
+    segmentStartIndex++;
+  }
   const segmentStartCharIndex = charIndex;
 
   let segmentEndIndex = segmentStartIndex;
@@ -117,6 +126,8 @@ const applyReplaceStep = (
 
   const startSegment = segments[segmentStartIndex];
   const endSegment = segments[segmentEndIndex];
+
+  console.log(startSegment, endSegment, replacement);
 
   if (replacement.length === 0) {
     segments.splice(segmentStartIndex, segmentEndIndex - segmentStartIndex + 1);

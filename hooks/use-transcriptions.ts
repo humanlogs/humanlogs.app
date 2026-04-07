@@ -7,12 +7,12 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { browserCrypto } from "../lib/encryption-entities.browser";
+import { fetchGateway } from "./fetch";
 import {
   DecryptedWithRaw,
   useDecryptData,
   useEncryptionStatus,
 } from "./use-encryption";
-import { fetchGateway } from "./fetch";
 
 type Transcription = {
   id: string;
@@ -95,13 +95,8 @@ export type VersionData = {
   } | null;
 };
 
-// Module-level variables for global polling
-let pollingInterval: NodeJS.Timeout | null = null;
-let activeSubscribers = 0;
-
 // Fetch transcriptions
 export function useTranscriptions() {
-  const queryClient = useQueryClient();
   const decrypt = useDecryptData();
 
   const query = useQuery({
@@ -117,34 +112,9 @@ export function useTranscriptions() {
     },
   });
 
-  // Track active subscribers
-  useEffect(() => {
-    activeSubscribers++;
-    return () => {
-      activeSubscribers--;
-      // Clear interval only if no active subscribers
-      if (activeSubscribers === 0 && pollingInterval) {
-        clearInterval(pollingInterval);
-        pollingInterval = null;
-      }
-    };
-  }, []);
-
-  // Manage polling based on pending transcriptions
-  useEffect(() => {
-    const hasPending = query.data?.some((t) => t.state === "PENDING");
-
-    if (hasPending && !pollingInterval) {
-      // Start polling every 10 seconds
-      pollingInterval = setInterval(() => {
-        queryClient.invalidateQueries({ queryKey: ["transcriptions"] });
-      }, 30000);
-    } else if (!hasPending && pollingInterval) {
-      // Stop polling when no pending transcriptions
-      clearInterval(pollingInterval);
-      pollingInterval = null;
-    }
-  }, [query.data, queryClient]);
+  usePendingTranscriptionsPolling(
+    query.data?.some((t) => t.state === "PENDING") ?? false,
+  );
 
   return query;
 }
@@ -152,7 +122,8 @@ export function useTranscriptions() {
 // Fetch single transcription
 export function useTranscription(id: string) {
   const decrypt = useDecryptData();
-  return useQuery({
+
+  const query = useQuery({
     queryKey: ["transcriptions", id],
     queryFn: async () => {
       const response = await fetchGateway(`/api/transcriptions/${id}`);
@@ -176,6 +147,43 @@ export function useTranscription(id: string) {
     },
     enabled: !!id,
   });
+
+  usePendingTranscriptionsPolling(query.data?.state === "PENDING");
+
+  return query;
+}
+
+let pollingSubscribers = 0;
+let pollingInterval: NodeJS.Timeout | null = null;
+export function usePendingTranscriptionsPolling(active = false) {
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (active) {
+      pollingSubscribers++;
+    } else {
+      pollingSubscribers = Math.max(0, pollingSubscribers - 1);
+    }
+
+    if (!pollingInterval) {
+      pollingInterval = setInterval(() => {
+        if (pollingSubscribers > 0) {
+          console.log("Polling for pending transcriptions...");
+          queryClient.invalidateQueries({ queryKey: ["transcriptions"] });
+        } else {
+          if (pollingInterval) {
+            clearInterval(pollingInterval);
+            pollingInterval = null;
+          }
+        }
+      }, 5000);
+    }
+
+    return () => {
+      if (active) {
+        pollingSubscribers = Math.max(0, pollingSubscribers - 1);
+      }
+    };
+  }, [active]);
 }
 
 // Fetch transcription history

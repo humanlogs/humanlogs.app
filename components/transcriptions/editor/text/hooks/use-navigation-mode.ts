@@ -177,9 +177,9 @@ export function useNavigationMode(
       if (event.altKey && event.ctrlKey) {
         audioControls?.setPlaybackSpeed(4);
       } else if (event.altKey) {
-        audioControls?.setPlaybackSpeed(2);
-      } else if (event.ctrlKey) {
         audioControls?.setPlaybackSpeed(0.5);
+      } else if (event.ctrlKey) {
+        audioControls?.setPlaybackSpeed(2);
       } else {
         audioControls?.setPlaybackSpeed(1);
       }

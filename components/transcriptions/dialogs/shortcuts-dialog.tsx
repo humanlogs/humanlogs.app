@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "@/components/locale-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,14 +16,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useModal } from "@/components/use-modal";
-import { CustomShortcut, defaultShortcuts } from "@/lib/shortcuts";
 import {
-  useCustomShortcuts,
   useAddCustomShortcut,
+  useCustomShortcuts,
   useDeleteCustomShortcut,
 } from "@/hooks/use-shortcuts";
+import { defaultShortcuts } from "@/lib/shortcuts";
 import { PlusIcon, TrashIcon } from "lucide-react";
-import { useTranslations } from "@/components/locale-provider";
 import { useState } from "react";
 import { toast } from "sonner";
 

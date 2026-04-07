@@ -584,8 +584,7 @@ export class EditorAPI extends EventEmitter {
             : textSlice.toLowerCase();
 
         // Replace the text
-        tr = tr.delete(from, to);
-        tr = tr.insertText(transformedText, from);
+        tr = tr.insertText(transformedText, from, to);
       }
     }
 

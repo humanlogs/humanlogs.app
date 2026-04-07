@@ -25,8 +25,6 @@ export function segmentsToHtml(segments: TranscriptionSegment[]): string {
 
   segments = normalizeEditorSegments(segments);
 
-  console.log(segments.map((s) => s.text));
-
   // Define consistent order for modifiers to ensure proper nesting
   const modifierOrder = ["b", "i", "u", "s"];
 
