@@ -3,7 +3,7 @@ import {
   compressAudio,
   encryptAudioBuffer,
 } from "@/lib/audio-processing";
-import { getElevenLabsClient, isElevenLabsConfigured } from "@/lib/elevenlabs";
+import { getSTTService } from "@/lib/stt-service";
 import { prisma } from "@/lib/prisma";
 import { generateAudioKey, getStorage } from "@/lib/storage";
 import { isBillableVersion } from "@/lib/stripe";
@@ -382,20 +382,20 @@ async function processTranscription(
 ): Promise<void> {
   try {
     const storage = getStorage();
-    const elevenLabs = getElevenLabsClient();
+    const stt = getSTTService();
 
     const isBuffer = Buffer.isBuffer(file);
 
     // Get audio URL or file path
     const audioUrl = isBuffer ? "" : await storage.getUrl(file, 7200); // 2 hours
 
-    if (isElevenLabsConfigured()) {
-      // Use real ElevenLabs API (async)
+    if (stt.isConfigured()) {
+      // Use real STT API (async)
       console.log(
-        `Starting ElevenLabs async transcription for ${transcriptionId}...`,
+        `Starting ${stt.getProvider()} async transcription for ${transcriptionId}...`,
       );
 
-      let elevenLabsTranscriptionId: string;
+      let sttTranscriptionId: string;
 
       // Check if we need to upload the file directly (local storage)
       if (audioUrl.startsWith("file://") || isBuffer) {
@@ -406,7 +406,7 @@ async function processTranscription(
           select: { audioFileName: true },
         });
 
-        const result = await elevenLabs.transcribeFromFileAsync({
+        const result = await stt.transcribeFromFileAsync({
           fileBuffer,
           fileName: transcription?.audioFileName || "audio.mp3",
           language: options.language,
@@ -414,36 +414,36 @@ async function processTranscription(
           vocabulary: options.vocabulary,
         });
 
-        elevenLabsTranscriptionId = result.transcriptionId;
+        sttTranscriptionId = result.transcriptionId;
       } else {
         // Use URL-based transcription (S3 or other cloud storage)
-        const result = await elevenLabs.transcribeFromUrlAsync({
+        const result = await stt.transcribeFromUrlAsync({
           audioUrl,
           language: options.language,
           speakerCount: options.speakerCount,
           vocabulary: options.vocabulary,
         });
 
-        elevenLabsTranscriptionId = result.transcriptionId;
+        sttTranscriptionId = result.transcriptionId;
       }
 
-      // Store the ElevenLabs transcription ID
+      // Store the STT transcription ID
       await prisma.transcription.update({
         where: { id: transcriptionId },
         data: {
-          elevenLabsTranscriptionId,
+          elevenLabsTranscriptionId: sttTranscriptionId,
         },
       });
 
       console.log(
-        `Transcription job started for ${transcriptionId} with ElevenLabs ID: ${elevenLabsTranscriptionId}`,
+        `Transcription job started for ${transcriptionId} with ${stt.getProvider()} ID: ${sttTranscriptionId}`,
       );
     } else {
       // Use simulated transcription for development
       console.log(`Simulating transcription for ${transcriptionId}...`);
 
       // Simulate async processing
-      const result = await elevenLabs.simulateTranscription(
+      const result = await stt.simulateTranscription(
         {
           audioUrl,
           language: options.language,

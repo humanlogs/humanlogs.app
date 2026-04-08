@@ -1,4 +1,4 @@
-import { isElevenLabsConfigured } from "@/lib/elevenlabs";
+import { getSTTService } from "@/lib/stt-service";
 import { prisma } from "@/lib/prisma";
 import { Transcription } from "@prisma/client";
 import { NextResponse } from "next/server";
@@ -41,8 +41,9 @@ export const GET = withAuthRateLimit(async (request, user) => {
       (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime(),
     );
 
-    // Check status for PENDING transcriptions with ElevenLabs
-    if (isElevenLabsConfigured()) {
+    // Check status for PENDING transcriptions with STT service
+    const stt = getSTTService();
+    if (stt.isConfigured()) {
       const statusChecks = transcriptions
         .filter((t) => t.state === "PENDING" && t.elevenLabsTranscriptionId)
         .map(async (t) => {

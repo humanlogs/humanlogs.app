@@ -29,9 +29,16 @@
             "bucketName": "ah"
         }
     },
-    "elevenlabs": {
-        "apiKey": "",
-        "canDisableStorage": false
+    "stt": {
+        "type": "whisper",
+        "elevenlabs": {
+            "apiKey": "",
+            "canDisableStorage": false
+        },
+        "whisper": {
+            "apiUrl": "http://localhost:9000",
+            "modelSize": "base"
+        }
     },
     "stripe": {
         "secretKey": "",

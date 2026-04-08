@@ -58,7 +58,7 @@ class ElevenLabsClient {
   constructor() {
     const config = getConfig();
     this.client = new ElevenLabsSDK({
-      apiKey: config.elevenlabs.apiKey,
+      apiKey: config.stt.elevenlabs.apiKey,
     });
   }
 
@@ -70,7 +70,9 @@ class ElevenLabsClient {
   ) {
     return {
       // Store nothing
-      enableLogging: getConfig().elevenlabs?.canDisableStorage ? false : true,
+      enableLogging: getConfig().stt.elevenlabs?.canDisableStorage
+        ? false
+        : true,
 
       modelId: "scribe_v2" as const,
       tagAudioEvents: true,
@@ -323,7 +325,7 @@ export function getElevenLabsClient(): ElevenLabsClient {
 export function isElevenLabsConfigured(): boolean {
   try {
     const config = getConfig();
-    return !!config.elevenlabs?.apiKey;
+    return !!config.stt?.elevenlabs?.apiKey;
   } catch {
     return false;
   }

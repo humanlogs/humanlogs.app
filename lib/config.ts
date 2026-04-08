@@ -35,9 +35,18 @@ const configSchema = z.object({
       bucketName: z.string(),
     }),
   }),
-  elevenlabs: z.object({
-    apiKey: z.string(),
-    canDisableStorage: z.boolean().optional(),
+  stt: z.object({
+    type: z.enum(["elevenlabs", "whisper"]),
+    elevenlabs: z.object({
+      apiKey: z.string(),
+      canDisableStorage: z.boolean().optional(),
+    }),
+    whisper: z.object({
+      apiUrl: z.string().url(),
+      modelSize: z
+        .enum(["tiny", "base", "small", "medium", "large"])
+        .optional(),
+    }),
   }),
   email: z
     .object({
@@ -124,8 +133,15 @@ export const awsConfig = {
   },
 };
 
-export const elevenlabsConfig = {
-  apiKey: config.get<string>("elevenlabs.apiKey"),
-  canDisableStorage:
-    config.get<boolean>("elevenlabs.canDisableStorage") || false,
+export const sttConfig = {
+  type: config.get<"elevenlabs" | "whisper">("stt.type"),
+  elevenlabs: {
+    apiKey: config.get<string>("stt.elevenlabs.apiKey"),
+    canDisableStorage:
+      config.get<boolean>("stt.elevenlabs.canDisableStorage") || false,
+  },
+  whisper: {
+    apiUrl: config.get<string>("stt.whisper.apiUrl"),
+    modelSize: config.get<string>("stt.whisper.modelSize") || "base",
+  },
 };

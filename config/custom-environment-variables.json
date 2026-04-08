@@ -29,9 +29,16 @@
             "bucketName": "S3_BUCKET_NAME"
         }
     },
-    "elevenlabs": {
-        "apiKey": "ELEVENLABS_API_KEY",
-        "canDisableStorage": "ELEVENLABS_CAN_DISABLE_STORAGE"
+    "stt": {
+        "type": "STT_PROVIDER",
+        "elevenlabs": {
+            "apiKey": "ELEVENLABS_API_KEY",
+            "canDisableStorage": "ELEVENLABS_CAN_DISABLE_STORAGE"
+        },
+        "whisper": {
+            "apiUrl": "WHISPER_API_URL",
+            "modelSize": "WHISPER_MODEL_SIZE"
+        }
     },
     "stripe": {
         "secretKey": "STRIPE_SECRET",

@@ -1,4 +1,4 @@
-import { getElevenLabsClient, isElevenLabsConfigured } from "@/lib/elevenlabs";
+import { getSTTService } from "@/lib/stt-service";
 import { prisma } from "@/lib/prisma";
 import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
 import { notifyDatabaseChange } from "@/lib/socket-helpers";
@@ -326,14 +326,14 @@ export const pollPendingTranscriptions = async (
   transcription: Transcription,
 ): Promise<Transcription> => {
   console.log("Polling transcription status for ID:", transcription.id);
+  const stt = getSTTService();
   if (
     transcription.state === "PENDING" &&
     transcription.elevenLabsTranscriptionId &&
-    isElevenLabsConfigured()
+    stt.isConfigured()
   ) {
     try {
-      const elevenLabs = getElevenLabsClient();
-      const status = await elevenLabs.getTranscriptionStatus(
+      const status = await stt.getTranscriptionStatus(
         transcription.elevenLabsTranscriptionId,
       );
 
@@ -387,7 +387,7 @@ export const pollPendingTranscriptions = async (
   console.log("Transcription status is:", transcription);
 
   if (
-    // No eleven labs ID after 1 hour is not normal
+    // No STT ID after 1 hour is not normal
     // Normal not to have one for the first few minutes as we convert the file
     ((!transcription.elevenLabsTranscriptionId &&
       new Date(transcription.createdAt).getTime() <
@@ -397,7 +397,7 @@ export const pollPendingTranscriptions = async (
         Date.now() - 24 * 60 * 60 * 1000) &&
     // Only target pending transcriptions as completed or error ones should be updated with the result, we don't want to override any manual update on completed transcriptions
     transcription.state === "PENDING" &&
-    isElevenLabsConfigured()
+    stt.isConfigured()
   ) {
     // Update the transcription with the result
     return await prisma.transcription.update({
