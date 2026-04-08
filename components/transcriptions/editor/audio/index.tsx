@@ -268,6 +268,7 @@ export const InteractiveAudio = ({
             const audioUrl = `/api/transcriptions/${id}/audio`;
             console.log("[Audio] Loading audio from server:", audioUrl);
             audioMediaRef.current!.src = audioUrl;
+            audioMediaRef.current!.load(); // Explicitly load the audio element
             await wavesurfer.load(audioUrl!);
             console.log("[Audio] Got audio from server");
           } else {
@@ -290,6 +291,7 @@ export const InteractiveAudio = ({
             blobUrlRef.current = blobUrl;
             console.log("[Audio] Created blob URL, loading into WaveSurfer...");
             audioMediaRef.current!.src = blobUrl;
+            audioMediaRef.current!.load(); // Explicitly load the audio element
             await wavesurfer.load(blobUrl!);
             console.log("[Audio] WaveSurfer load() completed");
           }
