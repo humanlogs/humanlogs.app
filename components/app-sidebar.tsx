@@ -19,7 +19,12 @@ import {
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProjects, useUpdateUser, useUserProfile } from "@/hooks/use-api";
-import { FilePlusCornerIcon, PencilIcon, SearchIcon } from "lucide-react";
+import {
+  FilePlusCornerIcon,
+  PencilIcon,
+  SearchIcon,
+  ShieldIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
@@ -156,6 +161,18 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
+
+            {/* Admin Panel Link */}
+            {userProfile?.isAdmin && (
+              <SidebarMenuItem>
+                <Link href="/app/admin">
+                  <SidebarMenuButton isActive={pathname === "/app/admin"}>
+                    <ShieldIcon className="h-4 w-4" />
+                    Admin Panel
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+            )}
 
             <SidebarMenuItem>
               <div className="relative">

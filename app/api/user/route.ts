@@ -18,6 +18,7 @@ const userSelectDefault = {
   plan: true,
   shortcuts: true,
   isWelcomeDone: true,
+  isAdmin: true,
 };
 
 export const GET = withAuthRateLimit(async (request, user) => {

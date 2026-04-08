@@ -29,6 +29,7 @@ model User {
   subscriptionStatus     String?
   lastCreditsRefill      DateTime?
   shortcuts              Json?
+  isAdmin                Boolean         @default(false)
   projects               Project[]
   transcriptions         Transcription[]
   feedbacks              Feedback[]
