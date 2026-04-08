@@ -103,6 +103,7 @@ export const InteractiveAudio = ({
 
     // Create audio element for this effect lifecycle
     audioMediaRef.current = new Audio();
+    (window as any).audioMedia = audioMediaRef.current; // Expose for debugging
 
     // Show loading state
     setIsLoadingWaveform(true);
@@ -345,7 +346,7 @@ export const InteractiveAudio = ({
 
   // Notify parent of audio controls whenever they change
   useEffect(() => {
-    if (onAudioControlsReady && wavesurferRef.current) {
+    if (onAudioControlsReady) {
       onAudioControlsReady({
         isPlaying,
         playbackSpeed,
