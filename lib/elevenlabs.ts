@@ -154,6 +154,8 @@ class ElevenLabsClient {
 
   /**
    * Get the status and result of an async transcription
+   * Automatically deletes the transcription from ElevenLabs once completed or failed
+   * to ensure no data is retained on their servers
    */
   async getTranscriptionStatus(
     transcriptionId: string,
@@ -170,6 +172,10 @@ class ElevenLabsClient {
         // Transcription is completed, preserve the full response
         const transcriptionResult = this.mapResponse(result);
 
+        // Delete from ElevenLabs immediately after retrieving
+        // This ensures data is not retained on their servers
+        await this.deleteTranscription(transcriptionId);
+
         return {
           status: "completed",
           transcription: transcriptionResult,
@@ -180,6 +186,9 @@ class ElevenLabsClient {
       if ("status" in result) {
         const status = String(result.status).toLowerCase();
         if (status === "failed" || status === "error") {
+          // Delete failed transcription from ElevenLabs
+          await this.deleteTranscription(transcriptionId);
+
           return {
             status: "failed",
             error: result.error ? String(result.error) : "Transcription failed",
@@ -265,6 +274,27 @@ class ElevenLabsClient {
     }
 
     return result;
+  }
+
+  /**
+   * Delete a transcription from ElevenLabs servers
+   * This should be called after successfully retrieving the transcription
+   * to ensure data is not stored on their servers
+   */
+  async deleteTranscription(transcriptionId: string): Promise<void> {
+    try {
+      await this.client.speechToText.transcripts.delete(transcriptionId);
+      console.log(
+        `Successfully deleted transcription ${transcriptionId} from ElevenLabs`,
+      );
+    } catch (error) {
+      console.error(
+        `Error deleting transcription ${transcriptionId} from ElevenLabs:`,
+        error,
+      );
+      // Don't throw - deletion failure shouldn't break the app
+      // The transcription was already retrieved successfully
+    }
   }
 
   /**

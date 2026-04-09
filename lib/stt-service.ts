@@ -99,6 +99,27 @@ class STTService {
   }
 
   /**
+   * Delete a transcription from the provider's servers
+   * NOTE: This is typically not needed as getTranscriptionStatus() automatically
+   * deletes transcriptions after retrieving completed or failed results
+   * @deprecated Use getTranscriptionStatus() which handles deletion automatically
+   */
+  async deleteTranscription(transcriptionId: string): Promise<void> {
+    // Determine provider from transcription ID prefix
+    if (transcriptionId.startsWith("whisper-")) {
+      // Whisper doesn't support deletion (local processing)
+      console.log(
+        "Skipping deletion for Whisper transcription (local processing)",
+      );
+      return;
+    } else {
+      // Delete from ElevenLabs
+      const client = getElevenLabsClient();
+      return client.deleteTranscription(transcriptionId);
+    }
+  }
+
+  /**
    * Simulate transcription for development
    */
   async simulateTranscription(

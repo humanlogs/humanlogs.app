@@ -41,14 +41,18 @@ export default function Page() {
           </li>
 
           <li>
-            <strong>ElevenLabs – Europe</strong>
+            <strong>ElevenLabs</strong>
             <br />
             Used for audio processing and transcription services.
             <br />
-            HumanLogs operates in Zero Retention Mode with ElevenLabs, meaning
+            HumanLogs operates with ElevenLabs, any processed data is
+            immediately deleted from ElevenLabs after the transcription, meaning
             no data is stored after processing.
             <br />
-            All processing is performed within European infrastructure.
+            For On-Premise plans, we offer enabling ElevenLabs "Zero Retention
+            Mode", as well as data residency which ensures that no data is
+            persisted on ElevenLabs servers at all and let you choose the
+            servers regions. Contact us for more details.
             <br />
           </li>
 
