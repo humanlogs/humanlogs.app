@@ -18,22 +18,28 @@ export interface SocketAuthResult {
 /**
  * Extract cookies from socket handshake headers
  */
-function parseCookies(cookieHeader: string | undefined): Record<string, string> {
+function parseCookies(
+  cookieHeader: string | undefined,
+): Record<string, string> {
   if (!cookieHeader) return {};
-  
-  return cookieHeader.split(";").reduce((acc: Record<string, string>, cookie: string) => {
-    const [key, value] = cookie.trim().split("=");
-    if (key && value) {
-      acc[key] = decodeURIComponent(value);
-    }
-    return acc;
-  }, {});
+
+  return cookieHeader
+    .split(";")
+    .reduce((acc: Record<string, string>, cookie: string) => {
+      const [key, value] = cookie.trim().split("=");
+      if (key && value) {
+        acc[key] = decodeURIComponent(value);
+      }
+      return acc;
+    }, {});
 }
 
 /**
  * Verify local/LDAP authentication (both use JWT tokens)
  */
-async function verifyLocalAuth(token: string): Promise<SocketAuthResult | null> {
+async function verifyLocalAuth(
+  token: string,
+): Promise<SocketAuthResult | null> {
   const userId = await verifySessionToken(token);
   if (!userId) {
     return null;
@@ -64,7 +70,9 @@ async function verifyLocalAuth(token: string): Promise<SocketAuthResult | null> 
  * Verify Auth0 authentication
  * Auth0 stores encrypted session data in cookies that we need to decode
  */
-async function verifyAuth0(cookieHeader: string | undefined): Promise<SocketAuthResult | null> {
+async function verifyAuth0(
+  cookieHeader: string | undefined,
+): Promise<SocketAuthResult | null> {
   if (!cookieHeader) {
     return null;
   }
@@ -82,7 +90,7 @@ async function verifyAuth0(cookieHeader: string | undefined): Promise<SocketAuth
 
     // Try to get session from Auth0
     const session = await auth0.getSession(mockRequest);
-    
+
     if (!session?.user) {
       return null;
     }
@@ -117,16 +125,18 @@ async function verifyAuth0(cookieHeader: string | undefined): Promise<SocketAuth
 /**
  * Main authentication function for Socket.IO connections
  * Automatically handles local, LDAP, and Auth0 modes
- * 
+ *
  * Note: LDAP authentication uses the same JWT session system as local auth.
  * LDAP is just an alternative authentication method - after successful LDAP login,
  * users get a standard JWT session token just like local users.
  */
-export async function verifySocketAuth(socket: Socket): Promise<SocketAuthResult | null> {
+export async function verifySocketAuth(
+  socket: Socket,
+): Promise<SocketAuthResult | null> {
   try {
     const cookieHeader = socket.handshake.headers.cookie;
     const cookies = parseCookies(cookieHeader);
-    
+
     // Try to get token from auth object (if client sends it explicitly)
     let token = socket.handshake.auth?.token;
 
@@ -136,7 +146,7 @@ export async function verifySocketAuth(socket: Socket): Promise<SocketAuthResult
       // 1. Local database users (with password hash)
       // 2. LDAP users (authenticated via LDAP but stored in local DB)
       // Both use the same JWT session token system
-      
+
       // Get token from cookies if not provided in auth object
       if (!token) {
         token = cookies.session;
