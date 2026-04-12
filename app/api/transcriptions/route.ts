@@ -1,10 +1,10 @@
-import { getSTTService } from "@/lib/stt-service";
+import { getSTTService } from "@/lib/stt/stt-service";
 import { prisma } from "@/lib/prisma";
-import { Transcription } from "@prisma/client";
+import { Prisma, Transcription } from "@prisma/client";
 import { NextResponse } from "next/server";
-import { EncryptedDataEntity } from "../../../lib/encryption-entities";
+import { EncryptedDataEntity } from "../../../lib/encryption/encryption-entities";
 import { pollPendingTranscriptions } from "./[id]/route";
-import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
+import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 
 export const GET = withAuthRateLimit(async (request, user) => {
   try {
@@ -25,7 +25,7 @@ export const GET = withAuthRateLimit(async (request, user) => {
       prisma.$queryRaw<Transcription[]>`
         SELECT * FROM "Transcription"
         WHERE "shared" IS NOT NULL
-          AND "shared"::jsonb @> ${JSON.stringify([{ userId: user.id }])}::jsonb
+          AND "shared"::jsonb @> ${Prisma.sql`${JSON.stringify([{ userId: user.id }])}::jsonb`}
         ORDER BY "updatedAt" DESC
         LIMIT 1000
       `,

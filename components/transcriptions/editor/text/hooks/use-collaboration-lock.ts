@@ -13,7 +13,7 @@ import {
   offLeaderGranted,
   releaseLeadership,
   type Leader,
-} from "@/lib/socket-client";
+} from "@/lib/sockets/socket-client";
 import { useEffect, useRef, useState } from "react";
 
 export type LockStatus = {

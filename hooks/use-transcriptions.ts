@@ -3,10 +3,10 @@
 import {
   EncryptionUtils,
   type EncryptedDataEntity,
-} from "@/lib/encryption-entities";
+} from "@/lib/encryption/encryption-entities";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { browserCrypto } from "../lib/encryption-entities.browser";
+import { browserCrypto } from "../lib/encryption/encryption-entities.browser";
 import { fetchGateway } from "./fetch";
 import {
   DecryptedWithRaw,

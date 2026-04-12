@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
 import { UserCursor } from "../../../../hooks/use-transcription-cursors";
 import { TranscriptionSegment } from "../../../../hooks/use-transcriptions";
-import { downloadAndDecryptAudio } from "../../../../lib/audio-decryption.browser";
+import { downloadAndDecryptAudio } from "../../../../lib/audio/audio-decryption.browser";
 import "../index.css"; // Import custom styles for canvas
 import { EditorAPI } from "../text/api";
 import { useAudio } from "./audio-context";

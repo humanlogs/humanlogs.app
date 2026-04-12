@@ -1,5 +1,5 @@
 import { FileText, BookOpen } from "lucide-react";
-import { getDocsStructure } from "@/lib/docs-utils";
+import { getDocsStructure } from "@/lib/utils/docs-utils";
 import Link from "next/link";
 
 export default function ResourcesPage() {

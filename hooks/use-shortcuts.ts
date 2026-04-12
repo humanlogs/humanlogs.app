@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { CustomShortcut } from "@/lib/shortcuts";
+import type { CustomShortcut } from "@/components/transcriptions/editor/text/utils/shortcuts";
 
 // Fetch custom shortcuts
 export function useCustomShortcuts() {

@@ -5,8 +5,8 @@ import {
   createCustomer,
   PLANS,
   isStripeConfigured,
-} from "@/lib/stripe";
-import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
+} from "@/lib/billing/stripe";
+import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 
 export const POST = withAuthRateLimit(async (request, user) => {
   try {

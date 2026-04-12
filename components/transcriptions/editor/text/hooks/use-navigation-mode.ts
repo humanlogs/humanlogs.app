@@ -2,7 +2,7 @@
 
 import { useCustomShortcuts } from "@/hooks/use-shortcuts";
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
-import { CustomShortcut } from "@/lib/shortcuts";
+import { CustomShortcut } from "@/components/transcriptions/editor/text/utils/shortcuts";
 import { useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useAnyModalOpen } from "../../../../use-modal";

@@ -1,7 +1,7 @@
-import { prisma } from "./prisma";
+import { prisma } from "../prisma";
 import { auth0 } from "./auth0";
 import { getLocalSession } from "./local-auth";
-import { authConfig } from "./config";
+import { authConfig } from "../config";
 
 export interface UserSession {
   id: string;

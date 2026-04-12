@@ -2,7 +2,7 @@
 
 import { useTranslations } from "@/components/locale-provider";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import {
   FileDown,
   FolderKanban,

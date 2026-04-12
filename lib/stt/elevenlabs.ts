@@ -1,5 +1,5 @@
 import { ElevenLabsClient as ElevenLabsSDK } from "@elevenlabs/elevenlabs-js";
-import { getConfig } from "./config";
+import { getConfig } from "../config";
 
 export interface TranscriptionWord {
   text: string;

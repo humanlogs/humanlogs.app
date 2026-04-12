@@ -1,7 +1,7 @@
 import { Transcription } from "@prisma/client";
 import * as fs from "fs/promises";
 import * as path from "path";
-import { prisma } from "./prisma";
+import { prisma } from "../../../../lib/prisma";
 
 const SUPPORTED_LANGUAGES = ["en", "fr", "es", "de"] as const;
 type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];

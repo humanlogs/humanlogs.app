@@ -1,6 +1,6 @@
 import nodemailer, { Transporter } from "nodemailer";
 import { SESClient, SendRawEmailCommand } from "@aws-sdk/client-ses";
-import { getConfig } from "./config";
+import { getConfig } from "../config";
 
 interface EmailOptions {
   to: string | string[];

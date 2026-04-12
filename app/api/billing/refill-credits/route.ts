@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { refillUserCredits } from "@/lib/credits-refill-service";
+import { refillUserCredits } from "@/lib/billing/credits-refill-service";
 
 // This endpoint can be called manually or by external cron services if needed
-// The cron job runs automatically in production via lib/cron-jobs.ts
+// The cron job runs automatically in production via lib/utils/cron-jobs.ts
 export async function POST(request: NextRequest) {
   try {
     // Simple API key authentication for manual triggers

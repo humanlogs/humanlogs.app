@@ -18,8 +18,8 @@ import {
   useTranscription,
   useTransferOwnership,
 } from "@/hooks/use-transcriptions";
-import { EncryptionUtils } from "@/lib/encryption-entities";
-import { browserCrypto } from "@/lib/encryption-entities.browser";
+import { EncryptionUtils } from "@/lib/encryption/encryption-entities";
+import { browserCrypto } from "@/lib/encryption/encryption-entities.browser";
 import { Loader2Icon, PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";

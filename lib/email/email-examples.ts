@@ -5,14 +5,14 @@
  * Import the functions you need and use them in your API routes or server-side code.
  */
 
-import { sendEmail } from "@/lib/mailer";
+import { sendEmail } from "@/lib/email/mailer";
 import {
   getWelcomeEmailTemplate,
   getPasswordResetEmailTemplate,
   getTranscriptionCompletedEmailTemplate,
   getNotificationEmailTemplate,
   getBaseTemplate,
-} from "@/lib/email-templates";
+} from "@/lib/email/email-templates";
 
 /**
  * Example 1: Send a welcome email to a new user

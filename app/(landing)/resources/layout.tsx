@@ -1,5 +1,5 @@
 import { DocsSidebar } from "@/components/docs-sidebar";
-import { getDocsStructure } from "@/lib/docs-utils";
+import { getDocsStructure } from "@/lib/utils/docs-utils";
 
 export default function ResourcesLayout({
   children,

@@ -15,7 +15,7 @@ import { useTranslations } from "@/components/locale-provider";
 import * as React from "react";
 import { toast } from "sonner";
 import { useModal } from "../../use-modal";
-import { exportAsTXTWithOptions } from "@/lib/export-utils";
+import { exportAsTXTWithOptions } from "@/lib/utils/export-utils";
 
 export type TranscriptionExportModalData = {
   transcription: TranscriptionContent;

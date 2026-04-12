@@ -34,7 +34,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import JSZip from "jszip";
-import { downloadAndDecryptAudio } from "@/lib/audio-decryption.browser";
+import { downloadAndDecryptAudio } from "@/lib/audio/audio-decryption.browser";
 import type { TranscriptionDetail } from "@/hooks/use-transcriptions";
 
 export default function AccountPage() {

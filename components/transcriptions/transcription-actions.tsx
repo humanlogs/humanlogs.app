@@ -10,15 +10,15 @@ import {
   DropdownMenuSub,
 } from "@/components/ui/dropdown-menu";
 import { SharedUser, TranscriptionContent } from "@/hooks/use-transcriptions";
-import { downloadAsMP3 } from "@/lib/audio-conversion.browser";
-import { downloadAndDecryptAudio } from "@/lib/audio-decryption.browser";
+import { downloadAsMP3 } from "@/lib/audio/audio-conversion.browser";
+import { downloadAndDecryptAudio } from "@/lib/audio/audio-decryption.browser";
 import {
   exportAsCSV,
   exportAsJSON,
   exportAsPDF,
   exportAsTXTWithOptions,
   exportAsWord,
-} from "@/lib/export-utils";
+} from "@/lib/utils/export-utils";
 import {
   DownloadIcon,
   FileAudio2Icon,

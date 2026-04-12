@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranscriptionCursors } from "@/hooks/use-transcription-cursors";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { TranscriptionDetail } from "../../../hooks/use-transcriptions";

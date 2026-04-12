@@ -15,7 +15,7 @@ import { useTranslations } from "@/components/locale-provider";
 import { StarIcon } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 
 export type FeedbackModalMode = "rating" | "feature-request";
 

@@ -21,7 +21,7 @@ import {
   useCustomShortcuts,
   useDeleteCustomShortcut,
 } from "@/hooks/use-shortcuts";
-import { defaultShortcuts } from "@/lib/shortcuts";
+import { defaultShortcuts } from "@/components/transcriptions/editor/text/utils/shortcuts";
 import { PlusIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";

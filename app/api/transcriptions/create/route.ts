@@ -2,15 +2,15 @@ import {
   checkFfmpegAvailable,
   compressAudio,
   encryptAudioBuffer,
-} from "@/lib/audio-processing";
-import { getSTTService } from "@/lib/stt-service";
+} from "@/lib/audio/audio-processing";
+import { getSTTService } from "@/lib/stt/stt-service";
 import { prisma } from "@/lib/prisma";
 import { generateAudioKey, getStorage } from "@/lib/storage";
-import { isBillableVersion } from "@/lib/stripe";
+import { isBillableVersion } from "@/lib/billing/stripe";
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { EncryptionUtils } from "../../../../lib/encryption-entities";
-import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
+import { EncryptionUtils } from "../../../../lib/encryption/encryption-entities";
+import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 
 export const dynamic = "force-dynamic";
 

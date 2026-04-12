@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { isStripeConfigured } from "@/lib/stripe";
+import { isStripeConfigured } from "@/lib/billing/stripe";
 import { NextRequest, NextResponse } from "next/server";
-import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
+import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 
 const userSelectPublic = {
   id: true,

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
+import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 
 export const GET = withAuthRateLimit(async (request, user) => {
   try {

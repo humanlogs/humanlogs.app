@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useModal } from "@/components/use-modal";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ChevronLeftIcon,

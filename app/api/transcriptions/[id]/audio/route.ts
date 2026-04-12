@@ -3,7 +3,7 @@ import { getStorage } from "@/lib/storage";
 import { NextResponse } from "next/server";
 import * as fs from "fs/promises";
 import * as path from "path";
-import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
+import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 
 type RouteParams = {
   params: Promise<{

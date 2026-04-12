@@ -1,8 +1,8 @@
 "use client";
 
 import { useLocale, useTranslations } from "@/components/locale-provider";
-import type { Locale } from "@/lib/i18n";
-import { languagesNames, locales } from "@/lib/i18n";
+import type { Locale } from "@/lib/utils/i18n";
+import { languagesNames, locales } from "@/lib/utils/i18n";
 import { ChevronDown, Globe } from "lucide-react";
 import { useState } from "react";
 import {

@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
-import { notifyDatabaseChange } from "@/lib/socket-helpers";
-import { serverEncryption } from "@/lib/encryption-entities";
+import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
+import { notifyDatabaseChange } from "@/lib/sockets/socket-helpers";
+import { serverEncryption } from "@/lib/encryption/encryption-entities";
 
 type RouteParams = {
   params: Promise<{

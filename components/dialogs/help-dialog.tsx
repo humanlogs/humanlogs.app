@@ -15,7 +15,7 @@ import * as React from "react";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { useUserProfile } from "../../hooks/use-api";
-import { languagesNames, locales } from "../../lib/i18n";
+import { languagesNames, locales } from "../../lib/utils/i18n";
 
 export type HelpModalData = Record<string, never>;
 

@@ -9,7 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuItem,
 } from "../../../components/ui/dropdown-menu";
-import { cn } from "../../../lib/utils";
+import { cn } from "../../../lib/utils/utils";
 import { LanguageSelector } from "./language-selector";
 
 export const LandingHeader = () => {

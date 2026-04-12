@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth, UserSession } from "@/lib/auth-helpers";
+import { requireAuth, UserSession } from "@/lib/auth/auth-helpers";
 import {
   checkRateLimit,
   getRateLimitKey,
   RateLimitConfig,
-} from "@/lib/rate-limiter";
+} from "@/lib/router/rate-limiter";
 
 /**
  * Default rate limit configuration for authenticated routes

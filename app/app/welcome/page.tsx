@@ -12,7 +12,7 @@ import { Button } from "../../../components/ui/button";
 import { Select } from "../../../components/ui/select";
 import { SecurityStep } from "../../../components/welcome/security-step";
 import { useUpdateUser, useUserProfile } from "../../../hooks/use-api";
-import { languagesNames, Locale, locales } from "../../../lib/i18n";
+import { languagesNames, Locale, locales } from "../../../lib/utils/i18n";
 
 export default function WelcomePage() {
   const t = useTranslations("welcome");

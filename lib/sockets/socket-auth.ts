@@ -4,10 +4,10 @@
  */
 
 import { Socket } from "socket.io";
-import { verifySessionToken } from "./local-auth";
-import { auth0 } from "./auth0";
-import { authConfig } from "./config";
-import { prisma } from "./prisma";
+import { verifySessionToken } from "../auth/local-auth";
+import { auth0 } from "../auth/auth0";
+import { authConfig } from "../config";
+import { prisma } from "../prisma";
 
 export interface SocketAuthResult {
   userId: string;

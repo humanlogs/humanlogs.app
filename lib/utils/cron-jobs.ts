@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { refillUserCredits } from "./credits-refill-service";
+import { refillUserCredits } from "../billing/credits-refill-service";
 
 export function initializeCronJobs() {
   // Run credits refill daily at 2:00 AM

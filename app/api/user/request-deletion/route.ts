@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendEmail } from "@/lib/mailer";
-import { getAccountDeletionEmailTemplate } from "@/lib/email-templates";
+import { sendEmail } from "@/lib/email/mailer";
+import { getAccountDeletionEmailTemplate } from "@/lib/email/email-templates";
 import crypto from "crypto";
-import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
+import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 
 export const POST = withAuthRateLimit(async (request, user) => {
   try {

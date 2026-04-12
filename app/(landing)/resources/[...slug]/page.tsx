@@ -1,8 +1,8 @@
 import { MarkdownViewer } from "@/components/markdown-viewer";
-import { getAllDocPaths, getDocContent } from "@/lib/docs-utils";
+import { getAllDocPaths, getDocContent } from "@/lib/utils/docs-utils";
 import { getLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
-import type { Locale } from "@/lib/i18n";
+import type { Locale } from "@/lib/utils/i18n";
 
 export async function generateStaticParams() {
   const paths = getAllDocPaths();

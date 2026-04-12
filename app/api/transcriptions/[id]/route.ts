@@ -1,7 +1,7 @@
-import { getSTTService } from "@/lib/stt-service";
+import { getSTTService } from "@/lib/stt/stt-service";
 import { prisma } from "@/lib/prisma";
-import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
-import { notifyDatabaseChange } from "@/lib/socket-helpers";
+import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
+import { notifyDatabaseChange } from "@/lib/sockets/socket-helpers";
 import { Transcription } from "@prisma/client";
 import crypto from "crypto";
 import _ from "lodash";
@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
 import {
   EncryptedDataEntity,
   EncryptionUtils,
-} from "../../../../lib/encryption-entities";
+} from "../../../../lib/encryption/encryption-entities";
 import { getStorage } from "../../../../lib/storage";
 
 type RouteParams = {

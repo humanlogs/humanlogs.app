@@ -4,7 +4,7 @@ import { useTranslations } from "@/components/locale-provider";
 import { Badge } from "@/components/ui/badge";
 import { Key, Lock, Server, Shield } from "lucide-react";
 import { useEffect, useState } from "react";
-import { cn } from "../../../../lib/utils";
+import { cn } from "../../../../lib/utils/utils";
 import { AnimatedSectionTitle } from "../animated-section-title";
 
 // Sample transcript with speakers

@@ -1,4 +1,4 @@
-import { getConfig } from "./config";
+import { getConfig } from "../config";
 import { getElevenLabsClient, isElevenLabsConfigured } from "./elevenlabs";
 import { getWhisperClient, isWhisperConfigured } from "./whisper";
 import type {

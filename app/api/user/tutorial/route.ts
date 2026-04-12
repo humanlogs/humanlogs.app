@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createTutorialTranscription } from "../../../../lib/tutorial-helpers";
-import { withAuthRateLimit } from "@/lib/rate-limit-middleware";
+import { createTutorialTranscription } from "./tutorial-helpers";
+import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 
 export const dynamic = "force-dynamic";
 

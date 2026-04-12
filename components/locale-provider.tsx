@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Locale, locales, i18nFiles } from "../lib/i18n";
+import { Locale, locales, i18nFiles } from "../lib/utils/i18n";
 
 type LocaleContextType = {
   locale: Locale;

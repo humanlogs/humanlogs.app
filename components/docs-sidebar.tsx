@@ -4,8 +4,8 @@ import { ChevronRight, FileText, Folder } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useState } from "react";
-import type { DocItem } from "@/lib/docs-utils";
-import { cn } from "@/lib/utils";
+import type { DocItem } from "@/lib/utils/docs-utils";
+import { cn } from "@/lib/utils/utils";
 
 interface DocsSidebarProps {
   structure: DocItem[];

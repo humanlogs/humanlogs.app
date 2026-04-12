@@ -14,7 +14,7 @@ import { UserCog, UserRoundPen, UserRoundPlus, Users } from "lucide-react";
 import {
   getSpeakerColorClass,
   UNKNOWN_SPEAKER_COLORS,
-} from "../../../../../lib/utils";
+} from "../../../../../lib/utils/utils";
 import { EditorAPI } from "../api";
 import { getSpeakerLabel } from "../hooks/use-speaker-actions";
 import {

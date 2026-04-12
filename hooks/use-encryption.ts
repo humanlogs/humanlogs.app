@@ -10,13 +10,13 @@ import {
   removePrivateKey,
   setDeviceTrust,
   storePrivateKey,
-} from "@/lib/encryption";
+} from "@/lib/encryption/encryption";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   EncryptedDataEntity,
   EncryptionUtils,
-} from "../lib/encryption-entities";
-import { browserCrypto } from "../lib/encryption-entities.browser";
+} from "../lib/encryption/encryption-entities";
+import { browserCrypto } from "../lib/encryption/encryption-entities.browser";
 import { useRef } from "react";
 import { fetchGateway } from "./fetch";
 

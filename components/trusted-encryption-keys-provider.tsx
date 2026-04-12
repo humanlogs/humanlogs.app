@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useEffect } from "react";
-import { cleanupNonTrustedKeys } from "@/lib/encryption";
+import { cleanupNonTrustedKeys } from "@/lib/encryption/encryption";
 
 export const TrustedEncryptionKeysProvider = ({
   children,

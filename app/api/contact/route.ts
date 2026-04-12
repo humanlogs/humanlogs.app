@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sendEmail } from "@/lib/mailer";
+import { sendEmail } from "@/lib/email/mailer";
 import {
   getContactEmailTemplate,
   getContactConfirmationTemplate,
-} from "@/lib/email-templates";
-import { checkRateLimit, getRateLimitKey } from "@/lib/rate-limiter";
+} from "@/lib/email/email-templates";
+import { checkRateLimit, getRateLimitKey } from "@/lib/router/rate-limiter";
 
 const RATE_LIMIT = {
   MAX_REQUESTS: 3, // Max requests per time window

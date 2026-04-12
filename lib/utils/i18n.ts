@@ -24,7 +24,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   const all = await Promise.all(
     i18nFiles.map(
       async (file) =>
-        (await import(`../messages/${locale}/${file}.json`)).default,
+        (await import(`../../messages/${locale}/${file}.json`)).default,
     ),
   );
 

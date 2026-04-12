@@ -16,7 +16,7 @@ import {
   onUserJoined,
   onUserLeft,
   releaseLeadership,
-} from "@/lib/socket-client";
+} from "@/lib/sockets/socket-client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useUserProfile } from "./use-api";
 

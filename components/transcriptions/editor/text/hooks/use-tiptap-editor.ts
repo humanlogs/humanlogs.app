@@ -2,8 +2,8 @@
 
 import { useUserProfile } from "@/hooks/use-api";
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
-import { getSocket } from "@/lib/socket-client";
-import { YjsSocketIOProvider } from "@/lib/yjs-socket-provider";
+import { getSocket } from "@/lib/sockets/socket-client";
+import { YjsSocketIOProvider } from "@/lib/sockets/yjs-socket-provider";
 import Bold from "@tiptap/extension-bold";
 import Collaboration from "@tiptap/extension-collaboration";
 import Italic from "@tiptap/extension-italic";

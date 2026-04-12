@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getLocalSession } from "@/lib/local-auth";
+import { getLocalSession } from "@/lib/auth/local-auth";
 import { authConfig } from "@/lib/config";
 
 /**

@@ -1,15 +1,25 @@
-import { auth0 } from "./lib/auth0";
+import { auth0 } from "./lib/auth/auth0";
 import type { NextRequest } from "next/server";
 
 // The proxy handles all auth routes automatically via auth0.middleware()
 export default async function proxy(request: NextRequest) {
-  // The auth0.middleware() handles:
-  // - /api/auth/login - redirects to Auth0
-  // - /api/auth/logout - clears session and redirects
-  // - /api/auth/callback - handles Auth0 callback
-  // - /api/auth/me - returns user profile
-  // - Session management and cookie handling
-  return await auth0.middleware(request);
+  const response = await auth0.middleware(request);
+
+  // Add security headers
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("X-XSS-Protection", "1; mode=block");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set(
+    "Content-Security-Policy",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';",
+  );
+  response.headers.set(
+    "Permissions-Policy",
+    "geolocation=(), microphone=(), camera=()",
+  );
+
+  return response;
 }
 
 export const config = {

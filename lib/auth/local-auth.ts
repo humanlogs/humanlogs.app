@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import { authConfig, ldapConfig } from "./config";
-import { prisma } from "./prisma";
+import { authConfig, ldapConfig } from "../config";
+import { prisma } from "../prisma";
 
 const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days
 
@@ -16,9 +16,13 @@ export interface LocalUserSession {
  * Create JWT token for local auth session
  */
 async function createSessionToken(userId: string): Promise<string> {
-  const secret = new TextEncoder().encode(
-    authConfig.sessionSecret || "fallback-secret-change-in-production",
-  );
+  if (!authConfig.sessionSecret) {
+    throw new Error(
+      "Session secret is not configured. Please set AUTH_SESSION_SECRET in your environment variables.",
+    );
+  }
+
+  const secret = new TextEncoder().encode(authConfig.sessionSecret);
 
   const token = await new SignJWT({ userId })
     .setProtectedHeader({ alg: "HS256" })
@@ -81,10 +85,17 @@ async function authenticateLDAP(
             return;
           }
 
+          function escapeLDAP(str: string): string {
+            return str.replace(/[()\\*\0]/g, (char) => {
+              const hex = char.charCodeAt(0).toString(16);
+              return `\\${hex.padStart(2, "0")}`;
+            });
+          }
+
           // Search for user
           const searchFilter = ldapConfig.searchFilter.replace(
             "{{username}}",
-            username,
+            escapeLDAP(username),
           );
 
           client.search(
@@ -295,7 +306,7 @@ export async function setLocalSession(userId: string): Promise<void> {
   cookieStore.set("session", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "strict",
     maxAge: SESSION_DURATION,
     path: "/",
   });

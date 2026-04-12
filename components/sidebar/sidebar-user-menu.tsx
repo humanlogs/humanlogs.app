@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { UserProfile } from "../../hooks/use-api";
-import { languagesNames, locales } from "../../lib/i18n";
+import { languagesNames, locales } from "../../lib/utils/i18n";
 
 type SidebarUserMenuProps = {
   user: {

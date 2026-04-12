@@ -30,7 +30,7 @@ import { usePathname } from "next/navigation";
 import * as React from "react";
 import { useTranscriptions } from "../hooks/use-transcriptions";
 import { useWelcomeRedirect } from "../hooks/use-welcome-redirect";
-import { Locale, locales } from "../lib/i18n";
+import { Locale, locales } from "../lib/utils/i18n";
 import { useProjectModal } from "./dialogs/project-create-modal";
 
 type AppSidebarProps = {

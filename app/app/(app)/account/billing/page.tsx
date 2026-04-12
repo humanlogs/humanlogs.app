@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { CreditCardIcon, CheckIcon, ClockIcon } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 
 type BillingInfo = {
   credits: number;

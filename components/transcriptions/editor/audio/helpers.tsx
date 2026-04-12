@@ -1,7 +1,7 @@
 "use client";
 
 import { TranscriptionSegment } from "../../../../hooks/use-transcriptions";
-import { getSpeakerColor } from "../../../../lib/utils";
+import { getSpeakerColor } from "../../../../lib/utils/utils";
 import "../index.css"; // Import custom styles for canvas
 
 // Audio controls interface
