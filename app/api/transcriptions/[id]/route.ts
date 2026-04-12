@@ -384,8 +384,6 @@ export const pollPendingTranscriptions = async (
     }
   }
 
-  console.log("Transcription status is:", transcription);
-
   if (
     // No STT ID after 1 hour is not normal
     // Normal not to have one for the first few minutes as we convert the file

@@ -30,6 +30,12 @@ type CursorPosition = {
   hasWriteAccess: boolean;
 };
 
+const log = (...args: any[]) => {
+  if (process.env.NODE_ENV === "development") {
+    console.log("[SocketServer]", ...args);
+  }
+};
+
 export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
   if (io) {
     return io;
@@ -45,7 +51,7 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
   });
 
   io.on("connection", async (socket) => {
-    console.log("Client connected:", socket.id);
+    log("Client connected:", socket.id);
 
     // TODO: In production, verify JWT token sent from client
     // For now, client will send userId via handshake query
@@ -54,15 +60,12 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
     if (userId) {
       // Join user-specific room
       socket.join(`user:${userId}`);
-      console.log(`User ${userId} joined their room`);
     }
 
     // Handle joining a transcription room
     socket.on("transcription:join", (transcriptionId: string) => {
       socket.join(`transcription:${transcriptionId}`);
-      console.log(
-        `Socket ${socket.id} joined transcription room: ${transcriptionId}`,
-      );
+      log(`Socket ${socket.id} joined transcription room: ${transcriptionId}`);
 
       // Send current leader info to the joining user
       const currentLeader = transcriptionLeaders.get(transcriptionId);
@@ -85,9 +88,7 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
     // Handle leaving a transcription room
     socket.on("transcription:leave", (transcriptionId: string) => {
       socket.leave(`transcription:${transcriptionId}`);
-      console.log(
-        `Socket ${socket.id} left transcription room: ${transcriptionId}`,
-      );
+      log(`Socket ${socket.id} left transcription room: ${transcriptionId}`);
 
       // Release leadership if this user was the leader
       const currentLeader = transcriptionLeaders.get(transcriptionId);
@@ -203,7 +204,7 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
       "yjs:sync-request",
       (data: { transcriptionId: string; stateVector: number[] }) => {
         const transcriptionId = data.transcriptionId;
-        console.log(
+        log(
           `[Y.js Server] Sync request from ${socket.id} for ${transcriptionId}`,
         );
 
@@ -212,13 +213,9 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
         if (!doc) {
           doc = new Y.Doc();
           yjsDocuments.set(transcriptionId, doc);
-          console.log(
-            `[Y.js Server] Created new document for ${transcriptionId}`,
-          );
+          log(`[Y.js Server] Created new document for ${transcriptionId}`);
         } else {
-          console.log(
-            `[Y.js Server] Using existing document for ${transcriptionId}`,
-          );
+          log(`[Y.js Server] Using existing document for ${transcriptionId}`);
         }
 
         // Get or create awareness for this transcription
@@ -231,13 +228,11 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
         // Send state update to the requesting client
         const stateVector = new Uint8Array(data.stateVector);
         const update = Y.encodeStateAsUpdate(doc, stateVector);
-        console.log(
-          `[Y.js Server] Sending ${update.length} bytes to ${socket.id}`,
-        );
+        log(`[Y.js Server] Sending ${update.length} bytes to ${socket.id}`);
 
         socket.emit(`yjs:sync:${transcriptionId}`, update.buffer);
         socket.emit(`yjs:synced:${transcriptionId}`);
-        console.log(`[Y.js Server] Sent sync response to ${socket.id}`);
+        log(`[Y.js Server] Sent sync response to ${socket.id}`);
       },
     );
 
@@ -246,7 +241,7 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
       "yjs:update",
       (data: { transcriptionId: string; update: number[] }) => {
         const transcriptionId = data.transcriptionId;
-        console.log(
+        log(
           `[Y.js Server] Received update from ${socket.id} for ${transcriptionId}: ${data.update.length} bytes`,
         );
 
@@ -255,15 +250,13 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
         if (!doc) {
           doc = new Y.Doc();
           yjsDocuments.set(transcriptionId, doc);
-          console.log(
-            `[Y.js Server] Created new document for ${transcriptionId}`,
-          );
+          log(`[Y.js Server] Created new document for ${transcriptionId}`);
         }
 
         // Apply the update to the server's document
         const update = new Uint8Array(data.update);
         Y.applyUpdate(doc, update);
-        console.log(
+        log(
           `[Y.js Server] Applied update to server document for ${transcriptionId}`,
         );
 
@@ -271,7 +264,7 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
         socket
           .to(`transcription:${transcriptionId}`)
           .emit(`yjs:sync:${transcriptionId}`, update.buffer);
-        console.log(
+        log(
           `[Y.js Server] Broadcasted update to other clients in ${transcriptionId}`,
         );
       },
@@ -308,7 +301,7 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
     );
 
     socket.on("disconnect", () => {
-      console.log("Client disconnected:", socket.id);
+      log("Client disconnected:", socket.id);
 
       // Release leadership if this user was a leader of any transcription
       for (const [transcriptionId, leader] of transcriptionLeaders.entries()) {
