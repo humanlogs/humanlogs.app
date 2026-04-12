@@ -16,7 +16,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import auth0 from "@/lib/auth/auth0";
+import { getCurrentUser } from "@/lib/auth/auth-helpers";
 import { redirect } from "next/navigation";
 
 export default async function AppLayout({
@@ -24,15 +24,15 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth0.getSession();
+  const user = await getCurrentUser();
 
-  if (!session?.user) {
+  if (!user) {
     redirect("/app/login");
   }
 
   return (
     <SidebarProvider>
-      <AppSidebar user={session.user}>
+      <AppSidebar user={user}>
         <SidebarInset className="flex flex-col">
           <header className="sticky top-0 bg-background/50 backdrop-blur-lg z-10">
             <div className="border-b px-4 flex h-14 shrink-0 items-center gap-2 bg-background">

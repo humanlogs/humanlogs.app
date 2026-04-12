@@ -1,9 +1,20 @@
-import { auth0 } from "./lib/auth/auth0";
+import { getAuth0Client } from "./lib/auth/auth0";
+import { authConfig } from "./lib/config";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 // The proxy handles all auth routes automatically via auth0.middleware()
 export default async function proxy(request: NextRequest) {
-  const response = await auth0.middleware(request);
+  let response: NextResponse;
+
+  // Only use Auth0 middleware if auth mode is auth0
+  if (authConfig.mode === "auth0") {
+    const auth0 = getAuth0Client();
+    response = await auth0.middleware(request);
+  } else {
+    // For local auth, just pass through
+    response = NextResponse.next();
+  }
 
   // Add security headers
   response.headers.set("X-Frame-Options", "DENY");

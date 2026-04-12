@@ -1,5 +1,5 @@
 import { prisma } from "../prisma";
-import { auth0 } from "./auth0";
+import { getAuth0Client } from "./auth0";
 import { getLocalSession } from "./local-auth";
 import { authConfig } from "../config";
 
@@ -52,6 +52,7 @@ export async function getCurrentUser(): Promise<UserSession | null> {
   }
 
   // Otherwise use Auth0
+  const auth0 = getAuth0Client();
   const session = await auth0.getSession();
 
   if (!session?.user) {
