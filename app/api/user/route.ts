@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { isStripeConfigured } from "@/lib/billing/stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
+import { createSocketToken } from "@/lib/auth/local-auth";
 
 const userSelectDefault = {
   id: true,
@@ -35,8 +36,12 @@ export const GET = withAuthRateLimit(async (request, user) => {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Generate socket token for real-time connections
+    const socketToken = await createSocketToken(user.id);
+
     return NextResponse.json({
       ...dbUser,
+      socketToken,
       isBillingEnabled: isStripeConfigured(),
     });
   } catch (error) {
