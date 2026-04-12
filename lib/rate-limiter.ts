@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { NextRequest } from "next/server";
 
 export interface RateLimitConfig {
   /**
@@ -13,6 +14,34 @@ export interface RateLimitConfig {
    * Optional prefix for the rate limit key
    */
   keyPrefix?: string;
+}
+
+/**
+ * Get rate limit key from request or user ID
+ *
+ * @param request - The incoming Next.js request
+ * @param userId - Optional user ID (takes precedence over IP)
+ * @returns Rate limit key (user ID or IP address)
+ *
+ * @example
+ * ```ts
+ * // For authenticated users
+ * const key = getRateLimitKey(request, user.id);
+ *
+ * // For public endpoints
+ * const key = getRateLimitKey(request);
+ * ```
+ */
+export function getRateLimitKey(request: NextRequest, userId?: string): string {
+  // Use user ID if available (for authenticated requests)
+  if (userId) {
+    return userId;
+  }
+
+  // Fall back to IP address (for public/unauthenticated requests)
+  const forwarded = request.headers.get("x-forwarded-for");
+  const ip = forwarded ? forwarded.split(",")[0].trim() : "unknown";
+  return ip;
 }
 
 export interface RateLimitResult {
@@ -43,9 +72,11 @@ export interface RateLimitResult {
  *
  * @example
  * ```ts
- * const result = await checkRateLimit("contact:192.168.1.1", {
+ * const key = getRateLimitKey(request, user?.id);
+ * const result = await checkRateLimit(key, {
  *   maxRequests: 3,
  *   windowMs: 60 * 60 * 1000, // 1 hour
+ *   keyPrefix: "contact",
  * });
  *
  * if (!result.allowed) {

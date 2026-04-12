@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth, UserSession } from "@/lib/auth-helpers";
-import { checkRateLimit, RateLimitConfig } from "@/lib/rate-limiter";
+import {
+  checkRateLimit,
+  getRateLimitKey,
+  RateLimitConfig,
+} from "@/lib/rate-limiter";
 
 /**
  * Default rate limit configuration for authenticated routes
  * 60 requests per minute
  */
 const DEFAULT_AUTH_RATE_LIMIT: RateLimitConfig = {
-  maxRequests: 600,
+  maxRequests: 60,
   windowMs: 60 * 1000, // 1 minute
   keyPrefix: "auth",
 };
@@ -73,7 +77,8 @@ export function withAuthRateLimit(
       const user = await requireAuth();
 
       // 2. Apply rate limiting based on user ID
-      const rateCheck = await checkRateLimit(user.id, rateLimitConfig);
+      const rateLimitKey = getRateLimitKey(request, user.id);
+      const rateCheck = await checkRateLimit(rateLimitKey, rateLimitConfig);
 
       if (!rateCheck.allowed) {
         const secondsLeft = Math.ceil(
@@ -143,14 +148,10 @@ export function withAuthRateLimit(
 export function withRateLimit(
   handler: RouteHandler,
   config: RateLimitConfig,
-  getKey: (request: NextRequest) => string = (request) => {
-    const forwarded = request.headers.get("x-forwarded-for");
-    const ip = forwarded ? forwarded.split(",")[0] : "unknown";
-    return ip;
-  },
+  getKey?: (request: NextRequest) => string,
 ): RouteHandler {
   return async (request: NextRequest, context?: { params?: any }) => {
-    const key = getKey(request);
+    const key = getKey ? getKey(request) : getRateLimitKey(request);
     const rateCheck = await checkRateLimit(key, config);
 
     if (!rateCheck.allowed) {

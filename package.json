@@ -72,7 +72,8 @@
     "wavesurfer.js": "^7.12.4",
     "y-protocols": "^1.0.7",
     "yjs": "^13.6.30",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "@hono/node-server": ">=1.19.13"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -85,6 +86,7 @@
     "@types/nodemailer": "^7.0.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@hono/node-server": ">=1.19.13",
     "babel-plugin-react-compiler": "1.0.0",
     "dotenv": "^17.3.1",
     "eslint": "^9",

@@ -1,8 +1,8 @@
 import { Server as HTTPServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
-import * as Y from "yjs";
-import * as syncProtocol from "y-protocols/sync";
 import * as awarenessProtocol from "y-protocols/awareness";
+import * as Y from "yjs";
+import { verifySocketAuth } from "./socket-auth";
 
 let io: SocketIOServer | null = null;
 
@@ -53,14 +53,21 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
   io.on("connection", async (socket) => {
     log("Client connected:", socket.id);
 
-    // TODO: In production, verify JWT token sent from client
-    // For now, client will send userId via handshake query
-    const userId = socket.handshake.query.userId as string | undefined;
+    // Verify authentication and extract user info
+    const authResult = await verifySocketAuth(socket);
 
-    if (userId) {
-      // Join user-specific room
-      socket.join(`user:${userId}`);
+    if (!authResult) {
+      log("Unauthorized connection attempt, disconnecting:", socket.id);
+      socket.emit("error", { message: "Authentication required" });
+      socket.disconnect();
+      return;
     }
+
+    const { userId, email } = authResult;
+    log(`Authenticated user: ${userId} (${email})`);
+
+    // Join user-specific room
+    socket.join(`user:${userId}`);
 
     // Handle joining a transcription room
     socket.on("transcription:join", (transcriptionId: string) => {

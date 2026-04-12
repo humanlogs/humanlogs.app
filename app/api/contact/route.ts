@@ -4,19 +4,12 @@ import {
   getContactEmailTemplate,
   getContactConfirmationTemplate,
 } from "@/lib/email-templates";
-import { checkRateLimit } from "@/lib/rate-limiter";
+import { checkRateLimit, getRateLimitKey } from "@/lib/rate-limiter";
 
 const RATE_LIMIT = {
   MAX_REQUESTS: 3, // Max requests per time window
   WINDOW_MS: 60 * 60 * 1000, // 1 hour in milliseconds
 };
-
-function getRateLimitKey(request: NextRequest): string {
-  // Use IP address as the key
-  const forwarded = request.headers.get("x-forwarded-for");
-  const ip = forwarded ? forwarded.split(",")[0] : "unknown";
-  return ip;
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^@\s]+@[^.@\s]+(?:\.[^.@\s]+)+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json(
         { error: "Invalid email address" },

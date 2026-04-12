@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth, UserSession } from "@/lib/auth-helpers";
-import { checkRateLimit, RateLimitConfig } from "@/lib/rate-limiter";
+import {
+  checkRateLimit,
+  getRateLimitKey,
+  RateLimitConfig,
+} from "@/lib/rate-limiter";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -57,7 +61,7 @@ export function withAdminRateLimit(
       }
 
       // 3. Check rate limit
-      const rateLimitKey = `${config.keyPrefix}:${user.id}`;
+      const rateLimitKey = getRateLimitKey(request, user.id);
       const rateLimitResult = await checkRateLimit(rateLimitKey, config);
 
       if (!rateLimitResult.allowed) {

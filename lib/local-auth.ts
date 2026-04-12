@@ -31,8 +31,11 @@ async function createSessionToken(userId: string): Promise<string> {
 
 /**
  * Verify JWT token and return userId
+ * Exported for use in socket server and other modules
  */
-async function verifySessionToken(token: string): Promise<string | null> {
+export async function verifySessionToken(
+  token: string,
+): Promise<string | null> {
   try {
     const secret = new TextEncoder().encode(
       authConfig.sessionSecret || "fallback-secret-change-in-production",

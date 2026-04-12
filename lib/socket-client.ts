@@ -77,11 +77,29 @@ export function useSocket() {
 
     // Initialize socket connection if not already connected
     if (!socket || !socket.connected) {
+      // Get session token from cookies
+      const getSessionToken = () => {
+        if (typeof document === "undefined") return undefined;
+        const cookies = document.cookie
+          .split(";")
+          .reduce((acc: Record<string, string>, cookie) => {
+            const [key, value] = cookie.trim().split("=");
+            if (key && value) {
+              acc[key] = value;
+            }
+            return acc;
+          }, {});
+        // Return session cookie for local auth, or appSession for Auth0
+        return cookies.session || cookies.appSession;
+      };
+
+      const token = getSessionToken();
+
       socket = io({
         path: "/api/socket",
         autoConnect: true,
-        query: {
-          userId: userProfile.id,
+        auth: {
+          token, // Send token via auth object (recommended)
         },
       });
 
@@ -117,6 +135,16 @@ export function useSocket() {
 
       socket.on("disconnect", () => {
         console.log("Socket disconnected");
+      });
+
+      socket.on("error", (error: any) => {
+        console.error("Socket error:", error);
+        if (error.message === "Authentication required") {
+          console.error(
+            "Socket authentication failed - token may be invalid or expired",
+          );
+          // Optionally redirect to login or refresh the page
+        }
       });
 
       socket.on("db:change", (event: DatabaseChangeEvent) => {
