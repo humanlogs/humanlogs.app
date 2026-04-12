@@ -1,8 +1,8 @@
-import { prisma } from "@/lib/prisma";
+import { createSocketToken } from "@/lib/auth/utils";
 import { isStripeConfigured } from "@/lib/billing/stripe";
-import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
-import { createSocketToken } from "@/lib/auth/local-auth";
+import { NextResponse } from "next/server";
 
 const userSelectDefault = {
   id: true,

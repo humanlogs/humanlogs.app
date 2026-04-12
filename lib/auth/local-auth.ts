@@ -51,29 +51,6 @@ export async function verifySessionToken(
 }
 
 /**
- * Create a JWT token specifically for socket authentication
- * This token is separate from session tokens and has a shorter expiry
- * Works for both local and Auth0 users
- */
-export async function createSocketToken(userId: string): Promise<string> {
-  if (!authConfig.sessionSecret) {
-    throw new Error(
-      "Session secret is not configured. Please set AUTH_SESSION_SECRET in your environment variables.",
-    );
-  }
-
-  const secret = new TextEncoder().encode(authConfig.sessionSecret);
-
-  const token = await new SignJWT({ userId, type: "socket" })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("24h") // Shorter expiry for socket tokens
-    .sign(secret);
-
-  return token;
-}
-
-/**
  * Authenticate against LDAP server
  * Note: Requires ldapjs package - install with: npm install ldapjs @types/ldapjs
  */
