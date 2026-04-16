@@ -128,6 +128,10 @@ export type AdminStats = {
   landing: {
     totalUniqueVisitors: number;
     visitorsByDay: Record<string, number>;
+    byPage: Array<{
+      page: string;
+      uniqueVisitors: number;
+    }>;
   };
 };
 

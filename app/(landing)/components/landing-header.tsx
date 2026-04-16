@@ -56,22 +56,35 @@ export const LandingHeader = () => {
           </Link>
 
           {/* Use Cases Dropdown */}
-          {false && (
-            <DropdownMenu
-              trigger={
-                <button className="flex items-center gap-1 text-sm font-medium text-black transition-colors hover:text-black">
-                  {t("nav.useCases")}
-                  <ChevronDown className="h-4 w-4" />
-                </button>
-              }
-            >
-              <Link href="/use-cases/research">
-                <DropdownMenuItem>
-                  {t("useCasesDropdown.research")}
-                </DropdownMenuItem>
-              </Link>
-            </DropdownMenu>
-          )}
+          <DropdownMenu
+            trigger={
+              <button className="flex items-center gap-1 text-sm font-medium text-black transition-colors hover:text-black">
+                {t("nav.useCases")}
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            }
+          >
+            <Link href="/use-cases/research">
+              <DropdownMenuItem>
+                {t("useCasesDropdown.research")}
+              </DropdownMenuItem>
+            </Link>
+            {/*<Link href="/use-cases/journalism">
+              <DropdownMenuItem>
+                {t("useCasesDropdown.journalism")}
+              </DropdownMenuItem>
+            </Link>
+            <Link href="/use-cases/podcasting">
+              <DropdownMenuItem>
+                {t("useCasesDropdown.podcasting")}
+              </DropdownMenuItem>
+            </Link>
+            <Link href="/use-cases/education">
+              <DropdownMenuItem>
+                {t("useCasesDropdown.education")}
+              </DropdownMenuItem>
+            </Link>*/}
+          </DropdownMenu>
 
           <Link
             href="/pricing"

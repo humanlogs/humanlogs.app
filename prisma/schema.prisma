@@ -148,10 +148,12 @@ model RateLimit {
 model LandingPageVisit {
   id        String   @id @default(uuid())
   ipHash    String
+  page      String   @default("/") // Page path visited (e.g., "/", "/pricing", "/use-cases/research")
   visitDate String   // Store as YYYY-MM-DD for easy grouping
   createdAt DateTime @default(now())
 
-  @@unique([ipHash, visitDate])
+  @@unique([ipHash, page, visitDate])
   @@index([visitDate])
   @@index([ipHash])
+  @@index([page])
 }

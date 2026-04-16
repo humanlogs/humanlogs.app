@@ -1,12 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { Locale, locales, i18nFiles } from "../lib/utils/i18n";
+import { i18nFiles, Locale, locales } from "../lib/utils/i18n";
 
 type LocaleContextType = {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  t: (key: string) => string;
+  t: (key: string, raw?: boolean) => string | any;
 };
 
 type Messages = Record<string, unknown>;
@@ -49,7 +49,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("transcription-locale", newLocale);
   };
 
-  const t = (key: string) => {
+  const t = (key: string, raw?: boolean) => {
     const keys = key.split(".");
     let value: unknown = messages;
 
@@ -61,7 +61,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    return typeof value === "string" ? value : key;
+    return typeof value === "string" || raw ? value : key;
   };
 
   if (!loaded) {
@@ -87,7 +87,7 @@ export function useTranslations(namespace: string) {
   const { t } = useLocale();
 
   return (key: string, params?: Record<string, string | number>) => {
-    let translation = t(`${namespace}.${key}`);
+    let translation = t(`${namespace}.${key}`, true);
 
     // Replace placeholders with actual values
     if (params) {

@@ -229,7 +229,7 @@ export const GET = withAdminRateLimit(async (request, user) => {
       },
     });
 
-    // Visits per day in the last 30 days
+    // Visits per day in the last 30 days (all pages combined)
     const visitsLast30Days = await prisma.landingPageVisit.findMany({
       where: {
         visitDate: {
@@ -239,10 +239,11 @@ export const GET = withAdminRateLimit(async (request, user) => {
       select: {
         visitDate: true,
         ipHash: true,
+        page: true,
       },
     });
 
-    // Group unique IPs by day
+    // Group unique IPs by day (across all pages)
     const uniqueVisitorsByDay: Record<string, Set<string>> = {};
     visitsLast30Days.forEach((visit) => {
       if (!uniqueVisitorsByDay[visit.visitDate]) {
@@ -256,6 +257,23 @@ export const GET = withAdminRateLimit(async (request, user) => {
     Object.entries(uniqueVisitorsByDay).forEach(([day, ips]) => {
       visitorsByDay[day] = ips.size;
     });
+
+    // Group by page (unique visitors per page)
+    const visitorsByPage: Record<string, Set<string>> = {};
+    visitsLast30Days.forEach((visit) => {
+      if (!visitorsByPage[visit.page]) {
+        visitorsByPage[visit.page] = new Set();
+      }
+      visitorsByPage[visit.page].add(visit.ipHash);
+    });
+
+    // Convert to array with counts
+    const pageStats = Object.entries(visitorsByPage)
+      .map(([page, ips]) => ({
+        page,
+        uniqueVisitors: ips.size,
+      }))
+      .sort((a, b) => b.uniqueVisitors - a.uniqueVisitors);
 
     return NextResponse.json({
       users: {
@@ -291,6 +309,7 @@ export const GET = withAdminRateLimit(async (request, user) => {
       landing: {
         totalUniqueVisitors: totalUniqueVisitors.length,
         visitorsByDay: visitorsByDay,
+        byPage: pageStats,
       },
     });
   } catch (error) {

@@ -1,0 +1,170 @@
+{
+    "useCasesResearch": {
+        "title": "Transcription for Academic Research",
+        "subtitle": "Built by researchers, for researchers",
+        "intro": "Academic research demands the highest standards for data privacy and accuracy. Whether you're conducting qualitative interviews, focus groups, or oral history projects, Humanlogs provides the tools and security you need to handle sensitive participant data while accelerating your analysis workflow.",
+        "whyBestTitle": "Why researchers choose Humanlogs",
+        "whyBest": [
+            {
+                "title": "End-to-end encryption for participant privacy",
+                "description": "Protect sensitive research data with bank-level encryption. Your participants spoke in confidence—keep it that way. Zero-retention transcription means audio is never stored on external servers.",
+                "icon": "shield"
+            },
+            {
+                "title": "4x faster transcript refinement",
+                "description": "Our unique audio-based editor lets you click any word to jump to that moment in the recording. Fix errors and add context in a fraction of the time compared to traditional transcription tools.",
+                "icon": "zap"
+            },
+            {
+                "title": "Built for long-form interviews",
+                "description": "Process up to 4-hour interviews in one go. Automatic speaker diarization, custom vocabulary for technical terms, and advanced export options for qualitative analysis software like NVivo and MAXQDA.",
+                "icon": "users"
+            }
+        ],
+        "features": {
+            "title": "Everything for research workflows",
+            "items": [
+                "GDPR compliant with DPA available",
+                "Speaker diarization and labeling",
+                "100+ languages supported",
+                "Export to analysis software (NVivo, MAXQDA, Atlas.ti)",
+                "Project organization for multiple studies",
+                "Collaboration with research teams",
+                "Self-hosting option for institutional servers",
+                "Academic institution licensing"
+            ]
+        },
+        "cta": {
+            "title": "Trusted worldwide",
+            "subtitle": "Join hundreds of researchers who've made Humanlogs their transcription partner.",
+            "startForFree": "Start for Free",
+            "contactSales": "Contact sales"
+        }
+    },
+    "useCasesJournalism": {
+        "title": "Transcription for Journalists",
+        "subtitle": "Fast, accurate, confidential",
+        "intro": "Journalism requires speed, accuracy, and protecting your sources. Whether you're conducting investigative interviews, covering press conferences, or creating multimedia stories, Humanlogs helps you turn audio into publishable content faster while maintaining the highest standards of source protection.",
+        "whyBestTitle": "Why journalists choose Humanlogs",
+        "whyBest": [
+            {
+                "title": "Lightning-fast turnaround for breaking news",
+                "description": "Get accurate transcripts in minutes, not hours. Our AI processes interviews and press conferences in real-time, so you can start writing your story while competitors are still transcribing by hand.",
+                "icon": "clock"
+            },
+            {
+                "title": "Source protection built-in",
+                "description": "End-to-end encryption ensures sensitive interviews remain confidential. Zero-retention means your audio is never stored on third-party servers. Perfect for investigative journalism and protecting anonymous sources.",
+                "icon": "shield"
+            },
+            {
+                "title": "Quote-ready transcripts",
+                "description": "Click any word to hear the original audio context. Verify exact quotes, catch nuance, and ensure accuracy. Export publishable quotes with timestamps for fact-checking and editorial review.",
+                "icon": "fileText"
+            }
+        ],
+        "features": {
+            "title": "Everything for newsroom workflows",
+            "items": [
+                "Real-time transcription for live events",
+                "Speaker identification for multi-person interviews",
+                "100+ languages for international coverage",
+                "Export to popular editing tools",
+                "Team collaboration for newsroom workflows",
+                "Custom vocabulary for industry jargon",
+                "Mobile app for field recording",
+                "API integration for content management systems"
+            ]
+        },
+        "cta": {
+            "title": "Trusted by newsrooms worldwide",
+            "subtitle": "Join journalists using Humanlogs to deliver stories faster without sacrificing accuracy.",
+            "startForFree": "Start for Free",
+            "contactSales": "Contact sales"
+        }
+    },
+    "useCasesPodcasting": {
+        "title": "Transcription for Podcasters",
+        "subtitle": "Boost discoverability and accessibility",
+        "intro": "Podcast transcripts aren't just nice to have—they're essential for SEO, accessibility, and building a searchable content library. Humanlogs automatically turns your episodes into accurate, shareable transcripts that help listeners find your content and expand your reach.",
+        "whyBestTitle": "Why podcasters choose Humanlogs",
+        "whyBest": [
+            {
+                "title": "SEO-optimized episode transcripts",
+                "description": "Turn every episode into searchable, indexable content. Google can't listen to audio, but it can read transcripts. Boost your rankings and help new listeners discover your show through search engines.",
+                "icon": "search"
+            },
+            {
+                "title": "Perfect for multi-host shows",
+                "description": "Automatic speaker diarization identifies who said what. Clean, labeled transcripts make it easy to create episode show notes, pull quotes for social media, and repurpose content across platforms.",
+                "icon": "mic"
+            },
+            {
+                "title": "Accessibility and reach",
+                "description": "Make your content accessible to deaf and hard-of-hearing audiences. Transcripts also help non-native speakers follow along and enable listeners to scan content before committing to a full episode.",
+                "icon": "share2"
+            }
+        ],
+        "features": {
+            "title": "Everything for podcast workflows",
+            "items": [
+                "Automatic speaker diarization for hosts and guests",
+                "Export to show notes and blog posts",
+                "100+ languages for international audiences",
+                "Searchable transcript library",
+                "Social media quote extraction",
+                "Custom vocabulary for recurring names and terms",
+                "Batch processing for multiple episodes",
+                "RSS feed integration"
+            ]
+        },
+        "cta": {
+            "title": "Trusted by podcasters worldwide",
+            "subtitle": "Join thousands of creators using Humanlogs to make their shows more discoverable.",
+            "startForFree": "Start for Free",
+            "contactSales": "Contact sales"
+        }
+    },
+    "useCasesEducation": {
+        "title": "Transcription for Education",
+        "subtitle": "Make learning accessible to all students",
+        "intro": "Education should be accessible to everyone. Whether you're recording lectures, creating course materials, or supporting students with learning differences, Humanlogs provides accurate transcripts that enhance comprehension and ensure no student is left behind.",
+        "whyBestTitle": "Why educators choose Humanlogs",
+        "whyBest": [
+            {
+                "title": "Accessibility compliance made easy",
+                "description": "Meet ADA and accessibility requirements with accurate transcripts of all lecture content. Support students with hearing impairments, learning disabilities, or those who simply learn better by reading.",
+                "icon": "bookOpen"
+            },
+            {
+                "title": "Support for diverse learners",
+                "description": "Transcripts help ESL students, visual learners, and anyone who needs to review material at their own pace. Students can search transcripts for specific topics instead of re-watching entire lectures.",
+                "icon": "users"
+            },
+            {
+                "title": "100+ languages for global classrooms",
+                "description": "Transcribe lectures in multiple languages and provide translations for international students. Support multilingual education programs and make course content accessible across language barriers.",
+                "icon": "languages"
+            }
+        ],
+        "features": {
+            "title": "Everything for educational workflows",
+            "items": [
+                "Bulk processing for semester-long courses",
+                "Integration with learning management systems (Canvas, Moodle)",
+                "100+ languages and automatic translation",
+                "Speaker identification for panel discussions",
+                "Searchable lecture library",
+                "Student-friendly formatting",
+                "Educational institution licensing",
+                "FERPA compliant data handling"
+            ]
+        },
+        "cta": {
+            "title": "Trusted by educators worldwide",
+            "subtitle": "Join schools and universities using Humanlogs to make education accessible for all.",
+            "startForFree": "Start for Free",
+            "contactSales": "Contact sales"
+        }
+    }
+}

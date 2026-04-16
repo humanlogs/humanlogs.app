@@ -1,0 +1,170 @@
+{
+    "useCasesResearch": {
+        "title": "Transcription pour la recherche académique",
+        "subtitle": "Créé par des chercheurs, pour les chercheurs",
+        "intro": "La recherche académique exige les normes les plus élevées en matière de confidentialité et de précision des données. Que vous meniez des entretiens qualitatifs, des groupes de discussion ou des projets d'histoire orale, Humanlogs fournit les outils et la sécurité dont vous avez besoin pour gérer les données sensibles des participants tout en accélérant votre workflow d'analyse.",
+        "whyBestTitle": "Pourquoi les chercheurs choisissent Humanlogs",
+        "whyBest": [
+            {
+                "title": "Chiffrement de bout en bout pour la confidentialité des participants",
+                "description": "Protégez les données de recherche sensibles avec un chiffrement de niveau bancaire. Vos participants ont parlé en toute confiance—gardez-le ainsi. La transcription sans rétention signifie que l'audio n'est jamais stocké sur des serveurs externes.",
+                "icon": "shield"
+            },
+            {
+                "title": "Raffinement des transcriptions 4x plus rapide",
+                "description": "Notre éditeur audio unique vous permet de cliquer sur n'importe quel mot pour accéder à ce moment dans l'enregistrement. Corrigez les erreurs et ajoutez du contexte en une fraction du temps par rapport aux outils de transcription traditionnels.",
+                "icon": "zap"
+            },
+            {
+                "title": "Conçu pour les entretiens longs",
+                "description": "Traitez des entretiens jusqu'à 4 heures en une seule fois. Diarisation automatique des locuteurs, vocabulaire personnalisé pour les termes techniques et options d'export avancées pour les logiciels d'analyse qualitative comme NVivo et MAXQDA.",
+                "icon": "users"
+            }
+        ],
+        "features": {
+            "title": "Tout pour les workflows de recherche",
+            "items": [
+                "Conforme RGPD avec DPA disponible",
+                "Diarisation et étiquetage des locuteurs",
+                "Plus de 100 langues supportées",
+                "Export vers logiciels d'analyse (NVivo, MAXQDA, Atlas.ti)",
+                "Organisation par projets pour plusieurs études",
+                "Collaboration avec les équipes de recherche",
+                "Option d'auto-hébergement pour serveurs institutionnels",
+                "Licences pour institutions académiques"
+            ]
+        },
+        "cta": {
+            "title": "Approuvé par des doctorants du monde entier",
+            "subtitle": "Rejoignez des centaines de chercheurs qui ont fait de Humanlogs leur partenaire de transcription.",
+            "startForFree": "Commencer gratuitement",
+            "contactSales": "Contacter les ventes"
+        }
+    },
+    "useCasesJournalism": {
+        "title": "Transcription pour les journalistes",
+        "subtitle": "Rapide, précis, confidentiel",
+        "intro": "Le journalisme nécessite rapidité, précision et protection des sources. Que vous meniez des entretiens d'investigation, couvriez des conférences de presse ou créiez des reportages multimédias, Humanlogs vous aide à transformer l'audio en contenu publiable plus rapidement tout en maintenant les normes les plus élevées de protection des sources.",
+        "whyBestTitle": "Pourquoi les journalistes choisissent Humanlogs",
+        "whyBest": [
+            {
+                "title": "Délai ultra-rapide pour l'actualité",
+                "description": "Obtenez des transcriptions précises en quelques minutes, pas en heures. Notre IA traite les entretiens et conférences de presse en temps réel, vous permettant de commencer à rédiger pendant que vos concurrents transcrivent encore manuellement.",
+                "icon": "clock"
+            },
+            {
+                "title": "Protection des sources intégrée",
+                "description": "Le chiffrement de bout en bout garantit la confidentialité des entretiens sensibles. Zéro rétention signifie que votre audio n'est jamais stocké sur des serveurs tiers. Parfait pour le journalisme d'investigation et la protection des sources anonymes.",
+                "icon": "shield"
+            },
+            {
+                "title": "Transcriptions prêtes pour citation",
+                "description": "Cliquez sur n'importe quel mot pour entendre le contexte audio original. Vérifiez les citations exactes, saisissez les nuances et assurez l'exactitude. Exportez des citations publiables avec horodatage pour la vérification des faits et la révision éditoriale.",
+                "icon": "fileText"
+            }
+        ],
+        "features": {
+            "title": "Tout pour les workflows de rédaction",
+            "items": [
+                "Transcription en temps réel pour les événements en direct",
+                "Identification des locuteurs pour les entretiens multi-personnes",
+                "Plus de 100 langues pour la couverture internationale",
+                "Export vers les outils d'édition populaires",
+                "Collaboration d'équipe pour les workflows de rédaction",
+                "Vocabulaire personnalisé pour le jargon professionnel",
+                "Application mobile pour l'enregistrement sur le terrain",
+                "Intégration API pour les systèmes de gestion de contenu"
+            ]
+        },
+        "cta": {
+            "title": "Approuvé par les rédactions du monde entier",
+            "subtitle": "Rejoignez les journalistes qui utilisent Humanlogs pour publier plus rapidement sans sacrifier la précision.",
+            "startForFree": "Commencer gratuitement",
+            "contactSales": "Contacter les ventes"
+        }
+    },
+    "useCasesPodcasting": {
+        "title": "Transcription pour les podcasteurs",
+        "subtitle": "Améliorez la découvrabilité et l'accessibilité",
+        "intro": "Les transcriptions de podcast ne sont pas seulement agréables à avoir—elles sont essentielles pour le référencement, l'accessibilité et la création d'une bibliothèque de contenu consultable. Humanlogs transforme automatiquement vos épisodes en transcriptions précises et partageables qui aident les auditeurs à trouver votre contenu et à élargir votre portée.",
+        "whyBestTitle": "Pourquoi les podcasteurs choisissent Humanlogs",
+        "whyBest": [
+            {
+                "title": "Transcriptions d'épisodes optimisées pour le SEO",
+                "description": "Transformez chaque épisode en contenu consultable et indexable. Google ne peut pas écouter l'audio, mais il peut lire les transcriptions. Boostez vos classements et aidez les nouveaux auditeurs à découvrir votre émission via les moteurs de recherche.",
+                "icon": "search"
+            },
+            {
+                "title": "Parfait pour les émissions multi-animateurs",
+                "description": "La diarisation automatique des locuteurs identifie qui a dit quoi. Des transcriptions propres et étiquetées facilitent la création de notes d'épisode, l'extraction de citations pour les réseaux sociaux et la réutilisation de contenu sur toutes les plateformes.",
+                "icon": "mic"
+            },
+            {
+                "title": "Accessibilité et portée",
+                "description": "Rendez votre contenu accessible aux publics sourds et malentendants. Les transcriptions aident également les locuteurs non natifs à suivre et permettent aux auditeurs de parcourir le contenu avant de s'engager dans un épisode complet.",
+                "icon": "share2"
+            }
+        ],
+        "features": {
+            "title": "Tout pour les workflows de podcast",
+            "items": [
+                "Diarisation automatique des locuteurs pour les animateurs et invités",
+                "Export vers les notes d'émission et articles de blog",
+                "Plus de 100 langues pour les audiences internationales",
+                "Bibliothèque de transcriptions consultable",
+                "Extraction de citations pour les réseaux sociaux",
+                "Vocabulaire personnalisé pour les noms et termes récurrents",
+                "Traitement par lots pour plusieurs épisodes",
+                "Intégration flux RSS"
+            ]
+        },
+        "cta": {
+            "title": "Approuvé par les podcasteurs du monde entier",
+            "subtitle": "Rejoignez des milliers de créateurs qui utilisent Humanlogs pour rendre leurs émissions plus découvrables.",
+            "startForFree": "Commencer gratuitement",
+            "contactSales": "Contacter les ventes"
+        }
+    },
+    "useCasesEducation": {
+        "title": "Transcription pour l'éducation",
+        "subtitle": "Rendez l'apprentissage accessible à tous les étudiants",
+        "intro": "L'éducation devrait être accessible à tous. Que vous enregistriez des cours, créiez du matériel pédagogique ou souteniez des étudiants ayant des différences d'apprentissage, Humanlogs fournit des transcriptions précises qui améliorent la compréhension et garantissent qu'aucun étudiant n'est laissé pour compte.",
+        "whyBestTitle": "Pourquoi les éducateurs choisissent Humanlogs",
+        "whyBest": [
+            {
+                "title": "Conformité d'accessibilité simplifiée",
+                "description": "Respectez les exigences ADA et d'accessibilité avec des transcriptions précises de tout le contenu des cours. Soutenez les étudiants malentendants, ayant des troubles d'apprentissage ou ceux qui apprennent mieux en lisant.",
+                "icon": "bookOpen"
+            },
+            {
+                "title": "Support pour les apprenants divers",
+                "description": "Les transcriptions aident les étudiants ESL, les apprenants visuels et tous ceux qui ont besoin de réviser le matériel à leur propre rythme. Les étudiants peuvent rechercher des sujets spécifiques dans les transcriptions au lieu de revoir des cours entiers.",
+                "icon": "users"
+            },
+            {
+                "title": "Plus de 100 langues pour les salles de classe mondiales",
+                "description": "Transcrivez des cours dans plusieurs langues et fournissez des traductions pour les étudiants internationaux. Soutenez les programmes d'éducation multilingues et rendez le contenu des cours accessible au-delà des barrières linguistiques.",
+                "icon": "languages"
+            }
+        ],
+        "features": {
+            "title": "Tout pour les workflows éducatifs",
+            "items": [
+                "Traitement en masse pour les cours semestriels",
+                "Intégration avec les systèmes de gestion de l'apprentissage (Canvas, Moodle)",
+                "Plus de 100 langues et traduction automatique",
+                "Identification des locuteurs pour les discussions de panel",
+                "Bibliothèque de cours consultable",
+                "Formatage adapté aux étudiants",
+                "Licences pour les établissements d'enseignement",
+                "Traitement des données conforme FERPA"
+            ]
+        },
+        "cta": {
+            "title": "Approuvé par les éducateurs du monde entier",
+            "subtitle": "Rejoignez les écoles et universités qui utilisent Humanlogs pour rendre l'éducation accessible à tous.",
+            "startForFree": "Commencer gratuitement",
+            "contactSales": "Contacter les ventes"
+        }
+    }
+}

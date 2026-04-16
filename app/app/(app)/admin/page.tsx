@@ -706,6 +706,50 @@ export default function AdminPage() {
           </CardContent>
         </Card>
 
+        {/* Most Visited Pages */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <GlobeIcon className="h-5 w-5" />
+              Most Visited Pages (Last 30 Days)
+            </CardTitle>
+            <CardDescription>
+              Breakdown of unique visitors by page
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {stats.landing.byPage && stats.landing.byPage.length > 0 ? (
+              <div className="space-y-2">
+                {stats.landing.byPage.map((pageStat, index) => (
+                  <div
+                    key={pageStat.page}
+                    className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-muted-foreground w-6">
+                        #{index + 1}
+                      </span>
+                      <span className="font-mono text-sm font-medium">
+                        {pageStat.page}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">
+                        {pageStat.uniqueVisitors} unique visitor
+                        {pageStat.uniqueVisitors !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-center py-4">
+                No page visit data available
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
         {/* User Ratings and Feature Requests */}
         <div className="grid gap-4 md:grid-cols-2">
           {/* User Ratings */}

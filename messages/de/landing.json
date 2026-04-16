@@ -10,7 +10,10 @@
             "signUp": "Registrieren"
         },
         "useCasesDropdown": {
-            "research": "Forschung"
+            "research": "Forschung",
+            "journalism": "Journalismus",
+            "podcasting": "Podcasting",
+            "education": "Bildung"
         },
         "languageSelector": {
             "label": "Sprache",
@@ -273,6 +276,130 @@
                 "question": "Kann ich die selbst-gehostete Version kostenlos nutzen?",
                 "answer": "Ja, die selbst-gehostete Version ist für die persönliche Nutzung kostenlos. Um Humanlogs jedoch im Netzwerk Ihres Unternehmens, Ihrer Universität oder Schule bereitzustellen, benötigen Sie eine institutionelle Lizenz. Diese beinhaltet unsere API-Schlüssel ohne Datenspeicherung und professionellen Support."
             }
+        }
+    },
+    "cta": {
+        "title": "Bereit, Ihren Transkriptions-Workflow zu transformieren?",
+        "subtitle": "Schließen Sie sich Tausenden von Forschern und Fachleuten an, die Humanlogs für schnelle, sichere Transkription nutzen.",
+        "startForFree": "Kostenlos starten",
+        "contactSales": "Vertrieb kontaktieren"
+    },
+    "alternatives": {
+        "title": "Das richtige Transkriptionstool wählen",
+        "subtitle": "Vergleichen Sie Humanlogs mit anderen beliebten Transkriptionsdiensten",
+        "intro": "Wir glauben an Transparenz. Hier sehen Sie, wie wir uns mit unseren Konkurrenten vergleichen. Wir konzentrieren uns auf Datenschutz, Geschwindigkeit und ein einzigartiges Bearbeitungserlebnis, das speziell für Forscher und Fachleute entwickelt wurde, die mit sensiblen Daten arbeiten.",
+        "cta": {
+            "title": "Erleben Sie den Humanlogs-Unterschied",
+            "subtitle": "Testen Sie unseren einzigartigen Audio-Editor und die Ende-zu-Ende-Verschlüsselung selbst.",
+            "startForFree": "Kostenlos starten",
+            "contactSales": "Vertrieb kontaktieren"
+        }
+    },
+    "alternativesOtter": {
+        "title": "Humanlogs vs Otter.ai",
+        "subtitle": "Beide sind leistungsstarke Transkriptionstools, aber mit unterschiedlichen Stärken",
+        "intro": "Otter.ai ist eine beliebte Wahl für Meetings und Live-Transkription. Humanlogs wurde speziell für Forscher und Fachleute entwickelt, die Datenschutz, erweiterte Bearbeitungsfunktionen und Unterstützung für längere Interviews und sensible Daten benötigen.",
+        "comparisonIntro": "So unterscheiden wir uns von Otter.ai:",
+        "comparison": {
+            "title": "Funktionsvergleich",
+            "subtitle": "Sehen Sie, wie Humanlogs im Vergleich zu Otter.ai abschneidet",
+            "featureColumn": "Funktion",
+            "usColumn": "Humanlogs",
+            "features": [
+                "Ende-zu-Ende-Verschlüsselung",
+                "Null-Speicherung Transkription",
+                "Audio-basierter Texteditor",
+                "DSGVO-konform",
+                "Selbst-hostbar / Open Source",
+                "Höchste Transkriptionsqualität",
+                "Benutzerdefiniertes Vokabular",
+                "Sprechererkennung",
+                "Kollaboration",
+                "Kostenloser Tarif",
+                "Monatsabonnement",
+                "Erweiterte Exportformate"
+            ]
+        },
+        "cta": {
+            "title": "Probieren Sie Humanlogs für Ihre Forschung",
+            "subtitle": "Perfekt für sensible Interviews und Langform-Inhalte mit vollständiger Datenschutzkontrolle.",
+            "startForFree": "Kostenlos starten",
+            "contactSales": "Vertrieb kontaktieren"
+        }
+    },
+    "alternativesGoodtape": {
+        "title": "Humanlogs vs Goodtape.io",
+        "subtitle": "Zwei datenschutzorientierte Transkriptionstools mit unterschiedlichen Ansätzen",
+        "intro": "Sowohl Humanlogs als auch Goodtape.io priorisieren Datenschutz und sind für Forscher konzipiert. Wir unterscheiden uns jedoch in unserem Ansatz zur Bearbeitung, der Verschlüsselungsarchitektur und der Plattformflexibilität.",
+        "comparisonIntro": "So vergleichen wir uns:",
+        "comparison": {
+            "title": "Funktionsvergleich",
+            "subtitle": "Sehen Sie, wie Humanlogs im Vergleich zu Goodtape.io abschneidet",
+            "featureColumn": "Funktion",
+            "usColumn": "Humanlogs",
+            "features": [
+                "Ende-zu-Ende-Verschlüsselung",
+                "Null-Speicherung Transkription",
+                "Audio-basierter Texteditor",
+                "DSGVO-konform",
+                "Selbst-hostbar / Open Source",
+                "Höchste Transkriptionsqualität",
+                "Benutzerdefiniertes Vokabular",
+                "Sprechererkennung",
+                "Kollaboration",
+                "Kostenloser Tarif",
+                "Monatsabonnement",
+                "Erweiterte Exportformate"
+            ]
+        },
+        "cta": {
+            "title": "Erleben Sie unseren einzigartigen Editor",
+            "subtitle": "Sehen Sie, warum Forscher unseren Audio-basierten Bearbeitungs-Workflow für schnellere Korrekturen bevorzugen.",
+            "startForFree": "Kostenlos starten",
+            "contactSales": "Vertrieb kontaktieren"
+        }
+    },
+    "alternativesSpeakr": {
+        "title": "Humanlogs vs Speakr",
+        "subtitle": "Verschiedene Tools für verschiedene Bedürfnisse",
+        "intro": "Speakr konzentriert sich auf Meeting-Transkription und Team-Zusammenarbeit. Humanlogs wurde für Forscher, Journalisten und Fachleute entwickelt, die datenschutzorientierte Transkription mit erweiterten Bearbeitungsfunktionen für Langform-Inhalte benötigen.",
+        "comparisonIntro": "So schneiden wir ab:",
+        "comparison": {
+            "title": "Funktionsvergleich",
+            "subtitle": "Sehen Sie, wie Humanlogs im Vergleich zu Speakr abschneidet",
+            "featureColumn": "Funktion",
+            "usColumn": "Humanlogs",
+            "features": [
+                "Ende-zu-Ende-Verschlüsselung",
+                "Null-Speicherung Transkription",
+                "Audio-basierter Texteditor",
+                "DSGVO-konform",
+                "Selbst-hostbar / Open Source",
+                "Höchste Transkriptionsqualität",
+                "Benutzerdefiniertes Vokabular",
+                "Sprechererkennung",
+                "Kollaboration",
+                "Kostenloser Tarif",
+                "Monatsabonnement",
+                "Erweiterte Exportformate"
+            ]
+        },
+        "cta": {
+            "title": "Entwickelt für Datenschutz und Präzision",
+            "subtitle": "Perfekt für sensible Forschungsinterviews und investigativen Journalismus.",
+            "startForFree": "Kostenlos starten",
+            "contactSales": "Vertrieb kontaktieren"
+        }
+    },
+    "useCases": {
+        "title": "Transkription für jeden Workflow",
+        "subtitle": "Entdecken Sie, wie Fachleute Humanlogs nutzen",
+        "intro": "Von akademischer Forschung bis zu investigativem Journalismus passt sich Humanlogs Ihren Bedürfnissen an. Unsere einzigartige Kombination aus Datenschutz, Geschwindigkeit und Bearbeitungsleistung macht uns zur perfekten Wahl für Fachleute, die mit sensiblen Audioinhalten arbeiten.",
+        "cta": {
+            "title": "Bereit für Ihren Workflow?",
+            "subtitle": "Starten Sie noch heute mit der Transkription mit dem Tool für Fachleute.",
+            "startForFree": "Kostenlos starten",
+            "contactSales": "Vertrieb kontaktieren"
         }
     }
 }

@@ -1,17 +1,22 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 export function VisitTracker() {
+  const pathname = usePathname();
+
   useEffect(() => {
-    // Track landing page visit
+    // Track landing page visit with current page path
     const trackVisit = async () => {
       try {
-        await fetch("/api/track-visit", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+        // Fire and forget - don't wait for response
+        fetch(`/api/iwashere?page=${encodeURIComponent(pathname)}`, {
+          method: "GET",
+          // Use keepalive to ensure request completes even if page unloads
+          keepalive: true,
+        }).catch(() => {
+          // Silent fail - don't impact user experience
         });
       } catch (error) {
         // Silent fail - don't impact user experience
@@ -19,8 +24,11 @@ export function VisitTracker() {
       }
     };
 
-    trackVisit();
-  }, []); // Run only once on mount
+    // Small delay to not block initial render
+    const timer = setTimeout(trackVisit, 100);
+
+    return () => clearTimeout(timer);
+  }, [pathname]); // Re-track if pathname changes
 
   return null; // This component doesn't render anything
 }

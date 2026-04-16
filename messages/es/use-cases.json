@@ -1,0 +1,170 @@
+{
+    "useCasesResearch": {
+        "title": "Transcripción para investigación académica",
+        "subtitle": "Creado por investigadores, para investigadores",
+        "intro": "La investigación académica exige los más altos estándares de privacidad y precisión de datos. Ya sea que estés realizando entrevistas cualitativas, grupos focales o proyectos de historia oral, Humanlogs proporciona las herramientas y la seguridad que necesitas para manejar datos sensibles de participantes mientras aceleras tu flujo de trabajo de análisis.",
+        "whyBestTitle": "Por qué los investigadores eligen Humanlogs",
+        "whyBest": [
+            {
+                "title": "Cifrado de extremo a extremo para privacidad de participantes",
+                "description": "Protege datos de investigación sensibles con cifrado de nivel bancario. Tus participantes hablaron con confianza—mantenlo así. La transcripción sin retención significa que el audio nunca se almacena en servidores externos.",
+                "icon": "shield"
+            },
+            {
+                "title": "Refinamiento de transcripciones 4x más rápido",
+                "description": "Nuestro editor de audio único te permite hacer clic en cualquier palabra para saltar a ese momento en la grabación. Corrige errores y agrega contexto en una fracción del tiempo comparado con herramientas de transcripción tradicionales.",
+                "icon": "zap"
+            },
+            {
+                "title": "Diseñado para entrevistas de larga duración",
+                "description": "Procesa entrevistas de hasta 4 horas de una sola vez. Diarización automática de hablantes, vocabulario personalizado para términos técnicos y opciones de exportación avanzadas para software de análisis cualitativo como NVivo y MAXQDA.",
+                "icon": "users"
+            }
+        ],
+        "features": {
+            "title": "Todo para flujos de trabajo de investigación",
+            "items": [
+                "Cumple con GDPR con DPA disponible",
+                "Diarización y etiquetado de hablantes",
+                "Más de 100 idiomas soportados",
+                "Exportar a software de análisis (NVivo, MAXQDA, Atlas.ti)",
+                "Organización de proyectos para múltiples estudios",
+                "Colaboración con equipos de investigación",
+                "Opción de auto-alojamiento para servidores institucionales",
+                "Licencias para instituciones académicas"
+            ]
+        },
+        "cta": {
+            "title": "Confiado por candidatos a doctorado en todo el mundo",
+            "subtitle": "Únete a cientos de investigadores que han hecho de Humanlogs su socio de transcripción.",
+            "startForFree": "Comenzar gratis",
+            "contactSales": "Contactar ventas"
+        }
+    },
+    "useCasesJournalism": {
+        "title": "Transcripción para periodistas",
+        "subtitle": "Rápido, preciso, confidencial",
+        "intro": "El periodismo requiere velocidad, precisión y protección de fuentes. Ya sea que estés realizando entrevistas de investigación, cubriendo conferencias de prensa o creando historias multimedia, Humanlogs te ayuda a convertir audio en contenido publicable más rápido mientras mantienes los más altos estándares de protección de fuentes.",
+        "whyBestTitle": "Por qué los periodistas eligen Humanlogs",
+        "whyBest": [
+            {
+                "title": "Entrega ultrarrápida para noticias de última hora",
+                "description": "Obtén transcripciones precisas en minutos, no horas. Nuestra IA procesa entrevistas y conferencias de prensa en tiempo real, para que puedas comenzar a escribir tu historia mientras los competidores aún están transcribiendo manualmente.",
+                "icon": "clock"
+            },
+            {
+                "title": "Protección de fuentes integrada",
+                "description": "El cifrado de extremo a extremo garantiza que las entrevistas sensibles permanezcan confidenciales. Retención cero significa que tu audio nunca se almacena en servidores de terceros. Perfecto para periodismo de investigación y protección de fuentes anónimas.",
+                "icon": "shield"
+            },
+            {
+                "title": "Transcripciones listas para citar",
+                "description": "Haz clic en cualquier palabra para escuchar el contexto de audio original. Verifica citas exactas, capta matices y asegura la precisión. Exporta citas publicables con marcas de tiempo para verificación de hechos y revisión editorial.",
+                "icon": "fileText"
+            }
+        ],
+        "features": {
+            "title": "Todo para flujos de trabajo de redacción",
+            "items": [
+                "Transcripción en tiempo real para eventos en vivo",
+                "Identificación de hablantes para entrevistas con múltiples personas",
+                "Más de 100 idiomas para cobertura internacional",
+                "Exportar a herramientas de edición populares",
+                "Colaboración en equipo para flujos de trabajo de redacción",
+                "Vocabulario personalizado para jerga de la industria",
+                "Aplicación móvil para grabación en el campo",
+                "Integración API para sistemas de gestión de contenido"
+            ]
+        },
+        "cta": {
+            "title": "Confiado por redacciones de todo el mundo",
+            "subtitle": "Únete a periodistas que usan Humanlogs para entregar historias más rápido sin sacrificar precisión.",
+            "startForFree": "Comenzar gratis",
+            "contactSales": "Contactar ventas"
+        }
+    },
+    "useCasesPodcasting": {
+        "title": "Transcripción para podcasters",
+        "subtitle": "Mejora la descubribilidad y accesibilidad",
+        "intro": "Las transcripciones de podcast no son solo agradables de tener—son esenciales para SEO, accesibilidad y construcción de una biblioteca de contenido buscable. Humanlogs convierte automáticamente tus episodios en transcripciones precisas y compartibles que ayudan a los oyentes a encontrar tu contenido y expandir tu alcance.",
+        "whyBestTitle": "Por qué los podcasters eligen Humanlogs",
+        "whyBest": [
+            {
+                "title": "Transcripciones de episodios optimizadas para SEO",
+                "description": "Convierte cada episodio en contenido buscable e indexable. Google no puede escuchar audio, pero puede leer transcripciones. Mejora tus clasificaciones y ayuda a nuevos oyentes a descubrir tu programa a través de motores de búsqueda.",
+                "icon": "search"
+            },
+            {
+                "title": "Perfecto para programas con múltiples presentadores",
+                "description": "La diarización automática de hablantes identifica quién dijo qué. Transcripciones limpias y etiquetadas facilitan la creación de notas de episodio, extraer citas para redes sociales y reutilizar contenido en todas las plataformas.",
+                "icon": "mic"
+            },
+            {
+                "title": "Accesibilidad y alcance",
+                "description": "Haz tu contenido accesible para audiencias sordas y con dificultades auditivas. Las transcripciones también ayudan a hablantes no nativos a seguir y permiten a los oyentes escanear contenido antes de comprometerse con un episodio completo.",
+                "icon": "share2"
+            }
+        ],
+        "features": {
+            "title": "Todo para flujos de trabajo de podcast",
+            "items": [
+                "Diarización automática de hablantes para presentadores e invitados",
+                "Exportar a notas de programa y publicaciones de blog",
+                "Más de 100 idiomas para audiencias internacionales",
+                "Biblioteca de transcripciones buscable",
+                "Extracción de citas para redes sociales",
+                "Vocabulario personalizado para nombres y términos recurrentes",
+                "Procesamiento por lotes para múltiples episodios",
+                "Integración de feed RSS"
+            ]
+        },
+        "cta": {
+            "title": "Confiado por podcasters de todo el mundo",
+            "subtitle": "Únete a miles de creadores que usan Humanlogs para hacer sus programas más descubribles.",
+            "startForFree": "Comenzar gratis",
+            "contactSales": "Contactar ventas"
+        }
+    },
+    "useCasesEducation": {
+        "title": "Transcripción para educación",
+        "subtitle": "Haz el aprendizaje accesible para todos los estudiantes",
+        "intro": "La educación debe ser accesible para todos. Ya sea que estés grabando conferencias, creando materiales de curso o apoyando a estudiantes con diferencias de aprendizaje, Humanlogs proporciona transcripciones precisas que mejoran la comprensión y aseguran que ningún estudiante se quede atrás.",
+        "whyBestTitle": "Por qué los educadores eligen Humanlogs",
+        "whyBest": [
+            {
+                "title": "Cumplimiento de accesibilidad simplificado",
+                "description": "Cumple con los requisitos de ADA y accesibilidad con transcripciones precisas de todo el contenido de conferencias. Apoya a estudiantes con discapacidades auditivas, dificultades de aprendizaje o aquellos que simplemente aprenden mejor leyendo.",
+                "icon": "bookOpen"
+            },
+            {
+                "title": "Apoyo para estudiantes diversos",
+                "description": "Las transcripciones ayudan a estudiantes de ESL, aprendices visuales y cualquiera que necesite revisar material a su propio ritmo. Los estudiantes pueden buscar temas específicos en las transcripciones en lugar de volver a ver conferencias completas.",
+                "icon": "users"
+            },
+            {
+                "title": "Más de 100 idiomas para aulas globales",
+                "description": "Transcribe conferencias en múltiples idiomas y proporciona traducciones para estudiantes internacionales. Apoya programas de educación multilingüe y haz el contenido del curso accesible a través de barreras lingüísticas.",
+                "icon": "languages"
+            }
+        ],
+        "features": {
+            "title": "Todo para flujos de trabajo educativos",
+            "items": [
+                "Procesamiento masivo para cursos de un semestre",
+                "Integración con sistemas de gestión del aprendizaje (Canvas, Moodle)",
+                "Más de 100 idiomas y traducción automática",
+                "Identificación de hablantes para discusiones de panel",
+                "Biblioteca de conferencias buscable",
+                "Formato amigable para estudiantes",
+                "Licencias para instituciones educativas",
+                "Manejo de datos compatible con FERPA"
+            ]
+        },
+        "cta": {
+            "title": "Confiado por educadores de todo el mundo",
+            "subtitle": "Únete a escuelas y universidades que usan Humanlogs para hacer la educación accesible para todos.",
+            "startForFree": "Comenzar gratis",
+            "contactSales": "Contactar ventas"
+        }
+    }
+}

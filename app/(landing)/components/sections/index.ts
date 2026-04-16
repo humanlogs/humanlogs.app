@@ -5,3 +5,5 @@ export { PricingSection } from "./pricing-section";
 export { EncryptionSection } from "./encryption-section";
 export { TestimonialsSection } from "./testimonials-section";
 export { FAQSection } from "./faq-section";
+export { CTASection } from "./cta-section";
+export { ComparisonTable } from "./comparison-table";

@@ -10,7 +10,10 @@
             "signUp": "Sign Up"
         },
         "useCasesDropdown": {
-            "research": "Research"
+            "research": "Research",
+            "journalism": "Journalism",
+            "podcasting": "Podcasting",
+            "education": "Education"
         },
         "languageSelector": {
             "label": "Language",
@@ -273,6 +276,130 @@
                 "question": "Can I use the self-hosted version for free?",
                 "answer": "Yes, the self-hosted version is free for personal use. However, to deploy Humanlogs within your company, university, or school network, you'll need an institutional license. This includes our zero-retention API keys and professional support."
             }
+        }
+    },
+    "cta": {
+        "title": "Ready to transform your transcription workflow?",
+        "subtitle": "Join thousands of researchers and professionals using Humanlogs for fast, secure transcription.",
+        "startForFree": "Start for Free",
+        "contactSales": "Contact sales"
+    },
+    "alternatives": {
+        "title": "Choosing the right transcription tool",
+        "subtitle": "Compare Humanlogs with other popular transcription services",
+        "intro": "We believe in transparency. Here's how we compare to our competitors. We focus on privacy, speed, and a unique editing experience designed specifically for researchers and professionals who work with sensitive data.",
+        "cta": {
+            "title": "Experience the Humanlogs difference",
+            "subtitle": "Try our unique audio-based editor and end-to-end encryption for yourself.",
+            "startForFree": "Start for Free",
+            "contactSales": "Contact sales"
+        }
+    },
+    "alternativesOtter": {
+        "title": "Humanlogs vs Otter.ai",
+        "subtitle": "Both are powerful transcription tools, but with different strengths",
+        "intro": "Otter.ai is a popular choice for meetings and live transcription. Humanlogs is built specifically for researchers and professionals who need privacy, advanced editing capabilities, and support for longer interviews and sensitive data.",
+        "comparisonIntro": "Here's how we differ from Otter.ai:",
+        "comparison": {
+            "title": "Feature Comparison",
+            "subtitle": "See how Humanlogs compares to Otter.ai",
+            "featureColumn": "Feature",
+            "usColumn": "Humanlogs",
+            "features": [
+                "End-to-end encryption",
+                "Zero retention transcription",
+                "Audio-based text editor",
+                "GDPR compliant",
+                "Self-hostable / Open source",
+                "Highest transcription quality",
+                "Custom vocabulary",
+                "Speaker diarization",
+                "Collaboration",
+                "Free tier",
+                "Monthly subscription",
+                "Advanced export formats"
+            ]
+        },
+        "cta": {
+            "title": "Try Humanlogs for your research",
+            "subtitle": "Perfect for sensitive interviews and long-form content with complete privacy control.",
+            "startForFree": "Start for Free",
+            "contactSales": "Contact sales"
+        }
+    },
+    "alternativesGoodtape": {
+        "title": "Humanlogs vs Goodtape.io",
+        "subtitle": "Two privacy-focused transcription tools with different approaches",
+        "intro": "Both Humanlogs and Goodtape.io prioritize privacy and are designed for researchers. However, we differ in our approach to editing, encryption architecture, and platform flexibility.",
+        "comparisonIntro": "Here's how we compare:",
+        "comparison": {
+            "title": "Feature Comparison",
+            "subtitle": "See how Humanlogs compares to Goodtape.io",
+            "featureColumn": "Feature",
+            "usColumn": "Humanlogs",
+            "features": [
+                "End-to-end encryption",
+                "Zero retention transcription",
+                "Audio-based text editor",
+                "GDPR compliant",
+                "Self-hostable / Open source",
+                "Highest transcription quality",
+                "Custom vocabulary",
+                "Speaker diarization",
+                "Collaboration",
+                "Free tier",
+                "Monthly subscription",
+                "Advanced export formats"
+            ]
+        },
+        "cta": {
+            "title": "Experience our unique editor",
+            "subtitle": "See why researchers prefer our audio-based editing workflow for faster corrections.",
+            "startForFree": "Start for Free",
+            "contactSales": "Contact sales"
+        }
+    },
+    "alternativesSpeakr": {
+        "title": "Humanlogs vs Speakr",
+        "subtitle": "Different tools for different needs",
+        "intro": "Speakr focuses on meeting transcription and team collaboration. Humanlogs is built for researchers, journalists, and professionals who need privacy-first transcription with advanced editing capabilities for long-form content.",
+        "comparisonIntro": "Here's how we stack up:",
+        "comparison": {
+            "title": "Feature Comparison",
+            "subtitle": "See how Humanlogs compares to Speakr",
+            "featureColumn": "Feature",
+            "usColumn": "Humanlogs",
+            "features": [
+                "End-to-end encryption",
+                "Zero retention transcription",
+                "Audio-based text editor",
+                "GDPR compliant",
+                "Self-hostable / Open source",
+                "Highest transcription quality",
+                "Custom vocabulary",
+                "Speaker diarization",
+                "Collaboration",
+                "Free tier",
+                "Monthly subscription",
+                "Advanced export formats"
+            ]
+        },
+        "cta": {
+            "title": "Built for privacy and precision",
+            "subtitle": "Perfect for sensitive research interviews and investigative journalism.",
+            "startForFree": "Start for Free",
+            "contactSales": "Contact sales"
+        }
+    },
+    "useCases": {
+        "title": "Transcription for every workflow",
+        "subtitle": "Discover how professionals use Humanlogs",
+        "intro": "From academic research to investigative journalism, Humanlogs adapts to your needs. Our unique combination of privacy, speed, and editing power makes us the perfect choice for professionals working with sensitive audio content.",
+        "cta": {
+            "title": "Ready for your workflow?",
+            "subtitle": "Start transcribing today with the tool built for professionals.",
+            "startForFree": "Start for Free",
+            "contactSales": "Contact sales"
         }
     }
 }

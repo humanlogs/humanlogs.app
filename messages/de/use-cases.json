@@ -1,0 +1,170 @@
+{
+    "useCasesResearch": {
+        "title": "Transkription für akademische Forschung",
+        "subtitle": "Von Forschern für Forscher entwickelt",
+        "intro": "Akademische Forschung erfordert höchste Standards für Datenschutz und Genauigkeit. Ob Sie qualitative Interviews, Fokusgruppen oder Oral-History-Projekte durchführen, Humanlogs bietet die Tools und die Sicherheit, die Sie benötigen, um sensible Teilnehmerdaten zu verwalten und gleichzeitig Ihren Analyse-Workflow zu beschleunigen.",
+        "whyBestTitle": "Warum Forscher Humanlogs wählen",
+        "whyBest": [
+            {
+                "title": "Ende-zu-Ende-Verschlüsselung für Teilnehmerdatenschutz",
+                "description": "Schützen Sie sensible Forschungsdaten mit Verschlüsselung auf Bankniveau. Ihre Teilnehmer haben vertraulich gesprochen—halten Sie es so. Null-Speicherung Transkription bedeutet, dass Audio niemals auf externen Servern gespeichert wird.",
+                "icon": "shield"
+            },
+            {
+                "title": "4x schnellere Transkriptverfeinerung",
+                "description": "Unser einzigartiger Audio-Editor ermöglicht es Ihnen, auf ein beliebiges Wort zu klicken, um zu diesem Moment in der Aufnahme zu springen. Beheben Sie Fehler und fügen Sie Kontext in einem Bruchteil der Zeit im Vergleich zu herkömmlichen Transkriptionstools hinzu.",
+                "icon": "zap"
+            },
+            {
+                "title": "Entwickelt für Langform-Interviews",
+                "description": "Verarbeiten Sie Interviews bis zu 4 Stunden in einem Durchgang. Automatische Sprechererkennung, benutzerdefiniertes Vokabular für Fachbegriffe und erweiterte Exportoptionen für qualitative Analysesoftware wie NVivo und MAXQDA.",
+                "icon": "users"
+            }
+        ],
+        "features": {
+            "title": "Alles für Forschungs-Workflows",
+            "items": [
+                "DSGVO-konform mit verfügbarem DPA",
+                "Sprechererkennung und -kennzeichnung",
+                "Über 100 unterstützte Sprachen",
+                "Export in Analysesoftware (NVivo, MAXQDA, Atlas.ti)",
+                "Projektorganisation für mehrere Studien",
+                "Zusammenarbeit mit Forschungsteams",
+                "Selbst-Hosting-Option für institutionelle Server",
+                "Lizenzierung für akademische Institutionen"
+            ]
+        },
+        "cta": {
+            "title": "Vertraut von Doktoranden weltweit",
+            "subtitle": "Schließen Sie sich Hunderten von Forschern an, die Humanlogs zu ihrem Transkriptionspartner gemacht haben.",
+            "startForFree": "Kostenlos starten",
+            "contactSales": "Vertrieb kontaktieren"
+        }
+    },
+    "useCasesJournalism": {
+        "title": "Transkription für Journalisten",
+        "subtitle": "Schnell, präzise, vertraulich",
+        "intro": "Journalismus erfordert Geschwindigkeit, Genauigkeit und den Schutz Ihrer Quellen. Ob Sie investigative Interviews führen, Pressekonferenzen abdecken oder multimediale Geschichten erstellen, Humanlogs hilft Ihnen, Audio schneller in veröffentlichbare Inhalte zu verwandeln und dabei höchste Standards beim Quellenschutz einzuhalten.",
+        "whyBestTitle": "Warum Journalisten Humanlogs wählen",
+        "whyBest": [
+            {
+                "title": "Blitzschnelle Bearbeitung für Breaking News",
+                "description": "Erhalten Sie präzise Transkripte in Minuten, nicht Stunden. Unsere KI verarbeitet Interviews und Pressekonferenzen in Echtzeit, sodass Sie mit dem Schreiben Ihrer Geschichte beginnen können, während Konkurrenten noch manuell transkribieren.",
+                "icon": "clock"
+            },
+            {
+                "title": "Integrierter Quellenschutz",
+                "description": "Ende-zu-Ende-Verschlüsselung stellt sicher, dass sensible Interviews vertraulich bleiben. Null-Speicherung bedeutet, dass Ihr Audio niemals auf Drittanbieter-Servern gespeichert wird. Perfekt für investigativen Journalismus und den Schutz anonymer Quellen.",
+                "icon": "shield"
+            },
+            {
+                "title": "Zitat-fertige Transkripte",
+                "description": "Klicken Sie auf ein beliebiges Wort, um den ursprünglichen Audio-Kontext zu hören. Überprüfen Sie exakte Zitate, erfassen Sie Nuancen und stellen Sie Genauigkeit sicher. Exportieren Sie veröffentlichbare Zitate mit Zeitstempeln für Faktenprüfung und redaktionelle Überprüfung.",
+                "icon": "fileText"
+            }
+        ],
+        "features": {
+            "title": "Alles für Newsroom-Workflows",
+            "items": [
+                "Echtzeit-Transkription für Live-Events",
+                "Sprecheridentifikation für Mehrpersonen-Interviews",
+                "Über 100 Sprachen für internationale Berichterstattung",
+                "Export in gängige Bearbeitungstools",
+                "Team-Zusammenarbeit für Newsroom-Workflows",
+                "Benutzerdefiniertes Vokabular für Branchenjargon",
+                "Mobile App für Feldaufnahmen",
+                "API-Integration für Content-Management-Systeme"
+            ]
+        },
+        "cta": {
+            "title": "Vertraut von Newsrooms weltweit",
+            "subtitle": "Schließen Sie sich Journalisten an, die Humanlogs nutzen, um Geschichten schneller zu liefern, ohne Genauigkeit zu opfern.",
+            "startForFree": "Kostenlos starten",
+            "contactSales": "Vertrieb kontaktieren"
+        }
+    },
+    "useCasesPodcasting": {
+        "title": "Transkription für Podcaster",
+        "subtitle": "Verbessern Sie Auffindbarkeit und Zugänglichkeit",
+        "intro": "Podcast-Transkripte sind nicht nur schön zu haben—sie sind essentiell für SEO, Zugänglichkeit und den Aufbau einer durchsuchbaren Inhaltsbibliothek. Humanlogs verwandelt Ihre Episoden automatisch in präzise, teilbare Transkripte, die Zuhörern helfen, Ihre Inhalte zu finden und Ihre Reichweite zu erweitern.",
+        "whyBestTitle": "Warum Podcaster Humanlogs wählen",
+        "whyBest": [
+            {
+                "title": "SEO-optimierte Episoden-Transkripte",
+                "description": "Verwandeln Sie jede Episode in durchsuchbare, indexierbare Inhalte. Google kann Audio nicht hören, aber Transkripte lesen. Verbessern Sie Ihre Rankings und helfen Sie neuen Zuhörern, Ihre Show über Suchmaschinen zu entdecken.",
+                "icon": "search"
+            },
+            {
+                "title": "Perfekt für Multi-Host-Shows",
+                "description": "Automatische Sprechererkennung identifiziert, wer was gesagt hat. Saubere, beschriftete Transkripte erleichtern die Erstellung von Episoden-Shownotes, das Extrahieren von Zitaten für soziale Medien und die Wiederverwendung von Inhalten über Plattformen hinweg.",
+                "icon": "mic"
+            },
+            {
+                "title": "Zugänglichkeit und Reichweite",
+                "description": "Machen Sie Ihre Inhalte für gehörlose und schwerhörige Zielgruppen zugänglich. Transkripte helfen auch Nicht-Muttersprachlern beim Folgen und ermöglichen es Zuhörern, Inhalte zu scannen, bevor sie sich auf eine vollständige Episode einlassen.",
+                "icon": "share2"
+            }
+        ],
+        "features": {
+            "title": "Alles für Podcast-Workflows",
+            "items": [
+                "Automatische Sprechererkennung für Hosts und Gäste",
+                "Export zu Shownotes und Blog-Posts",
+                "Über 100 Sprachen für internationale Zielgruppen",
+                "Durchsuchbare Transkript-Bibliothek",
+                "Social-Media-Zitat-Extraktion",
+                "Benutzerdefiniertes Vokabular für wiederkehrende Namen und Begriffe",
+                "Stapelverarbeitung für mehrere Episoden",
+                "RSS-Feed-Integration"
+            ]
+        },
+        "cta": {
+            "title": "Vertraut von Podcastern weltweit",
+            "subtitle": "Schließen Sie sich Tausenden von Kreativen an, die Humanlogs nutzen, um ihre Shows besser auffindbar zu machen.",
+            "startForFree": "Kostenlos starten",
+            "contactSales": "Vertrieb kontaktieren"
+        }
+    },
+    "useCasesEducation": {
+        "title": "Transkription für Bildung",
+        "subtitle": "Machen Sie Lernen für alle Studenten zugänglich",
+        "intro": "Bildung sollte für alle zugänglich sein. Ob Sie Vorlesungen aufzeichnen, Kursmaterialien erstellen oder Studenten mit Lernschwierigkeiten unterstützen, Humanlogs bietet präzise Transkripte, die das Verständnis verbessern und sicherstellen, dass kein Student zurückgelassen wird.",
+        "whyBestTitle": "Warum Pädagogen Humanlogs wählen",
+        "whyBest": [
+            {
+                "title": "Zugänglichkeits-Compliance leicht gemacht",
+                "description": "Erfüllen Sie ADA- und Zugänglichkeitsanforderungen mit präzisen Transkripten aller Vorlesungsinhalte. Unterstützen Sie Studenten mit Hörbehinderungen, Lernschwierigkeiten oder solche, die einfach besser durch Lesen lernen.",
+                "icon": "bookOpen"
+            },
+            {
+                "title": "Unterstützung für diverse Lernende",
+                "description": "Transkripte helfen ESL-Studenten, visuellen Lernenden und allen, die Material in ihrem eigenen Tempo überprüfen müssen. Studenten können Transkripte nach bestimmten Themen durchsuchen, anstatt ganze Vorlesungen erneut anzusehen.",
+                "icon": "users"
+            },
+            {
+                "title": "Über 100 Sprachen für globale Klassenräume",
+                "description": "Transkribieren Sie Vorlesungen in mehreren Sprachen und bieten Sie Übersetzungen für internationale Studenten. Unterstützen Sie mehrsprachige Bildungsprogramme und machen Sie Kursinhalte über Sprachbarrieren hinweg zugänglich.",
+                "icon": "languages"
+            }
+        ],
+        "features": {
+            "title": "Alles für Bildungs-Workflows",
+            "items": [
+                "Massenverarbeitung für semesterlange Kurse",
+                "Integration mit Lernmanagementsystemen (Canvas, Moodle)",
+                "Über 100 Sprachen und automatische Übersetzung",
+                "Sprecheridentifikation für Paneldiskussionen",
+                "Durchsuchbare Vorlesungsbibliothek",
+                "Studentenfreundliche Formatierung",
+                "Lizenzierung für Bildungseinrichtungen",
+                "FERPA-konforme Datenverarbeitung"
+            ]
+        },
+        "cta": {
+            "title": "Vertraut von Pädagogen weltweit",
+            "subtitle": "Schließen Sie sich Schulen und Universitäten an, die Humanlogs nutzen, um Bildung für alle zugänglich zu machen.",
+            "startForFree": "Kostenlos starten",
+            "contactSales": "Vertrieb kontaktieren"
+        }
+    }
+}

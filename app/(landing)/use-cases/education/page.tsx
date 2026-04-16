@@ -2,28 +2,28 @@
 
 import { useTranslations } from "@/components/locale-provider";
 import { cn } from "@/lib/utils/utils";
-import { Shield, Users, Zap } from "lucide-react";
+import { BookOpen, Users, Languages } from "lucide-react";
 import {
   CTASection,
   FAQSection,
   TestimonialsSection,
 } from "../../components/sections";
 
-export default function ResearchUseCasePage() {
+export default function EducationUseCasePage() {
   return (
     <>
-      <ResearchContent />
+      <EducationContent />
       <WhyBestSection />
       <FeaturesListSection />
       <TestimonialsSection />
       <FAQSection />
-      <CTASection translationKey="useCasesResearch.cta" />
+      <CTASection translationKey="useCasesEducation.cta" />
     </>
   );
 }
 
-function ResearchContent() {
-  const t = useTranslations("useCasesResearch");
+function EducationContent() {
+  const t = useTranslations("useCasesEducation");
 
   return (
     <section className="container mx-auto px-4 py-24 md:px-6">
@@ -47,12 +47,12 @@ function ResearchContent() {
 }
 
 function WhyBestSection() {
-  const t = useTranslations("useCasesResearch");
+  const t = useTranslations("useCasesEducation");
 
   const iconMap: { [key: string]: any } = {
-    shield: Shield,
-    zap: Zap,
+    bookOpen: BookOpen,
     users: Users,
+    languages: Languages,
   };
 
   const colors = [
@@ -102,7 +102,7 @@ function WhyBestSection() {
 
         <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {whyBest.map((item, index) => {
-            const Icon = iconMap[item.icon] || Shield;
+            const Icon = iconMap[item.icon] || BookOpen;
             const color = colors[index % colors.length];
 
             return (
@@ -132,7 +132,7 @@ function WhyBestSection() {
 }
 
 function FeaturesListSection() {
-  const t = useTranslations("useCasesResearch");
+  const t = useTranslations("useCasesEducation");
   const features = [
     t("features.items.0"),
     t("features.items.1"),
@@ -153,12 +153,23 @@ function FeaturesListSection() {
 
         <div className="grid md:grid-cols-2 gap-4">
           {features.map((feature, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-3 p-4 rounded-lg bg-gray-50 border border-gray-200"
-            >
-              <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
-              <p className="text-gray-700">{feature}</p>
+            <div key={index} className="flex items-start gap-3">
+              <div className="rounded-full bg-green-500/10 p-1.5 mt-0.5">
+                <svg
+                  className="h-4 w-4 text-green-500"
+                  fill="none"
+                  strokeWidth="2"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <span className="text-gray-700">{feature}</span>
             </div>
           ))}
         </div>
