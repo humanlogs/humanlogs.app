@@ -17,6 +17,7 @@
             "system": "System",
             "language": "Language",
             "feedback": "Feedback and reviews",
+            "feedbackDirect": "Help us improve",
             "featureRequest": "Feature request",
             "help": "Help",
             "logout": "Logout"
@@ -59,7 +60,7 @@
     },
     "feedback": {
         "title": "Feedback & Reviews",
-        "description": "How do you like our transcription app?",
+        "description": "Help us improve HumanLogs, do you like it so far?",
         "ratings": {
             "1": "😞 Very dissatisfied",
             "2": "😕 Dissatisfied",

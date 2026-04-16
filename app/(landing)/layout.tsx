@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "../globals.css";
 import { Layout } from "./_layout";
+import { VisitTracker } from "@/components/visit-tracker";
 
 export const metadata: Metadata = {
   title: "HumanLogs - Privacy-First Transcription for Research",
@@ -48,5 +49,10 @@ export default function LandingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <Layout>{children}</Layout>;
+  return (
+    <>
+      <VisitTracker />
+      <Layout>{children}</Layout>
+    </>
+  );
 }

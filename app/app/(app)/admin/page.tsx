@@ -17,6 +17,8 @@ import {
   CoinsIcon,
   MessageSquareIcon,
   ActivityIcon,
+  CreditCardIcon,
+  GlobeIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
@@ -84,6 +86,18 @@ export default function AdminPage() {
     }));
   }, [stats]);
 
+  const visitorsBarData = useMemo(() => {
+    if (!stats?.landing.visitorsByDay) return [];
+    const allDays = generateLast30Days();
+    return allDays.map((date) => ({
+      date: new Date(date).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
+      count: stats.landing.visitorsByDay[date] || 0,
+    }));
+  }, [stats]);
+
   const transcriptionStatusPieData = useMemo(() => {
     if (!stats?.transcriptions.byStatus) return [];
     return Object.entries(stats.transcriptions.byStatus).map(
@@ -148,7 +162,7 @@ export default function AdminPage() {
     >
       <div className="space-y-6">
         {/* Overview Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -212,6 +226,39 @@ export default function AdminPage() {
               </div>
               <p className="text-xs text-muted-foreground">
                 {stats.feedback.recent.length} total feedbacks
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Paying Customers
+              </CardTitle>
+              <CreditCardIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.paying.total}</div>
+              <p className="text-xs text-muted-foreground">
+                One-time: {stats.paying.oneTime} | Subscribed:{" "}
+                {stats.paying.subscribed}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Landing Visitors
+              </CardTitle>
+              <GlobeIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {stats.landing.totalUniqueVisitors}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Unique visitors (all time)
               </p>
             </CardContent>
           </Card>
@@ -542,6 +589,85 @@ export default function AdminPage() {
                     tickPadding: 5,
                     tickRotation: 0,
                     legend: "Transcriptions",
+                    legendOffset: -45,
+                    legendPosition: "middle",
+                  }}
+                  enableLabel={false}
+                  theme={{
+                    axis: {
+                      ticks: {
+                        text: {
+                          fill: "hsl(var(--muted-foreground))",
+                        },
+                      },
+                      legend: {
+                        text: {
+                          fill: "hsl(var(--foreground))",
+                        },
+                      },
+                    },
+                    grid: {
+                      line: {
+                        stroke: "hsl(var(--border))",
+                      },
+                    },
+                    tooltip: {
+                      container: {
+                        background: "hsl(var(--background))",
+                        color: "hsl(var(--foreground))",
+                        border: "1px solid hsl(var(--border))",
+                      },
+                    },
+                  }}
+                />
+              ) : (
+                <p className="text-muted-foreground">No data available</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Landing Page Visitors Per Day */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <GlobeIcon className="h-5 w-5" />
+              Unique Landing Page Visitors Per Day (Last 30 Days)
+            </CardTitle>
+            <CardDescription>
+              Number of unique visitors to the landing page daily
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              {visitorsBarData.length > 0 ? (
+                <ResponsiveBar
+                  data={visitorsBarData}
+                  keys={["count"]}
+                  indexBy="date"
+                  margin={{ top: 20, right: 30, bottom: 60, left: 60 }}
+                  padding={0.3}
+                  valueScale={{ type: "linear" }}
+                  indexScale={{ type: "band", round: true }}
+                  colors={{ scheme: "category10" }}
+                  axisTop={null}
+                  axisRight={null}
+                  axisBottom={{
+                    tickSize: 5,
+                    tickPadding: 5,
+                    tickRotation: -45,
+                    legend: "Date",
+                    legendOffset: 50,
+                    legendPosition: "middle",
+                    tickValues: visitorsBarData
+                      .map((d, i) => (i % 3 === 0 ? d.date : null))
+                      .filter(Boolean) as string[],
+                  }}
+                  axisLeft={{
+                    tickSize: 5,
+                    tickPadding: 5,
+                    tickRotation: 0,
+                    legend: "Unique Visitors",
                     legendOffset: -45,
                     legendPosition: "middle",
                   }}

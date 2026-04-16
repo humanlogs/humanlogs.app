@@ -17,6 +17,7 @@
             "system": "System",
             "language": "Sprache",
             "feedback": "Feedback und Bewertungen",
+            "feedbackDirect": "Feedback und Bewertungen",
             "featureRequest": "Feature-Anfrage",
             "help": "Hilfe",
             "logout": "Abmelden"

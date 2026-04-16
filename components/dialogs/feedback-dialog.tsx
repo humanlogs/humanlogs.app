@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,11 +12,10 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useModal } from "@/components/use-modal";
-import { useTranslations } from "@/components/locale-provider";
+import { cn } from "@/lib/utils/utils";
 import { StarIcon } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils/utils";
 
 export type FeedbackModalMode = "rating" | "feature-request";
 

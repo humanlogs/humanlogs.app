@@ -120,6 +120,15 @@ export type AdminStats = {
     }>;
     averageRating: number;
   };
+  paying: {
+    oneTime: number;
+    subscribed: number;
+    total: number;
+  };
+  landing: {
+    totalUniqueVisitors: number;
+    visitorsByDay: Record<string, number>;
+  };
 };
 
 // Fetch admin statistics

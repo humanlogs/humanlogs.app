@@ -17,6 +17,7 @@
             "system": "Système",
             "language": "Langue",
             "feedback": "Avis",
+            "feedbackDirect": "Donnez votre avis",
             "featureRequest": "Demande de fonctionnalité",
             "help": "Aide",
             "logout": "Déconnexion"
@@ -59,7 +60,7 @@
     },
     "feedback": {
         "title": "Vous aimez notre application ?",
-        "description": "Que pensez-vous de notre application de transcription ?",
+        "description": "Aidez-nous à améliorer HumanLogs, qu'en avez-vous pensé ?",
         "ratings": {
             "1": "😞 Très insatisfait",
             "2": "😕 Insatisfait",

@@ -17,6 +17,7 @@
             "system": "Sistema",
             "language": "Idioma",
             "feedback": "Comentarios y opiniones",
+            "feedbackDirect": "Ayúdanos a mejorar",
             "featureRequest": "Solicitud de función",
             "help": "Ayuda",
             "logout": "Cerrar sesión"

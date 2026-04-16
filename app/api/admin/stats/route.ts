@@ -196,6 +196,67 @@ export const GET = withAdminRateLimit(async (request, user) => {
       },
     });
 
+    // 9. Paying customers
+    // One-time purchases: plan == "free" && credits > creditsRefill (they bought credits)
+    const freeUsers = await prisma.user.findMany({
+      where: {
+        plan: "free",
+      },
+      select: {
+        credits: true,
+        creditsRefill: true,
+      },
+    });
+
+    const oneTimePurchaseCustomers = freeUsers.filter(
+      (user) => user.credits > user.creditsRefill,
+    ).length;
+
+    // Subscribed: plan != "free"
+    const subscribedCustomers = await prisma.user.count({
+      where: {
+        plan: {
+          not: "free",
+        },
+      },
+    });
+
+    // 10. Landing page visits
+    const totalUniqueVisitors = await prisma.landingPageVisit.groupBy({
+      by: ["ipHash"],
+      _count: {
+        ipHash: true,
+      },
+    });
+
+    // Visits per day in the last 30 days
+    const visitsLast30Days = await prisma.landingPageVisit.findMany({
+      where: {
+        visitDate: {
+          gte: last30Days.toISOString().split("T")[0],
+        },
+      },
+      select: {
+        visitDate: true,
+        ipHash: true,
+      },
+    });
+
+    // Group unique IPs by day
+    const uniqueVisitorsByDay: Record<string, Set<string>> = {};
+    visitsLast30Days.forEach((visit) => {
+      if (!uniqueVisitorsByDay[visit.visitDate]) {
+        uniqueVisitorsByDay[visit.visitDate] = new Set();
+      }
+      uniqueVisitorsByDay[visit.visitDate].add(visit.ipHash);
+    });
+
+    // Convert to counts
+    const visitorsByDay: Record<string, number> = {};
+    Object.entries(uniqueVisitorsByDay).forEach(([day, ips]) => {
+      visitorsByDay[day] = ips.size;
+    });
+
     return NextResponse.json({
       users: {
         total: totalUsers,
@@ -221,6 +282,15 @@ export const GET = withAdminRateLimit(async (request, user) => {
         recent: feedbacks,
         stats: feedbackStats,
         averageRating: averageRating._avg.rating || 0,
+      },
+      paying: {
+        oneTime: oneTimePurchaseCustomers,
+        subscribed: subscribedCustomers,
+        total: oneTimePurchaseCustomers + subscribedCustomers,
+      },
+      landing: {
+        totalUniqueVisitors: totalUniqueVisitors.length,
+        visitorsByDay: visitorsByDay,
       },
     });
   } catch (error) {

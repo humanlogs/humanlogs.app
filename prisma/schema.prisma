@@ -144,3 +144,14 @@ model RateLimit {
   @@index([key])
   @@index([resetAt])
 }
+
+model LandingPageVisit {
+  id        String   @id @default(uuid())
+  ipHash    String
+  visitDate String   // Store as YYYY-MM-DD for easy grouping
+  createdAt DateTime @default(now())
+
+  @@unique([ipHash, visitDate])
+  @@index([visitDate])
+  @@index([ipHash])
+}

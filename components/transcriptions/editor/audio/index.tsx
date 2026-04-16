@@ -234,6 +234,10 @@ export const InteractiveAudio = ({
         const currentTime = audioMediaRef.current?.currentTime || 0;
         setCurrentTime(currentTime);
         if (onTimeUpdateRef.current) onTimeUpdateRef.current(currentTime);
+        if (wavesurferRef.current)
+          wavesurferRef.current.seekTo(
+            currentTime / (audioMediaRef.current?.duration || 1),
+          );
       });
 
       audioMediaRef.current?.addEventListener("load", () => {
