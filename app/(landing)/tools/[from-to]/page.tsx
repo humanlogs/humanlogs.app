@@ -200,15 +200,3 @@ export default async function ConversionPage({ params }: ConversionPageProps) {
     </div>
   );
 }
-
-// Generate metadata for SEO
-export async function generateMetadata({ params }: ConversionPageProps) {
-  const resolvedParams = await params;
-  const fromTo = resolvedParams["from-to"];
-  const conversion = parseConversionType(fromTo);
-
-  return {
-    title: `${conversion.title} - Free Online Tool`,
-    description: conversion.description,
-  };
-}
