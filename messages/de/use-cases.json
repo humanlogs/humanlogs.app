@@ -66,14 +66,14 @@
         "features": {
             "title": "Alles für Newsroom-Workflows",
             "items": [
-                "Echtzeit-Transkription für Live-Events",
+                "DSGVO-konform mit verfügbarem DPA",
                 "Sprecheridentifikation für Mehrpersonen-Interviews",
                 "Über 100 Sprachen für internationale Berichterstattung",
-                "Export in gängige Bearbeitungstools",
+                "Export in eine große Auswahl an Formaten",
                 "Team-Zusammenarbeit für Newsroom-Workflows",
                 "Benutzerdefiniertes Vokabular für Branchenjargon",
-                "Mobile App für Feldaufnahmen",
-                "API-Integration für Content-Management-Systeme"
+                "Projektorganisation für mehrere Geschichten",
+                "Selbst-Hosting-Option für institutionelle Server"
             ]
         },
         "cta": {
@@ -112,10 +112,10 @@
                 "Export zu Shownotes und Blog-Posts",
                 "Über 100 Sprachen für internationale Zielgruppen",
                 "Durchsuchbare Transkript-Bibliothek",
-                "Social-Media-Zitat-Extraktion",
+                "Projektorganisation für mehrere Shows",
                 "Benutzerdefiniertes Vokabular für wiederkehrende Namen und Begriffe",
                 "Stapelverarbeitung für mehrere Episoden",
-                "RSS-Feed-Integration"
+                "Zusammenarbeit mit Teammitgliedern"
             ]
         },
         "cta": {
@@ -151,13 +151,13 @@
             "title": "Alles für Bildungs-Workflows",
             "items": [
                 "Massenverarbeitung für semesterlange Kurse",
-                "Integration mit Lernmanagementsystemen (Canvas, Moodle)",
+                "Selbst-Hosting-Option für institutionelle Server",
                 "Über 100 Sprachen und automatische Übersetzung",
                 "Sprecheridentifikation für Paneldiskussionen",
                 "Durchsuchbare Vorlesungsbibliothek",
-                "Studentenfreundliche Formatierung",
-                "Lizenzierung für Bildungseinrichtungen",
-                "FERPA-konforme Datenverarbeitung"
+                "Projektorganisation für mehrere Kurse",
+                "Lizenzierung für Bildungseinrichtungen verfügbar",
+                "DSGVO-konform mit verfügbarem DPA"
             ]
         },
         "cta": {

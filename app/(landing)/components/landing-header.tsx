@@ -86,6 +86,13 @@ export const LandingHeader = () => {
             </Link>
           </DropdownMenu>
 
+          <Link
+            href="/pricing"
+            className="text-sm font-medium text-black transition-colors hover:text-black"
+          >
+            {t("nav.pricing")}
+          </Link>
+
           {/* Free Tools Dropdown */}
           <DropdownMenu
             trigger={
@@ -113,13 +120,6 @@ export const LandingHeader = () => {
               </DropdownMenuItem>
             </Link>
           </DropdownMenu>
-
-          <Link
-            href="/pricing"
-            className="text-sm font-medium text-black transition-colors hover:text-black"
-          >
-            {t("nav.pricing")}
-          </Link>
 
           <Link
             href="https://github.com/humanlogs/humanlogs.app"

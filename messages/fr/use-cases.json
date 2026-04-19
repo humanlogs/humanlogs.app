@@ -66,14 +66,14 @@
         "features": {
             "title": "Tout pour les workflows de rédaction",
             "items": [
-                "Transcription en temps réel pour les événements en direct",
+                "Conforme RGPD avec DPA disponible",
                 "Identification des locuteurs pour les entretiens multi-personnes",
                 "Plus de 100 langues pour la couverture internationale",
-                "Export vers les outils d'édition populaires",
+                "Export vers un large éventail de formats",
                 "Collaboration d'équipe pour les workflows de rédaction",
                 "Vocabulaire personnalisé pour le jargon professionnel",
-                "Application mobile pour l'enregistrement sur le terrain",
-                "Intégration API pour les systèmes de gestion de contenu"
+                "Organisation par projets pour plusieurs reportages",
+                "Option d'auto-hébergement pour serveurs institutionnels"
             ]
         },
         "cta": {
@@ -112,10 +112,10 @@
                 "Export vers les notes d'émission et articles de blog",
                 "Plus de 100 langues pour les audiences internationales",
                 "Bibliothèque de transcriptions consultable",
-                "Extraction de citations pour les réseaux sociaux",
+                "Organisation par projets pour plusieurs émissions",
                 "Vocabulaire personnalisé pour les noms et termes récurrents",
                 "Traitement par lots pour plusieurs épisodes",
-                "Intégration flux RSS"
+                "Collaboration avec les membres de l'équipe"
             ]
         },
         "cta": {
@@ -151,13 +151,13 @@
             "title": "Tout pour les workflows éducatifs",
             "items": [
                 "Traitement en masse pour les cours semestriels",
-                "Intégration avec les systèmes de gestion de l'apprentissage (Canvas, Moodle)",
+                "Option d'auto-hébergement pour serveurs institutionnels",
                 "Plus de 100 langues et traduction automatique",
                 "Identification des locuteurs pour les discussions de panel",
                 "Bibliothèque de cours consultable",
-                "Formatage adapté aux étudiants",
-                "Licences pour les établissements d'enseignement",
-                "Traitement des données conforme FERPA"
+                "Organisation par projets pour plusieurs cours",
+                "Licences pour les établissements d'enseignement disponibles",
+                "Conforme RGPD avec DPA disponible"
             ]
         },
         "cta": {

@@ -66,14 +66,14 @@
         "features": {
             "title": "Everything for newsroom workflows",
             "items": [
-                "Real-time transcription for live events",
+                "GDPR compliant with DPA available",
                 "Speaker identification for multi-person interviews",
                 "100+ languages for international coverage",
-                "Export to popular editing tools",
+                "Export to a large set of formats",
                 "Team collaboration for newsroom workflows",
                 "Custom vocabulary for industry jargon",
-                "Mobile app for field recording",
-                "API integration for content management systems"
+                "Project organization for multiple stories",
+                "Self-hosting option for institutional servers"
             ]
         },
         "cta": {
@@ -112,10 +112,10 @@
                 "Export to show notes and blog posts",
                 "100+ languages for international audiences",
                 "Searchable transcript library",
-                "Social media quote extraction",
+                "Project organization for multiple shows",
                 "Custom vocabulary for recurring names and terms",
                 "Batch processing for multiple episodes",
-                "RSS feed integration"
+                "Collaboration with team members"
             ]
         },
         "cta": {
@@ -151,13 +151,13 @@
             "title": "Everything for educational workflows",
             "items": [
                 "Bulk processing for semester-long courses",
-                "Integration with learning management systems (Canvas, Moodle)",
+                "Self-hosting option for institutional servers",
                 "100+ languages and automatic translation",
                 "Speaker identification for panel discussions",
                 "Searchable lecture library",
-                "Student-friendly formatting",
-                "Educational institution licensing",
-                "FERPA compliant data handling"
+                "Project organization for multiple courses",
+                "Educational institution licensing available",
+                "GDPR compliant with DPA available"
             ]
         },
         "cta": {
