@@ -295,9 +295,9 @@ export function getContactEmailTemplate(data: {
     <h2>New Contact Form Submission</h2>
     <p>You have received a new message from the contact form:</p>
     
-    <div style="background-color: #f9fafb; border-left: 4px solid #667eea; padding: 20px; margin: 20px 0; border-radius: 4px;">
+    <div style="background-color: #f9fafb; border-left: 4px solid #000000; padding: 20px; margin: 20px 0; border-radius: 4px;">
       <p style="margin: 8px 0;"><strong>Name:</strong> ${data.fullName}</p>
-      <p style="margin: 8px 0;"><strong>Email:</strong> <a href="mailto:${data.email}" style="color: #667eea;">${data.email}</a></p>
+      <p style="margin: 8px 0;"><strong>Email:</strong> <a href="mailto:${data.email}" style="color: #000000;">${data.email}</a></p>
       <p style="margin: 8px 0;"><strong>Organization:</strong> ${data.organization}</p>
       <p style="margin: 8px 0;"><strong>Use Case:</strong> ${useCaseLabel}</p>
     </div>
@@ -355,9 +355,9 @@ export function getContactConfirmationTemplate(data: {
     <p>We typically respond within 1-2 business days. In the meantime, feel free to explore our resources:</p>
     
     <ul style="color: #374151; line-height: 1.8; margin: 20px 0;">
-      <li><a href="https://humanlogs.app" style="color: #667eea; text-decoration: none;">Visit our website</a></li>
-      <li><a href="https://github.com/humanlogs" style="color: #667eea; text-decoration: none;">Check out our GitHub</a></li>
-      <li><a href="https://humanlogs.app/pricing" style="color: #667eea; text-decoration: none;">View pricing plans</a></li>
+      <li><a href="https://humanlogs.app" style="color: #000000; text-decoration: none;">Visit our website</a></li>
+      <li><a href="https://github.com/humanlogs" style="color: #000000; text-decoration: none;">Check out our GitHub</a></li>
+      <li><a href="https://humanlogs.app/pricing" style="color: #000000; text-decoration: none;">View pricing plans</a></li>
     </ul>
 
     <p>If you have any urgent questions, you can reply directly to this email.</p>

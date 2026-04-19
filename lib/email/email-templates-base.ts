@@ -64,7 +64,7 @@ export function getBaseTemplate(
       overflow: hidden;
     }
     .email-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #000000;
       padding: 30px 40px;
       text-align: center;
     }
@@ -92,7 +92,7 @@ export function getBaseTemplate(
       display: inline-block;
       padding: 12px 32px;
       margin: 20px 0;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #000000;
       color: #ffffff !important;
       text-decoration: none;
       border-radius: 6px;

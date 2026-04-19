@@ -427,7 +427,7 @@ export function getWelcomeMarketingEmailTemplate(data: {
       <a href="${data.loginUrl}" class="button">${t.button}</a>
     </p>
     
-    <p style="margin-top: 30px; padding: 20px; background-color: #f9fafb; border-left: 4px solid #667eea; border-radius: 4px;">
+    <p style="margin-top: 30px; padding: 20px; background-color: #f9fafb; border-left: 4px solid #000000; border-radius: 4px;">
       ${t.feedback}
     </p>
     
@@ -516,7 +516,7 @@ export function getFollowUpEmailTemplate(data: {
       <a href="${data.loginUrl}" class="button">${t.button}</a>
     </p>
     
-    <p style="margin-top: 30px; padding: 20px; background-color: #f9fafb; border-left: 4px solid #667eea; border-radius: 4px;">
+    <p style="margin-top: 30px; padding: 20px; background-color: #f9fafb; border-left: 4px solid #000000; border-radius: 4px;">
       ${t.help}
     </p>
     
@@ -587,7 +587,7 @@ export function getDiscountEmailTemplate(data: {
     
     <p>${t.offer}</p>
     
-    <div style="text-align: center; margin: 30px 0; padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px;">
+    <div style="text-align: center; margin: 30px 0; padding: 30px; background: linear-gradient(135deg, #000000 0%, #764ba2 100%); border-radius: 12px;">
       <p style="color: white; font-size: 18px; margin: 0 0 10px 0; font-weight: 600;">${t.codeTitle}</p>
       <p style="color: white; font-size: 32px; font-weight: bold; letter-spacing: 3px; margin: 10px 0; font-family: monospace;">${t.code}</p>
       <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 10px 0 0 0;">${t.validity}</p>
@@ -606,7 +606,7 @@ export function getDiscountEmailTemplate(data: {
       <a href="${data.loginUrl}" class="button">${t.button}</a>
     </p>
     
-    <p style="margin-top: 30px; padding: 20px; background-color: #f9fafb; border-left: 4px solid #667eea; border-radius: 4px;">
+    <p style="margin-top: 30px; padding: 20px; background-color: #f9fafb; border-left: 4px solid #000000; border-radius: 4px;">
       ${t.help}
     </p>
     
