@@ -2,7 +2,6 @@ import { LocaleProvider } from "@/components/locale-provider";
 import { QueryProvider } from "@/components/query-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
@@ -17,39 +16,39 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("landing.metadata.root");
-
-  return {
-    title: t("title"),
-    description: t("description"),
-    icons: {
-      icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
-    },
-    openGraph: {
-      title: t("ogTitle"),
-      description: t("ogDescription"),
-      url: "https://humanlogs.app",
-      siteName: "humanlogs.app",
-      images: [
-        {
-          url: "https://humanlogs.app/landing/og-image.png",
-          width: 1200,
-          height: 630,
-          alt: t("ogAlt"),
-        },
-      ],
-      locale: "en_US",
-      type: "website",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: t("ogTitle"),
-      description: t("ogDescription"),
-      images: ["https://humanlogs.app/landing/og-image.png"],
-    },
-  };
-}
+export const metadata: Metadata = {
+  title: "Privacy-First Transcription for Research - humanlogs.app",
+  description:
+    "Audio transcription software built for research. Fast, secure, and privacy-first.",
+  icons: {
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+  },
+  openGraph: {
+    title:
+      "humanlogs.app - Fast, confidential transcription for your research interviews",
+    description:
+      "Build and refine transcripts 4 times faster. End-to-end encrypted, 100+ languages, open source.",
+    url: "https://humanlogs.app",
+    siteName: "humanlogs.app",
+    images: [
+      {
+        url: "https://humanlogs.app/landing/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "humanlogs.app - Audio transcription software for research",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "humanlogs.app - Fast, confidential transcription for research",
+    description:
+      "Build and refine transcripts 4 times faster. End-to-end encrypted, 100+ languages, open source.",
+    images: ["https://humanlogs.app/landing/og-image.png"],
+  },
+};
 
 export default function RootLayout({
   children,

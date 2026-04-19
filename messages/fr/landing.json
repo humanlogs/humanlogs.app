@@ -1,29 +1,4 @@
 {
-    "metadata": {
-        "root": {
-            "title": "Transcription Confidentielle pour la Recherche - humanlogs.app",
-            "description": "Logiciel de transcription audio conçu pour la recherche. Rapide, sécurisé et respectueux de la vie privée.",
-            "ogTitle": "humanlogs.app - Transcription rapide et confidentielle pour vos entretiens de recherche",
-            "ogDescription": "Créez et affinez vos transcriptions 4 fois plus rapidement. Chiffrement de bout en bout, plus de 100 langues, open source.",
-            "ogAlt": "humanlogs.app - Logiciel de transcription audio pour la recherche"
-        },
-        "landing": {
-            "title": "HumanLogs - Transcription Confidentielle pour la Recherche",
-            "description": "Plateforme de transcription chiffrée de bout en bout conçue pour les chercheurs. Éditeur rapide, politique de rétention zéro, open source. Parfait pour les doctorants, universités et recherche qualitative.",
-            "keywords": "transcription, recherche, confidentialité, chiffrement de bout en bout, académique, doctorat, analyse qualitative, open source",
-            "ogTitle": "HumanLogs - Transcription rapide et confidentielle pour vos entretiens de recherche",
-            "ogDescription": "Créez et affinez vos transcriptions 4 fois plus rapidement grâce à notre éditeur unique. Chiffrement de bout en bout, plus de 100 langues, open source.",
-            "ogAlt": "HumanLogs - Logiciel de transcription audio pour la recherche"
-        },
-        "home": {
-            "title": "HumanLogs - Transcription Rapide et Confidentielle pour Entretiens de Recherche",
-            "description": "Plateforme de transcription confidentielle pour chercheurs. 98% de précision dans plus de 100 langues, éditeur audio unique, chiffrement de bout en bout. Transformez votre workflow en 2 minutes.",
-            "keywords": "transcription recherche, transcription entretiens, transcription académique, recherche qualitative, transcription doctorat, transcription confidentielle, transcription chiffrée",
-            "ogTitle": "Transcription Rapide et Confidentielle pour vos Entretiens de Recherche",
-            "ogDescription": "98% de précision dans plus de 100 langues. Affinez vos transcriptions 4x plus rapidement avec notre éditeur audio unique. Chiffrement de bout en bout, rétention zéro.",
-            "ogAlt": "HumanLogs - Plateforme de transcription confidentielle pour la recherche"
-        }
-    },
     "header": {
         "nav": {
             "home": "Accueil",

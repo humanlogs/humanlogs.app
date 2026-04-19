@@ -3,6 +3,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { authConfig, ldapConfig } from "../config";
 import { prisma } from "../prisma";
+import { sendWelcomeMarketingEmail } from "../email/marketing-email-service";
 
 const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days
 
@@ -249,6 +250,13 @@ export async function registerLocal(
       language: "en",
     },
   });
+
+  // Send welcome email asynchronously (don't wait for it)
+  sendWelcomeMarketingEmail(user.id, user.email, user.name || "", user.language).catch(
+    (error) => {
+      console.error("[Auth] Failed to send welcome email:", error);
+    },
+  );
 
   return {
     id: user.id,

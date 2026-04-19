@@ -3,6 +3,11 @@
  *
  * This file contains examples of how to use the email system in your application.
  * Import the functions you need and use them in your API routes or server-side code.
+ *
+ * Note: For marketing emails (welcome series, follow-ups, etc.), see:
+ * - Templates: lib/email/email-templates-marketing.ts
+ * - Service: lib/email/marketing-email-service.ts
+ * Marketing emails are sent automatically via cron job and on user signup.
  */
 
 import { sendEmail } from "@/lib/email/mailer";

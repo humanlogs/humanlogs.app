@@ -1,29 +1,4 @@
 {
-    "metadata": {
-        "root": {
-            "title": "Privacy-First Transcription for Research - humanlogs.app",
-            "description": "Audio transcription software built for research. Fast, secure, and privacy-first.",
-            "ogTitle": "humanlogs.app - Fast, confidential transcription for your research interviews",
-            "ogDescription": "Build and refine transcripts 4 times faster. End-to-end encrypted, 100+ languages, open source.",
-            "ogAlt": "humanlogs.app - Audio transcription software for research"
-        },
-        "landing": {
-            "title": "HumanLogs - Privacy-First Transcription for Research",
-            "description": "End-to-end encrypted transcription platform built for researchers. Fast keyboard-driven editor, zero retention policy, open source. Perfect for PhD students, universities, and qualitative research.",
-            "keywords": "transcription, research, privacy, end-to-end encryption, academic, PhD, qualitative analysis, open source",
-            "ogTitle": "HumanLogs - Fast, confidential transcription for your research interviews",
-            "ogDescription": "Build and refine transcripts 4 times faster thanks to our unique editor. End-to-end encrypted, 100+ languages, open source.",
-            "ogAlt": "HumanLogs - Audio transcription software for research"
-        },
-        "home": {
-            "title": "HumanLogs - Fast, Confidential Transcription for Research Interviews",
-            "description": "Privacy-first transcription platform for researchers. 98% accuracy in 100+ languages, unique audio-based editor, end-to-end encryption. Transform your workflow in 2 minutes.",
-            "keywords": "research transcription, interview transcription, academic transcription, qualitative research, PhD transcription, confidential transcription, encrypted transcription",
-            "ogTitle": "Fast, Confidential Transcription for Your Research Interviews",
-            "ogDescription": "98% accuracy in 100+ languages. Refine transcripts 4x faster with our unique audio-based editor. End-to-end encrypted, zero retention.",
-            "ogAlt": "HumanLogs - Privacy-first transcription platform for research"
-        }
-    },
     "header": {
         "nav": {
             "home": "Home",

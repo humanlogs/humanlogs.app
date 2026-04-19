@@ -30,6 +30,8 @@ model User {
   lastCreditsRefill      DateTime?
   shortcuts              Json?
   isAdmin                Boolean         @default(false)
+  marketingEmailStep     Int             @default(0)
+  lastMarketingEmailAt   DateTime?
   projects               Project[]
   transcriptions         Transcription[]
   feedbacks              Feedback[]
