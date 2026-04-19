@@ -65,9 +65,18 @@ export default async function proxy(request: NextRequest) {
   ) {
     const currentLocale = getLocaleFromPathname(pathname);
 
-    // If URL doesn't have a valid locale, redirect to URL with locale prefix
+    // If URL doesn't have a valid locale, rewrite to English for SEO
+    // (serves content directly instead of redirecting)
     if (!currentLocale && pathname !== "/") {
       const preferredLocale = getPreferredLocale(request);
+
+      // For English, rewrite internally (no redirect = better SEO)
+      if (preferredLocale === "en") {
+        const newUrl = new URL(`/en${pathname}${search}`, request.url);
+        return NextResponse.rewrite(newUrl);
+      }
+
+      // For other languages, redirect to show locale in URL
       const newUrl = new URL(
         `/${preferredLocale}${pathname}${search}`,
         request.url,
