@@ -1,4 +1,29 @@
 {
+    "metadata": {
+        "root": {
+            "title": "Datenschutzorientierte Transkription für die Forschung - humanlogs.app",
+            "description": "Audio-Transkriptionssoftware für die Forschung. Schnell, sicher und datenschutzorientiert.",
+            "ogTitle": "humanlogs.app - Schnelle, vertrauliche Transkription für Ihre Forschungsinterviews",
+            "ogDescription": "Erstellen und verfeinern Sie Transkripte 4x schneller. Ende-zu-Ende-Verschlüsselung, 100+ Sprachen, Open Source.",
+            "ogAlt": "humanlogs.app - Audio-Transkriptionssoftware für die Forschung"
+        },
+        "landing": {
+            "title": "HumanLogs - Datenschutzorientierte Transkription für die Forschung",
+            "description": "Ende-zu-Ende-verschlüsselte Transkriptionsplattform für Forscher. Schneller Editor, Null-Aufbewahrungsrichtlinie, Open Source. Perfekt für Doktoranden, Universitäten und qualitative Forschung.",
+            "keywords": "Transkription, Forschung, Datenschutz, Ende-zu-Ende-Verschlüsselung, akademisch, Promotion, qualitative Analyse, Open Source",
+            "ogTitle": "HumanLogs - Schnelle, vertrauliche Transkription für Ihre Forschungsinterviews",
+            "ogDescription": "Erstellen und verfeinern Sie Transkripte 4x schneller mit unserem einzigartigen Editor. Ende-zu-Ende-Verschlüsselung, 100+ Sprachen, Open Source.",
+            "ogAlt": "HumanLogs - Audio-Transkriptionssoftware für die Forschung"
+        },
+        "home": {
+            "title": "HumanLogs - Schnelle, Vertrauliche Transkription für Forschungsinterviews",
+            "description": "Datenschutzorientierte Transkriptionsplattform für Forscher. 98% Genauigkeit in 100+ Sprachen, einzigartiger Audio-Editor, Ende-zu-Ende-Verschlüsselung. Transformieren Sie Ihren Workflow in 2 Minuten.",
+            "keywords": "Forschungstranskription, Interview-Transkription, akademische Transkription, qualitative Forschung, Promotions-Transkription, vertrauliche Transkription, verschlüsselte Transkription",
+            "ogTitle": "Schnelle, Vertrauliche Transkription für Ihre Forschungsinterviews",
+            "ogDescription": "98% Genauigkeit in 100+ Sprachen. Verfeinern Sie Transkripte 4x schneller mit unserem einzigartigen Audio-Editor. Ende-zu-Ende-Verschlüsselung, keine Aufbewahrung.",
+            "ogAlt": "HumanLogs - Datenschutzorientierte Transkriptionsplattform für die Forschung"
+        }
+    },
     "header": {
         "nav": {
             "home": "Startseite",

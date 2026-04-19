@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { AudioConverter } from "../components/audio-converter";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import type { Metadata } from "next";
 
 interface ConversionPageProps {
   params: Promise<{ "from-to": string }>;
@@ -89,6 +90,49 @@ function parseConversionType(fromTo: string) {
         "Convert audio files between different formats - Free, fast, and completely private",
     }
   );
+}
+
+export async function generateMetadata({
+  params,
+}: ConversionPageProps): Promise<Metadata> {
+  const resolvedParams = await params;
+  const conversion = parseConversionType(resolvedParams["from-to"]);
+
+  return {
+    title: `${conversion.title} - Free Online Tool | HumanLogs`,
+    description: `${conversion.description}. No uploads, no tracking, all processing happens in your browser using WebAssembly.`,
+    keywords: [
+      conversion.title.toLowerCase(),
+      "audio converter",
+      "free converter",
+      "online audio tool",
+      "browser-based conversion",
+      "private audio converter",
+      conversion.outputFormat,
+    ],
+    openGraph: {
+      title: `Free ${conversion.title} - HumanLogs`,
+      description: conversion.description,
+      url: `https://humanlogs.app/tools/${resolvedParams["from-to"]}`,
+      siteName: "humanlogs.app",
+      images: [
+        {
+          url: "/landing/og-image.png",
+          width: 1200,
+          height: 630,
+          alt: `HumanLogs - ${conversion.title}`,
+        },
+      ],
+      locale: "en_US",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `Free ${conversion.title} - HumanLogs`,
+      description: conversion.description,
+      images: ["/landing/og-image.png"],
+    },
+  };
 }
 
 export default async function ConversionPage({ params }: ConversionPageProps) {
