@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email/mailer";
-import { getAccountDeletionEmailTemplate } from "@/lib/email/email-templates";
+import { getAccountDeletionEmailTemplate } from "@/lib/email/email-templates-account";
 import crypto from "crypto";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 

@@ -3,7 +3,7 @@ import { sendEmail } from "@/lib/email/mailer";
 import {
   getContactEmailTemplate,
   getContactConfirmationTemplate,
-} from "@/lib/email/email-templates";
+} from "@/lib/email/email-templates-account";
 import { checkRateLimit, getRateLimitKey } from "@/lib/router/rate-limiter";
 
 const RATE_LIMIT = {

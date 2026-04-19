@@ -11,8 +11,8 @@ import {
   getPasswordResetEmailTemplate,
   getTranscriptionCompletedEmailTemplate,
   getNotificationEmailTemplate,
-  getBaseTemplate,
-} from "@/lib/email/email-templates";
+} from "@/lib/email/email-templates-account";
+import { getBaseTemplate } from "./email-templates-base";
 
 /**
  * Example 1: Send a welcome email to a new user
