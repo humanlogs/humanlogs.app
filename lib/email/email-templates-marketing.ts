@@ -572,11 +572,15 @@ export function getDiscountEmailTemplate(data: {
   language?: string;
 }): EmailTemplate {
   const lang = (data.language || "en") as SupportedLanguage;
-  const supportedLang: SupportedLanguage = ["en", "fr", "es", "de"].includes(lang) ? lang : "en";
+  const supportedLang: SupportedLanguage = ["en", "fr", "es", "de"].includes(
+    lang,
+  )
+    ? lang
+    : "en";
   const t = translations.discount[supportedLang];
 
   const content = `
-    <h2>${t.intro.split(',')[0]} 🎁</h2>
+    <h2>${t.intro.split(",")[0]} 🎁</h2>
     <p>${t.greeting} ${data.userName},</p>
     
     <p>${t.intro}</p>
@@ -620,31 +624,31 @@ export function getDiscountEmailTemplate(data: {
   });
 
   const text = `
-${t.intro.split(',')[0]}!
+${t.intro.split(",")[0]}!
 
 ${t.greeting} ${data.userName},
 
 ${t.intro}
 
-${t.offer.replace(/<\/?strong>/g, '')}
+${t.offer.replace(/<\/?strong>/g, "")}
 
 ${t.codeTitle.toUpperCase()}: ${t.code}
 (${t.validity})
 
 ${t.whyUpgrade}
-• ${t.benefit1.replace(/<\/?strong>/g, '')}
-• ${t.benefit2.replace(/<\/?strong>/g, '')}
-• ${t.benefit3.replace(/<\/?strong>/g, '')}
-• ${t.benefit4.replace(/<\/?strong>/g, '')}
-• ${t.benefit5.replace(/<\/?strong>/g, '')}
+• ${t.benefit1.replace(/<\/?strong>/g, "")}
+• ${t.benefit2.replace(/<\/?strong>/g, "")}
+• ${t.benefit3.replace(/<\/?strong>/g, "")}
+• ${t.benefit4.replace(/<\/?strong>/g, "")}
+• ${t.benefit5.replace(/<\/?strong>/g, "")}
 
 ${t.button}: ${data.loginUrl}
 
-${t.help.replace(/<br>/g, '\n').replace(/<\/?strong>/g, '')}
+${t.help.replace(/<br>/g, "\n").replace(/<\/?strong>/g, "")}
 
 ${t.closing}
 
-${t.signature.replace(/<br>/g, '\n')}
+${t.signature.replace(/<br>/g, "\n")}
 
 ${t.ps}
   `.trim();

@@ -252,11 +252,14 @@ export async function registerLocal(
   });
 
   // Send welcome email asynchronously (don't wait for it)
-  sendWelcomeMarketingEmail(user.id, user.email, user.name || "", user.language).catch(
-    (error) => {
-      console.error("[Auth] Failed to send welcome email:", error);
-    },
-  );
+  sendWelcomeMarketingEmail(
+    user.id,
+    user.email,
+    user.name || "",
+    user.language,
+  ).catch((error) => {
+    console.error("[Auth] Failed to send welcome email:", error);
+  });
 
   return {
     id: user.id,

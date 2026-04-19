@@ -202,7 +202,12 @@ export async function processMarketingEmails() {
         continue;
       }
 
-      await sendFollowUpMarketingEmail(user.id, user.email, user.name || "", user.language);
+      await sendFollowUpMarketingEmail(
+        user.id,
+        user.email,
+        user.name || "",
+        user.language,
+      );
 
       // Add small delay to avoid overwhelming email service
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -245,7 +250,12 @@ export async function processMarketingEmails() {
         continue;
       }
 
-      await sendDiscountMarketingEmail(user.id, user.email, user.name || "", user.language);
+      await sendDiscountMarketingEmail(
+        user.id,
+        user.email,
+        user.name || "",
+        user.language,
+      );
 
       // Add small delay to avoid overwhelming email service
       await new Promise((resolve) => setTimeout(resolve, 1000));

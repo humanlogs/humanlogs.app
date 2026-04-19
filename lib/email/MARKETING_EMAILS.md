@@ -15,6 +15,17 @@ The system automatically stops sending emails if:
 - The user has paid for a plan (credits > 100 or creditsUsed > 100)
 - The sequence is complete (3 emails sent)
 
+## Internationalization
+
+All marketing emails support **4 languages**:
+
+- **English** (`en`)
+- **French** (`fr`)
+- **Spanish** (`es`)
+- **German** (`de`)
+
+The email language is automatically determined from the user's `language` field in the database. If the language is not one of the supported languages, it defaults to English.
+
 ## Email Schedule
 
 ```
