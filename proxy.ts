@@ -23,7 +23,7 @@ export default async function proxy(request: NextRequest) {
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com; style-src 'self' 'unsafe-inline'; media-src 'self' blob:; connect-src 'self' blob:;",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; media-src 'self' blob:; connect-src 'self' blob: https://unpkg.com https://www.google-analytics.com;",
   );
   response.headers.set(
     "Permissions-Policy",
