@@ -1,6 +1,147 @@
 import { TranscriptionContent } from "@/hooks/use-transcriptions";
 
 /**
+ * Export transcription as SRT format (SubRip Subtitle)
+ * Compatible with video subtitle editors and players
+ */
+export function exportAsSRT(
+  transcription: TranscriptionContent,
+  fileName: string,
+): void {
+  const entries: string[] = [];
+  let currentSpeaker: string | undefined;
+  let currentWords: string[] = [];
+  let startTime: number | undefined;
+  let endTime: number | undefined;
+  let subtitleIndex = 1;
+
+  // Max characters per subtitle (2 lines of ~42 chars each)
+  const MAX_CHARS = 84;
+  // Max duration in seconds for a single subtitle
+  const MAX_DURATION = 7;
+
+  const addSubtitle = () => {
+    if (
+      currentWords.length > 0 &&
+      startTime !== undefined &&
+      endTime !== undefined &&
+      currentSpeaker !== undefined
+    ) {
+      const speakerName = getSpeakerName(transcription, currentSpeaker);
+      const text = `${speakerName}: ${currentWords.join(" ").trim()}`;
+
+      entries.push(
+        `${subtitleIndex}`,
+        `${formatSRTTime(startTime)} --> ${formatSRTTime(endTime)}`,
+        text,
+        "",
+      );
+      subtitleIndex++;
+    }
+  };
+
+  const shouldBreakSubtitle = (text: string, duration: number): boolean => {
+    return text.length > MAX_CHARS || duration > MAX_DURATION;
+  };
+
+  transcription.words.forEach((segment, index) => {
+    if (segment.type === "word") {
+      const speakerId = segment.speakerId;
+
+      // If speaker changed, save the previous subtitle and start a new one
+      if (currentSpeaker !== undefined && speakerId !== currentSpeaker) {
+        addSubtitle();
+        currentWords = [];
+        startTime = undefined;
+        endTime = undefined;
+      }
+
+      // Track timing from word segments only
+      if (startTime === undefined && segment.start !== undefined) {
+        startTime = segment.start;
+      }
+      if (segment.end !== undefined) {
+        endTime = segment.end;
+      }
+
+      // Add the word
+      currentSpeaker = speakerId;
+      currentWords.push(segment.text);
+
+      // Check if we should break the subtitle due to length or duration
+      if (
+        startTime !== undefined &&
+        endTime !== undefined &&
+        currentSpeaker !== undefined
+      ) {
+        const speakerName = getSpeakerName(transcription, currentSpeaker);
+        const currentText = `${speakerName}: ${currentWords.join(" ").trim()}`;
+        const duration = endTime - startTime;
+
+        if (shouldBreakSubtitle(currentText, duration)) {
+          // Look ahead to find a good breaking point
+          let foundBreakPoint = false;
+
+          // Check if the next segment is spacing with a newline or sentence ending
+          if (index + 1 < transcription.words.length) {
+            const nextSegment = transcription.words[index + 1];
+            if (
+              nextSegment.type === "spacing" &&
+              (nextSegment.text.includes("\n") ||
+                nextSegment.text.includes(".") ||
+                nextSegment.text.includes("!") ||
+                nextSegment.text.includes("?"))
+            ) {
+              foundBreakPoint = true;
+            }
+          }
+
+          // If we found a natural break point or exceeded limits significantly, break now
+          if (
+            foundBreakPoint ||
+            currentText.length > MAX_CHARS * 1.5 ||
+            duration > MAX_DURATION * 1.5
+          ) {
+            addSubtitle();
+            currentWords = [];
+            startTime = undefined;
+            endTime = undefined;
+          }
+        }
+      }
+    } else if (segment.type === "spacing") {
+      // Check for line breaks in spacing - these should trigger a new subtitle
+      if (segment.text.includes("\n\n") || segment.text.includes("\n\n\n")) {
+        // Double or triple newlines indicate a strong paragraph break
+        addSubtitle();
+        currentWords = [];
+        startTime = undefined;
+        endTime = undefined;
+      }
+      // Don't add spacing text to currentWords - we'll use spaces between words instead
+    }
+  });
+
+  // Add the last subtitle if there's any text
+  addSubtitle();
+
+  const srt = entries.join("\n");
+  downloadFile(srt, `${fileName}.srt`, "text/plain");
+}
+
+/**
+ * Format time in seconds to SRT format (HH:MM:SS,mmm)
+ */
+function formatSRTTime(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+  const milliseconds = Math.floor((seconds % 1) * 1000);
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")},${String(milliseconds).padStart(3, "0")}`;
+}
+
+/**
  * Export transcription as CSV format
  * One line per speaker change, subtitle-like format
  */

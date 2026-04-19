@@ -37,13 +37,13 @@ const COMPARISON_DATA: Record<
   alternativesGoodtape: [
     { us: true, them: false }, // End-to-end encryption
     { us: true, them: false }, // Zero retention transcription
-    { us: true, them: false }, // Audio-based text editor
+    { us: true, them: "Partial" }, // Audio-based text editor
     { us: true, them: true }, // GDPR compliant
     { us: true, them: false }, // Self-hostable / Open source
     { us: true, them: true }, // Highest transcription quality
     { us: true, them: true }, // Custom vocabulary
     { us: true, them: true }, // Speaker diarization
-    { us: true, them: true }, // Collaboration
+    { us: true, them: "Static" }, // Collaboration
     { us: "100 min/month", them: "60 min/month" }, // Free tier
     { us: "€15/month", them: "€20/month" }, // Monthly subscription
     { us: true, them: true }, // Advanced export formats
@@ -61,6 +61,34 @@ const COMPARISON_DATA: Record<
     { us: "100 min/month", them: "-" }, // Free tier
     { us: "€15/month", them: "-" }, // Monthly subscription
     { us: true, them: true }, // Advanced export formats
+  ],
+  alternativesVook: [
+    { us: true, them: false }, // End-to-end encryption
+    { us: true, them: false }, // Advanced audio-based editor
+    { us: false, them: true }, // AI tools (summary, etc.)
+    { us: true, them: false }, // Collaboration
+    { us: true, them: true }, // GDPR compliant
+    { us: true, them: false }, // Self-hostable / Open source
+    { us: true, them: true }, // Speaker diarization
+    { us: "100 min/month", them: "1/day" }, // Free tier
+    { us: "€15/month", them: "€19/month" }, // Monthly subscription price
+    { us: "20h", them: "10h" }, // Monthly hours included
+    { us: "€1/h", them: "€3/h" }, // Pay-as-you-go value
+    { us: true, them: true }, // Custom vocabulary
+  ],
+  alternativesTranscribe: [
+    { us: true, them: false }, // End-to-end encryption
+    { us: true, them: false }, // Advanced audio-based editor
+    { us: false, them: true }, // AI tools (summary, etc.)
+    { us: true, them: false }, // Collaboration
+    { us: true, them: true }, // GDPR compliant
+    { us: true, them: false }, // Self-hostable / Open source
+    { us: true, them: true }, // Speaker diarization
+    { us: "100 min/month", them: false }, // Free tier
+    { us: "€15/month", them: "€15/month" }, // Monthly subscription price
+    { us: "20h", them: "5h" }, // Monthly hours (at €15/mo)
+    { us: "€0.75/h", them: "€3/h" }, // Value per hour
+    { us: true, them: true }, // Custom vocabulary
   ],
 };
 

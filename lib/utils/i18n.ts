@@ -8,6 +8,8 @@ export const i18nFiles = [
   "dialog",
   "editor",
   "landing",
+  "alternatives",
+  "freetools",
   "account",
   "use-cases",
 ];

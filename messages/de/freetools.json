@@ -1,0 +1,96 @@
+{
+    "freetools": {
+        "title": "Kostenlose Audio- und Video-Konvertierungstools",
+        "subtitle": "Konvertieren Sie Audio- und Videodateien direkt in Ihrem Browser - 100% privat, keine Uploads erforderlich",
+        "popularTools": "Beliebte Tools",
+        "allTools": "Alle Konvertierungstools",
+        "backToTools": "Zurück zu allen Tools",
+        "tools": {
+            "videoToAudio": {
+                "title": "Video-zu-Audio-Konverter",
+                "description": "Extrahieren Sie Audio aus Videodateien (MP4, AVI, MOV, etc.)",
+                "seoTitle": "So Konvertieren Sie Video zu Audio",
+                "seoDescription": "Unser Video-zu-Audio-Konverter extrahiert hochwertige Audioqualität aus jedem Videoformat. Die gesamte Verarbeitung erfolgt in Ihrem Browser - Ihre Dateien verlassen niemals Ihr Gerät. Perfekt zum Extrahieren von Podcasts, Musik oder Interviews aus Videodateien."
+            },
+            "audioCompression": {
+                "title": "Audio-Komprimierungstool",
+                "description": "Reduzieren Sie die Audiodateigröße bei gleichbleibender Qualität",
+                "seoTitle": "Audiodateien Online Komprimieren",
+                "seoDescription": "Komprimieren Sie große Audiodateien auf kleinere Größen ohne signifikanten Qualitätsverlust. Wählen Sie aus mehreren Formaten und Komprimierungsstufen, um die perfekte Balance zwischen Dateigröße und Audioqualität zu finden."
+            },
+            "mp3ToWav": {
+                "title": "MP3-zu-WAV-Konverter",
+                "description": "Konvertieren Sie MP3-Dateien in unkomprimiertes WAV-Format",
+                "seoTitle": "MP3 in WAV-Format Konvertieren",
+                "seoDescription": "Konvertieren Sie komprimierte MP3-Dateien in unkomprimiertes WAV-Format für professionelle Audiobearbeitung. WAV-Dateien bieten verlustfreie Audioqualität und sind ideal für Musikproduktion und Audiotechnik."
+            },
+            "srtTester": {
+                "title": "SRT-Untertitel-Tester und -Validator",
+                "description": "Testen und validieren Sie SRT-Untertiteldateien mit Video-Vorschau",
+                "seoTitle": "Testen Sie Ihre SRT-Untertitel",
+                "seoDescription": "Laden Sie Ihr Video und Ihre SRT-Untertiteldatei hoch, um eine Vorschau zu sehen, wie sie zusammen aussehen. Unser Validator überprüft auf häufige Probleme wie Zeitfehler, Überlappungen und Formatierungsprobleme - alles in Ihrem Browser.",
+                "whatIsSRT": "Was ist eine SRT-Datei?",
+                "srtExplanation": "SRT (SubRip Subtitle) ist das am häufigsten verwendete Untertitelformat für Videos. Es enthält den Untertiteltext zusammen mit Start- und Endzeitstempeln. Unser Tool hilft Ihnen zu überprüfen, ob Ihre SRT-Datei korrekt formatiert und mit Ihrem Video synchronisiert ist.",
+                "commonIssues": "Häufige SRT-Probleme, die Wir Erkennen",
+                "issue1": "Zeitfehler (Endzeit vor Startzeit)",
+                "issue2": "Überlappende Untertitel",
+                "issue3": "Untertitel nicht in chronologischer Reihenfolge",
+                "issue4": "Sehr kurze Anzeigezeiten (< 200ms)",
+                "featuresTitle": "Was Dieses Tool Macht",
+                "feature1Title": "Format Validieren",
+                "feature1Description": "Erkennt und meldet automatisch SRT-Formatierungsprobleme und Zeitfehler",
+                "feature2Title": "Video-Vorschau",
+                "feature2Description": "Sehen Sie genau, wie Ihre Untertitel auf Ihrem Video aussehen werden, bevor Sie veröffentlichen",
+                "feature3Title": "Qualitätskontrolle",
+                "feature3Description": "Identifiziert Überlappungen, Zeitprobleme und Lesbarkeitssprobleme"
+            }
+        },
+        "srtTester": {
+            "uploadVideo": "Videodatei Hochladen",
+            "dragDropVideo": "Ziehen und Ablegen oder Klicken zum Auswählen",
+            "selectVideo": "Video Auswählen",
+            "uploadSRT": "SRT-Datei Hochladen",
+            "dragDropSRT": "Ziehen und Ablegen oder Klicken zum Auswählen",
+            "selectSRT": "SRT-Datei Auswählen",
+            "validationResults": "Validierungsergebnisse",
+            "noErrors": "✓ Keine Fehler gefunden! Ihre SRT-Datei sieht gut aus",
+            "subtitles": "Untertitel",
+            "issuesFound": "Probleme in Ihrer SRT-Datei gefunden",
+            "preview": "Video-Vorschau mit Untertiteln",
+            "privacyTitle": "100% Privat",
+            "privacyMessage": "Die gesamte Validierung erfolgt in Ihrem Browser. Ihre Video- und Untertiteldateien verlassen niemals Ihr Gerät."
+        },
+        "converter": {
+            "uploadPrompt": "Legen Sie Ihre Datei hier ab oder klicken Sie zum Durchsuchen",
+            "dragDrop": "Ziehen und Ablegen oder Klicken zum Auswählen einer Datei",
+            "selectFile": "Datei Auswählen",
+            "outputFormat": "Ausgabeformat",
+            "fileName": "Dateiname",
+            "fileSize": "Dateigröße",
+            "inputFormat": "Eingabeformat",
+            "targetFormat": "Zielformat",
+            "converting": "Konvertiere...",
+            "convert": "Jetzt Konvertieren",
+            "download": "Konvertierte Datei Herunterladen",
+            "conversionSuccess": "Konvertierung erfolgreich abgeschlossen!",
+            "conversionError": "Fehler beim Konvertieren der Datei. Bitte versuchen Sie es erneut.",
+            "privacyTitle": "100% Privat",
+            "privacyMessage": "Alle Konvertierungen erfolgen in Ihrem Browser. Ihre Dateien verlassen niemals Ihr Gerät und werden auf keinen Server hochgeladen."
+        },
+        "features": {
+            "title": "Warum Unsere Konvertierungstools Verwenden?",
+            "privacy": {
+                "title": "Vollständige Privatsphäre",
+                "description": "Die gesamte Verarbeitung erfolgt in Ihrem Browser. Keine Uploads, kein Cloud-Speicher, kein Tracking."
+            },
+            "fast": {
+                "title": "Blitzschnell",
+                "description": "Konvertieren Sie Dateien sofort, ohne auf Uploads oder Downloads von Servern zu warten."
+            },
+            "free": {
+                "title": "100% Kostenlos",
+                "description": "Alle Tools sind völlig kostenlos ohne Dateigrößenbeschränkungen oder Nutzungseinschränkungen."
+            }
+        }
+    }
+}

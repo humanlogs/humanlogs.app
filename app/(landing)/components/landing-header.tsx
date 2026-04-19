@@ -69,7 +69,7 @@ export const LandingHeader = () => {
                 {t("useCasesDropdown.research")}
               </DropdownMenuItem>
             </Link>
-            {/*<Link href="/use-cases/journalism">
+            <Link href="/use-cases/journalism">
               <DropdownMenuItem>
                 {t("useCasesDropdown.journalism")}
               </DropdownMenuItem>
@@ -83,7 +83,35 @@ export const LandingHeader = () => {
               <DropdownMenuItem>
                 {t("useCasesDropdown.education")}
               </DropdownMenuItem>
-            </Link>*/}
+            </Link>
+          </DropdownMenu>
+
+          {/* Free Tools Dropdown */}
+          <DropdownMenu
+            trigger={
+              <button className="flex items-center gap-1 text-sm font-medium text-black transition-colors hover:text-black">
+                {t("nav.freeTools")}
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            }
+          >
+            <Link href="/tools/srt-tester">
+              <DropdownMenuItem>SRT Subtitle Tester</DropdownMenuItem>
+            </Link>
+            <Link href="/tools/video-to-audio">
+              <DropdownMenuItem>Video to Audio</DropdownMenuItem>
+            </Link>
+            <Link href="/tools/audio-compression">
+              <DropdownMenuItem>Audio Compression</DropdownMenuItem>
+            </Link>
+            <Link href="/tools/mp3-to-wav">
+              <DropdownMenuItem>MP3 to WAV</DropdownMenuItem>
+            </Link>
+            <Link href="/tools">
+              <DropdownMenuItem className="text-blue-600 font-medium">
+                View All Tools
+              </DropdownMenuItem>
+            </Link>
           </DropdownMenu>
 
           <Link

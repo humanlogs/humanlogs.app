@@ -42,6 +42,10 @@ export const HeroSection = () => {
             </Link>
           </div>
 
+          <div className="sm:block hidden text-sm text-muted-foreground -mt-6">
+            No card required, 100 min free every month.
+          </div>
+
           {/* Badges & Stars */}
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-1">

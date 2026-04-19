@@ -1,7 +1,11 @@
 "use client";
 
 import { Layout } from "../../_layout";
-import { CTASection, ComparisonTable } from "../../components/sections";
+import {
+  CTASection,
+  ComparisonTable,
+  FeaturesSection,
+} from "../../components/sections";
 import { useTranslations } from "@/components/locale-provider";
 
 export default function GoodtapeIOPage() {
@@ -13,6 +17,7 @@ export default function GoodtapeIOPage() {
         translationKey="alternativesGoodtape"
       />
       <div className="py-12"></div>
+      <FeaturesSection />
       <CTASection translationKey="alternativesGoodtape.cta" />
     </>
   );

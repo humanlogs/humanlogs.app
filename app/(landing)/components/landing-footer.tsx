@@ -6,7 +6,7 @@ export const LandingFooter = () => {
   return (
     <footer className="border-t border-gray-800 bg-black">
       <div className="container mx-auto px-4 py-12 md:px-6">
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-6">
           {/* Logo */}
           <div>
             <Link href="/" className="text-3xl font-semibold text-white">
@@ -32,7 +32,7 @@ export const LandingFooter = () => {
                   Research
                 </Link>
               </li>
-              {/*<li>
+              <li>
                 <Link
                   href="/use-cases/journalism"
                   className="text-sm text-gray-400 hover:text-white"
@@ -55,7 +55,56 @@ export const LandingFooter = () => {
                 >
                   Education
                 </Link>
-              </li>*/}
+              </li>
+            </ul>
+          </div>
+
+          {/* Free Tools */}
+          <div>
+            <h3 className="mb-4 text-sm font-semibold text-white">
+              Free Tools
+            </h3>
+            <ul className="space-y-3">
+              <li>
+                <Link
+                  href="/tools/srt-tester"
+                  className="text-sm text-gray-400 hover:text-white"
+                >
+                  SRT Subtitle Tester
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/tools/video-to-audio"
+                  className="text-sm text-gray-400 hover:text-white"
+                >
+                  Video to Audio
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/tools/audio-compression"
+                  className="text-sm text-gray-400 hover:text-white"
+                >
+                  Audio Compression
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/tools/mp3-to-wav"
+                  className="text-sm text-gray-400 hover:text-white"
+                >
+                  MP3 to WAV
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/tools"
+                  className="text-sm text-blue-400 hover:text-blue-300"
+                >
+                  View All Tools →
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -79,6 +128,22 @@ export const LandingFooter = () => {
                   className="text-sm text-gray-400 hover:text-white"
                 >
                   vs Goodtape.io
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/alternatives/vookai"
+                  className="text-sm text-gray-400 hover:text-white"
+                >
+                  vs Vook.ai
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/alternatives/transcribecom"
+                  className="text-sm text-gray-400 hover:text-white"
+                >
+                  vs Transcribe.com
                 </Link>
               </li>
               <li>

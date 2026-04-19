@@ -111,6 +111,103 @@ export async function convertToMP3(
 }
 
 /**
+ * Convert audio/video file to specified format
+ * Supports: mp3, wav, m4a, ogg, flac, aac
+ *
+ * @param file - Input file (audio or video)
+ * @param outputFormat - Target audio format
+ * @returns Converted audio blob
+ */
+export async function convertAudioFormat(
+  file: File | Blob,
+  outputFormat: string,
+): Promise<Blob> {
+  try {
+    // Show loading toast
+    const loadingToast = toast.loading("Loading audio converter...");
+
+    // Lazy load ffmpeg
+    const ffmpeg = await loadFFmpeg();
+
+    toast.dismiss(loadingToast);
+    toast.loading(`Converting to ${outputFormat.toUpperCase()}...`);
+
+    // Determine input extension
+    let inputExt = "input";
+    if (file instanceof File) {
+      const extension = file.name.split(".").pop();
+      inputExt = extension || "input";
+    }
+    const inputFileName = `input.${inputExt}`;
+    const outputFileName = `output.${outputFormat}`;
+
+    // Write input file to ffmpeg's virtual file system
+    const inputData = new Uint8Array(await file.arrayBuffer());
+    await ffmpeg.writeFile(inputFileName, inputData);
+
+    // Configure conversion based on output format
+    const conversionArgs = getConversionArgs(outputFormat);
+
+    // Execute conversion
+    await ffmpeg.exec(["-i", inputFileName, ...conversionArgs, outputFileName]);
+
+    // Read the output file
+    const data = await ffmpeg.readFile(outputFileName);
+    const outputBlob = new Blob([new Uint8Array(data as Uint8Array)], {
+      type: getMimeType(outputFormat),
+    });
+
+    // Clean up virtual file system
+    await ffmpeg.deleteFile(inputFileName);
+    await ffmpeg.deleteFile(outputFileName);
+
+    toast.dismiss();
+    return outputBlob;
+  } catch (error) {
+    toast.dismiss();
+    console.error("Audio conversion error:", error);
+    throw new Error(`Failed to convert audio to ${outputFormat}`);
+  }
+}
+
+/**
+ * Get ffmpeg conversion arguments for different formats
+ */
+function getConversionArgs(format: string): string[] {
+  switch (format.toLowerCase()) {
+    case "mp3":
+      return ["-q:a", "2", "-ar", "44100"]; // High quality VBR
+    case "wav":
+      return ["-ar", "44100", "-ac", "2"]; // 44.1kHz, stereo
+    case "m4a":
+      return ["-c:a", "aac", "-b:a", "192k"]; // AAC codec, 192kbps
+    case "ogg":
+      return ["-c:a", "libvorbis", "-q:a", "6"]; // Vorbis codec, quality 6
+    case "flac":
+      return ["-c:a", "flac", "-compression_level", "5"]; // Lossless
+    case "aac":
+      return ["-c:a", "aac", "-b:a", "192k"]; // 192kbps
+    default:
+      return ["-q:a", "2"]; // Default to high quality
+  }
+}
+
+/**
+ * Get MIME type for audio format
+ */
+function getMimeType(format: string): string {
+  const mimeTypes: Record<string, string> = {
+    mp3: "audio/mpeg",
+    wav: "audio/wav",
+    m4a: "audio/mp4",
+    ogg: "audio/ogg",
+    flac: "audio/flac",
+    aac: "audio/aac",
+  };
+  return mimeTypes[format.toLowerCase()] || "audio/mpeg";
+}
+
+/**
  * Download audio blob as MP3 file
  *
  * @param audioBlob - Input audio blob

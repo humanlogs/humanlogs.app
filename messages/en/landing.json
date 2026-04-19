@@ -3,6 +3,7 @@
         "nav": {
             "home": "Home",
             "useCases": "Use Cases",
+            "freeTools": "Free Tools",
             "pricing": "Pricing",
             "github": "Github",
             "contact": "Contact",
@@ -22,8 +23,8 @@
     },
     "hero": {
         "title": "Fast, confidential transcription for your research interviews.",
-        "subtitle": "Build and refine transcripts 4 times faster thanks to our unique editor.",
-        "startForFree": "Start for Free",
+        "subtitle": "Receive your transcripts in 2 minutes, with 98% accuracy, in over 100 languages. Then easily refine them with our powerful editor.",
+        "startForFree": "Use it for free",
         "contactSales": "Contact sales",
         "rating": "from 500+ researchers and students",
         "pillars": {
@@ -96,7 +97,7 @@
             "bulkUpload": "Bulk upload",
             "customVocabulary": "Custom vocabulary",
             "speakerDiarization": "Speaker diarization",
-            "languages": "32+ languages",
+            "languages": "100+ languages",
             "audioPlayback": "Audio playback",
             "audioEditor": "Audio-based text editor",
             "euProcessors": "EU-based sub processors",
@@ -281,7 +282,7 @@
     "cta": {
         "title": "Ready to transform your transcription workflow?",
         "subtitle": "Join thousands of researchers and professionals using Humanlogs for fast, secure transcription.",
-        "startForFree": "Start for Free",
+        "startForFree": "Use it for free",
         "contactSales": "Contact sales"
     },
     "alternatives": {
@@ -291,7 +292,7 @@
         "cta": {
             "title": "Experience the Humanlogs difference",
             "subtitle": "Try our unique audio-based editor and end-to-end encryption for yourself.",
-            "startForFree": "Start for Free",
+            "startForFree": "Use it for free",
             "contactSales": "Contact sales"
         }
     },
@@ -308,7 +309,7 @@
             "features": [
                 "End-to-end encryption",
                 "Zero retention transcription",
-                "Audio-based text editor",
+                "Advanced audio-based editor",
                 "GDPR compliant",
                 "Self-hostable / Open source",
                 "Highest transcription quality",
@@ -340,7 +341,7 @@
             "features": [
                 "End-to-end encryption",
                 "Zero retention transcription",
-                "Audio-based text editor",
+                "Advanced audio-based editor",
                 "GDPR compliant",
                 "Self-hostable / Open source",
                 "Highest transcription quality",
@@ -372,7 +373,7 @@
             "features": [
                 "End-to-end encryption",
                 "Zero retention transcription",
-                "Audio-based text editor",
+                "Advanced audio-based editor",
                 "GDPR compliant",
                 "Self-hostable / Open source",
                 "Highest transcription quality",
@@ -391,6 +392,70 @@
             "contactSales": "Contact sales"
         }
     },
+    "alternativesVook": {
+        "title": "Humanlogs vs Vook.ai",
+        "subtitle": "French transcription service vs privacy-first global platform",
+        "intro": "Vook.ai is a French transcription service with AI-powered tools. Humanlogs offers a more advanced editing experience with end-to-end encryption, Collaboration, and better value for researchers who need privacy and precision.",
+        "comparisonIntro": "Here's how we compare to Vook.ai:",
+        "comparison": {
+            "title": "Feature Comparison",
+            "subtitle": "See how Humanlogs compares to Vook.ai",
+            "featureColumn": "Feature",
+            "usColumn": "Humanlogs",
+            "features": [
+                "End-to-end encryption",
+                "Advanced audio-based editor",
+                "AI tools (summary, etc.)",
+                "Collaboration",
+                "GDPR compliant",
+                "Self-hostable / Open source",
+                "Speaker diarization",
+                "Free tier",
+                "Monthly subscription price",
+                "Monthly hours included",
+                "Pay-as-you-go value",
+                "Custom vocabulary"
+            ]
+        },
+        "cta": {
+            "title": "Better editing, better privacy, better value",
+            "subtitle": "Get more transcription hours with advanced editing and end-to-end encryption.",
+            "startForFree": "Start for Free",
+            "contactSales": "Contact sales"
+        }
+    },
+    "alternativesTranscribe": {
+        "title": "Humanlogs vs Transcribe.com",
+        "subtitle": "Generalist transcription vs research-focused platform",
+        "intro": "Transcribe.com offers general transcription with AI tools but lacks the advanced editing capabilities and privacy features that researchers need. Humanlogs provides 4x more hours per month, end-to-end encryption, and a unique audio-based editor designed for precision work.",
+        "comparisonIntro": "Here's why researchers choose Humanlogs:",
+        "comparison": {
+            "title": "Feature Comparison",
+            "subtitle": "See how Humanlogs compares to Transcribe.com",
+            "featureColumn": "Feature",
+            "usColumn": "Humanlogs",
+            "features": [
+                "End-to-end encryption",
+                "Advanced audio-based editor",
+                "AI tools (summary, etc.)",
+                "Collaboration",
+                "GDPR compliant",
+                "Self-hostable / Open source",
+                "Speaker diarization",
+                "Free tier",
+                "Monthly subscription price",
+                "Monthly hours (at €15/mo)",
+                "Value per hour",
+                "Custom vocabulary"
+            ]
+        },
+        "cta": {
+            "title": "4x more value with superior editing",
+            "subtitle": "Get 20 hours/month with advanced editing instead of just 5 hours with basic tools.",
+            "startForFree": "Start for Free",
+            "contactSales": "Contact sales"
+        }
+    },
     "useCases": {
         "title": "Transcription for every workflow",
         "subtitle": "Discover how professionals use Humanlogs",
@@ -398,7 +463,7 @@
         "cta": {
             "title": "Ready for your workflow?",
             "subtitle": "Start transcribing today with the tool built for professionals.",
-            "startForFree": "Start for Free",
+            "startForFree": "Use it for free",
             "contactSales": "Contact sales"
         }
     }

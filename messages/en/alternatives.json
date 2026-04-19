@@ -1,0 +1,162 @@
+{
+    "alternativesOtter": {
+        "title": "Humanlogs vs Otter.ai",
+        "subtitle": "Both are powerful transcription tools, but with different strengths",
+        "intro": "Otter.ai is a popular choice for meetings and live transcription. Humanlogs is built specifically for researchers and professionals who need privacy, advanced editing capabilities, and support for longer interviews and sensitive data.",
+        "comparisonIntro": "Here's how we differ from Otter.ai:",
+        "comparison": {
+            "title": "Feature Comparison",
+            "subtitle": "See how Humanlogs compares to Otter.ai",
+            "featureColumn": "Feature",
+            "usColumn": "Humanlogs",
+            "features": [
+                "End-to-end encryption",
+                "Zero retention transcription",
+                "Audio-based text editor",
+                "GDPR compliant",
+                "Self-hostable / Open source",
+                "Highest transcription quality",
+                "Custom vocabulary",
+                "Speaker diarization",
+                "Collaboration",
+                "Free tier",
+                "Monthly subscription",
+                "Advanced export formats"
+            ]
+        },
+        "cta": {
+            "title": "Try Humanlogs for your research",
+            "subtitle": "Perfect for sensitive interviews and long-form content with complete privacy control.",
+            "startForFree": "Use it for free",
+            "contactSales": "Contact sales"
+        }
+    },
+    "alternativesGoodtape": {
+        "title": "Humanlogs vs Goodtape.io",
+        "subtitle": "Two privacy-focused transcription tools with different approaches",
+        "intro": "Both Humanlogs and Goodtape.io prioritize privacy and are designed for researchers. However, we differ in our approach to editing, encryption architecture, and platform flexibility.",
+        "comparisonIntro": "Here's how we compare:",
+        "comparison": {
+            "title": "Feature Comparison",
+            "subtitle": "See how Humanlogs compares to Goodtape.io",
+            "featureColumn": "Feature",
+            "usColumn": "Humanlogs",
+            "features": [
+                "End-to-end encryption",
+                "Zero retention transcription",
+                "Audio-based text editor",
+                "GDPR compliant",
+                "Self-hostable / Open source",
+                "Highest transcription quality",
+                "Custom vocabulary",
+                "Speaker diarization",
+                "Collaboration",
+                "Free tier",
+                "Monthly subscription",
+                "Advanced export formats"
+            ]
+        },
+        "cta": {
+            "title": "Experience our unique editor",
+            "subtitle": "See why researchers prefer our audio-based editing workflow for faster corrections.",
+            "startForFree": "Use it for free",
+            "contactSales": "Contact sales"
+        }
+    },
+    "alternativesSpeakr": {
+        "title": "Humanlogs vs Speakr",
+        "subtitle": "Different tools for different needs",
+        "intro": "Speakr focuses on meeting transcription and team collaboration. Humanlogs is built for researchers, journalists, and professionals who need privacy-first transcription with advanced editing capabilities for long-form content.",
+        "comparisonIntro": "Here's how we stack up:",
+        "comparison": {
+            "title": "Feature Comparison",
+            "subtitle": "See how Humanlogs compares to Speakr",
+            "featureColumn": "Feature",
+            "usColumn": "Humanlogs",
+            "features": [
+                "End-to-end encryption",
+                "Zero retention transcription",
+                "Audio-based text editor",
+                "GDPR compliant",
+                "Self-hostable / Open source",
+                "Highest transcription quality",
+                "Custom vocabulary",
+                "Speaker diarization",
+                "Collaboration",
+                "Free tier",
+                "Monthly subscription",
+                "Advanced export formats"
+            ]
+        },
+        "cta": {
+            "title": "Built for privacy and precision",
+            "subtitle": "Perfect for sensitive research interviews and investigative journalism.",
+            "startForFree": "Use it for free",
+            "contactSales": "Contact sales"
+        }
+    },
+    "alternativesVook": {
+        "title": "Humanlogs vs Vook.ai",
+        "subtitle": "French transcription service vs privacy-first global platform",
+        "intro": "Vook.ai is a French transcription service with AI-powered tools. Humanlogs offers a more advanced editing experience with end-to-end encryption, Collaboration, and better value for researchers who need privacy and precision.",
+        "comparisonIntro": "Here's how we compare to Vook.ai:",
+        "comparison": {
+            "title": "Feature Comparison",
+            "subtitle": "See how Humanlogs compares to Vook.ai",
+            "featureColumn": "Feature",
+            "usColumn": "Humanlogs",
+            "features": [
+                "End-to-end encryption",
+                "Advanced audio-based editor",
+                "AI tools (summary, etc.)",
+                "Collaboration",
+                "GDPR compliant",
+                "Self-hostable / Open source",
+                "Speaker diarization",
+                "Free tier (minutes/month)",
+                "Monthly subscription price",
+                "Monthly hours included",
+                "Pay-as-you-go option",
+                "Custom vocabulary"
+            ]
+        },
+        "cta": {
+            "title": "Better editing, better privacy, better value",
+            "subtitle": "Get more transcription hours with advanced editing and end-to-end encryption.",
+            "startForFree": "Use it for free",
+            "contactSales": "Contact sales"
+        }
+    },
+    "alternativesTranscribe": {
+        "title": "Humanlogs vs Transcribe.com",
+        "subtitle": "Generalist transcription vs research-focused platform",
+        "intro": "Transcribe.com offers general transcription with AI tools but lacks the advanced editing capabilities and privacy features that researchers need. Humanlogs provides 4x more hours per month, end-to-end encryption, and a unique audio-based editor designed for precision work.",
+        "comparisonIntro": "Here's why researchers choose Humanlogs:",
+        "comparison": {
+            "title": "Feature Comparison",
+            "subtitle": "See how Humanlogs compares to Transcribe.com",
+            "featureColumn": "Feature",
+            "usColumn": "Humanlogs",
+            "features": [
+                "End-to-end encryption",
+                "Advanced audio-based editor",
+                "AI tools (summary, etc.)",
+                "Collaboration",
+                "GDPR compliant",
+                "Self-hostable / Open source",
+                "Speaker diarization",
+                "Free tier",
+                "Monthly subscription price",
+                "Monthly hours (at €15/mo)",
+                "Value per hour",
+                "Custom vocabulary"
+            ]
+        },
+        "cta": {
+            "title": "4x more value with superior editing",
+            "subtitle": "Get 20 hours/month with advanced editing instead of just 5 hours with basic tools.",
+            "startForFree": "Use it for free",
+            "contactSales": "Contact sales"
+        }
+    }
+}

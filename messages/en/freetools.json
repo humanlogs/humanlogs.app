@@ -1,0 +1,96 @@
+{
+    "freetools": {
+        "title": "Free Audio & Video Conversion Tools",
+        "subtitle": "Convert audio and video files directly in your browser - 100% private, no uploads required",
+        "popularTools": "Popular Tools",
+        "allTools": "All Conversion Tools",
+        "backToTools": "Back to all tools",
+        "tools": {
+            "videoToAudio": {
+                "title": "Video to Audio Converter",
+                "description": "Extract audio from video files (MP4, AVI, MOV, etc.)",
+                "seoTitle": "How to Convert Video to Audio",
+                "seoDescription": "Our video to audio converter extracts high-quality audio from any video format. All processing happens in your browser - your files never leave your device. Perfect for extracting podcasts, music, or interviews from video files."
+            },
+            "audioCompression": {
+                "title": "Audio Compression Tool",
+                "description": "Reduce audio file size while maintaining quality",
+                "seoTitle": "Compress Audio Files Online",
+                "seoDescription": "Compress large audio files to smaller sizes without significant quality loss. Choose from multiple formats and compression levels to find the perfect balance between file size and audio quality."
+            },
+            "mp3ToWav": {
+                "title": "MP3 to WAV Converter",
+                "description": "Convert MP3 files to uncompressed WAV format",
+                "seoTitle": "Convert MP3 to WAV Format",
+                "seoDescription": "Convert compressed MP3 files to uncompressed WAV format for professional audio editing. WAV files provide lossless audio quality, making them ideal for music production and audio engineering."
+            },
+            "srtTester": {
+                "title": "SRT Subtitle Tester & Validator",
+                "description": "Test and validate SRT subtitle files with video preview",
+                "seoTitle": "Test Your SRT Subtitles",
+                "seoDescription": "Upload your video and SRT subtitle file to preview how they look together. Our validator checks for common issues like timing errors, overlaps, and formatting problems - all in your browser.",
+                "whatIsSRT": "What is an SRT File?",
+                "srtExplanation": "SRT (SubRip Subtitle) is the most common subtitle format used for videos. It contains the subtitle text along with start and end timestamps. Our tool helps you validate that your SRT file is properly formatted and synced with your video.",
+                "commonIssues": "Common SRT Issues We Detect",
+                "issue1": "Timing errors (end time before start time)",
+                "issue2": "Overlapping subtitles",
+                "issue3": "Subtitles out of chronological order",
+                "issue4": "Very short display times (< 200ms)",
+                "featuresTitle": "What This Tool Does",
+                "feature1Title": "Validate Format",
+                "feature1Description": "Automatically detect and report SRT formatting issues and timing errors",
+                "feature2Title": "Video Preview",
+                "feature2Description": "See exactly how your subtitles will look on your video before publishing",
+                "feature3Title": "Quality Check",
+                "feature3Description": "Identify overlaps, timing issues, and readability problems"
+            }
+        },
+        "srtTester": {
+            "uploadVideo": "Upload Video File",
+            "dragDropVideo": "Drag & drop or click to select",
+            "selectVideo": "Choose Video",
+            "uploadSRT": "Upload SRT File",
+            "dragDropSRT": "Drag & drop or click to select",
+            "selectSRT": "Choose SRT File",
+            "validationResults": "Validation Results",
+            "noErrors": "✓ No errors found! Your SRT file looks good",
+            "subtitles": "subtitles",
+            "issuesFound": "issues found in your SRT file",
+            "preview": "Video Preview with Subtitles",
+            "privacyTitle": "100% Private",
+            "privacyMessage": "All validation happens in your browser. Your video and subtitle files never leave your device."
+        },
+        "converter": {
+            "uploadPrompt": "Drop your file here or click to browse",
+            "dragDrop": "Drag and drop or click to select a file",
+            "selectFile": "Select File",
+            "outputFormat": "Output Format",
+            "fileName": "File Name",
+            "fileSize": "File Size",
+            "inputFormat": "Input Format",
+            "targetFormat": "Target Format",
+            "converting": "Converting...",
+            "convert": "Convert Now",
+            "download": "Download Converted File",
+            "conversionSuccess": "Conversion completed successfully!",
+            "conversionError": "Failed to convert file. Please try again.",
+            "privacyTitle": "100% Private",
+            "privacyMessage": "All conversions happen in your browser. Your files never leave your device and are not uploaded to any server."
+        },
+        "features": {
+            "title": "Why Use Our Conversion Tools?",
+            "privacy": {
+                "title": "Complete Privacy",
+                "description": "All processing happens in your browser. No uploads, no cloud storage, no tracking."
+            },
+            "fast": {
+                "title": "Lightning Fast",
+                "description": "Convert files instantly without waiting for uploads or downloads from servers."
+            },
+            "free": {
+                "title": "100% Free",
+                "description": "All tools are completely free with no file size limits or usage restrictions."
+            }
+        }
+    }
+}

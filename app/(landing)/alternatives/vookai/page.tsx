@@ -7,23 +7,23 @@ import {
   FeaturesSection,
 } from "../../components/sections";
 
-export default function SpeakrPage() {
+export default function VookAIPage() {
   return (
     <>
-      <SpeakrContent />
+      <VookAIContent />
       <ComparisonTable
-        competitorName="Speakr"
-        translationKey="alternativesSpeakr"
+        competitorName="Vook.ai"
+        translationKey="alternativesVook"
       />
       <div className="py-12"></div>
       <FeaturesSection />
-      <CTASection translationKey="alternativesSpeakr.cta" />
+      <CTASection translationKey="alternativesVook.cta" />
     </>
   );
 }
 
-function SpeakrContent() {
-  const t = useTranslations("alternativesSpeakr");
+function VookAIContent() {
+  const t = useTranslations("alternativesVook");
 
   return (
     <section className="container mx-auto px-4 py-24 md:px-6">

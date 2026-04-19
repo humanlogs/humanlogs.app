@@ -1,7 +1,11 @@
 "use client";
 
 import { useTranslations } from "@/components/locale-provider";
-import { CTASection, ComparisonTable } from "../../components/sections";
+import {
+  CTASection,
+  ComparisonTable,
+  FeaturesSection,
+} from "../../components/sections";
 
 export default function OtterAIPage() {
   return (
@@ -12,6 +16,7 @@ export default function OtterAIPage() {
         translationKey="alternativesOtter"
       />
       <div className="py-12"></div>
+      <FeaturesSection />
       <CTASection translationKey="alternativesOtter.cta" />
     </>
   );

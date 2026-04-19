@@ -7,23 +7,23 @@ import {
   FeaturesSection,
 } from "../../components/sections";
 
-export default function SpeakrPage() {
+export default function TranscribeComPage() {
   return (
     <>
-      <SpeakrContent />
+      <TranscribeComContent />
       <ComparisonTable
-        competitorName="Speakr"
-        translationKey="alternativesSpeakr"
+        competitorName="Transcribe.com"
+        translationKey="alternativesTranscribe"
       />
       <div className="py-12"></div>
       <FeaturesSection />
-      <CTASection translationKey="alternativesSpeakr.cta" />
+      <CTASection translationKey="alternativesTranscribe.cta" />
     </>
   );
 }
 
-function SpeakrContent() {
-  const t = useTranslations("alternativesSpeakr");
+function TranscribeComContent() {
+  const t = useTranslations("alternativesTranscribe");
 
   return (
     <section className="container mx-auto px-4 py-24 md:px-6">

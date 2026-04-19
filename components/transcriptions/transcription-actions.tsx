@@ -16,6 +16,7 @@ import {
   exportAsCSV,
   exportAsJSON,
   exportAsPDF,
+  exportAsSRT,
   exportAsTXTWithOptions,
   exportAsWord,
 } from "@/lib/utils/export-utils";
@@ -130,6 +131,21 @@ export function TranscriptionActions({
     } catch (error) {
       toast.error(t("actions.failedExportCSV"));
       console.error("Export CSV error:", error);
+    }
+  };
+
+  const handleExportSRT = () => {
+    const content = getTranscriptionContent();
+    if (!content) {
+      toast.error(t("actions.noDataAvailable"));
+      return;
+    }
+    try {
+      exportAsSRT(content, transcriptionName);
+      toast.success(t("actions.exportedSRT"));
+    } catch (error) {
+      toast.error(t("actions.failedExportSRT"));
+      console.error("Export SRT error:", error);
     }
   };
 
@@ -332,6 +348,10 @@ export function TranscriptionActions({
       <DropdownMenuItem onClick={handleExportTXT}>
         <FileTextIcon className="h-4 w-4 mr-2" />
         {t("actions.txt")}
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={handleExportSRT}>
+        <FileTextIcon className="h-4 w-4 mr-2" />
+        {t("actions.srt")}
       </DropdownMenuItem>
       <DropdownMenuItem onClick={handleExportWord}>
         <FileIcon className="h-4 w-4 mr-2" />
