@@ -1,6 +1,11 @@
-import { redirect } from "next/navigation";
+import LandingPage from "./(landing)/[locale]/page";
+import { Layout } from "./(landing)/_layout";
 
-export default function RootPage() {
+export default function RootPage(props: any) {
   // Middleware will handle the redirect, but this is a fallback
-  redirect("/en");
+  return (
+    <Layout>
+      <LandingPage {...props} />
+    </Layout>
+  );
 }
