@@ -19,7 +19,7 @@ export function getBaseTemplate(
     footerText?: string;
   },
 ): string {
-  const title = options?.title || "Transcription App";
+  const title = options?.title || "HumanLogs";
   const preheader = options?.preheader || "";
   const footerText =
     options?.footerText ||
@@ -136,7 +136,7 @@ export function getBaseTemplate(
       <div class="email-footer">
         <p>${footerText}</p>
         <p style="margin-top: 10px; font-size: 12px; color: #9ca3af;">
-          &copy; ${new Date().getFullYear()} Transcription App. All rights reserved.
+          &copy; ${new Date().getFullYear()} HumanLogs. All rights reserved.
         </p>
       </div>
     </div>
@@ -165,7 +165,7 @@ export function getWelcomeEmailTemplate(data: {
   loginUrl?: string;
 }): EmailTemplate {
   const content = `
-    <h2>Welcome to Transcription App!</h2>
+    <h2>Welcome to HumanLogs!</h2>
     <p>Hi ${data.userName},</p>
     <p>Welcome aboard! We're excited to have you on our platform. You can now start transcribing your audio files with ease.</p>
     ${
@@ -174,16 +174,16 @@ export function getWelcomeEmailTemplate(data: {
         : ""
     }
     <p>If you have any questions, feel free to reach out to our support team.</p>
-    <p>Best regards,<br>The Transcription App Team</p>
+    <p>Best regards,<br>HumanLogs Team</p>
   `;
 
   const html = getBaseTemplate(content, {
     title: "Welcome!",
-    preheader: "Welcome to Transcription App",
+    preheader: "Welcome to HumanLogs",
   });
 
   const text = `
-Welcome to Transcription App!
+Welcome to HumanLogs!
 
 Hi ${data.userName},
 
@@ -194,11 +194,11 @@ ${data.loginUrl ? `Get started: ${data.loginUrl}` : ""}
 If you have any questions, feel free to reach out to our support team.
 
 Best regards,
-The Transcription App Team
+HumanLogs Team
   `.trim();
 
   return {
-    subject: "Welcome to Transcription App!",
+    subject: "Welcome to HumanLogs!",
     html,
     text,
   };
@@ -223,12 +223,12 @@ export function getPasswordResetEmailTemplate(data: {
     </p>
     <p>This link will expire in ${expiresIn}.</p>
     <p>If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
-    <p>Best regards,<br>The Transcription App Team</p>
+    <p>Best regards,<br>HumanLogs Team</p>
   `;
 
   const html = getBaseTemplate(content, {
     title: "Reset Your Password",
-    preheader: "Reset your password for Transcription App",
+    preheader: "Reset your password for HumanLogs",
   });
 
   const text = `
@@ -245,7 +245,7 @@ This link will expire in ${expiresIn}.
 If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.
 
 Best regards,
-The Transcription App Team
+HumanLogs Team
   `.trim();
 
   return {
@@ -272,7 +272,7 @@ export function getTranscriptionCompletedEmailTemplate(data: {
     <p style="text-align: center;">
       <a href="${data.transcriptionUrl}" class="button">View Transcription</a>
     </p>
-    <p>Best regards,<br>The Transcription App Team</p>
+    <p>Best regards,<br>HumanLogs Team</p>
   `;
 
   const html = getBaseTemplate(content, {
@@ -292,7 +292,7 @@ ${data.duration ? `Total duration: ${data.duration}` : ""}
 View your transcription: ${data.transcriptionUrl}
 
 Best regards,
-The Transcription App Team
+HumanLogs Team
   `.trim();
 
   return {
@@ -321,7 +321,7 @@ export function getNotificationEmailTemplate(data: {
         ? `<p style="text-align: center;"><a href="${data.actionUrl}" class="button">${data.actionText}</a></p>`
         : ""
     }
-    <p>Best regards,<br>The Transcription App Team</p>
+    <p>Best regards,<br>HumanLogs Team</p>
   `;
 
   const html = getBaseTemplate(content, {
@@ -339,7 +339,7 @@ ${data.message}
 ${data.actionUrl && data.actionText ? `${data.actionText}: ${data.actionUrl}` : ""}
 
 Best regards,
-The Transcription App Team
+HumanLogs Team
   `.trim();
 
   return {
@@ -387,7 +387,7 @@ export function getAccountDeletionEmailTemplate(data: {
 
     <p>If you have any questions or concerns, please contact our support team.</p>
 
-    <p>Best regards,<br>The Transcription App Team</p>
+    <p>Best regards,<br>HumanLogs Team</p>
   `;
 
   const html = getBaseTemplate(content, {
@@ -419,7 +419,7 @@ you can safely ignore this email and your account will remain active.
 If you have any questions or concerns, please contact our support team.
 
 Best regards,
-The Transcription App Team
+HumanLogs Team
   `.trim();
 
   return {

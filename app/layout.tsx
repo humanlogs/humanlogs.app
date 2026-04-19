@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "humanlogs.app",
+  title: "Privacy-First Transcription for Research - humanlogs.app",
   description:
     "Audio transcription software built for research. Fast, secure, and privacy-first.",
   icons: {

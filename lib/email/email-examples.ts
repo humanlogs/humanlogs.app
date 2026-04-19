@@ -121,7 +121,7 @@ export async function sendEmailWithAttachment(
     <h2>Your Transcription is Attached</h2>
     <p>Hi ${userName},</p>
     <p>Please find your transcription for <strong>${fileName}</strong> attached to this email.</p>
-    <p>Best regards,<br>The Transcription App Team</p>
+    <p>Best regards,<br>HumanLogs Team</p>
   `;
 
   const html = getBaseTemplate(content, {
@@ -155,7 +155,7 @@ export async function sendBulkNotification(
   const content = `
     <h2>${title}</h2>
     <p>${message}</p>
-    <p>Best regards,<br>The Transcription App Team</p>
+    <p>Best regards,<br>HumanLogs Team</p>
   `;
 
   const html = getBaseTemplate(content, {
@@ -182,7 +182,7 @@ export async function sendEmailWithCopies(
 ) {
   const content = `
     <p>${message}</p>
-    <p>Best regards,<br>The Transcription App Team</p>
+    <p>Best regards,<br>HumanLogs Team</p>
   `;
 
   const html = getBaseTemplate(content, {

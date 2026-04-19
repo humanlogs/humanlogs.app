@@ -1,9 +1,9 @@
 ---
 name: transcription-app
-description: Audio transcription application with ElevenLabs integration, project management, and multi-speaker support. Includes architecture, data models, and feature requirements for the transcription workflow.
+description: Audio HumanLogslication with ElevenLabs integration, project management, and multi-speaker support. Includes architecture, data models, and feature requirements for the transcription workflow.
 ---
 
-# Transcription App
+# HumanLogs
 
 ## Overview
 
