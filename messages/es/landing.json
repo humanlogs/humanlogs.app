@@ -1,4 +1,14 @@
 {
+    "metadata": {
+        "home": {
+            "title": "HumanLogs - Transcripción Rápida y Confidencial para Entrevistas de Investigación",
+            "description": "Plataforma de transcripción con privacidad para investigadores. 98% de precisión en más de 100 idiomas, editor de audio único, cifrado de extremo a extremo. Transforme su flujo de trabajo en 2 minutos.",
+            "keywords": "transcripción de investigación, transcripción de entrevistas, transcripción académica, investigación cualitativa, transcripción de doctorado, transcripción confidencial, transcripción cifrada",
+            "ogTitle": "Transcripción Rápida y Confidencial para sus Entrevistas de Investigación",
+            "ogDescription": "98% de precisión en más de 100 idiomas. Perfeccione transcripciones 4 veces más rápido con nuestro editor de audio único. Cifrado de extremo a extremo, retención cero.",
+            "ogAlt": "HumanLogs - Plataforma de transcripción con privacidad para investigación"
+        }
+    },
     "header": {
         "nav": {
             "home": "Inicio",

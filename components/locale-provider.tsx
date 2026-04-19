@@ -20,6 +20,18 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
 
   // Load saved locale from localStorage on mount
   React.useEffect(() => {
+    // Try to extract locale from URL first (for landing pages)
+    const pathname =
+      typeof window !== "undefined" ? window.location.pathname : "";
+    const segments = pathname.split("/").filter(Boolean);
+    const urlLocale = segments[0];
+
+    if (urlLocale && locales.includes(urlLocale)) {
+      setLocaleState(urlLocale as Locale);
+      return;
+    }
+
+    // Fallback to localStorage
     const saved = localStorage.getItem("transcription-locale");
     if (saved && locales.includes(saved)) {
       setLocaleState(saved as Locale);

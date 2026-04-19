@@ -1,4 +1,14 @@
 {
+    "metadata": {
+        "home": {
+            "title": "HumanLogs - Schnelle, Vertrauliche Transkription für Forschungsinterviews",
+            "description": "Datenschutzorientierte Transkriptionsplattform für Forscher. 98% Genauigkeit in 100+ Sprachen, einzigartiger Audio-Editor, Ende-zu-Ende-Verschlüsselung. Transformieren Sie Ihren Workflow in 2 Minuten.",
+            "keywords": "Forschungstranskription, Interview-Transkription, akademische Transkription, qualitative Forschung, Promotions-Transkription, vertrauliche Transkription, verschlüsselte Transkription",
+            "ogTitle": "Schnelle, Vertrauliche Transkription für Ihre Forschungsinterviews",
+            "ogDescription": "98% Genauigkeit in 100+ Sprachen. Verfeinern Sie Transkripte 4x schneller mit unserem einzigartigen Audio-Editor. Ende-zu-Ende-Verschlüsselung, keine Aufbewahrung.",
+            "ogAlt": "HumanLogs - Datenschutzorientierte Transkriptionsplattform für die Forschung"
+        }
+    },
     "header": {
         "nav": {
             "home": "Startseite",

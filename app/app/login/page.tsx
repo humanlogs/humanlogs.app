@@ -10,10 +10,10 @@ import { MicrosoftLoginButton } from "react-social-login-buttons";
 import { LinkedInLoginButton } from "react-social-login-buttons";
 import { FacebookLoginButton } from "react-social-login-buttons";
 import { toast } from "sonner";
-import { AnimatedWave } from "@/app/(landing)/components/sections/animated-wave";
-import { AnimatedTranscriptCard } from "@/app/(landing)/components/sections/animated-transcript-card";
-import { TestimonialsSection } from "../../(landing)/components/sections";
-import { TestimonialCard } from "../../(landing)/components/sections/testimonials-section";
+import { AnimatedWave } from "@/app/(landing)/[locale]/components/sections/animated-wave";
+import { AnimatedTranscriptCard } from "@/app/(landing)/[locale]/components/sections/animated-transcript-card";
+import { TestimonialsSection } from "../../(landing)/[locale]/components/sections";
+import { TestimonialCard } from "../../(landing)/[locale]/components/sections/testimonials-section";
 
 type AuthProvider =
   | "google-oauth2"

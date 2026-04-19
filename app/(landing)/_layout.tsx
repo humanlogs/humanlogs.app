@@ -2,9 +2,9 @@
 
 import Script from "next/script";
 import { VisitTracker } from "@/components/visit-tracker";
-import { LandingFooter } from "./components/landing-footer";
-import { LandingHeader } from "./components/landing-header";
-import { CookieConsentBanner } from "./components/cookie-consent-banner";
+import { LandingFooter } from "./[locale]/components/landing-footer";
+import { LandingHeader } from "./[locale]/components/landing-header";
+import { CookieConsentBanner } from "./[locale]/components/cookie-consent-banner";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 

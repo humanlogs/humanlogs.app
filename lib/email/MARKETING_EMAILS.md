@@ -160,14 +160,17 @@ import {
   sendDiscountMarketingEmail,
 } from "@/lib/email/marketing-email-service";
 
-// Test welcome email
-await sendWelcomeMarketingEmail(userId, email, name);
+// Test welcome email (English)
+await sendWelcomeMarketingEmail(userId, email, name, "en");
 
-// Test follow-up email
-await sendFollowUpMarketingEmail(userId, email, name);
+// Test follow-up email (French)
+await sendFollowUpMarketingEmail(userId, email, name, "fr");
 
-// Test discount email
-await sendDiscountMarketingEmail(userId, email, name);
+// Test discount email (Spanish)
+await sendDiscountMarketingEmail(userId, email, name, "es");
+
+// Test with German
+await sendWelcomeMarketingEmail(userId, email, name, "de");
 ```
 
 ## Monitoring
@@ -203,3 +206,5 @@ Check the server logs for marketing email activity:
 - Benefits of upgrading
 - Last email in the series
 - Strong call-to-action with personal touch
+
+**Note:** All three emails are fully translated in English, French, Spanish, and German. Subjects, content, and call-to-action buttons are localized based on the user's language preference.
