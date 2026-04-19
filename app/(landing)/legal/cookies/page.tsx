@@ -58,9 +58,7 @@ export default function Page() {
           <li>Improve website performance and user experience</li>
           <li>Understand which pages are most popular</li>
         </ul>
-        <p>
-          Google Analytics may set the following cookies:
-        </p>
+        <p>Google Analytics may set the following cookies:</p>
         <ul>
           <li>
             <strong>_ga:</strong> Used to distinguish users (expires after 2
@@ -120,9 +118,9 @@ export default function Page() {
 
         <h2>Updates to This Policy</h2>
         <p>
-          We may update this Cookie Policy from time to time. The "Last
-          updated" date at the top of this page indicates when the policy was
-          last revised.
+          We may update this Cookie Policy from time to time. The "Last updated"
+          date at the top of this page indicates when the policy was last
+          revised.
         </p>
 
         <h2>Contact</h2>
