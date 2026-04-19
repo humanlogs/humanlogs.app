@@ -29,7 +29,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
 
     // Create confirmation URL
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const confirmationUrl = `${baseUrl}/account/confirm-deletion?token=${token}`;
+    const confirmationUrl = `${baseUrl}/app/account/confirm-deletion?token=${token}`;
 
     // Send email
     const emailTemplate = getAccountDeletionEmailTemplate({
