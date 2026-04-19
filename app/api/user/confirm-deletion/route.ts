@@ -78,12 +78,6 @@ export async function POST(request: Request) {
       // Delete deletion tokens
       prisma.deletionToken.deleteMany({ where: { userId } }),
 
-      // Mark token as used
-      prisma.deletionToken.update({
-        where: { id: deletionToken.id },
-        data: { used: true },
-      }),
-
       // Finally, delete the user
       prisma.user.delete({ where: { id: userId } }),
     ]);

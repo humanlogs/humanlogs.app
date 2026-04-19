@@ -1,12 +1,12 @@
-import { prisma } from "@/lib/prisma";
-import { sendEmail } from "@/lib/email/mailer";
 import {
-  getWelcomeMarketingEmailTemplate,
-  getFollowUpEmailTemplate,
   getDiscountEmailTemplate,
-} from "@/lib/email/email-templates-marketing";
+  getFollowUpEmailTemplate,
+  getWelcomeMarketingEmailTemplate,
+} from "./email-templates-marketing";
+import { prisma } from "../prisma";
+import { sendEmail } from "./mailer";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://humanlogs.app";
 
 /**
  * Send the welcome email to a new user (step 1)
