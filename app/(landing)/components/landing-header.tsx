@@ -108,11 +108,23 @@ export const LandingHeader = () => {
             <Link href="/tools/video-to-audio">
               <DropdownMenuItem>Video to Audio</DropdownMenuItem>
             </Link>
-            <Link href="/tools/audio-compression">
-              <DropdownMenuItem>Audio Compression</DropdownMenuItem>
-            </Link>
             <Link href="/tools/mp3-to-wav">
               <DropdownMenuItem>MP3 to WAV</DropdownMenuItem>
+            </Link>
+            <Link href="/tools/wav-to-mp3">
+              <DropdownMenuItem>WAV to MP3</DropdownMenuItem>
+            </Link>
+            <Link href="/tools/m4a-to-mp3">
+              <DropdownMenuItem>M4A to MP3</DropdownMenuItem>
+            </Link>
+            <Link href="/tools/flac-to-mp3">
+              <DropdownMenuItem>FLAC to MP3</DropdownMenuItem>
+            </Link>
+            <Link href="/tools/ogg-to-mp3">
+              <DropdownMenuItem>OGG to MP3</DropdownMenuItem>
+            </Link>
+            <Link href="/tools/aac-to-mp3">
+              <DropdownMenuItem>AAC to MP3</DropdownMenuItem>
             </Link>
             <Link href="/tools">
               <DropdownMenuItem className="text-blue-600 font-medium">
