@@ -3,6 +3,7 @@
         "nav": {
             "home": "Accueil",
             "useCases": "Cas d'usage",
+            "freeTools": "Outils gratuits",
             "pricing": "Tarifs",
             "github": "Github",
             "contact": "Contact",
