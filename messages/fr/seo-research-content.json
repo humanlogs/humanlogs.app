@@ -1,0 +1,32 @@
+{
+    "transcription-entretiens-recherche-qualitative": {
+        "title": "Logiciel de Transcription pour Entretiens de Recherche Qualitative",
+        "description": "Transcription sécurisée et conforme RGPD pour entretiens de recherche. Interface en français, serveurs EU.",
+        "intro": "La recherche qualitative nécessite des outils de transcription fiables et sécurisés. HumanLogs offre aux chercheurs français une solution conforme RGPD avec chiffrement de bout en bout, éditeur audio-lien, et export vers NVivo et MAXQDA. Conçu spécifiquement pour les workflows de recherche académique."
+    },
+    "transcription-entretien-rgpd-recherche": {
+        "title": "Transcription d'Entretiens Conforme RGPD pour la Recherche",
+        "description": "Conformité RGPD garantie avec hébergement EU, DPA Article 28, et chiffrement de bout en bout.",
+        "intro": "Les chercheurs européens doivent respecter le RGPD lors de la transcription d'entretiens de recherche. HumanLogs garantit la conformité totale avec hébergement exclusif en Europe, contrats de sous-traitance (Article 28), et architecture respectueuse de la vie privée dès la conception."
+    },
+    "logiciel-transcription-these": {
+        "title": "Logiciel de Transcription pour Thèse et Doctorat",
+        "description": "Transcription sécurisée pour doctorants. Chiffrement, éditeur audio-lien, export NVivo, tarifs étudiants.",
+        "intro": "Votre thèse représente des années de travail de recherche. HumanLogs aide les doctorants à transcrire, organiser et analyser leurs entretiens de thèse avec un chiffrement de niveau militaire, un éditeur audio-lien, et des exports vers les logiciels d'analyse qualitative. Concentrez-vous sur votre analyse, pas sur la transcription."
+    },
+    "transcription-entretien-chiffrement": {
+        "title": "Transcription d'Entretiens avec Chiffrement de Bout en Bout",
+        "description": "Chiffrement E2E pour entretiens sensibles. Zéro rétention de données, conformité éthique garantie.",
+        "intro": "Les entretiens de recherche sensibles—psychologie clinique, sociologie, anthropologie—nécessitent un chiffrement absolu. HumanLogs utilise un chiffrement de bout en bout côté client, garantissant que vos enregistrements et transcriptions restent privés. Nous ne pouvons pas accéder à vos données, même sous contrainte légale."
+    },
+    "outil-retranscription-entretien-gratuit": {
+        "title": "Outil de Retranscription d'Entretiens Gratuit pour Chercheurs",
+        "description": "Offre gratuite généreuse : transcriptions illimitées (30 min), chiffrement complet, sans carte bancaire.",
+        "intro": "La recherche académique fonctionne souvent avec des budgets limités. HumanLogs offre l'offre gratuite la plus généreuse pour les chercheurs—transcriptions illimitées jusqu'à 30 minutes chacune, chiffrement complet, et toutes les fonctionnalités principales. Sans carte bancaire, sans frais cachés, gratuit pour toujours pour les petits projets de recherche."
+    },
+    "meilleur-logiciel-transcription-entretien": {
+        "title": "Meilleur Logiciel de Transcription d'Entretiens de Recherche (2026)",
+        "description": "Comparatif complet des outils de transcription. Pourquoi les chercheurs choisissent HumanLogs en 2026.",
+        "intro": "Choisir le bon logiciel de transcription peut faire la différence dans votre workflow de recherche qualitative. Après avoir testé des dizaines d'outils, les chercheurs en 2026 choisissent systématiquement HumanLogs pour sa combinaison de confidentialité, rapidité et fonctionnalités spécifiques à la recherche. Voici pourquoi c'est le meilleur logiciel de transcription pour la recherche académique cette année."
+    }
+}

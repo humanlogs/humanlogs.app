@@ -1,0 +1,72 @@
+{
+    "encrypted-transcription-research-interviews": {
+        "title": "End-to-End Encrypted Transcription for Research Interviews",
+        "description": "Military-grade encryption for confidential research interviews. GDPR, HIPAA, and IRB compliant transcription with zero data retention.",
+        "intro": "When conducting sensitive research interviews—from clinical psychology to sociology—participant confidentiality is paramount. HumanLogs provides military-grade end-to-end encryption, ensuring that your interview recordings and transcripts remain completely private. No third parties, not even us, can access your research data."
+    },
+    "irb-compliant-transcription-qualitative-research": {
+        "title": "IRB-Compliant Transcription Software for Qualitative Research",
+        "description": "Simplify IRB approval with GDPR/HIPAA documentation, data processing agreements, and encryption protocols for research ethics.",
+        "intro": "Meeting IRB requirements for transcription can be complex. HumanLogs simplifies ethics approval with GDPR/HIPAA compliance documentation, data processing agreements, and encryption protocols that satisfy institutional review boards. Get transcription software designed to meet research ethics standards."
+    },
+    "gdpr-compliant-transcription-phd-interviews": {
+        "title": "GDPR-Compliant Transcription for PhD Research Interviews in Europe",
+        "description": "EU data residency, GDPR compliance, and DPA agreements for European PhD students and researchers.",
+        "intro": "PhD students and researchers in Europe need GDPR-compliant transcription to protect participant rights. HumanLogs is built for European researchers with EU data residency, comprehensive GDPR compliance, and features designed specifically for qualitative research workflows in universities across France, Germany, UK, Netherlands, and beyond."
+    },
+    "eu-data-residency-qualitative-research-transcription": {
+        "title": "EU Data Residency Transcription Tool for European Research",
+        "description": "Guaranteed EU data residency with servers exclusively in Europe for strict data localization requirements.",
+        "intro": "European research institutions increasingly require that data never leaves the EU. HumanLogs provides guaranteed EU data residency with servers exclusively in Europe, meeting strict data localization requirements for universities, research councils, and ethics committees across the European Union."
+    },
+    "encrypted-transcription-clinical-psychology": {
+        "title": "Encrypted Transcription Software for Clinical Psychology Research",
+        "description": "HIPAA-compliant transcription for therapy sessions and clinical interviews with absolute patient confidentiality.",
+        "intro": "Clinical psychology research involves highly sensitive patient data that requires maximum confidentiality. HumanLogs provides end-to-end encryption specifically designed for therapy session transcription, clinical interviews, and psychological research. Meet HIPAA and ethics requirements while accelerating your qualitative analysis."
+    },
+    "open-source-transcription-tool-researchers": {
+        "title": "Open-Source Transcription Tool for Academic Researchers",
+        "description": "Transparent, auditable, self-hostable transcription software for researchers who value open-source principles.",
+        "intro": "Academic researchers increasingly prefer open-source software for transparency, auditability, and institutional control. HumanLogs is open source, allowing you to review the code, verify security claims, and self-host on your university's servers. Freedom, transparency, and research-grade transcription in one tool."
+    },
+    "best-transcription-software-qualitative-research-2026": {
+        "title": "Best Transcription Software for Qualitative Research in 2026",
+        "description": "Comprehensive comparison of research transcription tools. See why researchers choose HumanLogs for privacy and speed.",
+        "intro": "Choosing the right transcription software can make or break your qualitative research workflow. After testing dozens of tools, researchers in 2026 consistently choose HumanLogs for its combination of privacy, speed, and research-specific features. Here's why it's the best transcription software for academic research this year."
+    },
+    "transcription-tool-dissertation-interviews": {
+        "title": "Transcription Tool for PhD Dissertation Interviews",
+        "description": "Protect years of dissertation research with encrypted transcription, audio-linked editing, and NVivo export.",
+        "intro": "Your dissertation interviews contain years of research effort. HumanLogs helps PhD students transcribe, organize, and analyze dissertation interviews with military-grade encryption, audio-linked editing, and export to qualitative analysis software. Focus on your analysis, not transcription drudgery."
+    },
+    "audio-linked-editor-transcription": {
+        "title": "Transcription with Audio-Linked Editor for Faster Research",
+        "description": "Click any word to jump to that audio moment. Verify and edit transcripts 4x faster than traditional tools.",
+        "intro": "Traditional transcription tools force you to manually scan through audio to verify accuracy. HumanLogs' audio-linked editor lets you click any word in the transcript to instantly jump to that moment in the recording. Researchers report 4x faster transcript verification and editing compared to conventional tools."
+    },
+    "transcription-software-phd-students-france": {
+        "title": "Transcription Software for PhD Students in France",
+        "description": "RGPD-compliant transcription with French interface, EU servers, and special PhD student pricing.",
+        "intro": "PhD students in France need transcription software that understands CNRS requirements, RGPD compliance, and French academic workflows. HumanLogs is designed for French researchers with EU data residency, French interface, and compliance documentation for French universities and grandes écoles."
+    },
+    "hipaa-gdpr-transcription-interviews-eu": {
+        "title": "HIPAA & GDPR Compliant Transcription for Clinical Research in EU",
+        "description": "Dual HIPAA and GDPR compliance for international clinical research and US-EU collaborations.",
+        "intro": "Clinical research in Europe often requires dual HIPAA and GDPR compliance—especially for international studies or US-EU collaborations. HumanLogs provides the only transcription software architected for both regulatory frameworks, with comprehensive documentation for ethics boards on both sides of the Atlantic."
+    },
+    "best-free-transcription-software-researchers": {
+        "title": "Best Free Transcription Software for Academic Researchers (2026)",
+        "description": "Most generous free tier for researchers—unlimited transcripts, full encryption, no credit card required.",
+        "intro": "Academic research often operates on tight budgets. HumanLogs offers the most generous free tier for researchers—unlimited transcripts up to 30 minutes each, full encryption, and all core features. No credit card required, no hidden costs, and genuinely free forever for small research projects."
+    },
+    "transcription-tool-academic-interviews": {
+        "title": "Academic Interview Transcription Tool with End-to-End Encryption",
+        "description": "Built by researchers for academic interviews. End-to-end encrypted, IRB approved, integrates with NVivo/MAXQDA.",
+        "intro": "Academic interviews form the foundation of qualitative research in sociology, anthropology, education, and psychology. HumanLogs provides researchers with end-to-end encrypted transcription, audio-linked editing, and export to qualitative analysis software—everything you need for rigorous, ethical academic research."
+    },
+    "transcription-software-qualitative-data-analysis": {
+        "title": "Transcription Software for Qualitative Data Analysis (NVivo, MAXQDA)",
+        "description": "Seamless export to NVivo, MAXQDA, Atlas.ti with speaker labels and timestamps preserved.",
+        "intro": "Qualitative researchers using NVivo, MAXQDA, or Atlas.ti need transcription software that exports cleanly with speaker labels and timestamps preserved. HumanLogs is the only transcription tool built specifically to integrate with qualitative data analysis software, saving hours of reformatting and ensuring data integrity."
+    }
+}

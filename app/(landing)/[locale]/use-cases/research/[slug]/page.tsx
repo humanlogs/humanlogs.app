@@ -2,32 +2,43 @@
 
 import { useTranslations } from "@/components/locale-provider";
 import { cn } from "@/lib/utils/utils";
-import { Shield, Users, Zap, ArrowRight } from "lucide-react";
+import { Shield, Users, Zap } from "lucide-react";
 import {
   CTASection,
   FAQSection,
   TestimonialsSection,
-} from "../../components/sections";
-import Link from "next/link";
+} from "../../../components/sections";
+import { getSeoSlugConfig } from "@/lib/seo-research-slugs";
 import { useParams } from "next/navigation";
-import { EN_SEO_SLUGS, FR_SEO_SLUGS } from "@/lib/seo-research-slugs";
 
-export default function ResearchUseCasePage() {
+export default function ResearchSeoPage() {
   return (
     <>
-      <ResearchContent />
+      <SeoHeroSection />
       <WhyBestSection />
       <FeaturesListSection />
       <TestimonialsSection />
       <FAQSection />
-      <SeoResourcesSection />
       <CTASection translationKey="useCasesResearch.cta" />
     </>
   );
 }
 
-function ResearchContent() {
-  const t = useTranslations("useCasesResearch");
+// Custom hero section for SEO pages
+function SeoHeroSection() {
+  const params = useParams();
+  const slug = params.slug as string;
+  const locale = params.locale as "en" | "fr";
+
+  // Load SEO-specific translations
+  const seoContent = require(`@/messages/${locale}/seo-research-content.json`);
+  const content = seoContent[slug];
+
+  const config = getSeoSlugConfig(slug, locale);
+
+  if (!content) {
+    return null;
+  }
 
   return (
     <section className="container mx-auto px-4 py-24 md:px-6">
@@ -35,21 +46,27 @@ function ResearchContent() {
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-4xl font-bold tracking-tight text-black md:text-5xl mb-4">
-            {t("title")}
+            {content.title}
           </h1>
+          <p className="text-xl text-gray-700 leading-relaxed">
+            {content.intro}
+          </p>
         </div>
 
-        {/* Introduction */}
-        <div className="prose prose-lg max-w-none">
-          <span className="text-gray-700 leading-relaxed text-xl">
-            {t("intro")}
-          </span>
-        </div>
+        {/* Keywords badges for SEO */}
+        {config && (
+          <div className="flex flex-wrap gap-2 justify-center mb-8">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+              {config.keywords.primary}
+            </span>
+          </div>
+        )}
       </div>
     </section>
   );
 }
 
+// Reuse from original research page
 function WhyBestSection() {
   const t = useTranslations("useCasesResearch");
 
@@ -154,78 +171,25 @@ function FeaturesListSection() {
         <h2 className="text-3xl font-bold text-black mb-8 text-center">
           {t("features.title")}
         </h2>
-
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
           {features.map((feature, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-3 p-4 rounded-lg bg-gray-50 border border-gray-200"
-            >
-              <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
-              <p className="text-gray-700">{feature}</p>
+            <div key={index} className="flex items-start">
+              <svg
+                className="h-6 w-6 text-green-600 mr-3 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+              <span className="text-gray-700">{feature}</span>
             </div>
           ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function SeoResourcesSection() {
-  const params = useParams();
-  const locale = (params?.locale as string) || "en";
-  const slugs = locale === "fr" ? FR_SEO_SLUGS : EN_SEO_SLUGS;
-
-  // Get tier 1 slugs (most important)
-  const tier1Slugs = slugs.filter((s) => s.tier === 1).slice(0, 6);
-
-  // Load content for display
-  const seoContent = require(`@/messages/${locale}/seo-research-content.json`);
-
-  return (
-    <section className="bg-gray-50 border-y py-24">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-black mb-4">
-              {locale === "fr"
-                ? "Ressources spécialisées pour chercheurs"
-                : "Specialized Resources for Researchers"}
-            </h2>
-            <p className="text-gray-600 text-lg">
-              {locale === "fr"
-                ? "Découvrez nos guides détaillés pour vos besoins spécifiques de transcription"
-                : "Explore our detailed guides for your specific transcription needs"}
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tier1Slugs.map((slug) => {
-              const content = seoContent[slug.slug];
-              if (!content) return null;
-
-              return (
-                <Link
-                  key={slug.slug}
-                  href={`/${locale}/use-cases/research/${slug.slug}`}
-                  className="group block p-6 bg-white rounded-xl border border-gray-200 hover:border-blue-500 hover:shadow-lg transition-all"
-                >
-                  <h3 className="font-semibold text-lg text-black mb-2 group-hover:text-blue-600 transition-colors">
-                    {content.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                    {content.description}
-                  </p>
-                  <div className="flex items-center text-blue-600 text-sm font-medium">
-                    <span className="group-hover:underline">
-                      {locale === "fr" ? "En savoir plus" : "Learn more"}
-                    </span>
-                    <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
         </div>
       </div>
     </section>
