@@ -8,6 +8,7 @@ import {
   FAQSection,
   TestimonialsSection,
 } from "../../../components/sections";
+import { RelatedLinks } from "../../../components/related-links";
 import { getSeoSlugConfig } from "@/lib/seo-research-slugs";
 import { useParams } from "next/navigation";
 
@@ -19,6 +20,42 @@ export default function ResearchSeoPage() {
       <FeaturesListSection />
       <TestimonialsSection />
       <FAQSection />
+      <RelatedLinks
+        title="More Research Resources"
+        links={[
+          {
+            title: "All Research Resources",
+            description: "Explore specialized guides for researchers",
+            href: "/use-cases/research",
+          },
+          {
+            title: "Free Audio Tools",
+            description: "Convert and compress interview recordings",
+            href: "/tools",
+          },
+          {
+            title: "Compare with Otter.ai",
+            description: "See privacy and security comparisons",
+            href: "/alternatives/otterai",
+          },
+          {
+            title: "Compare with Goodtape.io",
+            description: "GDPR compliance and features comparison",
+            href: "/alternatives/goodtapeio",
+          },
+          {
+            title: "View Pricing",
+            description: "Special pricing for researchers and universities",
+            href: "/pricing",
+          },
+          {
+            title: "Contact Sales",
+            description: "Get institutional pricing and DPA",
+            href: "/contact",
+          },
+        ]}
+        columns={3}
+      />
       <CTASection translationKey="useCasesResearch.cta" />
     </>
   );

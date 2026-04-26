@@ -8,6 +8,7 @@ import {
   FAQSection,
   TestimonialsSection,
 } from "../../components/sections";
+import { RelatedLinks } from "../../components/related-links";
 
 export default function JournalismUseCasePage() {
   return (
@@ -17,6 +18,42 @@ export default function JournalismUseCasePage() {
       <FeaturesListSection />
       <TestimonialsSection />
       <FAQSection />
+      <RelatedLinks
+        title="Essential Tools for Journalists"
+        links={[
+          {
+            title: "Video to Audio Converter",
+            description: "Extract audio from video interviews quickly",
+            href: "/tools/video-to-audio",
+          },
+          {
+            title: "SRT Subtitle Tester",
+            description: "Validate subtitle files for video content",
+            href: "/tools/srt-tester",
+          },
+          {
+            title: "Compare with Transcribe.com",
+            description: "See how HumanLogs compares to Transcribe.com",
+            href: "/alternatives/transcribecom",
+          },
+          {
+            title: "Research Use Case",
+            description: "For investigative journalism and research",
+            href: "/use-cases/research",
+          },
+          {
+            title: "Pricing for Media",
+            description: "Flexible pricing for journalists and news outlets",
+            href: "/pricing",
+          },
+          {
+            title: "Contact Us",
+            description: "Get a demo or institutional pricing",
+            href: "/contact",
+          },
+        ]}
+        columns={3}
+      />
       <CTASection translationKey="useCasesJournalism.cta" />
     </>
   );

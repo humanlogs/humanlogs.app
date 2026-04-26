@@ -8,6 +8,7 @@ import {
   FAQSection,
   TestimonialsSection,
 } from "../../components/sections";
+import { RelatedLinks } from "../../components/related-links";
 
 export default function PodcastingUseCasePage() {
   return (
@@ -17,6 +18,42 @@ export default function PodcastingUseCasePage() {
       <FeaturesListSection />
       <TestimonialsSection />
       <FAQSection />
+      <RelatedLinks
+        title="Podcasting Tools & Resources"
+        links={[
+          {
+            title: "M4A to MP3 Converter",
+            description: "Convert podcast recordings to MP3",
+            href: "/tools/m4a-to-mp3",
+          },
+          {
+            title: "WAV to MP3 Converter",
+            description: "Optimize audio files for distribution",
+            href: "/tools/wav-to-mp3",
+          },
+          {
+            title: "SRT Subtitle Generator",
+            description: "Create subtitles for video podcasts",
+            href: "/tools/srt-tester",
+          },
+          {
+            title: "Compare with Vook.ai",
+            description: "See why podcasters love HumanLogs",
+            href: "/alternatives/vookai",
+          },
+          {
+            title: "Podcast Pricing",
+            description: "Affordable plans for podcasters",
+            href: "/pricing",
+          },
+          {
+            title: "All Free Tools",
+            description: "Explore our complete toolkit",
+            href: "/tools",
+          },
+        ]}
+        columns={3}
+      />
       <CTASection translationKey="useCasesPodcasting.cta" />
     </>
   );

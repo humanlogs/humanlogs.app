@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { AudioConverter } from "../components/audio-converter";
+import { RelatedLinks } from "../../components/related-links";
 
 interface ConversionPageProps {
   params: Promise<{ "from-to": string }>;
@@ -179,6 +180,43 @@ export default async function ConversionPage({ params }: ConversionPageProps) {
           </p>
         </div>
       </section>
+
+      <RelatedLinks
+        title="Related Tools & Use Cases"
+        links={[
+          {
+            title: "All Audio Tools",
+            description: "Explore our complete audio toolkit",
+            href: "/tools",
+          },
+          {
+            title: "SRT Subtitle Tester",
+            description: "Test and validate subtitle files",
+            href: "/tools/srt-tester",
+          },
+          {
+            title: "Research Transcription",
+            description: "Convert interviews for accurate transcription",
+            href: "/use-cases/research",
+          },
+          {
+            title: "Podcasting Tools",
+            description: "Optimize audio for podcast transcription",
+            href: "/use-cases/podcasting",
+          },
+          {
+            title: "Start Transcribing",
+            description: "Get accurate transcripts with HumanLogs",
+            href: "/pricing",
+          },
+          {
+            title: "Privacy & Security",
+            description: "Learn about our security practices",
+            href: "/resources",
+          },
+        ]}
+        columns={3}
+      />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import {
   ComparisonTable,
   FeaturesSection,
 } from "../../components/sections";
+import { RelatedLinks } from "../../components/related-links";
 import { useTranslations } from "@/components/locale-provider";
 
 export default function GoodtapeIOPage() {
@@ -18,6 +19,42 @@ export default function GoodtapeIOPage() {
       />
       <div className="py-12"></div>
       <FeaturesSection />
+      <RelatedLinks
+        title="Compare Other Alternatives"
+        links={[
+          {
+            title: "HumanLogs vs Otter.ai",
+            description: "Compare pricing and transcription quality",
+            href: "/alternatives/otterai",
+          },
+          {
+            title: "HumanLogs vs Speakr",
+            description: "Compare open-source transcription solutions",
+            href: "/alternatives/speakr",
+          },
+          {
+            title: "HumanLogs vs Transcribe.com",
+            description: "Compare features and value for money",
+            href: "/alternatives/transcribecom",
+          },
+          {
+            title: "Education Use Case",
+            description: "Perfect for universities and schools",
+            href: "/use-cases/education",
+          },
+          {
+            title: "View All Alternatives",
+            description: "Explore all transcription tool comparisons",
+            href: "/alternatives",
+          },
+          {
+            title: "Try HumanLogs",
+            description: "Start with 100 minutes free each month",
+            href: "/pricing",
+          },
+        ]}
+        columns={3}
+      />
       <CTASection translationKey="alternativesGoodtape.cta" />
     </>
   );

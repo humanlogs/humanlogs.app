@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "@/components/locale-provider";
+import { RelatedLinks } from "../components/related-links";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Layout } from "../../_layout";
@@ -44,6 +45,44 @@ export default function AlternativesPage() {
           </div>
         </div>
       </section>
+
+      <RelatedLinks
+        title="Why Choose HumanLogs?"
+        links={[
+          {
+            title: "Research Transcription",
+            description:
+              "GDPR-compliant, encrypted transcription for researchers",
+            href: "/use-cases/research",
+          },
+          {
+            title: "Journalism Use Case",
+            description: "Protect sources with end-to-end encryption",
+            href: "/use-cases/journalism",
+          },
+          {
+            title: "Free Audio Tools",
+            description: "Convert and optimize files before transcription",
+            href: "/tools",
+          },
+          {
+            title: "View Pricing",
+            description: "Transparent pricing, no hidden fees",
+            href: "/pricing",
+          },
+          {
+            title: "Security & Privacy",
+            description: "Learn about our privacy-first approach",
+            href: "/resources",
+          },
+          {
+            title: "Contact Sales",
+            description: "Get institutional pricing and custom solutions",
+            href: "/contact",
+          },
+        ]}
+        columns={3}
+      />
     </Layout>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useTranslations } from "@/components/locale-provider";
 import { SRTValidator } from "../components/srt-validator";
+import { RelatedLinks } from "../../components/related-links";
 import Link from "next/link";
 import { ArrowLeft, FileText, Video, CheckCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -86,6 +87,43 @@ export default function SRTTesterPage() {
           </ul>
         </div>
       </section>
+
+      <RelatedLinks
+        title="More Audio & Video Tools"
+        links={[
+          {
+            title: "Video to Audio Converter",
+            description: "Extract audio from video files for transcription",
+            href: "/tools/video-to-audio",
+          },
+          {
+            title: "Audio Compression",
+            description: "Reduce file sizes while maintaining quality",
+            href: "/tools/audio-compression",
+          },
+          {
+            title: "Journalism Use Case",
+            description: "Perfect for video journalism and media production",
+            href: "/use-cases/journalism",
+          },
+          {
+            title: "Podcasting Use Case",
+            description: "Create subtitles for your podcast videos",
+            href: "/use-cases/podcasting",
+          },
+          {
+            title: "All Free Tools",
+            description: "Explore our complete audio toolkit",
+            href: "/tools",
+          },
+          {
+            title: "Start Transcribing",
+            description: "Get accurate transcripts with HumanLogs",
+            href: "/pricing",
+          },
+        ]}
+        columns={3}
+      />
     </div>
   );
 }

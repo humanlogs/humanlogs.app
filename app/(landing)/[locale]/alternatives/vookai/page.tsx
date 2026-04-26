@@ -6,6 +6,7 @@ import {
   ComparisonTable,
   FeaturesSection,
 } from "../../components/sections";
+import { RelatedLinks } from "../../components/related-links";
 
 export default function VookAIPage() {
   return (
@@ -17,6 +18,42 @@ export default function VookAIPage() {
       />
       <div className="py-12"></div>
       <FeaturesSection />
+      <RelatedLinks
+        title="Compare Other Alternatives"
+        links={[
+          {
+            title: "HumanLogs vs Otter.ai",
+            description: "Compare AI features and collaboration",
+            href: "/alternatives/otterai",
+          },
+          {
+            title: "HumanLogs vs Goodtape.io",
+            description: "Compare privacy and GDPR compliance",
+            href: "/alternatives/goodtapeio",
+          },
+          {
+            title: "HumanLogs vs Transcribe.com",
+            description: "Compare value and hours included",
+            href: "/alternatives/transcribecom",
+          },
+          {
+            title: "Podcasting Use Case",
+            description: "Perfect for podcast transcription",
+            href: "/use-cases/podcasting",
+          },
+          {
+            title: "View All Alternatives",
+            description: "Explore all transcription tool comparisons",
+            href: "/alternatives",
+          },
+          {
+            title: "Try HumanLogs",
+            description: "Start with 100 minutes free each month",
+            href: "/pricing",
+          },
+        ]}
+        columns={3}
+      />
       <CTASection translationKey="alternativesVook.cta" />
     </>
   );

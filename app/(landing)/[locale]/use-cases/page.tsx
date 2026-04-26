@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "@/components/locale-provider";
+import { RelatedLinks } from "../components/related-links";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Layout } from "../../_layout";
@@ -61,6 +62,43 @@ export default function UseCasesPage() {
           </div>
         </div>
       </section>
+
+      <RelatedLinks
+        title="Tools & Resources"
+        links={[
+          {
+            title: "Free Audio Tools",
+            description: "Convert and optimize files before transcription",
+            href: "/tools",
+          },
+          {
+            title: "Compare Alternatives",
+            description: "See how HumanLogs compares to competitors",
+            href: "/alternatives",
+          },
+          {
+            title: "View Pricing",
+            description: "Transparent pricing for all use cases",
+            href: "/pricing",
+          },
+          {
+            title: "Privacy & Security",
+            description: "Learn about our privacy-first approach",
+            href: "/resources",
+          },
+          {
+            title: "Contact Sales",
+            description: "Get institutional pricing and custom solutions",
+            href: "/contact",
+          },
+          {
+            title: "Documentation",
+            description: "Setup guides and best practices",
+            href: "/resources",
+          },
+        ]}
+        columns={3}
+      />
     </Layout>
   );
 }

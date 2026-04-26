@@ -1,5 +1,6 @@
 import { FileText, BookOpen } from "lucide-react";
 import { getDocsStructure } from "@/lib/utils/docs-utils";
+import { RelatedLinks } from "../components/related-links";
 import Link from "next/link";
 
 export default function ResourcesPage() {
@@ -61,6 +62,43 @@ export default function ResourcesPage() {
           </div>
         ))}
       </div>
+
+      <RelatedLinks
+        title="Get Started with HumanLogs"
+        links={[
+          {
+            title: "Research Transcription",
+            description: "GDPR-compliant transcription for researchers",
+            href: "/use-cases/research",
+          },
+          {
+            title: "All Use Cases",
+            description: "Explore transcription for different industries",
+            href: "/use-cases",
+          },
+          {
+            title: "Free Tools",
+            description: "Audio conversion and subtitle testing tools",
+            href: "/tools",
+          },
+          {
+            title: "View Pricing",
+            description: "Transparent pricing with free tier",
+            href: "/pricing",
+          },
+          {
+            title: "Compare Alternatives",
+            description: "See why users choose HumanLogs",
+            href: "/alternatives",
+          },
+          {
+            title: "Contact Sales",
+            description: "Get institutional pricing and DPA",
+            href: "/contact",
+          },
+        ]}
+        columns={3}
+      />
     </div>
   );
 }

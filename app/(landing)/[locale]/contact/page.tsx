@@ -9,6 +9,7 @@ import { Select, SelectOption } from "@/components/ui/select";
 import { Mail, Send, CheckCircle2 } from "lucide-react";
 import { AnimatedSectionTitle } from "../components/animated-section-title";
 import { FAQSection } from "../components/sections";
+import { RelatedLinks } from "../components/related-links";
 
 const USE_CASE_OPTIONS: SelectOption[] = [
   { value: "journalism", label: "Journalism" },
@@ -218,6 +219,44 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
+
+      <RelatedLinks
+        title="Explore HumanLogs"
+        links={[
+          {
+            title: "Research Transcription",
+            description:
+              "GDPR-compliant, encrypted transcription for researchers",
+            href: "/use-cases/research",
+          },
+          {
+            title: "Journalism Use Case",
+            description: "Protect sources with end-to-end encryption",
+            href: "/use-cases/journalism",
+          },
+          {
+            title: "Podcasting Tools",
+            description: "Professional transcription for podcasters",
+            href: "/use-cases/podcasting",
+          },
+          {
+            title: "Education",
+            description: "Transcribe lectures and educational content",
+            href: "/use-cases/education",
+          },
+          {
+            title: "Free Tools",
+            description: "Audio conversion and subtitle testing tools",
+            href: "/tools",
+          },
+          {
+            title: "Compare Alternatives",
+            description: "See how HumanLogs compares to competitors",
+            href: "/alternatives",
+          },
+        ]}
+        columns={3}
+      />
 
       <FAQSection />
     </main>

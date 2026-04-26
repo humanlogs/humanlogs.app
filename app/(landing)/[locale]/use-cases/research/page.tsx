@@ -8,6 +8,7 @@ import {
   FAQSection,
   TestimonialsSection,
 } from "../../components/sections";
+import { RelatedLinks } from "../../components/related-links";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { EN_SEO_SLUGS, FR_SEO_SLUGS } from "@/lib/seo-research-slugs";
@@ -21,6 +22,42 @@ export default function ResearchUseCasePage() {
       <TestimonialsSection />
       <FAQSection />
       <SeoResourcesSection />
+      <RelatedLinks
+        title="More Tools & Resources"
+        links={[
+          {
+            title: "Free SRT Subtitle Tester",
+            description: "Test and validate your subtitle files online",
+            href: "/tools/srt-tester",
+          },
+          {
+            title: "Audio Compression Tool",
+            description: "Reduce file sizes before transcription",
+            href: "/tools/audio-compression",
+          },
+          {
+            title: "Video to Audio Converter",
+            description: "Extract audio from your interview recordings",
+            href: "/tools/video-to-audio",
+          },
+          {
+            title: "Compare with Otter.ai",
+            description: "See how HumanLogs compares to Otter.ai",
+            href: "/alternatives/otterai",
+          },
+          {
+            title: "Pricing Plans",
+            description: "View our transparent pricing for researchers",
+            href: "/pricing",
+          },
+          {
+            title: "Contact Sales",
+            description: "Get institutional pricing and custom solutions",
+            href: "/contact",
+          },
+        ]}
+        columns={3}
+      />
       <CTASection translationKey="useCasesResearch.cta" />
     </>
   );

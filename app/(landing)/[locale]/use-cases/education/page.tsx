@@ -8,6 +8,7 @@ import {
   FAQSection,
   TestimonialsSection,
 } from "../../components/sections";
+import { RelatedLinks } from "../../components/related-links";
 
 export default function EducationUseCasePage() {
   return (
@@ -17,6 +18,42 @@ export default function EducationUseCasePage() {
       <FeaturesListSection />
       <TestimonialsSection />
       <FAQSection />
+      <RelatedLinks
+        title="Educational Resources & Tools"
+        links={[
+          {
+            title: "Audio Compression",
+            description: "Optimize lecture recordings for storage",
+            href: "/tools/audio-compression",
+          },
+          {
+            title: "MP3 to WAV Converter",
+            description: "Convert audio files for compatibility",
+            href: "/tools/mp3-to-wav",
+          },
+          {
+            title: "Research Transcription",
+            description: "Perfect for academic research interviews",
+            href: "/use-cases/research",
+          },
+          {
+            title: "Compare with Goodtape.io",
+            description: "See why educators choose HumanLogs",
+            href: "/alternatives/goodtapeio",
+          },
+          {
+            title: "Educational Pricing",
+            description: "Special pricing for schools and universities",
+            href: "/pricing",
+          },
+          {
+            title: "Get Started",
+            description: "Contact us for institutional licensing",
+            href: "/contact",
+          },
+        ]}
+        columns={3}
+      />
       <CTASection translationKey="useCasesEducation.cta" />
     </>
   );

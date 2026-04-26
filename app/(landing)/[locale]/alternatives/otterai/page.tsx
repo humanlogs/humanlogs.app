@@ -6,6 +6,7 @@ import {
   ComparisonTable,
   FeaturesSection,
 } from "../../components/sections";
+import { RelatedLinks } from "../../components/related-links";
 
 export default function OtterAIPage() {
   return (
@@ -17,6 +18,42 @@ export default function OtterAIPage() {
       />
       <div className="py-12"></div>
       <FeaturesSection />
+      <RelatedLinks
+        title="Compare Other Alternatives"
+        links={[
+          {
+            title: "HumanLogs vs Goodtape.io",
+            description: "Compare privacy features and GDPR compliance",
+            href: "/alternatives/goodtapeio",
+          },
+          {
+            title: "HumanLogs vs Transcribe.com",
+            description: "Compare pricing and transcription quality",
+            href: "/alternatives/transcribecom",
+          },
+          {
+            title: "HumanLogs vs Vook.ai",
+            description: "Compare features for journalists",
+            href: "/alternatives/vookai",
+          },
+          {
+            title: "Research Transcription",
+            description: "See why researchers choose HumanLogs",
+            href: "/use-cases/research",
+          },
+          {
+            title: "View All Alternatives",
+            description: "Explore all transcription tool comparisons",
+            href: "/alternatives",
+          },
+          {
+            title: "Try HumanLogs",
+            description: "Start with 100 minutes free each month",
+            href: "/pricing",
+          },
+        ]}
+        columns={3}
+      />
       <CTASection translationKey="alternativesOtter.cta" />
     </>
   );

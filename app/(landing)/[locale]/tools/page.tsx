@@ -2,6 +2,7 @@
 
 import { useTranslations } from "@/components/locale-provider";
 import { AudioConverter } from "./components/audio-converter";
+import { RelatedLinks } from "../components/related-links";
 import Link from "next/link";
 import { FileAudio, FileVideo, Gauge, Repeat, FileText } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -180,6 +181,44 @@ export default function ToolsPage() {
           </div>
         </div>
       </section>
+
+      <RelatedLinks
+        title="Use Cases for Our Tools"
+        links={[
+          {
+            title: "Research Transcription",
+            description:
+              "Perfect for converting and transcribing research interviews",
+            href: "/use-cases/research",
+          },
+          {
+            title: "Journalism & Media",
+            description: "Extract audio from videos for news and interviews",
+            href: "/use-cases/journalism",
+          },
+          {
+            title: "Podcasting",
+            description: "Optimize audio files for podcast transcription",
+            href: "/use-cases/podcasting",
+          },
+          {
+            title: "Education",
+            description: "Convert lecture recordings for transcription",
+            href: "/use-cases/education",
+          },
+          {
+            title: "View Pricing",
+            description: "Get accurate transcripts after audio conversion",
+            href: "/pricing",
+          },
+          {
+            title: "Compare Alternatives",
+            description: "See why users choose HumanLogs",
+            href: "/alternatives",
+          },
+        ]}
+        columns={3}
+      />
     </div>
   );
 }

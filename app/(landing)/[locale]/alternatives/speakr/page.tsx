@@ -6,6 +6,7 @@ import {
   ComparisonTable,
   FeaturesSection,
 } from "../../components/sections";
+import { RelatedLinks } from "../../components/related-links";
 
 export default function SpeakrPage() {
   return (
@@ -17,6 +18,42 @@ export default function SpeakrPage() {
       />
       <div className="py-12"></div>
       <FeaturesSection />
+      <RelatedLinks
+        title="Compare Other Alternatives"
+        links={[
+          {
+            title: "HumanLogs vs Goodtape.io",
+            description: "Compare open-source solutions",
+            href: "/alternatives/goodtapeio",
+          },
+          {
+            title: "HumanLogs vs Otter.ai",
+            description: "Compare ease of use and features",
+            href: "/alternatives/otterai",
+          },
+          {
+            title: "HumanLogs vs Vook.ai",
+            description: "Compare self-hosting options",
+            href: "/alternatives/vookai",
+          },
+          {
+            title: "Research Use Case",
+            description: "Perfect for academic research",
+            href: "/use-cases/research",
+          },
+          {
+            title: "View All Alternatives",
+            description: "Explore all transcription tool comparisons",
+            href: "/alternatives",
+          },
+          {
+            title: "Try HumanLogs",
+            description: "Start with 100 minutes free each month",
+            href: "/pricing",
+          },
+        ]}
+        columns={3}
+      />
       <CTASection translationKey="alternativesSpeakr.cta" />
     </>
   );
