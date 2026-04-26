@@ -24,6 +24,10 @@ export const defaultMetadata = (url?: string) =>
       "PhD",
       "qualitative analysis",
       "open source",
+      "human logs",
+      "human log",
+      "humanlog",
+      "humanlogs",
     ],
     icons: {
       icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
