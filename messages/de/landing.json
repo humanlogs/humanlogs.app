@@ -162,7 +162,7 @@
             },
             "euServers": {
                 "title": "EU-basierte Infrastruktur",
-                "description": "Alle Server und Unterauftragsverarbeiter befinden sich in der Europäischen Union."
+                "description": "Alle Server befinden sich in der Europäischen Union."
             }
         }
     },
@@ -316,5 +316,51 @@
             "startForFree": "Kostenlos starten",
             "contactSales": "Vertrieb kontaktieren"
         }
+    },
+    "footer": {
+        "sections": {
+            "useCases": "Anwendungsfälle",
+            "freeTools": "Kostenlose Tools",
+            "alternatives": "Alternativen",
+            "product": "Produkt",
+            "legal": "Rechtliches"
+        },
+        "useCases": {
+            "research": "Forschung",
+            "journalism": "Journalismus",
+            "podcasting": "Podcasting",
+            "education": "Bildung"
+        },
+        "freeTools": {
+            "srtTester": "SRT-Untertitel-Tester",
+            "videoToAudio": "Video zu Audio",
+            "audioCompression": "Audio-Komprimierung",
+            "mp3ToWav": "MP3 zu WAV",
+            "viewAll": "Alle Tools anzeigen →"
+        },
+        "alternatives": {
+            "otter": "vs Otter.ai",
+            "goodtape": "vs Goodtape.io",
+            "vook": "vs Vook.ai",
+            "transcribe": "vs Transcribe.com",
+            "speakr": "vs Speakr"
+        },
+        "product": {
+            "pricing": "Preise",
+            "faq": "FAQ",
+            "contactSales": "Vertrieb kontaktieren",
+            "github": "GitHub"
+        },
+        "legal": {
+            "privacy": "Datenschutzerklärung",
+            "terms": "Nutzungsbedingungen",
+            "gdpr": "DSGVO",
+            "cookies": "Cookie-Richtlinie",
+            "dpa": "AVV",
+            "subprocessors": "Unterauftragsverarbeiter",
+            "irb": "IRB-Konformität"
+        },
+        "copyright": "Alle Rechte vorbehalten.",
+        "tagline": "Datenschutzorientierte Transkription für die Forschung"
     }
 }

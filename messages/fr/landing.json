@@ -31,8 +31,55 @@
             "selectLanguage": "Sélectionner une langue"
         }
     },
+    "footer": {
+        "sections": {
+            "useCases": "Cas d'usage",
+            "freeTools": "Outils gratuits",
+            "alternatives": "Alternatives",
+            "product": "Produit",
+            "legal": "Mentions légales"
+        },
+        "useCases": {
+            "research": "Recherche",
+            "journalism": "Journalisme",
+            "podcasting": "Podcasting",
+            "education": "Éducation"
+        },
+        "freeTools": {
+            "srtTester": "Testeur de sous-titres SRT",
+            "videoToAudio": "Vidéo vers Audio",
+            "audioCompression": "Compression Audio",
+            "mp3ToWav": "MP3 vers WAV",
+            "viewAll": "Voir tous les outils →"
+        },
+        "alternatives": {
+            "otter": "vs Otter.ai",
+            "goodtape": "vs Goodtape.io",
+            "vook": "vs Vook.ai",
+            "transcribe": "vs Transcribe.com",
+            "speakr": "vs Speakr"
+        },
+        "product": {
+            "pricing": "Tarifs",
+            "faq": "FAQ",
+            "contactSales": "Contacter les ventes",
+            "github": "GitHub"
+        },
+        "legal": {
+            "privacy": "Politique de confidentialité",
+            "terms": "Conditions d'utilisation",
+            "gdpr": "RGPD",
+            "cookies": "Politique des cookies",
+            "dpa": "DPA",
+            "subprocessors": "Sous-traitants",
+            "irb": "Conformité IRB"
+        },
+        "copyright": "Tous droits réservés.",
+        "tagline": "Transcription confidentielle pour la recherche"
+    },
     "hero": {
-        "title": "Transcrivez vos entretiens rapidement et en toute confidentialité.",
+        "title": "Ne choisissez pas entre confidentialité et précision pour vos transcriptions.",
+        "title2": "Transcrivez vos entretiens rapidement et en toute confidentialité.",
         "subtitle": "Recevez vos transcriptions en 2 minutes, avec 98% de précision, dans plus de 100 langues. Corrigez-les ensuite facilement avec notre éditeur surpuissant.",
         "startForFree": "Utiliser gratuitement",
         "contactSales": "Contacter les ventes",
@@ -162,7 +209,7 @@
             },
             "euServers": {
                 "title": "Infrastructure basée dans l'UE",
-                "description": "Tous les serveurs et sous-traitants sont situés dans l'Union européenne."
+                "description": "Nos serveurs sont situés dans l'Union européenne."
             }
         }
     },

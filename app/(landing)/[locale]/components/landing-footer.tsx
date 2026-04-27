@@ -1,8 +1,12 @@
-import Link from "next/link";
-import { Github } from "lucide-react";
+"use client";
+
+import { useTranslations } from "@/components/locale-provider";
 import Image from "next/image";
+import Link from "next/link";
 
 export const LandingFooter = () => {
+  const t = useTranslations("footer");
+
   return (
     <footer className="border-t border-gray-800 bg-black">
       <div className="container mx-auto px-4 py-12 md:px-6">
@@ -22,14 +26,16 @@ export const LandingFooter = () => {
 
           {/* Use Cases */}
           <div>
-            <h3 className="mb-4 text-sm font-semibold text-white">Use Cases</h3>
+            <h3 className="mb-4 text-sm font-semibold text-white">
+              {t("sections.useCases")}
+            </h3>
             <ul className="space-y-3">
               <li>
                 <Link
                   href="/use-cases/research"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  Research
+                  {t("useCases.research")}
                 </Link>
               </li>
               <li>
@@ -37,7 +43,7 @@ export const LandingFooter = () => {
                   href="/use-cases/journalism"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  Journalism
+                  {t("useCases.journalism")}
                 </Link>
               </li>
               <li>
@@ -45,7 +51,7 @@ export const LandingFooter = () => {
                   href="/use-cases/podcasting"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  Podcasting
+                  {t("useCases.podcasting")}
                 </Link>
               </li>
               <li>
@@ -53,7 +59,7 @@ export const LandingFooter = () => {
                   href="/use-cases/education"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  Education
+                  {t("useCases.education")}
                 </Link>
               </li>
             </ul>
@@ -62,7 +68,7 @@ export const LandingFooter = () => {
           {/* Free Tools */}
           <div>
             <h3 className="mb-4 text-sm font-semibold text-white">
-              Free Tools
+              {t("sections.freeTools")}
             </h3>
             <ul className="space-y-3">
               <li>
@@ -70,7 +76,7 @@ export const LandingFooter = () => {
                   href="/tools/srt-tester"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  SRT Subtitle Tester
+                  {t("freeTools.srtTester")}
                 </Link>
               </li>
               <li>
@@ -78,7 +84,7 @@ export const LandingFooter = () => {
                   href="/tools/video-to-audio"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  Video to Audio
+                  {t("freeTools.videoToAudio")}
                 </Link>
               </li>
               <li>
@@ -86,7 +92,7 @@ export const LandingFooter = () => {
                   href="/tools/audio-compression"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  Audio Compression
+                  {t("freeTools.audioCompression")}
                 </Link>
               </li>
               <li>
@@ -94,7 +100,7 @@ export const LandingFooter = () => {
                   href="/tools/mp3-to-wav"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  MP3 to WAV
+                  {t("freeTools.mp3ToWav")}
                 </Link>
               </li>
               <li>
@@ -102,7 +108,7 @@ export const LandingFooter = () => {
                   href="/tools"
                   className="text-sm text-blue-400 hover:text-blue-300"
                 >
-                  View All Tools →
+                  {t("freeTools.viewAll")}
                 </Link>
               </li>
             </ul>
@@ -111,7 +117,7 @@ export const LandingFooter = () => {
           {/* Alternatives */}
           <div>
             <h3 className="mb-4 text-sm font-semibold text-white">
-              Alternatives
+              {t("sections.alternatives")}
             </h3>
             <ul className="space-y-3">
               <li>
@@ -119,7 +125,7 @@ export const LandingFooter = () => {
                   href="/alternatives/otterai"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  vs Otter.ai
+                  {t("alternatives.otter")}
                 </Link>
               </li>
               <li>
@@ -127,7 +133,7 @@ export const LandingFooter = () => {
                   href="/alternatives/goodtapeio"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  vs Goodtape.io
+                  {t("alternatives.goodtape")}
                 </Link>
               </li>
               <li>
@@ -135,7 +141,7 @@ export const LandingFooter = () => {
                   href="/alternatives/vookai"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  vs Vook.ai
+                  {t("alternatives.vook")}
                 </Link>
               </li>
               <li>
@@ -143,7 +149,7 @@ export const LandingFooter = () => {
                   href="/alternatives/transcribecom"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  vs Transcribe.com
+                  {t("alternatives.transcribe")}
                 </Link>
               </li>
               <li>
@@ -151,7 +157,7 @@ export const LandingFooter = () => {
                   href="/alternatives/speakr"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  vs Speakr
+                  {t("alternatives.speakr")}
                 </Link>
               </li>
             </ul>
@@ -159,14 +165,16 @@ export const LandingFooter = () => {
 
           {/* Product / Contact / Open Source */}
           <div>
-            <h3 className="mb-4 text-sm font-semibold text-white">Product</h3>
+            <h3 className="mb-4 text-sm font-semibold text-white">
+              {t("sections.product")}
+            </h3>
             <ul className="space-y-3">
               <li>
                 <Link
                   href="/pricing"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  Pricing
+                  {t("product.pricing")}
                 </Link>
               </li>
               <li>
@@ -174,7 +182,7 @@ export const LandingFooter = () => {
                   href="/#faq"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  FAQ
+                  {t("product.faq")}
                 </Link>
               </li>
               <li>
@@ -182,7 +190,7 @@ export const LandingFooter = () => {
                   href="/contact"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  Contact Sales
+                  {t("product.contactSales")}
                 </Link>
               </li>
               <li>
@@ -192,7 +200,7 @@ export const LandingFooter = () => {
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-sm text-gray-400 hover:text-white"
                 >
-                  GitHub
+                  {t("product.github")}
                 </a>
               </li>
             </ul>
@@ -200,14 +208,16 @@ export const LandingFooter = () => {
 
           {/* Legal */}
           <div>
-            <h3 className="mb-4 text-sm font-semibold text-white">Legal</h3>
+            <h3 className="mb-4 text-sm font-semibold text-white">
+              {t("sections.legal")}
+            </h3>
             <ul className="space-y-3">
               <li>
                 <Link
                   href="/legal/privacy"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  Privacy Policy
+                  {t("legal.privacy")}
                 </Link>
               </li>
               <li>
@@ -215,7 +225,15 @@ export const LandingFooter = () => {
                   href="/legal/terms"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  Terms of Service
+                  {t("legal.terms")}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/legal/gdpr"
+                  className="text-sm text-gray-400 hover:text-white"
+                >
+                  {t("legal.gdpr")}
                 </Link>
               </li>
               <li>
@@ -223,7 +241,7 @@ export const LandingFooter = () => {
                   href="/legal/cookies"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  Cookie Policy
+                  {t("legal.cookies")}
                 </Link>
               </li>
               <li>
@@ -231,7 +249,7 @@ export const LandingFooter = () => {
                   href="/legal/dpa"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  DPA
+                  {t("legal.dpa")}
                 </Link>
               </li>
               <li>
@@ -239,7 +257,15 @@ export const LandingFooter = () => {
                   href="/legal/subprocessors"
                   className="text-sm text-gray-400 hover:text-white"
                 >
-                  Subprocessors
+                  {t("legal.subprocessors")}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/legal/irb"
+                  className="text-sm text-gray-400 hover:text-white"
+                >
+                  {t("legal.irb")}
                 </Link>
               </li>
             </ul>
@@ -250,11 +276,9 @@ export const LandingFooter = () => {
         <div className="mt-8 border-t border-gray-800 pt-8">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <p className="text-sm text-gray-400">
-              © {new Date().getFullYear()} humanlogs.app. All rights reserved.
+              © {new Date().getFullYear()} humanlogs.app. {t("copyright")}
             </p>
-            <p className="text-sm text-gray-400">
-              Privacy-first transcription for research
-            </p>
+            <p className="text-sm text-gray-400">{t("tagline")}</p>
           </div>
         </div>
       </div>

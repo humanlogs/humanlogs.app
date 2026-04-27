@@ -162,7 +162,7 @@
             },
             "euServers": {
                 "title": "EU-based infrastructure",
-                "description": "All servers and sub-processors are located in the European Union."
+                "description": "Our servers are located in the European Union."
             }
         }
     },
@@ -476,5 +476,51 @@
             "startForFree": "Use it for free",
             "contactSales": "Contact sales"
         }
+    },
+    "footer": {
+        "sections": {
+            "useCases": "Use Cases",
+            "freeTools": "Free Tools",
+            "alternatives": "Alternatives",
+            "product": "Product",
+            "legal": "Legal"
+        },
+        "useCases": {
+            "research": "Research",
+            "journalism": "Journalism",
+            "podcasting": "Podcasting",
+            "education": "Education"
+        },
+        "freeTools": {
+            "srtTester": "SRT Subtitle Tester",
+            "videoToAudio": "Video to Audio",
+            "audioCompression": "Audio Compression",
+            "mp3ToWav": "MP3 to WAV",
+            "viewAll": "View All Tools →"
+        },
+        "alternatives": {
+            "otter": "vs Otter.ai",
+            "goodtape": "vs Goodtape.io",
+            "vook": "vs Vook.ai",
+            "transcribe": "vs Transcribe.com",
+            "speakr": "vs Speakr"
+        },
+        "product": {
+            "pricing": "Pricing",
+            "faq": "FAQ",
+            "contactSales": "Contact Sales",
+            "github": "GitHub"
+        },
+        "legal": {
+            "privacy": "Privacy Policy",
+            "terms": "Terms of Service",
+            "gdpr": "GDPR",
+            "cookies": "Cookie Policy",
+            "dpa": "DPA",
+            "subprocessors": "Subprocessors",
+            "irb": "IRB Compliance"
+        },
+        "copyright": "All rights reserved.",
+        "tagline": "Privacy-first transcription for research"
     }
 }

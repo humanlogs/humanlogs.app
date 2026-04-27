@@ -64,6 +64,42 @@ export default function Page() {
             OVH processes email communications and may have access to sender
             email addresses and message content.
           </li>
+
+          <li>
+            <strong>Auth0</strong>
+            <br />
+            Used for authentication and identity management services.
+            <br />
+            Auth0 processes user authentication data including email addresses
+            and login credentials.
+            <br />
+          </li>
+
+          <li>
+            <strong>Stripe</strong>
+            <br />
+            Used for payment processing and billing management.
+            <br />
+            Stripe processes payment information including credit card details,
+            billing addresses, and transaction data.
+            <br />
+            All payment data is handled securely by Stripe and is not stored on
+            HumanLogs servers.
+            <br />
+          </li>
+
+          <li>
+            <strong>Google Analytics</strong>
+            <br />
+            Used for website analytics and usage statistics (only with user
+            consent).
+            <br />
+            Google Analytics processes anonymized usage data to help us
+            understand how visitors interact with our website.
+            <br />
+            Users can opt out through our cookie consent banner.
+            <br />
+          </li>
         </ul>
 
         <h2>Second Tier Subprocessors</h2>

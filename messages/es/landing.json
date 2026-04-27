@@ -162,7 +162,7 @@
             },
             "euServers": {
                 "title": "Infraestructura en la UE",
-                "description": "Todos los servidores y subprocesadores están ubicados en la Unión Europea."
+                "description": "Servidores están ubicados en la Unión Europea."
             }
         }
     },
@@ -316,5 +316,51 @@
             "startForFree": "Comenzar gratis",
             "contactSales": "Contactar ventas"
         }
+    },
+    "footer": {
+        "sections": {
+            "useCases": "Casos de uso",
+            "freeTools": "Herramientas gratuitas",
+            "alternatives": "Alternativas",
+            "product": "Producto",
+            "legal": "Legal"
+        },
+        "useCases": {
+            "research": "Investigación",
+            "journalism": "Periodismo",
+            "podcasting": "Podcasting",
+            "education": "Educación"
+        },
+        "freeTools": {
+            "srtTester": "Probador de Subtítulos SRT",
+            "videoToAudio": "Video a Audio",
+            "audioCompression": "Compresión de Audio",
+            "mp3ToWav": "MP3 a WAV",
+            "viewAll": "Ver Todas las Herramientas →"
+        },
+        "alternatives": {
+            "otter": "vs Otter.ai",
+            "goodtape": "vs Goodtape.io",
+            "vook": "vs Vook.ai",
+            "transcribe": "vs Transcribe.com",
+            "speakr": "vs Speakr"
+        },
+        "product": {
+            "pricing": "Precios",
+            "faq": "FAQ",
+            "contactSales": "Contactar ventas",
+            "github": "GitHub"
+        },
+        "legal": {
+            "privacy": "Política de Privacidad",
+            "terms": "Términos de Servicio",
+            "gdpr": "GDPR",
+            "cookies": "Política de Cookies",
+            "dpa": "DPA",
+            "subprocessors": "Subprocesadores",
+            "irb": "Cumplimiento IRB"
+        },
+        "copyright": "Todos los derechos reservados.",
+        "tagline": "Transcripción con privacidad para investigación"
     }
 }

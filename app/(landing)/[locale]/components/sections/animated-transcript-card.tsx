@@ -1,31 +1,51 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useLocale, useTranslations } from "@/components/locale-provider";
 import { Badge } from "@/components/ui/badge";
-import { FakeToolbar } from "./fake-toolbar";
-import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { useTranslations } from "@/components/locale-provider";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { FakeToolbar } from "./fake-toolbar";
 
 // Transcript sentences
-const TRANSCRIPT_TEXTS = [
-  "So um, why did you create humanlogs?",
-  "Honestly, I was just tired of switching back and forth between my text editor and audio player all the time.",
-  "[laughs] That was reason enough for me.",
-  "Now I click any word and it jumps straight to the audio (pause) it’s so much faster.",
-];
+const TRANSCRIPT_TEXTS = {
+  en: [
+    "So um, why did you create humanlogs?",
+    "Honestly, I was just tired of switching back and forth between my text editor and audio player all the time.",
+    "[laughs] That was reason enough for me.",
+    "Now I click any word and it jumps straight to the audio (pause) it’s so much faster.",
+  ],
+  fr: [
+    "Alors, euh, pourquoi humanlogs ?",
+    "Honnêtement, j'en avais juste marre de devoir constamment passer de mon éditeur de texte à mon lecteur audio.",
+    "[rires] C'était raison suffisante pour moi.",
+    "Je clique sur n'importe quel mot et ça me mène directement à l'audio (pause) c'est tellement plus rapide.",
+  ],
+};
 
 // Synonym groups - each inner array contains synonymous words
-const SYNONYMS = [
-  ["um", "[uh]", "well"],
-  ["create", "build"],
-  ["Honestly", "To be honest", "Honestly speaking"],
-  ["tired", "fed up"],
-  ["switching", "jumping", "moving"],
-  ["That", "This", "It"],
-  ["click", "point", "select"],
-  ["jumps", "skips", "moves"],
-];
+const SYNONYMS = {
+  en: [
+    ["um", "[uh]", "well"],
+    ["create", "build"],
+    ["Honestly", "To be honest", "Honestly speaking"],
+    ["tired", "fed up"],
+    ["switching", "jumping", "moving"],
+    ["That", "This", "It"],
+    ["click", "point", "select"],
+    ["jumps", "skips", "moves"],
+  ],
+  fr: [
+    ["euh", "[uh]", "ben"],
+    ["créer", "construire"],
+    ["Honnêtement", "Pour être honnête", "Franchement"],
+    ["marre", "ras-le-bol"],
+    ["passer", "changer", "basculer"],
+    ["C'était", "C'était une"],
+    ["clique", "sélectionne"],
+    ["mène", "dirige", "emmène"],
+  ],
+};
 
 // Speaker assignments (cycles through speakers)
 const SPEAKERS = [
@@ -47,29 +67,31 @@ interface WordData {
   speaker: (typeof SPEAKERS)[number];
 }
 
-const parseTranscript = (): WordData[] => {
+const parseTranscript = (locale: string): WordData[] => {
   const words: WordData[] = [];
-  TRANSCRIPT_TEXTS.forEach((text, sentenceIdx) => {
-    const wordsInSentence = text.split(/(\s+)/); // Preserve spaces
-    wordsInSentence.forEach((word, wordIdx) => {
-      if (word.trim()) {
-        words.push({
-          text: word,
-          sentenceIdx,
-          wordIdx,
-          speaker: SPEAKERS[sentenceIdx % SPEAKERS.length],
-        });
-      }
-    });
-  });
+  (TRANSCRIPT_TEXTS[locale as "en"] || TRANSCRIPT_TEXTS["en"]).forEach(
+    (text, sentenceIdx) => {
+      const wordsInSentence = text.split(/(\s+)/); // Preserve spaces
+      wordsInSentence.forEach((word, wordIdx) => {
+        if (word.trim()) {
+          words.push({
+            text: word,
+            sentenceIdx,
+            wordIdx,
+            speaker: SPEAKERS[sentenceIdx % SPEAKERS.length],
+          });
+        }
+      });
+    },
+  );
   return words;
 };
 
 // Find synonym for a word (case-insensitive)
-const findSynonym = (word: string): string | null => {
+const findSynonym = (word: string, locale: string): string | null => {
   const cleanWord = word.replace(/[.,!?]/g, "").toLowerCase();
 
-  for (const synonymGroup of SYNONYMS) {
+  for (const synonymGroup of SYNONYMS[locale as "en"] || SYNONYMS["en"]) {
     const normalizedGroup = synonymGroup.map((s) => s.toLowerCase());
     const index = normalizedGroup.indexOf(cleanWord);
 
@@ -104,12 +126,13 @@ export const AnimatedTranscriptCard = ({
   showHoverOverlay = true,
 }: AnimatedTranscriptCardProps) => {
   const t = useTranslations("transcriptCard");
+  const { locale } = useLocale() || "en";
   const [wordStates, setWordStates] = useState<Map<number, string>>(new Map());
   const [activeWordIndex, setActiveWordIndex] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const wordsRef = useRef<WordData[]>(parseTranscript());
+  const wordsRef = useRef<WordData[]>(parseTranscript(locale));
 
   useEffect(() => {
     const words = wordsRef.current;
@@ -124,7 +147,7 @@ export const AnimatedTranscriptCard = ({
       }
 
       const word = words[currentIndex];
-      const synonym = findSynonym(word.text);
+      const synonym = findSynonym(word.text, locale);
       const shouldEdit = synonym && Math.random() < 0.5; // 50% chance to edit
 
       setActiveWordIndex(currentIndex);
