@@ -34,7 +34,7 @@
         "elevenlabs": {
             "apiKey": "",
             "canDisableStorage": false,
-            "useWebhook": true
+            "useWebhook": false
         },
         "whisper": {
             "apiUrl": "http://localhost:9000",
@@ -42,7 +42,7 @@
         },
         "gladia": {
             "apiKey": "",
-            "useWebhook": true,
+            "useWebhook": false,
             "webhookUrl": "http://localhost:9000/api/webhook/gladia"
         }
     },
