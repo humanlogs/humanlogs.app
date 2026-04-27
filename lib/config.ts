@@ -1,6 +1,18 @@
 import config from "config";
 import { z } from "zod";
 
+// Custom boolean coercion that properly handles string "false", "0", etc.
+const booleanSchema = z
+  .union([z.boolean(), z.string(), z.number()])
+  .transform((val) => {
+    if (typeof val === "boolean") return val;
+    if (typeof val === "string") {
+      const lower = val.toLowerCase().trim();
+      return lower !== "false" && lower !== "0" && lower !== "";
+    }
+    return Boolean(val);
+  });
+
 // Define the configuration schema
 const configSchema = z.object({
   auth: z.object({
@@ -15,7 +27,7 @@ const configSchema = z.object({
     }),
     ldap: z
       .object({
-        enabled: z.coerce.boolean(),
+        enabled: booleanSchema,
         url: z.string(),
         bindDN: z.string(),
         bindPassword: z.string(),
@@ -39,8 +51,8 @@ const configSchema = z.object({
     type: z.enum(["elevenlabs", "whisper", "gladia"]),
     elevenlabs: z.object({
       apiKey: z.string(),
-      canDisableStorage: z.coerce.boolean().optional(),
-      useWebhook: z.coerce.boolean().optional(),
+      canDisableStorage: booleanSchema.optional(),
+      useWebhook: booleanSchema.optional(),
     }),
     whisper: z.object({
       apiUrl: z.string().url(),
@@ -50,7 +62,7 @@ const configSchema = z.object({
     }),
     gladia: z.object({
       apiKey: z.string(),
-      useWebhook: z.coerce.boolean().optional(),
+      useWebhook: booleanSchema.optional(),
       webhookUrl: z.string().optional(),
     }),
   }),
@@ -67,7 +79,7 @@ const configSchema = z.object({
         .object({
           host: z.string(),
           port: z.number(),
-          secure: z.coerce.boolean(),
+          secure: booleanSchema,
           auth: z.object({
             user: z.string(),
             pass: z.string(),
@@ -92,13 +104,19 @@ export type AppConfig = z.infer<typeof configSchema>;
 // Note: Only use this in server-side code (API routes, Server Components)
 // NOT in middleware/proxy (Edge Runtime)
 export function getConfig(): AppConfig {
-  // In production, validate the config
-  // In development, allow partial config for easier setup
+  // Always parse config to ensure proper type coercion (e.g., string "false" → boolean false)
+  // In development, use safeParse to allow partial config for easier setup
   if (process.env.NODE_ENV === "production") {
     return configSchema.parse(config);
   }
 
-  // For development, return config as-is (TypeScript will still check types)
+  // In development, still parse to apply coercions, but don't fail on validation errors
+  const result = configSchema.safeParse(config);
+  if (result.success) {
+    return result.data;
+  }
+
+  // If validation fails in dev, return config as-is (for easier setup)
   return config as unknown as AppConfig;
 }
 

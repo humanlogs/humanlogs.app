@@ -61,7 +61,7 @@ class ElevenLabsClient {
     this.client = new ElevenLabsSDK({
       apiKey: config.stt.elevenlabs.apiKey,
     });
-    this.useWebhook = config.stt.elevenlabs.useWebhook || false;
+    this.useWebhook = config.stt.elevenlabs.useWebhook ?? false;
   }
 
   /**
