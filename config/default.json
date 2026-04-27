@@ -39,6 +39,11 @@
         "whisper": {
             "apiUrl": "http://localhost:9000",
             "modelSize": "base"
+        },
+        "gladia": {
+            "apiKey": "",
+            "useWebhook": "",
+            "webhookUrl": ""
         }
     },
     "stripe": {

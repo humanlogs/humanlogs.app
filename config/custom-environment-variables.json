@@ -39,6 +39,11 @@
         "whisper": {
             "apiUrl": "WHISPER_API_URL",
             "modelSize": "WHISPER_MODEL_SIZE"
+        },
+        "gladia": {
+            "apiKey": "GLADIA_API_KEY",
+            "useWebhook": "GLADIA_USE_WEBHOOK",
+            "webhookUrl": "GLADIA_WEBHOOK_URL"
         }
     },
     "stripe": {
