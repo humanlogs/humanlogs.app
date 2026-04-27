@@ -21,10 +21,11 @@ export default function Page() {
     const maxWidth = pageWidth - 2 * margin;
     let yPosition = margin;
 
-    const title = language === "en" 
-      ? "Information for Institutional Review Boards (IRB)"
-      : "Informations pour les Comités d'Éthique de la Recherche (CER)";
-    
+    const title =
+      language === "en"
+        ? "Information for Institutional Review Boards (IRB)"
+        : "Informations pour les Comités d'Éthique de la Recherche (CER)";
+
     // Title
     pdf.setFontSize(18);
     pdf.setFont("helvetica", "bold");
@@ -34,15 +35,17 @@ export default function Page() {
 
     // Extract and format content
     const content = contentRef.current;
-    const elements = content.querySelectorAll("h1, h2, h3, p, li, strong, em, a");
-    
+    const elements = content.querySelectorAll(
+      "h1, h2, h3, p, li, strong, em, a",
+    );
+
     pdf.setFontSize(10);
     pdf.setFont("helvetica", "normal");
-    
+
     // Simple text extraction
     const textContent = content.innerText;
     const lines = pdf.splitTextToSize(textContent, maxWidth);
-    
+
     lines.forEach((line: string) => {
       if (yPosition > pageHeight - margin) {
         pdf.addPage();
@@ -51,18 +54,19 @@ export default function Page() {
       pdf.text(line, margin, yPosition);
       yPosition += 5;
     });
-    
-    const filename = language === "en" 
-      ? "HumanLogs_IRB_Information.pdf"
-      : "HumanLogs_Informations_CER.pdf";
-    
+
+    const filename =
+      language === "en"
+        ? "HumanLogs_IRB_Information.pdf"
+        : "HumanLogs_Informations_CER.pdf";
+
     pdf.save(filename);
   };
 
   return (
     <>
       <AnimatedSectionTitle className="text-black">
-        {language === "en" 
+        {language === "en"
           ? "Information for Institutional Review Boards (IRB)"
           : "Informations pour les Comités d'Éthique de la Recherche (CER)"}
       </AnimatedSectionTitle>
@@ -108,378 +112,371 @@ function EnglishContent() {
   return (
     <>
       <h1>Information for Institutional Review Boards (IRB)</h1>
-        <p>
-          <strong>Last updated:</strong> April 27, 2026
-        </p>
+      <p>
+        <strong>Last updated:</strong> April 27, 2026
+      </p>
 
-        <h2>Purpose of This Document</h2>
-        <p>
-          This document provides detailed information about HumanLogs' data
-          protection and security practices for researchers and institutions
-          seeking IRB approval to use our transcription service in their
-          research activities.
-        </p>
+      <h2>Purpose of This Document</h2>
+      <p>
+        This document provides detailed information about HumanLogs' data
+        protection and security practices for researchers and institutions
+        seeking IRB approval to use our transcription service in their research
+        activities.
+      </p>
 
-        <h2>Service Overview</h2>
-        <p>
-          HumanLogs is an audio transcription service that provides end-to-end
-          encrypted transcription capabilities. Our service is designed with
-          privacy and security as core principles, making it suitable for
-          sensitive research data including interviews, focus groups, and other
-          qualitative research activities.
-        </p>
+      <h2>Service Overview</h2>
+      <p>
+        HumanLogs is an audio transcription service that provides end-to-end
+        encrypted transcription capabilities. Our service is designed with
+        privacy and security as core principles, making it suitable for
+        sensitive research data including interviews, focus groups, and other
+        qualitative research activities.
+      </p>
 
-        <h2>Data Processing Workflow</h2>
+      <h2>Data Processing Workflow</h2>
 
-        <h3>SaaS Mode (Standard)</h3>
-        <p>
-          In our standard SaaS offering, data processing follows this workflow:
-        </p>
-        <ol>
-          <li>
-            <strong>Audio Upload:</strong> Audio files are securely transmitted
-            to our servers via encrypted connection (TLS).
-          </li>
-          <li>
-            <strong>Transcription Processing:</strong> Audio files are sent to
-            our subprocessor (ElevenLabs) with:
-            <ul>
-              <li>
-                <strong>Training disabled:</strong> AI model training is
-                explicitly opted-out (see{" "}
-                <a
-                  href="https://elevenlabs.io/privacy-policy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  ElevenLabs Privacy Policy
-                </a>{" "}
-                and{" "}
-                <a
-                  href="https://elevenlabs.io/warsaw-event-gdpr-notice"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  GDPR Notice
-                </a>
-                )
-              </li>
-              <li>
-                <strong>Immediate deletion:</strong> Documents are immediately
-                deleted from the subprocessor's servers after transcription is
-                complete
-              </li>
-            </ul>
-          </li>
-          <li>
-            <strong>End-to-End Encryption:</strong> Once the transcript is
-            obtained, it is immediately encrypted with your public key. After
-            this point, all transcripts and audio files remain end-to-end
-            encrypted.
-          </li>
-          <li>
-            <strong>Storage:</strong> Encrypted data is stored on our servers
-            located in the European Union. Only you can decrypt this data using
-            your private key.
-          </li>
-        </ol>
+      <h3>SaaS Mode (Standard)</h3>
+      <p>
+        In our standard SaaS offering, data processing follows this workflow:
+      </p>
+      <ol>
+        <li>
+          <strong>Audio Upload:</strong> Audio files are securely transmitted to
+          our servers via encrypted connection (TLS).
+        </li>
+        <li>
+          <strong>Transcription Processing:</strong> Audio files are sent to our
+          subprocessor (ElevenLabs) with:
+          <ul>
+            <li>
+              <strong>Training disabled:</strong> AI model training is
+              explicitly opted-out (see{" "}
+              <a
+                href="https://elevenlabs.io/privacy-policy"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                ElevenLabs Privacy Policy
+              </a>{" "}
+              and{" "}
+              <a
+                href="https://elevenlabs.io/warsaw-event-gdpr-notice"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GDPR Notice
+              </a>
+              )
+            </li>
+            <li>
+              <strong>Immediate deletion:</strong> Documents are immediately
+              deleted from the subprocessor's servers after transcription is
+              complete
+            </li>
+          </ul>
+        </li>
+        <li>
+          <strong>End-to-End Encryption:</strong> Once the transcript is
+          obtained, it is immediately encrypted with your public key. After this
+          point, all transcripts and audio files remain end-to-end encrypted.
+        </li>
+        <li>
+          <strong>Storage:</strong> Encrypted data is stored on our servers
+          located in the European Union. Only you can decrypt this data using
+          your private key.
+        </li>
+      </ol>
 
-        <h3>On-Premise / Enterprise License Mode</h3>
-        <p>
-          For enhanced security requirements, we offer On-Premise and Enterprise
-          license options with additional protections:
-        </p>
-        <ul>
-          <li>
-            <strong>European Subprocessors Only:</strong> All subprocessors are
-            located and operate exclusively within Europe
-          </li>
-          <li>
-            <strong>Zero Retention Mode (ZRM):</strong> ElevenLabs processes
-            transcriptions entirely in-memory with zero data retention - no data
-            is ever persisted on subprocessor servers
-          </li>
-          <li>
-            <strong>Data Residency Control:</strong> Choose specific server
-            regions for data processing
-          </li>
-        </ul>
-        <p>
-          Contact us for more information about On-Premise and Enterprise
-          options.
-        </p>
+      <h3>On-Premise / Enterprise License Mode</h3>
+      <p>
+        For enhanced security requirements, we offer On-Premise and Enterprise
+        license options with additional protections:
+      </p>
+      <ul>
+        <li>
+          <strong>European Subprocessors Only:</strong> All subprocessors are
+          located and operate exclusively within Europe
+        </li>
+        <li>
+          <strong>Zero Retention Mode (ZRM):</strong> ElevenLabs processes
+          transcriptions entirely in-memory with zero data retention - no data
+          is ever persisted on subprocessor servers
+        </li>
+        <li>
+          <strong>Data Residency Control:</strong> Choose specific server
+          regions for data processing
+        </li>
+      </ul>
+      <p>
+        Contact us for more information about On-Premise and Enterprise options.
+      </p>
 
-        <h2>Data Classification: What Is Encrypted and How</h2>
+      <h2>Data Classification: What Is Encrypted and How</h2>
 
-        <h3>End-to-End Encrypted (E2E)</h3>
-        <p>
-          The following data is encrypted with your public key and can only be
-          decrypted by you using your private key:
-        </p>
-        <ul>
-          <li>
-            <strong>Transcripts:</strong> All transcription content and text
-          </li>
-          <li>
-            <strong>Audio files:</strong> Original audio recordings (after
-            initial transcription processing)
-          </li>
-        </ul>
-        <p>
-          <em>
-            HumanLogs cannot access, view, or decrypt this data. Only you have
-            the decryption keys.
-          </em>
-        </p>
+      <h3>End-to-End Encrypted (E2E)</h3>
+      <p>
+        The following data is encrypted with your public key and can only be
+        decrypted by you using your private key:
+      </p>
+      <ul>
+        <li>
+          <strong>Transcripts:</strong> All transcription content and text
+        </li>
+        <li>
+          <strong>Audio files:</strong> Original audio recordings (after initial
+          transcription processing)
+        </li>
+      </ul>
+      <p>
+        <em>
+          HumanLogs cannot access, view, or decrypt this data. Only you have the
+          decryption keys.
+        </em>
+      </p>
 
-        <h3>Encrypted at Rest and in Transit</h3>
-        <p>
-          The following data is encrypted using industry-standard encryption but
-          is not end-to-end encrypted:
-        </p>
-        <ul>
-          <li>
-            <strong>Account information:</strong> Email address, name, and
-            authentication credentials
-          </li>
-          <li>
-            <strong>Transcript metadata:</strong> File names, timestamps,
-            project information (but not the content itself)
-          </li>
-        </ul>
+      <h3>Encrypted at Rest and in Transit</h3>
+      <p>
+        The following data is encrypted using industry-standard encryption but
+        is not end-to-end encrypted:
+      </p>
+      <ul>
+        <li>
+          <strong>Account information:</strong> Email address, name, and
+          authentication credentials
+        </li>
+        <li>
+          <strong>Transcript metadata:</strong> File names, timestamps, project
+          information (but not the content itself)
+        </li>
+      </ul>
 
-        <h2>Collaboration and Key Sharing</h2>
-        <p>
-          HumanLogs supports secure collaboration between researchers through
-          public key sharing:
-        </p>
-        <ul>
-          <li>
-            Users can share their public encryption keys with collaborators
-          </li>
-          <li>
-            This allows multiple authorized researchers to access the same
-            encrypted transcripts
-          </li>
-          <li>
-            All collaborators must have the appropriate private keys to decrypt
-            shared content
-          </li>
-          <li>
-            Public key exchange happens through the HumanLogs platform, ensuring
-            secure key distribution
-          </li>
-        </ul>
+      <h2>Collaboration and Key Sharing</h2>
+      <p>
+        HumanLogs supports secure collaboration between researchers through
+        public key sharing:
+      </p>
+      <ul>
+        <li>Users can share their public encryption keys with collaborators</li>
+        <li>
+          This allows multiple authorized researchers to access the same
+          encrypted transcripts
+        </li>
+        <li>
+          All collaborators must have the appropriate private keys to decrypt
+          shared content
+        </li>
+        <li>
+          Public key exchange happens through the HumanLogs platform, ensuring
+          secure key distribution
+        </li>
+      </ul>
 
-        <h2>Data Location and Infrastructure</h2>
-        <p>
-          <strong>
-            All HumanLogs servers are located in the European Union.
-          </strong>
-        </p>
-        <p>
-          We use AWS (Amazon Web Services) European data centers for our
-          infrastructure. Data is processed and stored exclusively within EU
-          borders, ensuring compliance with European data protection standards.
-        </p>
+      <h2>Data Location and Infrastructure</h2>
+      <p>
+        <strong>
+          All HumanLogs servers are located in the European Union.
+        </strong>
+      </p>
+      <p>
+        We use AWS (Amazon Web Services) European data centers for our
+        infrastructure. Data is processed and stored exclusively within EU
+        borders, ensuring compliance with European data protection standards.
+      </p>
 
-        <h2>GDPR Compliance and Data Subject Rights</h2>
-        <p>
-          HumanLogs is fully compliant with the General Data Protection
-          Regulation (GDPR). Research participants and users have the following
-          rights:
-        </p>
-        <ul>
-          <li>
-            <strong>Right to Access:</strong> Users can request copies of their
-            personal data
-          </li>
-          <li>
-            <strong>Right to Rectification:</strong> Users can correct
-            inaccurate personal information
-          </li>
-          <li>
-            <strong>Right to Erasure (Right to be Forgotten):</strong> Users can
-            request deletion of their personal data
-          </li>
-          <li>
-            <strong>Right to Data Portability:</strong> Users can export their
-            data in a machine-readable format
-          </li>
-          <li>
-            <strong>Right to Object:</strong> Users can object to certain types
-            of data processing
-          </li>
-        </ul>
-        <p>
-          For comprehensive information about data protection and GDPR
-          compliance, please refer to:
-        </p>
-        <ul>
-          <li>
-            <a href="https://humanlogs.app/fr/legal/privacy">Privacy Policy</a>
-          </li>
-          <li>
-            <a href="https://humanlogs.app/fr/legal/gdpr">
-              GDPR Compliance Information
-            </a>
-          </li>
-        </ul>
+      <h2>GDPR Compliance and Data Subject Rights</h2>
+      <p>
+        HumanLogs is fully compliant with the General Data Protection Regulation
+        (GDPR). Research participants and users have the following rights:
+      </p>
+      <ul>
+        <li>
+          <strong>Right to Access:</strong> Users can request copies of their
+          personal data
+        </li>
+        <li>
+          <strong>Right to Rectification:</strong> Users can correct inaccurate
+          personal information
+        </li>
+        <li>
+          <strong>Right to Erasure (Right to be Forgotten):</strong> Users can
+          request deletion of their personal data
+        </li>
+        <li>
+          <strong>Right to Data Portability:</strong> Users can export their
+          data in a machine-readable format
+        </li>
+        <li>
+          <strong>Right to Object:</strong> Users can object to certain types of
+          data processing
+        </li>
+      </ul>
+      <p>
+        For comprehensive information about data protection and GDPR compliance,
+        please refer to:
+      </p>
+      <ul>
+        <li>
+          <a href="https://humanlogs.app/fr/legal/privacy">Privacy Policy</a>
+        </li>
+        <li>
+          <a href="https://humanlogs.app/fr/legal/gdpr">
+            GDPR Compliance Information
+          </a>
+        </li>
+      </ul>
 
-        <h2>Data Retention and Deletion</h2>
-        <p>
-          <strong>Active Data:</strong> Encrypted transcripts and audio files
-          are retained as long as your account is active, unless you explicitly
-          delete them.
-        </p>
-        <p>
-          <strong>Deletion Requests:</strong> When you delete data or request
-          account deletion:
-        </p>
-        <ul>
-          <li>
-            Data is immediately removed from production systems and marked for
-            permanent deletion
-          </li>
-          <li>
-            Backup copies are purged according to our backup retention schedule
-            (maximum 90 days)
-          </li>
-          <li>
-            All subprocessor copies are immediately deleted (or never stored in
-            On-Premise/Enterprise modes)
-          </li>
-        </ul>
+      <h2>Data Retention and Deletion</h2>
+      <p>
+        <strong>Active Data:</strong> Encrypted transcripts and audio files are
+        retained as long as your account is active, unless you explicitly delete
+        them.
+      </p>
+      <p>
+        <strong>Deletion Requests:</strong> When you delete data or request
+        account deletion:
+      </p>
+      <ul>
+        <li>
+          Data is immediately removed from production systems and marked for
+          permanent deletion
+        </li>
+        <li>
+          Backup copies are purged according to our backup retention schedule
+          (maximum 90 days)
+        </li>
+        <li>
+          All subprocessor copies are immediately deleted (or never stored in
+          On-Premise/Enterprise modes)
+        </li>
+      </ul>
 
-        <h2>Subprocessors</h2>
-        <p>
-          HumanLogs uses carefully selected subprocessors to deliver our
-          services. All subprocessors are bound by strict data protection
-          agreements:
-        </p>
-        <ul>
-          <li>
-            <strong>ElevenLabs:</strong> Audio transcription processing (with
-            training disabled and immediate deletion)
-          </li>
-          <li>
-            <strong>AWS (Europe):</strong> Infrastructure and secure data
-            storage
-          </li>
-          <li>
-            <strong>Auth0:</strong> Authentication and identity management
-          </li>
-          <li>
-            <strong>OVH (Europe):</strong> Email communications
-          </li>
-        </ul>
-        <p>
-          For a complete and current list of subprocessors, see our{" "}
-          <a href="/legal/subprocessors">Data Subprocessors page</a>.
-        </p>
+      <h2>Subprocessors</h2>
+      <p>
+        HumanLogs uses carefully selected subprocessors to deliver our services.
+        All subprocessors are bound by strict data protection agreements:
+      </p>
+      <ul>
+        <li>
+          <strong>ElevenLabs:</strong> Audio transcription processing (with
+          training disabled and immediate deletion)
+        </li>
+        <li>
+          <strong>AWS (Europe):</strong> Infrastructure and secure data storage
+        </li>
+        <li>
+          <strong>Auth0:</strong> Authentication and identity management
+        </li>
+        <li>
+          <strong>OVH (Europe):</strong> Email communications
+        </li>
+      </ul>
+      <p>
+        For a complete and current list of subprocessors, see our{" "}
+        <a href="/legal/subprocessors">Data Subprocessors page</a>.
+      </p>
 
-        <h2>Security Measures</h2>
-        <p>HumanLogs implements multiple layers of security:</p>
-        <ul>
-          <li>
-            <strong>Encryption in Transit:</strong> All data transfers use
-            TLS/SSL encryption
-          </li>
-          <li>
-            <strong>Encryption at Rest:</strong> All stored data is encrypted
-            using AES-256 encryption
-          </li>
-          <li>
-            <strong>End-to-End Encryption:</strong> Sensitive content
-            (transcripts and audio) is encrypted with user-controlled keys
-          </li>
-          <li>
-            <strong>Access Controls:</strong> Role-based access control and
-            multi-factor authentication
-          </li>
-          <li>
-            <strong>Regular Security Audits:</strong> Ongoing security
-            assessments and updates
-          </li>
-          <li>
-            <strong>Zero-Knowledge Architecture:</strong> HumanLogs cannot
-            access your encrypted content
-          </li>
-        </ul>
+      <h2>Security Measures</h2>
+      <p>HumanLogs implements multiple layers of security:</p>
+      <ul>
+        <li>
+          <strong>Encryption in Transit:</strong> All data transfers use TLS/SSL
+          encryption
+        </li>
+        <li>
+          <strong>Encryption at Rest:</strong> All stored data is encrypted
+          using AES-256 encryption
+        </li>
+        <li>
+          <strong>End-to-End Encryption:</strong> Sensitive content (transcripts
+          and audio) is encrypted with user-controlled keys
+        </li>
+        <li>
+          <strong>Access Controls:</strong> Role-based access control and
+          multi-factor authentication
+        </li>
+        <li>
+          <strong>Regular Security Audits:</strong> Ongoing security assessments
+          and updates
+        </li>
+        <li>
+          <strong>Zero-Knowledge Architecture:</strong> HumanLogs cannot access
+          your encrypted content
+        </li>
+      </ul>
 
-        <h2>Compliance Documentation</h2>
-        <p>Additional documentation available for IRB review:</p>
-        <ul>
-          <li>
-            <a href="/legal/privacy">Privacy Policy</a>
-          </li>
-          <li>
-            <a href="/legal/terms">Terms of Service</a>
-          </li>
-          <li>
-            <a href="/legal/dpa">Data Processing Agreement (DPA)</a>
-          </li>
-          <li>
-            <a href="/legal/subprocessors">Data Subprocessors List</a>
-          </li>
-        </ul>
+      <h2>Compliance Documentation</h2>
+      <p>Additional documentation available for IRB review:</p>
+      <ul>
+        <li>
+          <a href="/legal/privacy">Privacy Policy</a>
+        </li>
+        <li>
+          <a href="/legal/terms">Terms of Service</a>
+        </li>
+        <li>
+          <a href="/legal/dpa">Data Processing Agreement (DPA)</a>
+        </li>
+        <li>
+          <a href="/legal/subprocessors">Data Subprocessors List</a>
+        </li>
+      </ul>
 
-        <h2>Contact Information</h2>
-        <p>
-          For additional information, questions, or to request specific
-          documentation for your IRB submission:
-        </p>
-        <ul>
-          <li>
-            <strong>General inquiries:</strong>{" "}
-            <a href="/contact">Contact Form</a>
-          </li>
-          <li>
-            <strong>Privacy questions:</strong>{" "}
-            <a href="mailto:hello@humanlogs.app">privacy@humanlogs.app</a>
-          </li>
-          <li>
-            <strong>Enterprise inquiries:</strong>{" "}
-            <a href="mailto:hello@humanlogs.app">enterprise@humanlogs.app</a>
-          </li>
-        </ul>
+      <h2>Contact Information</h2>
+      <p>
+        For additional information, questions, or to request specific
+        documentation for your IRB submission:
+      </p>
+      <ul>
+        <li>
+          <strong>General inquiries:</strong>{" "}
+          <a href="/contact">Contact Form</a>
+        </li>
+        <li>
+          <strong>Privacy questions:</strong>{" "}
+          <a href="mailto:hello@humanlogs.app">privacy@humanlogs.app</a>
+        </li>
+        <li>
+          <strong>Enterprise inquiries:</strong>{" "}
+          <a href="mailto:hello@humanlogs.app">enterprise@humanlogs.app</a>
+        </li>
+      </ul>
 
-        <h2>Researcher Recommendations</h2>
-        <p>
-          For researchers using HumanLogs in IRB-approved studies, we recommend:
-        </p>
-        <ul>
-          <li>
-            Informing participants that transcriptions will be processed using a
-            third-party service with end-to-end encryption
-          </li>
-          <li>
-            Explaining that audio is temporarily processed by a subprocessor but
-            immediately deleted
-          </li>
-          <li>
-            Maintaining control of your private encryption keys and not sharing
-            them beyond authorized research team members
-          </li>
-          <li>
-            Using unique project identifiers rather than participant names in
-            file names or metadata
-          </li>
-          <li>
-            Considering On-Premise or Enterprise options for highly sensitive
-            research requiring additional security guarantees
-          </li>
-        </ul>
+      <h2>Researcher Recommendations</h2>
+      <p>
+        For researchers using HumanLogs in IRB-approved studies, we recommend:
+      </p>
+      <ul>
+        <li>
+          Informing participants that transcriptions will be processed using a
+          third-party service with end-to-end encryption
+        </li>
+        <li>
+          Explaining that audio is temporarily processed by a subprocessor but
+          immediately deleted
+        </li>
+        <li>
+          Maintaining control of your private encryption keys and not sharing
+          them beyond authorized research team members
+        </li>
+        <li>
+          Using unique project identifiers rather than participant names in file
+          names or metadata
+        </li>
+        <li>
+          Considering On-Premise or Enterprise options for highly sensitive
+          research requiring additional security guarantees
+        </li>
+      </ul>
 
-        <hr className="my-6" />
-        <p className="text-sm text-gray-600">
-          <em>
-            This document is provided to assist researchers in preparing IRB
-            applications. It does not constitute legal advice. Researchers
-            should consult with their institution's IRB and legal counsel to
-            ensure compliance with applicable regulations.
-          </em>
-        </p>
+      <hr className="my-6" />
+      <p className="text-sm text-gray-600">
+        <em>
+          This document is provided to assist researchers in preparing IRB
+          applications. It does not constitute legal advice. Researchers should
+          consult with their institution's IRB and legal counsel to ensure
+          compliance with applicable regulations.
+        </em>
+      </p>
     </>
   );
 }
@@ -504,10 +501,10 @@ function FrenchContent() {
       <p>
         HumanLogs est un service de transcription audio qui fournit des
         capacités de transcription avec chiffrement de bout en bout. Notre
-        service est conçu avec la confidentialité et la sécurité comme
-        principes fondamentaux, ce qui le rend adapté aux données de recherche
-        sensibles, y compris les entretiens, les groupes de discussion et
-        d'autres activités de recherche qualitative.
+        service est conçu avec la confidentialité et la sécurité comme principes
+        fondamentaux, ce qui le rend adapté aux données de recherche sensibles,
+        y compris les entretiens, les groupes de discussion et d'autres
+        activités de recherche qualitative.
       </p>
 
       <h2>Flux de traitement des données</h2>
@@ -569,9 +566,8 @@ function FrenchContent() {
 
       <h3>Mode On-Premise / Licence Entreprise</h3>
       <p>
-        Pour des exigences de sécurité renforcées, nous proposons des options
-        de licence On-Premise et Entreprise avec des protections
-        supplémentaires :
+        Pour des exigences de sécurité renforcées, nous proposons des options de
+        licence On-Premise et Entreprise avec des protections supplémentaires :
       </p>
       <ul>
         <li>
@@ -580,13 +576,12 @@ function FrenchContent() {
         </li>
         <li>
           <strong>Mode Zéro Rétention (ZRM) :</strong> ElevenLabs traite les
-          transcriptions entièrement en mémoire avec zéro rétention de données
-          - aucune donnée n'est jamais persistée sur les serveurs du
-          sous-traitant
+          transcriptions entièrement en mémoire avec zéro rétention de données -
+          aucune donnée n'est jamais persistée sur les serveurs du sous-traitant
         </li>
         <li>
-          <strong>Contrôle de la résidence des données :</strong> Choisissez
-          des régions de serveurs spécifiques pour le traitement des données
+          <strong>Contrôle de la résidence des données :</strong> Choisissez des
+          régions de serveurs spécifiques pour le traitement des données
         </li>
       </ul>
       <p>
@@ -679,8 +674,8 @@ function FrenchContent() {
       </p>
       <ul>
         <li>
-          <strong>Droit d'accès :</strong> Les utilisateurs peuvent demander
-          des copies de leurs données personnelles
+          <strong>Droit d'accès :</strong> Les utilisateurs peuvent demander des
+          copies de leurs données personnelles
         </li>
         <li>
           <strong>Droit de rectification :</strong> Les utilisateurs peuvent
@@ -692,9 +687,8 @@ function FrenchContent() {
           personnelles
         </li>
         <li>
-          <strong>Droit à la portabilité des données :</strong> Les
-          utilisateurs peuvent exporter leurs données dans un format lisible par
-          machine
+          <strong>Droit à la portabilité des données :</strong> Les utilisateurs
+          peuvent exporter leurs données dans un format lisible par machine
         </li>
         <li>
           <strong>Droit d'opposition :</strong> Les utilisateurs peuvent
@@ -738,8 +732,8 @@ function FrenchContent() {
           conservation des sauvegardes (maximum 90 jours)
         </li>
         <li>
-          Toutes les copies des sous-traitants sont immédiatement supprimées
-          (ou jamais stockées en modes On-Premise/Entreprise)
+          Toutes les copies des sous-traitants sont immédiatement supprimées (ou
+          jamais stockées en modes On-Premise/Entreprise)
         </li>
       </ul>
 
@@ -791,8 +785,8 @@ function FrenchContent() {
           rôles et authentification multi-facteurs
         </li>
         <li>
-          <strong>Audits de sécurité réguliers :</strong> Évaluations et mises
-          à jour de sécurité continues
+          <strong>Audits de sécurité réguliers :</strong> Évaluations et mises à
+          jour de sécurité continues
         </li>
         <li>
           <strong>Architecture zéro-connaissance :</strong> HumanLogs ne peut
@@ -801,9 +795,7 @@ function FrenchContent() {
       </ul>
 
       <h2>Documentation de conformité</h2>
-      <p>
-        Documentation supplémentaire disponible pour l'examen par le CER :
-      </p>
+      <p>Documentation supplémentaire disponible pour l'examen par le CER :</p>
       <ul>
         <li>
           <a href="/legal/privacy">Politique de confidentialité</a>
@@ -854,8 +846,8 @@ function FrenchContent() {
           mais immédiatement supprimé
         </li>
         <li>
-          Maintenir le contrôle de vos clés de chiffrement privées et ne pas
-          les partager au-delà des membres autorisés de l'équipe de recherche
+          Maintenir le contrôle de vos clés de chiffrement privées et ne pas les
+          partager au-delà des membres autorisés de l'équipe de recherche
         </li>
         <li>
           Utiliser des identifiants de projet uniques plutôt que les noms des
@@ -872,8 +864,8 @@ function FrenchContent() {
       <p className="text-sm text-gray-600">
         <em>
           Ce document est fourni pour aider les chercheurs à préparer leurs
-          demandes auprès des CER. Il ne constitue pas un conseil juridique.
-          Les chercheurs doivent consulter le CER de leur institution et leur
+          demandes auprès des CER. Il ne constitue pas un conseil juridique. Les
+          chercheurs doivent consulter le CER de leur institution et leur
           conseiller juridique pour assurer la conformité aux réglementations
           applicables.
         </em>
@@ -881,4 +873,3 @@ function FrenchContent() {
     </>
   );
 }
-
