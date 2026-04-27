@@ -146,7 +146,6 @@ export const sttConfig = {
     canDisableStorage:
       config.get<boolean>("stt.elevenlabs.canDisableStorage") || false,
     useWebhook: config.get<boolean>("stt.elevenlabs.useWebhook") || false,
-    webhookUrl: config.get<string>("stt.elevenlabs.webhookUrl") || "",
   },
   whisper: {
     apiUrl: config.get<string>("stt.whisper.apiUrl"),
