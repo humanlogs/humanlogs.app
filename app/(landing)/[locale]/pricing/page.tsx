@@ -34,7 +34,7 @@ export default function Page() {
             href: "/resources",
           },
           {
-            title: "Contact Sales",
+            title: "I am a university",
             description: "Get institutional pricing and DPA",
             href: "/contact",
           },

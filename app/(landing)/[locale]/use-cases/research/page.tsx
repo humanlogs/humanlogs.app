@@ -51,7 +51,7 @@ export default function ResearchUseCasePage() {
             href: "/pricing",
           },
           {
-            title: "Contact Sales",
+            title: "I am a university",
             description: "Get institutional pricing and custom solutions",
             href: "/contact",
           },

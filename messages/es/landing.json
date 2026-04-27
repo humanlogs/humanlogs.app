@@ -37,6 +37,7 @@
         "startForFree": "Comenzar gratis",
         "contactSales": "Contactar ventas",
         "rating": "de investigadores y estudiantes",
+        "noCardRequired": "No se requiere tarjeta, 100 min gratis cada mes.",
         "pillars": {
             "encryption": "Cifrado de extremo a extremo",
             "editing": "Edición ultrarrápida",
@@ -286,6 +287,38 @@
             "selfHosted": {
                 "question": "¿Puedo usar la versión auto-alojada gratis?",
                 "answer": "Sí, la versión auto-alojada es gratuita para uso personal. Sin embargo, para implementar Humanlogs dentro de la red de tu empresa, universidad o escuela, necesitarás una licencia institucional. Esto incluye nuestras claves API de retención cero y soporte profesional."
+            },
+            "ethics": {
+                "question": "¿Puedo usar Humanlogs para datos sometidos a un comité de ética?",
+                "answer": "Sí. Humanlogs fue diseñado precisamente para esto. El audio se procesa en modo de retención cero: se elimina inmediatamente después de la transcripción. Una vez transcrito, todo el contenido se cifra en tu navegador antes de almacenarse. Nuestros servidores no pueden leer tus transcripciones, aunque quisiéramos. Varias universidades francesas ya han obtenido la aprobación de su comité de ética usando Humanlogs. Proporcionamos un documento especial para los comités de ética para verificar rápidamente tu caso."
+            },
+            "aiModels": {
+                "question": "¿Qué modelos de IA utilizan para la transcripción?",
+                "answer": "Utilizamos los mejores modelos disponibles según el idioma y el contexto, incluidos ElevenLabs Scribe y Gladia, que ofrecen una de las precisiones más altas del mercado, especialmente para acentos, vocabulario especializado y grabaciones ruidosas. El procesamiento se realiza en modo de retención cero: el modelo procesa el audio sin almacenarlo."
+            },
+            "encryptionDetails": {
+                "question": "¿Cómo funciona exactamente el cifrado de extremo a extremo?",
+                "answer": "Después de la transcripción, tu texto se cifra directamente en tu navegador, antes de enviarse a nuestros servidores. La clave de cifrado nunca sale de tu dispositivo. Concretamente, incluso si alguien accediera a nuestra base de datos, solo vería texto ilegible. Solo tú, con tu clave, puedes descifrar tus transcripciones."
+            },
+            "audioEditor": {
+                "question": "¿Cómo funciona el editor de audio?",
+                "answer": "Cada palabra de la transcripción tiene una marca de tiempo durante el procesamiento. En el editor, hacer clic en cualquier palabra reproduce el audio en ese momento preciso. Ya no necesitas alternar entre un reproductor de audio y un editor de texto separados. Corregir una hora de entrevista pasa así de 8 horas manualmente a menos de una hora con nuestro editor."
+            },
+            "speakers": {
+                "question": "¿Humanlogs maneja múltiples hablantes?",
+                "answer": "Sí. La diarización automática identifica diferentes hablantes en la grabación. Luego puedes renombrarlos, fusionar turnos de habla incorrectamente atribuidos o eliminar segmentos. Esto es especialmente útil para entrevistas de dos personas o grupos focales."
+            },
+            "exportQDA": {
+                "question": "¿Puedo exportar mis transcripciones a NVivo, Atlas.ti o MAXQDA?",
+                "answer": "Sí. Ofrecemos exportaciones adaptadas a software de análisis cualitativo, así como formatos estándar: Word, PDF, TXT, CSV. Las exportaciones pueden incluir marcas de tiempo, nombres de hablantes y el formato que aplicaste en el editor."
+            },
+            "dataLocation": {
+                "question": "¿Mis datos se almacenan en Europa?",
+                "answer": "Sí. Toda nuestra infraestructura está alojada en la Unión Europea. Cumplimos con el RGPD, y un Acuerdo de Procesamiento de Datos (DPA) está disponible bajo solicitud para suscriptores de pago."
+            },
+            "lostKey": {
+                "question": "¿Qué sucede si pierdo mi clave de cifrado?",
+                "answer": "Tus transcripciones cifradas se vuelven inaccesibles, incluso para nosotros. Este es el principio mismo del cifrado de extremo a extremo: nadie más que tú puede descifrar tus datos. Recomendamos guardar tu clave en un administrador de contraseñas."
             }
         }
     },

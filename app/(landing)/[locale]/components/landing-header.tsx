@@ -136,14 +136,6 @@ export const LandingHeader = () => {
           </div>
 
           <Link
-            href="https://github.com/humanlogs/humanlogs.app"
-            target="_blank"
-            className="text-sm font-medium text-black transition-colors hover:text-black"
-          >
-            {t("nav.github")}
-          </Link>
-
-          <Link
             href="/contact"
             className="text-sm font-medium text-black transition-colors hover:text-black"
           >

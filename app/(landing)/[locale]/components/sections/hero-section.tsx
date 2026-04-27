@@ -43,7 +43,7 @@ export const HeroSection = () => {
           </div>
 
           <div className="sm:block hidden text-sm text-muted-foreground -mt-6">
-            No card required, 100 min free every month.
+            {t("noCardRequired")}
           </div>
 
           {/* Badges & Stars */}

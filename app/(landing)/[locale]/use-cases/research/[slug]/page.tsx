@@ -49,7 +49,7 @@ export default function ResearchSeoPage() {
             href: "/pricing",
           },
           {
-            title: "Contact Sales",
+            title: "I am a university",
             description: "Get institutional pricing and DPA",
             href: "/contact",
           },

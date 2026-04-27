@@ -31,12 +31,16 @@ export const TestimonialCard = ({
         &ldquo;{quote || t("items.researcher1.quote")}&rdquo;
       </blockquote>
       <div className={short ? "" : "border-t border-gray-100 pt-6"}>
-        <div className="font-semibold text-black">
-          {author || t("items.researcher1.author")}
-        </div>
-        <div className="text-sm text-gray-600">
-          {role || t("items.researcher1.role")}
-        </div>
+        {false && (
+          <>
+            <div className="font-semibold text-black">
+              {author || t("items.researcher1.author")}
+            </div>
+            <div className="text-sm text-gray-600">
+              {role || t("items.researcher1.role")}
+            </div>
+          </>
+        )}
         {!short && (
           <div className="text-sm text-gray-500">
             {institution || t("items.researcher1.institution")}

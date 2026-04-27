@@ -92,6 +92,38 @@ export const FAQSection = () => {
       question: t("questions.selfHosted.question"),
       answer: t("questions.selfHosted.answer"),
     },
+    {
+      question: t("questions.ethics.question"),
+      answer: t("questions.ethics.answer"),
+    },
+    {
+      question: t("questions.aiModels.question"),
+      answer: t("questions.aiModels.answer"),
+    },
+    {
+      question: t("questions.encryptionDetails.question"),
+      answer: t("questions.encryptionDetails.answer"),
+    },
+    {
+      question: t("questions.audioEditor.question"),
+      answer: t("questions.audioEditor.answer"),
+    },
+    {
+      question: t("questions.speakers.question"),
+      answer: t("questions.speakers.answer"),
+    },
+    {
+      question: t("questions.exportQDA.question"),
+      answer: t("questions.exportQDA.answer"),
+    },
+    {
+      question: t("questions.dataLocation.question"),
+      answer: t("questions.dataLocation.answer"),
+    },
+    {
+      question: t("questions.lostKey.question"),
+      answer: t("questions.lostKey.answer"),
+    },
   ];
 
   return (

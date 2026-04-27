@@ -72,7 +72,7 @@
             "cookies": "Politique des cookies",
             "dpa": "DPA",
             "subprocessors": "Sous-traitants",
-            "irb": "Conformité CER"
+            "irb": "Conformité comités d'éthique (IRB/CER)"
         },
         "copyright": "Tous droits réservés.",
         "tagline": "Transcription confidentielle pour la recherche"
@@ -80,10 +80,11 @@
     "hero": {
         "title": "Ne choisissez pas entre confidentialité et précision pour vos transcriptions.",
         "title2": "Transcrivez vos entretiens rapidement et en toute confidentialité.",
-        "subtitle": "Recevez vos transcriptions en 2 minutes, avec 98% de précision, dans plus de 100 langues. Corrigez-les ensuite facilement avec notre éditeur surpuissant.",
-        "startForFree": "Utiliser gratuitement",
-        "contactSales": "Contacter les ventes",
+        "subtitle": "Transformez une heure d'entretien en transcription corrigée en quelques minutes et en toute conformité avec votre comité d'éthique.",
+        "startForFree": "Utiliser maintenant",
+        "contactSales": "Je suis une université",
         "rating": "par chercheurs et étudiants",
+        "noCardRequired": "Aucune carte requise, 100 min gratuites chaque mois.",
         "pillars": {
             "encryption": "Chiffré de bout en bout",
             "editing": "Édition ultra-rapide",
@@ -332,14 +333,46 @@
             "selfHosted": {
                 "question": "Puis-je utiliser la version auto-hébergée gratuitement ?",
                 "answer": "Oui, la version auto-hébergée est gratuite pour un usage personnel. Cependant, pour déployer Humanlogs au sein du réseau de votre entreprise, université ou école, vous aurez besoin d'une licence institutionnelle. Celle-ci inclut nos clés API sans rétention et un support professionnel."
+            },
+            "ethics": {
+                "question": "Puis-je utiliser Humanlogs pour des données soumises à un comité d'éthique ?",
+                "answer": "Oui. Humanlogs a été conçu précisément pour ça. L'audio est traité en mode zéro rétention : il est supprimé immédiatement après transcription. Une fois transcrit, tout le contenu est chiffré dans votre navigateur avant d'être stocké. Nos serveurs ne peuvent pas lire vos transcriptions, même si nous le voulions. Plusieurs universités françaises ont déjà obtenu l'accord de leur comité d'éthique en utilisant Humanlogs. Nous fournissons un document spécial à destination des commités d'étique afin de vérifier votre cas rapidement."
+            },
+            "aiModels": {
+                "question": "Quels modèles d'IA utilisez-vous pour la transcription ?",
+                "answer": "Nous utilisons les meilleurs modèles disponibles selon la langue et le contexte, dont ElevenLabs Scribe et Gladia, qui offrent une précision parmi les plus élevées du marché, notamment sur les accents, le vocabulaire spécialisé et les enregistrements bruités. Le traitement se fait en mode zéro rétention : le modèle traite l'audio sans le conserver."
+            },
+            "encryptionDetails": {
+                "question": "Comment fonctionne exactement le chiffrement de bout en bout ?",
+                "answer": "Après la transcription, votre texte est chiffré directement dans votre navigateur, avant d'être envoyé à nos serveurs. La clé de chiffrement ne quitte jamais votre appareil. Concrètement, même si quelqu'un accédait à notre base de données, il ne verrait que du texte illisible. Seul vous, avec votre clé, pouvez déchiffrer vos transcriptions."
+            },
+            "audioEditor": {
+                "question": "Comment fonctionne l'éditeur audio ?",
+                "answer": "Chaque mot de la transcription est horodaté au moment du traitement. Dans l'éditeur, un clic sur n'importe quel mot relance l'audio à ce moment précis. Vous n'avez plus besoin d'alterner entre un lecteur audio et un éditeur de texte séparés. La correction d'une heure d'entretien passe ainsi de 8 heures en manuel à moins d'une heure avec notre éditeur."
+            },
+            "speakers": {
+                "question": "Humanlogs gère-t-il plusieurs locuteurs ?",
+                "answer": "Oui. La diarisation automatique identifie les différents locuteurs dans l'enregistrement. Vous pouvez ensuite les renommer, fusionner des tours de parole mal attribués, ou supprimer des segments. C'est particulièrement utile pour les entretiens à deux ou les focus groups."
+            },
+            "exportQDA": {
+                "question": "Puis-je exporter mes transcriptions vers NVivo, Atlas.ti ou MAXQDA ?",
+                "answer": "Oui. Nous proposons des exports adaptés aux logiciels d'analyse qualitative, ainsi que des formats standards : Word, PDF, TXT, CSV. L'export peut inclure les horodatages, les noms de locuteurs, et le formatage que vous avez appliqué dans l'éditeur."
+            },
+            "dataLocation": {
+                "question": "Mes données sont-elles stockées en Europe ?",
+                "answer": "Oui. L'ensemble de notre infrastructure est hébergée dans l'Union européenne. Nous sommes conformes au RGPD, et un accord de traitement des données (DPA) est disponible sur demande pour les abonnés payants."
+            },
+            "lostKey": {
+                "question": "Que se passe-t-il si je perds ma clé de chiffrement ?",
+                "answer": "Vos transcriptions chiffrées deviennent inaccessibles, y compris pour nous. C'est le principe même du chiffrement de bout en bout : personne d'autre que vous ne peut déchiffrer vos données. Nous recommandons de sauvegarder votre clé dans un gestionnaire de mots de passe."
             }
         }
     },
     "cta": {
         "title": "Prêt à transformer votre workflow de transcription ?",
         "subtitle": "Rejoignez des milliers de chercheurs et professionnels utilisant Humanlogs pour une transcription rapide et sécurisée.",
-        "startForFree": "Utiliser gratuitement",
-        "contactSales": "Contacter les ventes"
+        "startForFree": "Utiliser maintenant",
+        "contactSales": "Je suis une université"
     },
     "alternatives": {
         "title": "Choisir le bon outil de transcription",
@@ -348,8 +381,8 @@
         "cta": {
             "title": "Découvrez la différence Humanlogs",
             "subtitle": "Essayez notre éditeur audio unique et le chiffrement de bout en bout par vous-même.",
-            "startForFree": "Utiliser gratuitement",
-            "contactSales": "Contacter les ventes"
+            "startForFree": "Utiliser maintenant",
+            "contactSales": "Je suis une université"
         }
     },
     "useCases": {
@@ -359,8 +392,8 @@
         "cta": {
             "title": "Prêt pour votre workflow ?",
             "subtitle": "Commencez à transcrire dès aujourd'hui avec l'outil conçu pour les professionnels.",
-            "startForFree": "Utiliser gratuitement",
-            "contactSales": "Contacter les ventes"
+            "startForFree": "Utiliser maintenant",
+            "contactSales": "Je suis une université"
         }
     }
 }

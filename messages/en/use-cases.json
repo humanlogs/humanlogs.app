@@ -37,8 +37,8 @@
         "cta": {
             "title": "Trusted worldwide",
             "subtitle": "Join hundreds of researchers who've made Humanlogs their transcription partner.",
-            "startForFree": "Use it for free",
-            "contactSales": "Contact sales"
+            "startForFree": "Use it now",
+            "contactSales": "I am a university"
         }
     },
     "useCasesJournalism": {
@@ -79,8 +79,8 @@
         "cta": {
             "title": "Trusted by newsrooms worldwide",
             "subtitle": "Join journalists using Humanlogs to deliver stories faster without sacrificing accuracy.",
-            "startForFree": "Use it for free",
-            "contactSales": "Contact sales"
+            "startForFree": "Use it now",
+            "contactSales": "I am a university"
         }
     },
     "useCasesPodcasting": {
@@ -121,8 +121,8 @@
         "cta": {
             "title": "Trusted by podcasters worldwide",
             "subtitle": "Join thousands of creators using Humanlogs to make their shows more discoverable.",
-            "startForFree": "Use it for free",
-            "contactSales": "Contact sales"
+            "startForFree": "Use it now",
+            "contactSales": "I am a university"
         }
     },
     "useCasesEducation": {
@@ -163,8 +163,8 @@
         "cta": {
             "title": "Trusted by educators worldwide",
             "subtitle": "Join schools and universities using Humanlogs to make education accessible for all.",
-            "startForFree": "Use it for free",
-            "contactSales": "Contact sales"
+            "startForFree": "Use it now",
+            "contactSales": "I am a university"
         }
     }
 }

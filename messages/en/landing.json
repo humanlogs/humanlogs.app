@@ -33,10 +33,11 @@
     },
     "hero": {
         "title": "Fast, confidential transcription for your research interviews.",
-        "subtitle": "Receive your transcripts in 2 minutes, with 98% accuracy, in over 100 languages. Then easily refine them with our powerful editor.",
-        "startForFree": "Use it for free",
-        "contactSales": "Contact sales",
+        "subtitle": "Transform one hour of interviews into refined transcripts in minutes with complete privacy control.",
+        "startForFree": "Use it now",
+        "contactSales": "I am a university",
         "rating": "from researchers and students",
+        "noCardRequired": "No card required, 100 min free every month.",
         "pillars": {
             "encryption": "End-to-End Encrypted",
             "editing": "Lightning fast editing",
@@ -98,7 +99,7 @@
                 "name": "Universities & Companies",
                 "price": "Custom",
                 "description": "Usage-based licensing with our zero-retention API keys included.",
-                "cta": "Contact Sales"
+                "cta": "I am a university"
             }
         },
         "features": {
@@ -286,14 +287,46 @@
             "selfHosted": {
                 "question": "Can I use the self-hosted version for free?",
                 "answer": "Yes, the self-hosted version is free for personal use. However, to deploy Humanlogs within your company, university, or school network, you'll need an institutional license. This includes our zero-retention API keys and professional support."
+            },
+            "ethics": {
+                "question": "Can I use Humanlogs for data submitted to an ethics committee?",
+                "answer": "Yes. Humanlogs was designed precisely for this. Audio is processed in zero-retention mode: it is deleted immediately after transcription. Once transcribed, all content is encrypted in your browser before being stored. Our servers cannot read your transcriptions, even if we wanted to. Several French universities have already obtained ethics committee approval using Humanlogs. We provide a special document for ethics committees to quickly verify your case."
+            },
+            "aiModels": {
+                "question": "What AI models do you use for transcription?",
+                "answer": "We use the best available models depending on language and context, including ElevenLabs Scribe and Gladia, which offer some of the highest accuracy on the market, particularly for accents, specialized vocabulary, and noisy recordings. Processing is done in zero-retention mode: the model processes the audio without storing it."
+            },
+            "encryptionDetails": {
+                "question": "How exactly does end-to-end encryption work?",
+                "answer": "After transcription, your text is encrypted directly in your browser, before being sent to our servers. The encryption key never leaves your device. Concretely, even if someone accessed our database, they would only see unreadable text. Only you, with your key, can decrypt your transcriptions."
+            },
+            "audioEditor": {
+                "question": "How does the audio editor work?",
+                "answer": "Each word in the transcription is timestamped during processing. In the editor, clicking on any word replays the audio at that precise moment. You no longer need to switch between a separate audio player and text editor. Correcting one hour of interview thus goes from 8 hours manually to less than one hour with our editor."
+            },
+            "speakers": {
+                "question": "Does Humanlogs handle multiple speakers?",
+                "answer": "Yes. Automatic diarization identifies different speakers in the recording. You can then rename them, merge incorrectly attributed speaking turns, or delete segments. This is particularly useful for two-person interviews or focus groups."
+            },
+            "exportQDA": {
+                "question": "Can I export my transcriptions to NVivo, Atlas.ti or MAXQDA?",
+                "answer": "Yes. We offer exports tailored to qualitative analysis software, as well as standard formats: Word, PDF, TXT, CSV. Exports can include timestamps, speaker names, and the formatting you applied in the editor."
+            },
+            "dataLocation": {
+                "question": "Is my data stored in Europe?",
+                "answer": "Yes. Our entire infrastructure is hosted in the European Union. We are GDPR compliant, and a Data Processing Agreement (DPA) is available on request for paying subscribers."
+            },
+            "lostKey": {
+                "question": "What happens if I lose my encryption key?",
+                "answer": "Your encrypted transcriptions become inaccessible, including to us. This is the very principle of end-to-end encryption: no one but you can decrypt your data. We recommend saving your key in a password manager."
             }
         }
     },
     "cta": {
         "title": "Ready to transform your transcription workflow?",
         "subtitle": "Join thousands of researchers and professionals using Humanlogs for fast, secure transcription.",
-        "startForFree": "Use it for free",
-        "contactSales": "Contact sales"
+        "startForFree": "Use it now",
+        "contactSales": "I am a university"
     },
     "alternatives": {
         "title": "Choosing the right transcription tool",
@@ -302,8 +335,8 @@
         "cta": {
             "title": "Experience the Humanlogs difference",
             "subtitle": "Try our unique audio-based editor and end-to-end encryption for yourself.",
-            "startForFree": "Use it for free",
-            "contactSales": "Contact sales"
+            "startForFree": "Use it now",
+            "contactSales": "I am a university"
         }
     },
     "alternativesOtter": {
@@ -335,7 +368,7 @@
             "title": "Try Humanlogs for your research",
             "subtitle": "Perfect for sensitive interviews and long-form content with complete privacy control.",
             "startForFree": "Start for Free",
-            "contactSales": "Contact sales"
+            "contactSales": "I am a university"
         }
     },
     "alternativesGoodtape": {
@@ -367,7 +400,7 @@
             "title": "Experience our unique editor",
             "subtitle": "See why researchers prefer our audio-based editing workflow for faster corrections.",
             "startForFree": "Start for Free",
-            "contactSales": "Contact sales"
+            "contactSales": "I am a university"
         }
     },
     "alternativesSpeakr": {
@@ -399,7 +432,7 @@
             "title": "Built for privacy and precision",
             "subtitle": "Perfect for sensitive research interviews and investigative journalism.",
             "startForFree": "Start for Free",
-            "contactSales": "Contact sales"
+            "contactSales": "I am a university"
         }
     },
     "alternativesVook": {
@@ -431,7 +464,7 @@
             "title": "Better editing, better privacy, better value",
             "subtitle": "Get more transcription hours with advanced editing and end-to-end encryption.",
             "startForFree": "Start for Free",
-            "contactSales": "Contact sales"
+            "contactSales": "I am a university"
         }
     },
     "alternativesTranscribe": {
@@ -463,7 +496,7 @@
             "title": "4x more value with superior editing",
             "subtitle": "Get 20 hours/month with advanced editing instead of just 5 hours with basic tools.",
             "startForFree": "Start for Free",
-            "contactSales": "Contact sales"
+            "contactSales": "I am a university"
         }
     },
     "useCases": {
@@ -473,8 +506,8 @@
         "cta": {
             "title": "Ready for your workflow?",
             "subtitle": "Start transcribing today with the tool built for professionals.",
-            "startForFree": "Use it for free",
-            "contactSales": "Contact sales"
+            "startForFree": "Use it now",
+            "contactSales": "I am a university"
         }
     },
     "footer": {
@@ -508,7 +541,7 @@
         "product": {
             "pricing": "Pricing",
             "faq": "FAQ",
-            "contactSales": "Contact Sales",
+            "contactSales": "I am a university",
             "github": "GitHub"
         },
         "legal": {

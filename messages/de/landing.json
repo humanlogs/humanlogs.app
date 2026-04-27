@@ -37,6 +37,7 @@
         "startForFree": "Kostenlos starten",
         "contactSales": "Vertrieb kontaktieren",
         "rating": "von Forschern und Studenten",
+        "noCardRequired": "Keine Karte erforderlich, 100 Min. kostenlos jeden Monat.",
         "pillars": {
             "encryption": "Ende-zu-Ende-Verschlüsselung",
             "editing": "Blitzschnelle Bearbeitung",
@@ -286,6 +287,38 @@
             "selfHosted": {
                 "question": "Kann ich die selbst-gehostete Version kostenlos nutzen?",
                 "answer": "Ja, die selbst-gehostete Version ist für die persönliche Nutzung kostenlos. Um Humanlogs jedoch im Netzwerk Ihres Unternehmens, Ihrer Universität oder Schule bereitzustellen, benötigen Sie eine institutionelle Lizenz. Diese beinhaltet unsere API-Schlüssel ohne Datenspeicherung und professionellen Support."
+            },
+            "ethics": {
+                "question": "Kann ich Humanlogs für Daten verwenden, die einer Ethikkommission vorgelegt werden?",
+                "answer": "Ja. Humanlogs wurde genau dafür entwickelt. Audio wird im Null-Speicherungsmodus verarbeitet: Es wird unmittelbar nach der Transkription gelöscht. Nach der Transkription wird der gesamte Inhalt in Ihrem Browser verschlüsselt, bevor er gespeichert wird. Unsere Server können Ihre Transkriptionen nicht lesen, selbst wenn wir es wollten. Mehrere französische Universitäten haben bereits die Genehmigung ihrer Ethikkommission unter Verwendung von Humanlogs erhalten. Wir stellen ein spezielles Dokument für Ethikkommissionen bereit, um Ihren Fall schnell zu überprüfen."
+            },
+            "aiModels": {
+                "question": "Welche KI-Modelle verwenden Sie für die Transkription?",
+                "answer": "Wir verwenden je nach Sprache und Kontext die besten verfügbaren Modelle, darunter ElevenLabs Scribe und Gladia, die eine der höchsten Genauigkeiten auf dem Markt bieten, insbesondere bei Akzenten, Fachvokabular und verrauschten Aufnahmen. Die Verarbeitung erfolgt im Null-Speicherungsmodus: Das Modell verarbeitet das Audio, ohne es zu speichern."
+            },
+            "encryptionDetails": {
+                "question": "Wie funktioniert die Ende-zu-Ende-Verschlüsselung genau?",
+                "answer": "Nach der Transkription wird Ihr Text direkt in Ihrem Browser verschlüsselt, bevor er an unsere Server gesendet wird. Der Verschlüsselungsschlüssel verlässt niemals Ihr Gerät. Konkret würde selbst jemand, der auf unsere Datenbank zugreift, nur unlesbaren Text sehen. Nur Sie können mit Ihrem Schlüssel Ihre Transkriptionen entschlüsseln."
+            },
+            "audioEditor": {
+                "question": "Wie funktioniert der Audio-Editor?",
+                "answer": "Jedes Wort in der Transkription wird während der Verarbeitung mit einem Zeitstempel versehen. Im Editor spielt ein Klick auf ein beliebiges Wort das Audio genau an diesem Moment ab. Sie müssen nicht mehr zwischen einem separaten Audio-Player und Texteditor wechseln. Die Korrektur einer Stunde Interview geht so von 8 Stunden manuell auf weniger als eine Stunde mit unserem Editor."
+            },
+            "speakers": {
+                "question": "Verwaltet Humanlogs mehrere Sprecher?",
+                "answer": "Ja. Die automatische Diarisierung identifiziert verschiedene Sprecher in der Aufnahme. Sie können sie dann umbenennen, falsch zugeordnete Sprechbeiträge zusammenführen oder Segmente löschen. Dies ist besonders nützlich für Interviews mit zwei Personen oder Fokusgruppen."
+            },
+            "exportQDA": {
+                "question": "Kann ich meine Transkriptionen nach NVivo, Atlas.ti oder MAXQDA exportieren?",
+                "answer": "Ja. Wir bieten Exporte an, die auf qualitative Analysesoftware zugeschnitten sind, sowie Standardformate: Word, PDF, TXT, CSV. Exporte können Zeitstempel, Sprechernamen und die im Editor angewendete Formatierung enthalten."
+            },
+            "dataLocation": {
+                "question": "Werden meine Daten in Europa gespeichert?",
+                "answer": "Ja. Unsere gesamte Infrastruktur wird in der Europäischen Union gehostet. Wir sind DSGVO-konform, und eine Datenverarbeitungsvereinbarung (DPA) ist auf Anfrage für zahlende Abonnenten verfügbar."
+            },
+            "lostKey": {
+                "question": "Was passiert, wenn ich meinen Verschlüsselungsschlüssel verliere?",
+                "answer": "Ihre verschlüsselten Transkriptionen werden unzugänglich, auch für uns. Das ist das Prinzip der Ende-zu-Ende-Verschlüsselung: Niemand außer Ihnen kann Ihre Daten entschlüsseln. Wir empfehlen, Ihren Schlüssel in einem Passwort-Manager zu speichern."
             }
         }
     },
