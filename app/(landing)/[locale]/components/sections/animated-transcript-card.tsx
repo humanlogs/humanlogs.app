@@ -16,10 +16,10 @@ const TRANSCRIPT_TEXTS = {
     "Now I click any word and it jumps straight to the audio (pause) it’s so much faster.",
   ],
   fr: [
-    "Alors, euh, pourquoi humanlogs ?",
-    "Honnêtement, j'en avais juste marre de devoir constamment passer de mon éditeur de texte à mon lecteur audio.",
-    "[rires] C'était raison suffisante pour moi.",
-    "Je clique sur n'importe quel mot et ça me mène directement à l'audio (pause) c'est tellement plus rapide.",
+    "Alors, pourquoi humanlogs ?",
+    "C'est simple, je n'en pouvais plus de devoir constamment passer de mon éditeur de texte à mon lecteur audio.",
+    "[rires] Oui c'est une bonne raison !",
+    "Maintenant je clique sur n'importe quel mot et ça me mène directement à l'audio (pause) c'est tellement plus rapide.",
   ],
 };
 
@@ -36,14 +36,13 @@ const SYNONYMS = {
     ["jumps", "skips", "moves"],
   ],
   fr: [
-    ["euh", "[uh]", "ben"],
-    ["créer", "construire"],
-    ["Honnêtement", "Pour être honnête", "Franchement"],
-    ["marre", "ras-le-bol"],
-    ["passer", "changer", "basculer"],
-    ["C'était", "C'était une"],
+    ["Alors", "Donc"],
+    ["simple", "facile"],
+    ["constamment", "sans cesse"],
+    ["passer", "basculer"],
+    ["Maintenant", "Désormais"],
     ["clique", "sélectionne"],
-    ["mène", "dirige", "emmène"],
+    ["mène directement", "emmène directement"],
   ],
 };
 
