@@ -9,7 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@auth0/nextjs-auth0": "^4.16.0",
+    "@auth0/nextjs-auth0": "^4.17.1",
     "@aws-sdk/client-s3": "^3.1014.0",
     "@aws-sdk/client-ses": "^3.1018.0",
     "@aws-sdk/s3-request-presigner": "^3.1014.0",
@@ -17,7 +17,7 @@
     "@elevenlabs/elevenlabs-js": "^2.39.0",
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
-    "@hono/node-server": ">=1.19.14",
+    "@hono/node-server": ">=2.0.0",
     "@nivo/bar": "^0.99.0",
     "@nivo/core": "^0.99.0",
     "@nivo/line": "^0.99.0",
@@ -79,7 +79,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@hono/node-server": ">=1.19.14",
+    "@hono/node-server": ">=2.0.0",
     "@tailwindcss/postcss": "^4",
     "@types/archiver": "^7.0.0",
     "@types/bcryptjs": "^2.4.6",
