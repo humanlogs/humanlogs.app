@@ -274,6 +274,11 @@ class GladiaClient {
       // Remove the "gladia-" prefix to get the real ID
       const realId = transcriptionId.replace(/^gladia-/, "");
 
+      if (!realId.match(/^[a-zA-Z0-9_-]+$/)) {
+        console.error(`Invalid transcription ID format: ${transcriptionId}`);
+        throw new Error("Invalid transcription ID format");
+      }
+
       // Get the transcription status by ID
       const response = await fetch(
         `${this.baseUrl}/v2/pre-recorded/${realId}`,
@@ -336,6 +341,11 @@ class GladiaClient {
     try {
       // Remove the "gladia-" prefix to get the real ID
       const realId = transcriptionId.replace(/^gladia-/, "");
+
+      if (!realId.match(/^[a-zA-Z0-9_-]+$/)) {
+        console.error(`Invalid transcription ID format: ${transcriptionId}`);
+        throw new Error("Invalid transcription ID format");
+      }
 
       const response = await fetch(
         `${this.baseUrl}/v2/pre-recorded/${realId}`,

@@ -43,6 +43,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing id" }, { status: 400 });
     }
 
+    if (!gladiaTranscriptionId.match(/^[a-zA-Z0-9_-]+$/)) {
+      console.error(
+        `Invalid transcription ID format: ${gladiaTranscriptionId}`,
+      );
+      return;
+    }
+
     // Find the transcription in our database
     // We need to search with the "gladia-" prefix that we add
     const transcription = await prisma.transcription.findFirst({

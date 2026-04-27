@@ -41,6 +41,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!elevenLabsTranscriptionId.match(/^[a-zA-Z0-9_-]+$/)) {
+      console.error(
+        `Invalid transcription ID format: ${elevenLabsTranscriptionId}`,
+      );
+      return;
+    }
+
     // Find the transcription in our database
     const transcription = await prisma.transcription.findFirst({
       where: {
