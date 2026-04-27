@@ -36,16 +36,22 @@ const configSchema = z.object({
     }),
   }),
   stt: z.object({
-    type: z.enum(["elevenlabs", "whisper"]),
+    type: z.enum(["elevenlabs", "whisper", "gladia"]),
     elevenlabs: z.object({
       apiKey: z.string(),
       canDisableStorage: z.boolean().optional(),
+      useWebhook: z.boolean().optional(),
     }),
     whisper: z.object({
       apiUrl: z.string().url(),
       modelSize: z
         .enum(["tiny", "base", "small", "medium", "large"])
         .optional(),
+    }),
+    gladia: z.object({
+      apiKey: z.string(),
+      useWebhook: z.boolean().optional(),
+      webhookUrl: z.string().optional(),
     }),
   }),
   email: z
@@ -134,14 +140,21 @@ export const awsConfig = {
 };
 
 export const sttConfig = {
-  type: config.get<"elevenlabs" | "whisper">("stt.type"),
+  type: config.get<"elevenlabs" | "whisper" | "gladia">("stt.type"),
   elevenlabs: {
     apiKey: config.get<string>("stt.elevenlabs.apiKey"),
     canDisableStorage:
       config.get<boolean>("stt.elevenlabs.canDisableStorage") || false,
+    useWebhook: config.get<boolean>("stt.elevenlabs.useWebhook") || false,
+    webhookUrl: config.get<string>("stt.elevenlabs.webhookUrl") || "",
   },
   whisper: {
     apiUrl: config.get<string>("stt.whisper.apiUrl"),
     modelSize: config.get<string>("stt.whisper.modelSize") || "base",
+  },
+  gladia: {
+    apiKey: config.get<string>("stt.gladia.apiKey"),
+    useWebhook: config.get<boolean>("stt.gladia.useWebhook") || false,
+    webhookUrl: config.get<string>("stt.gladia.webhookUrl") || "",
   },
 };

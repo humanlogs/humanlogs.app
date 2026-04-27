@@ -54,12 +54,14 @@ export interface TranscriptionStatus {
 
 class ElevenLabsClient {
   private client: ElevenLabsSDK;
+  private useWebhook: boolean;
 
   constructor() {
     const config = getConfig();
     this.client = new ElevenLabsSDK({
       apiKey: config.stt.elevenlabs.apiKey,
     });
+    this.useWebhook = config.stt.elevenlabs.useWebhook || false;
   }
 
   /**
@@ -76,7 +78,7 @@ class ElevenLabsClient {
 
       modelId: "scribe_v2" as const,
       tagAudioEvents: true,
-      webhook: true, // Enable async processing
+      webhook: true,
       languageCode: request.language || undefined,
       numSpeakers: request.speakerCount || undefined,
       diarize: request.speakerCount ? request.speakerCount > 1 : false,
@@ -154,12 +156,25 @@ class ElevenLabsClient {
 
   /**
    * Get the status and result of an async transcription
-   * Automatically deletes the transcription from ElevenLabs once completed or failed
-   * to ensure no data is retained on their servers
+   *
+   * When webhook mode is enabled, this method always returns "pending" status
+   * because the transcription result will be delivered via webhook callback
+   * and processed by the webhook endpoint.
+   *
+   * When webhook mode is disabled, this method polls ElevenLabs API for the status
+   * and automatically deletes the transcription from ElevenLabs once completed or failed
+   * to ensure no data is retained on their servers.
    */
   async getTranscriptionStatus(
     transcriptionId: string,
   ): Promise<TranscriptionStatus> {
+    // If webhook mode is enabled, always return pending
+    // The transcription will be updated via webhook callback
+    if (this.useWebhook) {
+      return { status: "pending" };
+    }
+
+    // Otherwise, poll ElevenLabs API for status (original behavior)
     try {
       const response =
         await this.client.speechToText.transcripts.get(transcriptionId);

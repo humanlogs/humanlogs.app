@@ -1,6 +1,7 @@
 import { getConfig } from "../config";
 import { getElevenLabsClient, isElevenLabsConfigured } from "./elevenlabs";
 import { getWhisperClient, isWhisperConfigured } from "./whisper";
+import { getGladiaClient, isGladiaConfigured } from "./gladia";
 import type {
   TranscriptionRequest,
   TranscriptionFileRequest,
@@ -13,7 +14,7 @@ import type {
  * Unified STT Service that abstracts between different providers
  */
 class STTService {
-  private provider: "elevenlabs" | "whisper";
+  private provider: "elevenlabs" | "whisper" | "gladia";
 
   constructor() {
     const config = getConfig();
@@ -23,7 +24,7 @@ class STTService {
   /**
    * Get the current provider name
    */
-  getProvider(): "elevenlabs" | "whisper" {
+  getProvider(): "elevenlabs" | "whisper" | "gladia" {
     return this.provider;
   }
 
@@ -36,6 +37,8 @@ class STTService {
         return isElevenLabsConfigured();
       case "whisper":
         return isWhisperConfigured();
+      case "gladia":
+        return isGladiaConfigured();
       default:
         return false;
     }
@@ -54,6 +57,10 @@ class STTService {
       }
       case "whisper": {
         const client = getWhisperClient();
+        return client.transcribeFromFileAsync(request);
+      }
+      case "gladia": {
+        const client = getGladiaClient();
         return client.transcribeFromFileAsync(request);
       }
       default:
@@ -76,6 +83,10 @@ class STTService {
         const client = getWhisperClient();
         return client.transcribeFromUrlAsync(request);
       }
+      case "gladia": {
+        const client = getGladiaClient();
+        return client.transcribeFromUrlAsync(request);
+      }
       default:
         throw new Error(`Unsupported STT provider: ${this.provider}`);
     }
@@ -90,6 +101,9 @@ class STTService {
     // Determine provider from transcription ID prefix
     if (transcriptionId.startsWith("whisper-")) {
       const client = getWhisperClient();
+      return client.getTranscriptionStatus(transcriptionId);
+    } else if (transcriptionId.startsWith("gladia-")) {
+      const client = getGladiaClient();
       return client.getTranscriptionStatus(transcriptionId);
     } else {
       // Default to ElevenLabs for backward compatibility
@@ -112,6 +126,10 @@ class STTService {
         "Skipping deletion for Whisper transcription (local processing)",
       );
       return;
+    } else if (transcriptionId.startsWith("gladia-")) {
+      // Delete from Gladia
+      const client = getGladiaClient();
+      return client.deleteTranscription(transcriptionId);
     } else {
       // Delete from ElevenLabs
       const client = getElevenLabsClient();

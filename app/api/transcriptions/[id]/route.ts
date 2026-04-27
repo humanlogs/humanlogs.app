@@ -11,6 +11,10 @@ import {
   EncryptionUtils,
 } from "../../../../lib/encryption/encryption-entities";
 import { getStorage } from "../../../../lib/storage";
+import {
+  completeTranscription,
+  failTranscription,
+} from "@/lib/stt/transcription-completion";
 
 type RouteParams = {
   params: Promise<{
@@ -338,44 +342,19 @@ export const pollPendingTranscriptions = async (
       );
 
       if (status.status === "completed" && status.transcription) {
-        // If the transcription is an EncryptedDataEntity, we'll automatically update it with the new transcription result, encrypted with the transcription's public key
-        const encodedTranscription = await new EncryptionUtils(crypto).encrypt(
-          transcription.transcription as EncryptedDataEntity,
+        // Use the common function to complete the transcription
+        return await completeTranscription(
+          transcription.id,
           status.transcription,
+          transcription,
         );
-
-        // Update the transcription with the result
-        const updated = await prisma.transcription.update({
-          where: { id: transcription.id },
-          data: {
-            state: "COMPLETED",
-            transcription: encodedTranscription as never,
-            completedAt: new Date(),
-          },
-        });
-
-        // Notify client of transcription completion
-        notifyDatabaseChange(transcription.userId, "transcription", "update", {
-          id: updated.id,
-        });
-
-        return updated;
       } else if (status.status === "failed") {
-        // Update with error
-        const updated = await prisma.transcription.update({
-          where: { id: transcription.id },
-          data: {
-            state: "ERROR",
-            errorMessage: status.error || "Transcription failed",
-          },
-        });
-
-        // Notify client of transcription error
-        notifyDatabaseChange(transcription.userId, "transcription", "update", {
-          id: updated.id,
-        });
-
-        return updated;
+        // Use the common function to mark as failed
+        return await failTranscription(
+          transcription.id,
+          status.error || "Transcription failed",
+          transcription,
+        );
       }
       // If still processing, continue with original transcription data
     } catch (error) {

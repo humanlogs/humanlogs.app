@@ -33,7 +33,8 @@
         "type": "whisper",
         "elevenlabs": {
             "apiKey": "",
-            "canDisableStorage": false
+            "canDisableStorage": false,
+            "useWebhook": true
         },
         "whisper": {
             "apiUrl": "http://localhost:9000",
