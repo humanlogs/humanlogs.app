@@ -171,6 +171,9 @@ class ElevenLabsClient {
     // If webhook mode is enabled, always return pending
     // The transcription will be updated via webhook callback
     if (this.useWebhook) {
+      console.log(
+        `Webhook mode enabled - returning pending status for transcription ${transcriptionId}`,
+      );
       return { status: "pending" };
     }
 

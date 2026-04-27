@@ -15,7 +15,7 @@ const configSchema = z.object({
     }),
     ldap: z
       .object({
-        enabled: z.boolean(),
+        enabled: z.coerce.boolean(),
         url: z.string(),
         bindDN: z.string(),
         bindPassword: z.string(),
@@ -39,8 +39,8 @@ const configSchema = z.object({
     type: z.enum(["elevenlabs", "whisper", "gladia"]),
     elevenlabs: z.object({
       apiKey: z.string(),
-      canDisableStorage: z.boolean().optional(),
-      useWebhook: z.boolean().optional(),
+      canDisableStorage: z.coerce.boolean().optional(),
+      useWebhook: z.coerce.boolean().optional(),
     }),
     whisper: z.object({
       apiUrl: z.string().url(),
@@ -50,7 +50,7 @@ const configSchema = z.object({
     }),
     gladia: z.object({
       apiKey: z.string(),
-      useWebhook: z.boolean().optional(),
+      useWebhook: z.coerce.boolean().optional(),
       webhookUrl: z.string().optional(),
     }),
   }),
@@ -67,7 +67,7 @@ const configSchema = z.object({
         .object({
           host: z.string(),
           port: z.number(),
-          secure: z.boolean(),
+          secure: z.coerce.boolean(),
           auth: z.object({
             user: z.string(),
             pass: z.string(),
