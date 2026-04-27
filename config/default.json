@@ -42,8 +42,8 @@
         },
         "gladia": {
             "apiKey": "",
-            "useWebhook": "",
-            "webhookUrl": ""
+            "useWebhook": true,
+            "webhookUrl": "http://localhost:9000/api/webhook/gladia"
         }
     },
     "stripe": {
