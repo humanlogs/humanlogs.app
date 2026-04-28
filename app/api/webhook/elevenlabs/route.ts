@@ -5,6 +5,13 @@ import {
   failTranscription,
 } from "@/lib/stt/transcription-completion";
 import { getElevenLabsClient } from "@/lib/stt/elevenlabs";
+import { sttConfig } from "@/lib/config";
+import {
+  sendAdminError,
+  sendWebhookProcessingError,
+  sendAdminWarning,
+} from "@/lib/email/error-notifications";
+import crypto from "crypto";
 
 /**
  * ElevenLabs Webhook Handler
@@ -22,9 +29,63 @@ import { getElevenLabsClient } from "@/lib/stt/elevenlabs";
  *   ... (additional fields preserved)
  * }
  */
+
+/**
+ * Verify webhook signature using HMAC-SHA256
+ */
+function verifyWebhookSignature(
+  payload: string,
+  signature: string | null,
+  secret: string,
+): boolean {
+  if (!signature || !secret) {
+    return false;
+  }
+
+  const hmac = crypto.createHmac("sha256", secret);
+  hmac.update(payload);
+  const expectedSignature = hmac.digest("hex");
+
+  // Use timing-safe comparison to prevent timing attacks
+  return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(expectedSignature),
+  );
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const payload = await request.json();
+    // Read the raw body for signature verification
+    const rawBody = await request.text();
+    const payload = JSON.parse(rawBody);
+
+    // Verify webhook signature if secret is configured
+    const webhookSecret = sttConfig.elevenlabs.webhookSecret;
+    if (webhookSecret) {
+      const signature = request.headers.get("x-elevenlabs-signature");
+
+      if (!verifyWebhookSignature(rawBody, signature, webhookSecret)) {
+        console.error("Invalid webhook signature");
+
+        // Send warning about potential security issue
+        await sendAdminWarning(
+          "Invalid webhook signature - potential security issue or misconfiguration",
+          {
+            transcriptionId: payload.transcription_id || "unknown",
+            receivedSignature: signature || "none",
+            ipAddress:
+              request.headers.get("x-forwarded-for") ||
+              request.headers.get("x-real-ip") ||
+              "unknown",
+          },
+        );
+
+        return NextResponse.json(
+          { error: "Invalid signature" },
+          { status: 401 },
+        );
+      }
+    }
 
     console.log("Received ElevenLabs webhook:", {
       transcriptionId: payload.transcription_id,
@@ -58,6 +119,17 @@ export async function POST(request: NextRequest) {
       console.error(
         `No pending transcription found for ElevenLabs ID: ${elevenLabsTranscriptionId}`,
       );
+
+      // Send warning about sync issue
+      await sendAdminWarning(
+        "Webhook received for transcription not found in database - possible sync issue",
+        {
+          elevenLabsTranscriptionId,
+          status: payload.status,
+          webhookTimestamp: new Date().toISOString(),
+        },
+      );
+
       // Return 200 to acknowledge receipt even if we don't have the transcription
       // This prevents ElevenLabs from retrying the webhook
       return NextResponse.json({
@@ -100,23 +172,49 @@ export async function POST(request: NextRequest) {
           `Error deleting transcription ${elevenLabsTranscriptionId} from ElevenLabs:`,
           error,
         );
+
+        // Send warning about data retention issue
+        await sendAdminWarning(
+          "Failed to delete transcription data from ElevenLabs - data retention concern",
+          {
+            transcriptionId: transcription.id,
+            elevenLabsTranscriptionId,
+            errorMessage:
+              error instanceof Error ? error.message : String(error),
+          },
+        );
         // Don't fail the webhook if deletion fails
       }
 
       return NextResponse.json({ received: true, status: "completed" });
     } else if (status === "failed" || status === "error") {
       // Transcription failed
+      const errorMessage = payload.error || "Transcription failed";
+
       console.error(
         `Transcription ${transcription.id} failed via webhook:`,
-        payload.error,
+        errorMessage,
       );
 
+      // Check if it's a quota exceeded error
+      const isQuotaExceeded =
+        errorMessage.toLowerCase().includes("quota") ||
+        errorMessage.toLowerCase().includes("limit exceeded") ||
+        payload.error_code === "quota_exceeded";
+
+      // Send email notification for errors and quota issues
+      await sendAdminError({
+        error: isQuotaExceeded ? "Quota Exceeded" : errorMessage,
+        context: {
+          transcriptionId: transcription.id,
+          status: payload.status || "N/A",
+          errorCode: payload.error_code,
+          payload,
+        },
+      });
+
       // Use the common function to mark as failed
-      await failTranscription(
-        transcription.id,
-        payload.error || "Transcription failed",
-        transcription,
-      );
+      await failTranscription(transcription.id, errorMessage, transcription);
 
       // Delete the failed transcription from ElevenLabs
       try {
@@ -126,6 +224,17 @@ export async function POST(request: NextRequest) {
         console.error(
           `Error deleting failed transcription ${elevenLabsTranscriptionId} from ElevenLabs:`,
           error,
+        );
+
+        // Send warning about data retention issue
+        await sendAdminWarning(
+          "Failed to delete failed transcription data from ElevenLabs - data retention concern",
+          {
+            transcriptionId: transcription.id,
+            elevenLabsTranscriptionId,
+            errorMessage:
+              error instanceof Error ? error.message : String(error),
+          },
         );
         // Don't fail the webhook if deletion fails
       }
@@ -137,6 +246,20 @@ export async function POST(request: NextRequest) {
         `Unexpected webhook status for transcription ${transcription.id}:`,
         status,
       );
+
+      // Send warning about unexpected status
+      await sendAdminWarning(
+        "Received webhook with unexpected status - possible API change",
+        {
+          transcriptionId: transcription.id,
+          elevenLabsTranscriptionId,
+          status: payload.status,
+          hasText: !!payload.text,
+          hasWords: !!payload.words,
+          payload,
+        },
+      );
+
       return NextResponse.json({
         received: true,
         warning: "Unexpected status",
@@ -144,6 +267,12 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error("Error processing ElevenLabs webhook:", error);
+
+    // Send email notification for processing errors
+    await sendWebhookProcessingError(
+      error instanceof Error ? error : String(error),
+    );
+
     return NextResponse.json(
       { error: "Webhook processing failed" },
       { status: 500 },

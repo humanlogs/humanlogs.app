@@ -53,6 +53,7 @@ const configSchema = z.object({
       apiKey: z.string(),
       canDisableStorage: booleanSchema.optional(),
       useWebhook: booleanSchema.optional(),
+      webhookSecret: z.string().optional(),
     }),
     whisper: z.object({
       apiUrl: z.string().url(),
@@ -164,6 +165,7 @@ export const sttConfig = {
     canDisableStorage:
       config.get<boolean>("stt.elevenlabs.canDisableStorage") || false,
     useWebhook: config.get<boolean>("stt.elevenlabs.useWebhook") || false,
+    webhookSecret: config.get<string>("stt.elevenlabs.webhookSecret") || "",
   },
   whisper: {
     apiUrl: config.get<string>("stt.whisper.apiUrl"),
