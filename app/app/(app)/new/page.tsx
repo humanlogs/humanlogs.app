@@ -524,7 +524,7 @@ export default function NewTranscriptionPage() {
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
           >
-            <div className="border rounded-md w-12 h-12 flex items-center justify-center">
+            <div className="border rounded-md w-12 h-12 flex items-center justify-center shrink-0">
               <UploadIcon className="w-6 h-6 text-black dark:text-white" />
             </div>
             <div>

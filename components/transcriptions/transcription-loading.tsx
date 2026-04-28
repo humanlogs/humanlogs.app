@@ -9,6 +9,8 @@ type TranscriptionLoadingProps = {
   transcription: TranscriptionDetail;
 };
 
+let interval: NodeJS.Timeout;
+
 export function TranscriptionLoading({
   transcription,
 }: TranscriptionLoadingProps) {
@@ -56,7 +58,8 @@ export function TranscriptionLoading({
   // Calculate estimated completion time
   useEffect(() => {
     // Update every 10 seconds
-    const interval = setInterval(() => {
+    if (interval) clearInterval(interval);
+    interval = setInterval(() => {
       setTimeRemaining(calculateTimeRemaining());
     }, 10000);
 

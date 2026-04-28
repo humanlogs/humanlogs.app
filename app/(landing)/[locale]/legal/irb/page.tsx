@@ -364,7 +364,17 @@ function EnglishContent() {
           <strong>AWS (Europe):</strong> Infrastructure and secure data storage
         </li>
         <li>
-          <strong>Auth0:</strong> Authentication and identity management
+          <strong>
+            <a
+              href="https://auth0.com/docs/secure/data-privacy-and-compliance/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Auth0 Europe
+            </a>
+            :
+          </strong>{" "}
+          Authentication and identity management
         </li>
         <li>
           <strong>OVH (Europe):</strong> Email communications
@@ -753,7 +763,17 @@ function FrenchContent() {
           des données
         </li>
         <li>
-          <strong>Auth0 :</strong> Authentification et gestion d'identité
+          <strong>
+            <a
+              href="https://auth0.com/docs/secure/data-privacy-and-compliance/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Auth0 Europe
+            </a>
+            :
+          </strong>{" "}
+          Authentification et gestion d'identité
         </li>
         <li>
           <strong>OVH (Europe) :</strong> Communications par e-mail

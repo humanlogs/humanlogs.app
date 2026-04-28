@@ -42,9 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!elevenLabsTranscriptionId.match(/^[a-zA-Z0-9_-]+$/)) {
-      console.error(
-        `Invalid transcription ID format: ${elevenLabsTranscriptionId}`,
-      );
+      console.error(`Invalid transcription ID format`);
       return;
     }
 

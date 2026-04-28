@@ -58,7 +58,17 @@ export default function Page() {
         <h3>Account Data</h3>
         <ul>
           <li>Email address</li>
-          <li>Authentication credentials (processed by Auth0)</li>
+          <li>
+            Authentication credentials (processed by{" "}
+            <a
+              href="https://auth0.com/docs/secure/data-privacy-and-compliance/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Auth0 Europe
+            </a>
+            )
+          </li>
           <li>Account preferences and settings</li>
         </ul>
 
@@ -171,7 +181,16 @@ export default function Page() {
         <p>We implement comprehensive security measures including:</p>
         <ul>
           <li>End-to-end encryption for all files and transcriptions</li>
-          <li>Secure authentication through Auth0</li>
+          <li>
+            Secure authentication through{" "}
+            <a
+              href="https://auth0.com/docs/secure/data-privacy-and-compliance/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Auth0 Europe
+            </a>
+          </li>
           <li>
             Data processing and storage exclusively within the European Union
           </li>
@@ -224,7 +243,17 @@ export default function Page() {
             deleted after processing)
           </li>
           <li>
-            <strong>Auth0:</strong> Authentication and identity management
+            <strong>
+              <a
+                href="https://auth0.com/docs/secure/data-privacy-and-compliance/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Auth0 Europe
+              </a>
+              :
+            </strong>{" "}
+            Authentication and identity management
           </li>
           <li>
             <strong>OVH Europe:</strong> Email infrastructure

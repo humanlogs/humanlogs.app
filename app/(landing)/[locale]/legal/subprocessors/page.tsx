@@ -66,12 +66,21 @@ export default function Page() {
           </li>
 
           <li>
-            <strong>Auth0</strong>
+            <strong>
+              <a
+                href="https://auth0.com/docs/secure/data-privacy-and-compliance/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Auth0 Europe
+              </a>
+            </strong>
             <br />
             Used for authentication and identity management services.
             <br />
             Auth0 processes user authentication data including email addresses
-            and login credentials.
+            and login credentials. All authentication data is processed and
+            stored within European data centers.
             <br />
           </li>
 

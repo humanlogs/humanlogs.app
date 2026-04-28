@@ -44,9 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!gladiaTranscriptionId.match(/^[a-zA-Z0-9_-]+$/)) {
-      console.error(
-        `Invalid transcription ID format: ${gladiaTranscriptionId}`,
-      );
+      console.error(`Invalid transcription ID format`);
       return;
     }
 

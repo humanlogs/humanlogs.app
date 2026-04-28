@@ -78,7 +78,7 @@ class ElevenLabsClient {
 
       modelId: "scribe_v2" as const,
       tagAudioEvents: true,
-      webhook: true,
+      webhook: this.useWebhook,
       languageCode: request.language || undefined,
       numSpeakers: request.speakerCount || undefined,
       diarize: request.speakerCount ? request.speakerCount > 1 : false,
@@ -126,6 +126,8 @@ class ElevenLabsClient {
         ...this.buildTranscriptionParams(request),
         file,
       });
+
+      console.log(response);
 
       return this.extractTranscriptionId(response);
     } catch (error) {

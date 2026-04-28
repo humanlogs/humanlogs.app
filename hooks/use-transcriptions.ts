@@ -175,7 +175,7 @@ export function usePendingTranscriptionsPolling(active = false) {
             pollingInterval = null;
           }
         }
-      }, 5000);
+      }, 30000);
     }
 
     return () => {
