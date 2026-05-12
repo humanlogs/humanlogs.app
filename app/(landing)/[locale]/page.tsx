@@ -66,7 +66,7 @@ export default async function LandingPage({ params }: Props) {
   return (
     <>
       <HeroSection />
-      <LogoSection />
+      {false && <LogoSection />}
       <FeaturesSection />
       <TestimonialsSection />
       <EncryptionSection />
