@@ -149,7 +149,7 @@ class GladiaClient {
     audioUrl: string,
   ) {
     const params: Record<string, unknown> = {
-      audio_url: "https://romaricmourgues.com/audio.opus", //audioUrl,
+      audio_url: audioUrl,
     };
 
     // Add webhook configuration if enabled
@@ -291,76 +291,11 @@ class GladiaClient {
    * and automatically deletes the transcription from Gladia once completed or failed
    * to ensure no data is retained on their servers.
    */
-  async getTranscriptionStatus(
-    transcriptionId: string,
-  ): Promise<TranscriptionStatus> {
-    // If webhook mode is enabled, always return pending
-    // The transcription will be updated via webhook callback
-    if (this.useWebhook) {
-      return { status: "pending" };
-    }
-
-    // Otherwise, poll Gladia API for status
-    try {
-      // Remove the "gladia-" prefix to get the real ID
-      const realId = transcriptionId.replace(/^gladia-/, "");
-
-      if (!realId.match(/^[a-zA-Z0-9_-]+$/)) {
-        console.error(`Invalid transcription ID format: ${transcriptionId}`);
-        throw new Error("Invalid transcription ID format");
-      }
-
-      // Get the transcription status by ID
-      const response = await fetch(
-        `${this.baseUrl}/v2/pre-recorded/${realId}`,
-        {
-          method: "GET",
-          headers: this.getHeaders(),
-        },
-      );
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          return { status: "pending" };
-        }
-        throw new Error(`Failed to get status: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-
-      // Check if transcription is completed
-      if (data.status === "done") {
-        // TODO: Map the result properly (ignoring for now as requested)
-        // For now, return raw result
-        await this.deleteTranscription(transcriptionId);
-
-        return {
-          status: "completed",
-          transcription: data.result as TranscriptionResult,
-        };
-      }
-
-      // Check for error status
-      if (data.status === "error" || data.status === "failed") {
-        await this.deleteTranscription(transcriptionId);
-
-        return {
-          status: "failed",
-          error: data.error || "Transcription failed",
-        };
-      }
-
-      // Check for processing status
-      if (data.status === "processing" || data.status === "transcribing") {
-        return { status: "processing" };
-      }
-
-      // Default to pending
-      return { status: "pending" };
-    } catch (error) {
-      console.error("Error getting transcription status:", error);
-      throw error;
-    }
+  async getTranscriptionStatus(_transcriptionId: string): Promise<{
+    status: "pending";
+  }> {
+    // Gladia always use the pending mode
+    return { status: "pending" };
   }
 
   /**
