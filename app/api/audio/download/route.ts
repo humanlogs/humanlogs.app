@@ -72,9 +72,6 @@ export async function GET(request: NextRequest) {
     // Delete the file from S3 immediately after decryption
     await storage.delete(s3Key);
 
-    // Clean up old files (files older than 5 minutes)
-    await cleanupOldFiles();
-
     // Determine content type based on file extension
     const contentType = fileName.toLowerCase().endsWith(".mp3")
       ? "audio/mpeg"
@@ -95,29 +92,5 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error downloading audio file:", error);
     return NextResponse.json({ error: "Download failed" }, { status: 500 });
-  }
-}
-
-/**
- * Clean up files older than 5 minutes in the gladia-temp directory
- */
-async function cleanupOldFiles(): Promise<void> {
-  try {
-    const storage = getStorage();
-    const now = Date.now();
-    const maxAge = 5 * 60 * 1000; // 5 minutes in milliseconds
-
-    // Note: This is a simplified cleanup. In a production environment,
-    // you might want to use S3 lifecycle policies or a more sophisticated
-    // cleanup mechanism. For now, we'll skip the actual cleanup since
-    // files are deleted immediately after download.
-    // TODO not implemented: List files in the gladia-temp directory, check their timestamps, and delete those older than 5 minutes.
-
-    console.log(
-      "Cleanup check completed - files are deleted immediately after download",
-    );
-  } catch (error) {
-    console.error("Error during cleanup:", error);
-    // Don't throw - cleanup failure shouldn't break the download
   }
 }
