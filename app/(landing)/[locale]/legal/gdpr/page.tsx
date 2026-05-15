@@ -204,17 +204,17 @@ export default function Page() {
         <h2>International Data Transfers</h2>
         <p>
           The majority of data processing and storage occurs within the European
-          Union through AWS Europe. However, audio transcription services
-          provided by ElevenLabs may involve data transfers outside the EU/EEA,
-          as ElevenLabs operates globally. Audio data sent to ElevenLabs is
-          immediately deleted after transcription is complete, ensuring minimal
-          data retention outside the EU.
+          Union through AWS Europe. By default, audio transcription services are
+          provided by Gladia on European servers with no-training and
+          no-retention mode, ensuring your data is processed exclusively in the
+          EU and immediately deleted after transcription is complete.
         </p>
         <p>
-          For Enterprise plans, we offer ElevenLabs "Zero Retention Mode" and EU
-          data residency options, ensuring that audio data is processed
-          exclusively within the EU and is not retained on ElevenLabs servers.
-          Contact us for more details on these options.
+          Alternatively, ElevenLabs transcription services may involve data
+          transfers outside the EU/EEA, as ElevenLabs operates globally.
+          However, audio data is immediately deleted after transcription is
+          complete. For Enterprise plans, we offer ElevenLabs "Zero Retention
+          Mode" and EU data residency options.
         </p>
         <p>
           All international data transfers are conducted in compliance with GDPR

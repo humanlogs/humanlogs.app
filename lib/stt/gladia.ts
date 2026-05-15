@@ -24,7 +24,10 @@ export interface TranscriptionChannel {
 export interface TranscriptionResult {
   text: string;
   words: TranscriptionWord[];
-  speakers?: string[];
+  speakers?: {
+    id: string;
+    name: string;
+  }[];
   language_code?: string;
   transcripts?: TranscriptionChannel[];
   translations?: Record<string, string>; // Translation results by language
@@ -209,12 +212,6 @@ class GladiaClient {
       // Then, start the transcription
       const params = this.buildTranscriptionParams(request, audioUrl);
 
-      console.log(
-        "Starting transcription with Gladia, params:",
-        `${this.baseUrl}/v2/pre-recorded`,
-        params,
-      );
-
       const response = await fetch(`${this.baseUrl}/v2/pre-recorded`, {
         method: "POST",
         headers: {
@@ -224,10 +221,7 @@ class GladiaClient {
         body: JSON.stringify(params),
       });
 
-      console.log(response.ok);
-
       const data = await response.json();
-      console.log(data);
 
       if (!response.ok) {
         throw new Error(`Transcription failed: ${response.statusText}`);

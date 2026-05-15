@@ -53,9 +53,35 @@ The application will be available at `http://localhost:3000`.
 
 ## Transcription Providers
 
-Humanlogs supports two Speech-to-Text (STT) providers that you can choose between:
+Humanlogs supports three Speech-to-Text (STT) providers that you can choose between:
 
-### Option 1: ElevenLabs (Cloud-based)
+### Option 1: Gladia (Cloud-based - Default)
+
+Gladia is our default transcription provider, offering high-quality cloud-based transcription with strong privacy guarantees. All processing is done on European servers in no-training and no-retention mode, ensuring your data is never used to train AI models and is immediately deleted after processing.
+
+**Features:**
+
+- ✅ European data residency (EU servers only)
+- ✅ No-training mode (your data never trains AI models)
+- ✅ No-retention mode (data deleted immediately after processing)
+- ✅ Speaker diarization (automatic speaker detection)
+- ✅ Custom vocabulary
+- ✅ 100+ languages
+- ✅ Word-level timestamps
+- ✅ No local setup required
+
+**Configuration:**
+
+Set these environment variables in your `docker-compose.yml` or `.env` file:
+
+```bash
+STT_PROVIDER=gladia
+GLADIA_API_KEY=your_api_key_here
+```
+
+Get your API key from [Gladia](https://gladia.io).
+
+### Option 2: ElevenLabs (Cloud-based)
 
 ElevenLabs provides high-quality cloud-based transcription with advanced features.
 
@@ -80,7 +106,7 @@ ELEVENLABS_CAN_DISABLE_STORAGE=false
 
 Get your API key from [ElevenLabs](https://elevenlabs.io).
 
-### Option 2: Whisper (Local/Self-hosted)
+### Option 3: Whisper (Local/Self-hosted)
 
 OpenAI's Whisper is a powerful open-source speech recognition model that runs locally. Multiple implementations are available.
 
@@ -203,6 +229,9 @@ WHISPER_MODEL_SIZE=base  # Options: tiny, base, small, medium, large
 Simply change the `STT_PROVIDER` environment variable and restart the application:
 
 ```bash
+# For Gladia (default)
+STT_PROVIDER=gladia
+
 # For ElevenLabs
 STT_PROVIDER=elevenlabs
 
@@ -212,18 +241,21 @@ STT_PROVIDER=whisper
 
 ### Comparison
 
-| Feature                   | ElevenLabs       | Whisper (Local)                 |
-| ------------------------- | ---------------- | ------------------------------- |
-| **Setup Complexity**      | Simple (API key) | Moderate (server setup)         |
-| **Cost**                  | Pay per use      | Free (hardware costs)           |
-| **Privacy**               | Cloud processing | Fully local                     |
-| **Speaker Diarization**   | ✅ Built-in      | ❌ No (needs pyannote/external) |
-| **Custom Vocabulary**     | ✅ Yes           | ❌ No                           |
-| **Word-level Timestamps** | ✅ Yes           | ✅ Yes                          |
-| **Max File Size**         | 500MB            | Configurable (server-dependent) |
-| **Processing Speed**      | Fast             | Varies (CPU/GPU/implementation) |
-| **Languages**             | 100+             | 100+                            |
-| **Best Implementation**   | -                | whisper.cpp (fastest)           |
+| Feature                   | Gladia (Default) | ElevenLabs       | Whisper (Local)                 |
+| ------------------------- | ---------------- | ---------------- | ------------------------------- |
+| **Setup Complexity**      | Simple (API key) | Simple (API key) | Moderate (server setup)         |
+| **Cost**                  | Pay per use      | Pay per use      | Free (hardware costs)           |
+| **Privacy**               | EU servers only  | Cloud processing | Fully local                     |
+| **Data Residency**        | ✅ EU only       | 🌐 Global        | ✅ Fully local                  |
+| **No-retention Mode**     | ✅ Always        | ⚠️ Optional      | ✅ Yes (local)                  |
+| **No-training Mode**      | ✅ Always        | ⚠️ Varies        | ✅ Yes (local)                  |
+| **Speaker Diarization**   | ✅ Built-in      | ✅ Built-in      | ❌ No (needs pyannote/external) |
+| **Custom Vocabulary**     | ✅ Yes           | ✅ Yes           | ❌ No                           |
+| **Word-level Timestamps** | ✅ Yes           | ✅ Yes           | ✅ Yes                          |
+| **Max File Size**         | Configurable     | 500MB            | Configurable (server-dependent) |
+| **Processing Speed**      | Fast             | Fast             | Varies (CPU/GPU/implementation) |
+| **Languages**             | 100+             | 100+             | 100+                            |
+| **Best Implementation**   | -                | -                | whisper.cpp (fastest)           |
 
 ### License and pricing
 

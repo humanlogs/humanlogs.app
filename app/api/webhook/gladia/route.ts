@@ -34,11 +34,6 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
 
-    console.log("Received Gladia webhook:", {
-      id: payload.id,
-      event: payload.event,
-    });
-
     // Extract transcription ID
     const gladiaTranscriptionId = payload.id;
     if (!gladiaTranscriptionId) {
@@ -157,38 +152,38 @@ export async function POST(request: NextRequest) {
  */
 function mapGladiaToTranscriptionResult(payload: any): TranscriptionResult {
   const transcription = payload.payload?.transcription;
-  const diarization = payload.payload?.diarization;
 
   if (!transcription) {
     throw new Error("No transcription data in payload");
   }
 
-  // Extract words from diarization results (preferred) or utterances (fallback)
+  console.log("Mapping Gladia payload to TranscriptionResult");
+
+  // Extract words from utterances (speaker info is already in utterances)
   const words: Array<{
     text: string;
     start: number;
     end: number;
     type?: string;
-    speaker_id?: string;
+    speakerId?: string;
   }> = [];
 
-  const speakerSet = new Set<string>();
+  const speakerMap = new Map<number, string>();
 
-  // Use diarization results if available (more accurate speaker info)
-  const sourceData =
-    diarization?.results && Array.isArray(diarization.results)
-      ? diarization.results
-      : transcription.utterances || [];
+  // Use transcription utterances (has speaker info)
+  const sourceData = transcription.utterances || [];
 
   if (Array.isArray(sourceData)) {
     for (const utterance of sourceData) {
+      // Gladia uses 0-based speaker numbering
+      // We keep it 0-based but format as "speaker_0", "speaker_1", etc.
       const speakerId =
         utterance.speaker !== undefined && utterance.speaker !== null
-          ? `Speaker ${utterance.speaker}`
+          ? `speaker_${utterance.speaker}`
           : undefined;
 
-      if (speakerId) {
-        speakerSet.add(speakerId);
+      if (speakerId && utterance.speaker !== undefined) {
+        speakerMap.set(utterance.speaker, speakerId);
       }
 
       if (utterance.words && Array.isArray(utterance.words)) {
@@ -198,12 +193,23 @@ function mapGladiaToTranscriptionResult(payload: any): TranscriptionResult {
             start: word.start || 0,
             end: word.end || 0,
             type: "word",
-            speaker_id: speakerId,
+            speakerId: speakerId,
           });
         }
       }
     }
   }
+
+  // Build speakers array as objects with id and name
+  const speakers =
+    speakerMap.size > 0
+      ? Array.from(speakerMap.entries())
+          .sort(([a], [b]) => a - b)
+          .map(([num, id]) => ({
+            id: id,
+            name: `Speaker ${num + 1}`, // Display name is 1-based: Speaker 1, Speaker 2, etc.
+          }))
+      : undefined;
 
   // Extract language
   const languageCode =
@@ -215,7 +221,7 @@ function mapGladiaToTranscriptionResult(payload: any): TranscriptionResult {
   const result: TranscriptionResult = {
     text: transcription.full_transcript || "",
     words,
-    speakers: speakerSet.size > 0 ? Array.from(speakerSet) : undefined,
+    speakers: speakers || [],
     language_code: languageCode,
   };
 

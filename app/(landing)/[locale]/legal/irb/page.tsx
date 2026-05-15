@@ -146,34 +146,41 @@ function EnglishContent() {
         </li>
         <li>
           <strong>Transcription Processing:</strong> Audio files are sent to our
-          subprocessor (ElevenLabs) with:
+          default transcription provider (Gladia) with:
           <ul>
             <li>
-              <strong>Training disabled:</strong> AI model training is
-              explicitly opted-out (see{" "}
-              <a
-                href="https://elevenlabs.io/privacy-policy"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                ElevenLabs Privacy Policy
-              </a>{" "}
-              and{" "}
-              <a
-                href="https://elevenlabs.io/warsaw-event-gdpr-notice"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                GDPR Notice
-              </a>
-              )
+              <strong>European servers only:</strong> All processing occurs on
+              EU-based servers ensuring European data residency
             </li>
             <li>
-              <strong>Immediate deletion:</strong> Documents are immediately
-              deleted from the subprocessor's servers after transcription is
-              complete
+              <strong>No-training mode:</strong> Your data is never used to
+              train AI models
+            </li>
+            <li>
+              <strong>No-retention mode:</strong> Audio files are immediately
+              deleted after transcription is complete
             </li>
           </ul>
+          <p>
+            Alternatively, ElevenLabs can be configured as a transcription
+            provider with training disabled and immediate deletion (see{" "}
+            <a
+              href="https://elevenlabs.io/privacy-policy"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              ElevenLabs Privacy Policy
+            </a>{" "}
+            and{" "}
+            <a
+              href="https://elevenlabs.io/warsaw-event-gdpr-notice"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GDPR Notice
+            </a>
+            ).
+          </p>
         </li>
         <li>
           <strong>End-to-End Encryption:</strong> Once the transcript is
@@ -357,8 +364,13 @@ function EnglishContent() {
       </p>
       <ul>
         <li>
-          <strong>ElevenLabs:</strong> Audio transcription processing (with
-          training disabled and immediate deletion)
+          <strong>Gladia (Default):</strong> Audio transcription processing
+          (European servers only, no-training and no-retention mode)
+        </li>
+        <li>
+          <strong>ElevenLabs (Alternative):</strong> Audio transcription
+          processing (optional alternative provider, with training disabled and
+          immediate deletion)
         </li>
         <li>
           <strong>AWS (Europe):</strong> Infrastructure and secure data storage
@@ -532,34 +544,44 @@ function FrenchContent() {
         </li>
         <li>
           <strong>Traitement de la transcription :</strong> Les fichiers audio
-          sont envoyés à notre sous-traitant (ElevenLabs) avec :
+          sont envoyés à notre fournisseur de transcription par défaut (Gladia)
+          avec :
           <ul>
             <li>
-              <strong>Formation désactivée :</strong> L'entraînement du modèle
-              d'IA est explicitement désactivé (voir{" "}
-              <a
-                href="https://elevenlabs.io/privacy-policy"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Politique de confidentialité ElevenLabs
-              </a>{" "}
-              et{" "}
-              <a
-                href="https://elevenlabs.io/warsaw-event-gdpr-notice"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Notice RGPD
-              </a>
-              )
+              <strong>Serveurs européens uniquement :</strong> Tous les
+              traitements sont effectués sur des serveurs basés dans l'UE,
+              garantissant la résidence des données en Europe
             </li>
             <li>
-              <strong>Suppression immédiate :</strong> Les documents sont
-              immédiatement supprimés des serveurs du sous-traitant après la
-              transcription
+              <strong>Mode sans entraînement :</strong> Vos données ne sont
+              jamais utilisées pour entraîner des modèles d'IA
+            </li>
+            <li>
+              <strong>Mode sans rétention :</strong> Les fichiers audio sont
+              immédiatement supprimés après la transcription
             </li>
           </ul>
+          <p>
+            Alternativement, ElevenLabs peut être configuré comme fournisseur de
+            transcription avec formation désactivée et suppression immédiate
+            (voir{" "}
+            <a
+              href="https://elevenlabs.io/privacy-policy"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Politique de confidentialité ElevenLabs
+            </a>{" "}
+            et{" "}
+            <a
+              href="https://elevenlabs.io/warsaw-event-gdpr-notice"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Notice RGPD
+            </a>
+            ).
+          </p>
         </li>
         <li>
           <strong>Chiffrement de bout en bout :</strong> Une fois la
@@ -755,8 +777,14 @@ function FrenchContent() {
       </p>
       <ul>
         <li>
-          <strong>ElevenLabs :</strong> Traitement de transcription audio (avec
-          formation désactivée et suppression immédiate)
+          <strong>Gladia (Par défaut) :</strong> Traitement de transcription
+          audio (serveurs européens uniquement, mode sans entraînement et sans
+          rétention)
+        </li>
+        <li>
+          <strong>ElevenLabs (Alternative) :</strong> Traitement de
+          transcription audio (fournisseur alternatif optionnel, avec formation
+          désactivée et suppression immédiate)
         </li>
         <li>
           <strong>AWS (Europe) :</strong> Infrastructure et stockage sécurisé

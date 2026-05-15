@@ -41,13 +41,27 @@ export default function Page() {
           </li>
 
           <li>
-            <strong>ElevenLabs</strong>
+            <strong>Gladia (Default)</strong>
             <br />
             Used for audio processing and transcription services.
             <br />
-            HumanLogs operates with ElevenLabs, any processed data is
-            immediately deleted from ElevenLabs after the transcription, meaning
-            no data is stored after processing.
+            HumanLogs uses Gladia as the default transcription provider with
+            European server residency. All processing occurs on EU servers in
+            no-training and no-retention mode, meaning your data is never used
+            to train AI models and is immediately deleted after transcription is
+            complete.
+            <br />
+          </li>
+
+          <li>
+            <strong>ElevenLabs (Alternative)</strong>
+            <br />
+            Used for audio processing and transcription services (alternative
+            provider).
+            <br />
+            When configured to use ElevenLabs, any processed data is immediately
+            deleted from ElevenLabs after the transcription, meaning no data is
+            stored after processing.
             <br />
             For On-Premise plans, we offer enabling ElevenLabs "Zero Retention
             Mode", as well as data residency which ensures that no data is
