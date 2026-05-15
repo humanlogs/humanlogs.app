@@ -1,5 +1,8 @@
-import FormData from "form-data";
+import crypto from "crypto";
+import { SignJWT } from "jose";
 import { getConfig } from "../config";
+import { encryptBuffer, generateEncryptionKey } from "../encryption/utils";
+import { getStorage } from "../storage";
 
 // Re-use the types from elevenlabs
 export interface TranscriptionWord {
@@ -24,6 +27,8 @@ export interface TranscriptionResult {
   speakers?: string[];
   language_code?: string;
   transcripts?: TranscriptionChannel[];
+  translations?: Record<string, string>; // Translation results by language
+  subtitles?: Record<string, string>; // Subtitle files by format
   [key: string]: unknown;
 }
 
@@ -32,6 +37,13 @@ export interface TranscriptionRequest {
   language?: string;
   speakerCount?: number;
   vocabulary?: string[];
+  translation?: {
+    targetLanguages: string[];
+    context?: string;
+  };
+  subtitles?: {
+    formats: string[];
+  };
 }
 
 export interface TranscriptionFileRequest {
@@ -40,6 +52,13 @@ export interface TranscriptionFileRequest {
   language?: string;
   speakerCount?: number;
   vocabulary?: string[];
+  translation?: {
+    targetLanguages: string[];
+    context?: string;
+  };
+  subtitles?: {
+    formats: string[];
+  };
 }
 
 export interface AsyncTranscriptionResponse {
@@ -58,6 +77,7 @@ class GladiaClient {
   private baseUrl = "https://api.gladia.io";
   private useWebhook: boolean;
   private webhookUrl: string;
+  private storage = getStorage();
 
   constructor() {
     const config = getConfig();
@@ -76,38 +96,46 @@ class GladiaClient {
   }
 
   /**
-   * Upload a file to Gladia and get the audio URL
+   * Encrypt and upload a file to our S3 storage, then generate a secure URL
    */
-  private async uploadFile(
+  private async uploadEncryptedFile(
     fileBuffer: Buffer,
     fileName: string,
   ): Promise<string> {
-    const form = new FormData();
-    form.append("audio", fileBuffer, {
-      filename: fileName,
-      contentType: "audio/mpeg",
-    });
+    // Generate encryption key
+    const encryptionKey = generateEncryptionKey();
 
-    const response = await fetch(`${this.baseUrl}/v2/upload`, {
-      method: "POST",
-      headers: {
-        ...form.getHeaders(),
-        ...this.getHeaders(),
-      },
-      body: form as any,
-    });
+    // Encrypt the file
+    const { encrypted, iv } = encryptBuffer(fileBuffer, encryptionKey);
 
-    if (!response.ok) {
-      throw new Error(`Upload failed: ${response.statusText}`);
-    }
+    // Generate unique key for S3
+    const s3Key = `gladia-temp/${Date.now()}-${crypto.randomUUID()}.enc`;
 
-    const data = await response.json();
+    // Upload encrypted file to S3
+    await this.storage.upload(s3Key, encrypted, "application/octet-stream");
 
-    if (!data?.audio_url) {
-      throw new Error("No audio_url returned from upload");
-    }
+    // Generate JWT with encryption key and expiration (5 minutes)
+    const config = getConfig();
+    const secret = new TextEncoder().encode(
+      config.auth.sessionSecret || "fallback-secret",
+    );
 
-    return data.audio_url;
+    const jwt = await new SignJWT({
+      s3Key,
+      encryptionKey: encryptionKey.toString("hex"),
+      iv: iv.toString("hex"),
+      fileName,
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime("5m")
+      .sign(secret);
+
+    // Generate the secure download URL
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      `http://localhost:${config.server.port}`;
+    return `${baseUrl}/api/audio/download?token=${jwt}`;
   }
 
   /**
@@ -172,8 +200,8 @@ class GladiaClient {
     request: TranscriptionFileRequest,
   ): Promise<AsyncTranscriptionResponse> {
     try {
-      // First, upload the file
-      const audioUrl = await this.uploadFile(
+      // Encrypt and upload the file to our S3, get secure URL
+      const audioUrl = await this.uploadEncryptedFile(
         request.fileBuffer,
         request.fileName,
       );

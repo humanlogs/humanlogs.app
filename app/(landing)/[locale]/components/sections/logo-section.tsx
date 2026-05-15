@@ -19,6 +19,18 @@ export const LogoSection = () => {
       height: 80,
     },
     {
+      name: "Université Paris Cergy",
+      src: "/landing/logos/cergy.png",
+      width: 220,
+      height: 80,
+    },
+    {
+      name: "Washington University",
+      src: "/landing/logos/washington.png",
+      width: 220,
+      height: 80,
+    },
+    {
       name: "Université Paris 8",
       src: "/landing/logos/paris-8.png",
       width: 180,
