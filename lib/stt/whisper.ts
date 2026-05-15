@@ -12,7 +12,6 @@ export interface TranscriptionWord {
 export interface TranscriptionResult {
   text: string;
   words: TranscriptionWord[];
-  speakers?: string[];
   language_code?: string;
   [key: string]: unknown;
 }

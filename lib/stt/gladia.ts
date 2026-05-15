@@ -24,10 +24,6 @@ export interface TranscriptionChannel {
 export interface TranscriptionResult {
   text: string;
   words: TranscriptionWord[];
-  speakers?: {
-    id: string;
-    name: string;
-  }[];
   language_code?: string;
   transcripts?: TranscriptionChannel[];
   translations?: Record<string, string>; // Translation results by language

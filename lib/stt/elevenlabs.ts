@@ -20,7 +20,6 @@ export interface TranscriptionChannel {
 export interface TranscriptionResult {
   text: string;
   words: TranscriptionWord[];
-  speakers?: string[];
   language_code?: string;
   transcripts?: TranscriptionChannel[]; // For multichannel responses
   [key: string]: unknown; // Preserve any additional fields from ElevenLabs
@@ -251,18 +250,10 @@ class ElevenLabsClient {
       ...w, // Preserve all additional fields
     }));
 
-    // Extract unique speakers from words
-    const speakerIds = new Set(
-      words
-        .map((w) => w.speaker_id)
-        .filter((s): s is string => s !== undefined),
-    );
-
     // Build result preserving all ElevenLabs fields
     const result: TranscriptionResult = {
       text: String(response.text || ""),
       words,
-      speakers: speakerIds.size > 0 ? Array.from(speakerIds) : undefined,
       language_code: response.language_code
         ? String(response.language_code)
         : undefined,

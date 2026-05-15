@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { TranscriptionResult } from "@/lib/stt/gladia";
+import { getGladiaClient } from "@/lib/stt/gladia";
 import {
   completeTranscription,
   failTranscription,
 } from "@/lib/stt/transcription-completion";
-import { getGladiaClient } from "@/lib/stt/gladia";
-import type { TranscriptionResult } from "@/lib/stt/gladia";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * Gladia Webhook Handler
@@ -200,17 +200,6 @@ function mapGladiaToTranscriptionResult(payload: any): TranscriptionResult {
     }
   }
 
-  // Build speakers array as objects with id and name
-  const speakers =
-    speakerMap.size > 0
-      ? Array.from(speakerMap.entries())
-          .sort(([a], [b]) => a - b)
-          .map(([num, id]) => ({
-            id: id,
-            name: `Speaker ${num + 1}`, // Display name is 1-based: Speaker 1, Speaker 2, etc.
-          }))
-      : undefined;
-
   // Extract language
   const languageCode =
     transcription.languages && transcription.languages.length > 0
@@ -221,7 +210,6 @@ function mapGladiaToTranscriptionResult(payload: any): TranscriptionResult {
   const result: TranscriptionResult = {
     text: transcription.full_transcript || "",
     words,
-    speakers: speakers || [],
     language_code: languageCode,
   };
 
