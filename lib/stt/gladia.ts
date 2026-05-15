@@ -135,7 +135,7 @@ class GladiaClient {
     const baseUrl =
       process.env.NEXT_PUBLIC_BASE_URL ||
       `http://localhost:${config.server.port}`;
-    return `${baseUrl}/api/audio/download?token=${jwt}`;
+    return `${baseUrl}/api/webhook/downloader/${fileName}?token=${jwt}`;
   }
 
   /**
@@ -146,7 +146,7 @@ class GladiaClient {
     audioUrl: string,
   ) {
     const params: Record<string, unknown> = {
-      audio_url: audioUrl,
+      audio_url: "https://romaricmourgues.com/audio.opus", //audioUrl,
     };
 
     // Add webhook configuration if enabled
@@ -161,7 +161,7 @@ class GladiaClient {
     // Add language configuration
     if (request.language) {
       params.language_config = {
-        languages: [request.language],
+        languages: [languageMap[request.language] || "en"],
         code_switching: false,
       };
     }
@@ -184,7 +184,7 @@ class GladiaClient {
           value: word,
           intensity: 0.5,
           pronunciations: [],
-          language: request.language || "en",
+          language: languageMap[request.language || "eng"] || "en",
         })),
       };
     }
@@ -209,6 +209,12 @@ class GladiaClient {
       // Then, start the transcription
       const params = this.buildTranscriptionParams(request, audioUrl);
 
+      console.log(
+        "Starting transcription with Gladia, params:",
+        `${this.baseUrl}/v2/pre-recorded`,
+        params,
+      );
+
       const response = await fetch(`${this.baseUrl}/v2/pre-recorded`, {
         method: "POST",
         headers: {
@@ -218,11 +224,14 @@ class GladiaClient {
         body: JSON.stringify(params),
       });
 
+      console.log(response.ok);
+
+      const data = await response.json();
+      console.log(data);
+
       if (!response.ok) {
         throw new Error(`Transcription failed: ${response.statusText}`);
       }
-
-      const data = await response.json();
 
       if (!data?.id) {
         throw new Error("No transcription ID returned from Gladia");
@@ -419,3 +428,100 @@ export function isGladiaConfigured(): boolean {
     return false;
   }
 }
+
+// af, am, ar, as, az, ba, be, bg, bn, bo, br, bs, ca, cs, cy, da, de, el, en, es, et, eu, fa, fi, fo, fr, gl, gu, ha, haw, he, hi, hr, ht, hu, hy, id, is, it, ja, jw, ka, kk, km, kn, ko, la, lb, ln, lo, lt, lv, mg, mi, mk, ml, mn, mr, ms, mt, my, ne, nl, nn, no, oc, pa, pl, ps, pt, ro, ru, sa, sd, si, sk, sl, sn, so, sq, sr, su, sv, sw, ta, te, tg, th, tk, tl, tr, tt, uk, ur, uz, vi, yi, yo, zh
+const languageMap: Record<string, string> = {
+  bel: "be",
+  bos: "bs",
+  bul: "bg",
+  cat: "ca",
+  hrv: "hr",
+  ces: "cs",
+  dan: "da",
+  nld: "nl",
+  eng: "en",
+  est: "et",
+  fin: "fi",
+  fra: "fr",
+  glg: "gl",
+  deu: "de",
+  ell: "el",
+  hun: "hu",
+  isl: "is",
+  ind: "id",
+  ita: "it",
+  jpn: "ja",
+  kan: "kn",
+  lav: "lv",
+  mkd: "mk",
+  msa: "ms",
+  mal: "ml",
+  nor: "no",
+  pol: "pl",
+  por: "pt",
+  ron: "ro",
+  rus: "ru",
+  slk: "sk",
+  spa: "es",
+  swe: "sv",
+  tur: "tr",
+  ukr: "uk",
+  vie: "vi",
+  hye: "hy",
+  aze: "az",
+  ben: "bn",
+  yue: "",
+  fil: "tl",
+  kat: "ka",
+  guj: "gu",
+  hin: "hi",
+  kaz: "kk",
+  lit: "lt",
+  mlt: "mt",
+  cmn: "zh",
+  mar: "mr",
+  nep: "ne",
+  ori: "",
+  fas: "fa",
+  srp: "sr",
+  slv: "sl",
+  swa: "sw",
+  tam: "ta",
+  tel: "te",
+  afr: "af",
+  ara: "ar",
+  asm: "as",
+  ast: "",
+  mya: "my",
+  hau: "ha",
+  heb: "he",
+  jav: "jw",
+  kor: "ko",
+  kir: "",
+  ltz: "lb",
+  mri: "mi",
+  oci: "oc",
+  pan: "pa",
+  tgk: "tg",
+  tha: "th",
+  uzb: "uz",
+  cym: "cy",
+  amh: "am",
+  lug: "",
+  ibo: "",
+  gle: "",
+  khm: "km",
+  kur: "",
+  lao: "lo",
+  mon: "mn",
+  nso: "",
+  pus: "ps",
+  sna: "sn",
+  snd: "sd",
+  som: "so",
+  urd: "ur",
+  wol: "",
+  xho: "",
+  yor: "yo",
+  zul: "",
+};

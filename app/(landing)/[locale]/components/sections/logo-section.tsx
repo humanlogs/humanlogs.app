@@ -52,25 +52,43 @@ export const LogoSection = () => {
 
   return (
     <section className="border-y border-gray-200 bg-gray-50 py-12">
-      <div className="container mx-auto px-4 md:px-6">
-        <p className="mb-8 text-center text-sm font-medium text-gray-500">
+      <div className="w-full">
+        <p className="container mx-auto px-4 md:px-6 mb-8 text-center text-sm font-medium text-gray-500">
           {t("trustedBy")}
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-12 md:gap-16">
-          {logos.map((logo) => (
-            <div
-              key={logo.name}
-              className="flex items-center justify-center opacity-60 grayscale hover:opacity-80 hover:grayscale-0 transition-all duration-300"
-            >
-              <Image
-                src={logo.src}
-                alt={logo.name}
-                width={logo.width}
-                height={logo.height}
-                className="object-contain"
-              />
-            </div>
-          ))}
+        <div className="relative overflow-hidden">
+          <div className="flex animate-logo-slide items-center gap-12 md:gap-16">
+            {/* First set of logos */}
+            {logos.map((logo, index) => (
+              <div
+                key={`${logo.name}-${index}`}
+                className="flex flex-shrink-0 items-center justify-center opacity-60 grayscale transition-all duration-300 hover:opacity-80 hover:grayscale-0"
+              >
+                <Image
+                  src={logo.src}
+                  alt={logo.name}
+                  width={logo.width}
+                  height={logo.height}
+                  className="object-contain"
+                />
+              </div>
+            ))}
+            {/* Duplicate set for seamless loop */}
+            {logos.map((logo, index) => (
+              <div
+                key={`${logo.name}-duplicate-${index}`}
+                className="flex flex-shrink-0 items-center justify-center opacity-60 grayscale transition-all duration-300 hover:opacity-80 hover:grayscale-0"
+              >
+                <Image
+                  src={logo.src}
+                  alt={logo.name}
+                  width={logo.width}
+                  height={logo.height}
+                  className="object-contain"
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

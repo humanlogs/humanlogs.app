@@ -56,7 +56,10 @@
         "insufficientCredits": "Insufficient credits. Please upgrade your plan.",
         "startTranscription": "Start Transcription",
         "processing": "Processing...",
-        "uploading": "Uploading files..."
+        "uploading": "Uploading files...",
+        "lowCredits": "Low Credits",
+        "lowCreditsDescription": "You have {{credits}} credits remaining. Consider adding more credits to continue transcribing.",
+        "viewBillingOptions": "View billing options"
     },
     "feedback": {
         "title": "Feedback & Reviews",

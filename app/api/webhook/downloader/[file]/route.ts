@@ -73,19 +73,13 @@ export async function GET(request: NextRequest) {
     await storage.delete(s3Key);
 
     // Determine content type based on file extension
-    const contentType = fileName.toLowerCase().endsWith(".mp3")
-      ? "audio/mpeg"
-      : fileName.toLowerCase().endsWith(".wav")
-        ? "audio/wav"
-        : fileName.toLowerCase().endsWith(".m4a")
-          ? "audio/mp4"
-          : "application/octet-stream";
+    const contentType = "application/octet-stream";
 
     // Return the decrypted file
     return new Response(new Uint8Array(decryptedBuffer), {
       headers: {
         "Content-Type": contentType,
-        "Content-Disposition": `attachment; filename="${fileName}"`,
+        "Content-Disposition": `attachment; filename="audio.opus"`,
         "Cache-Control": "no-cache, no-store, must-revalidate",
       },
     });

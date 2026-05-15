@@ -56,7 +56,10 @@
         "insufficientCredits": "Crédits insuffisants. Veuillez mettre à niveau votre forfait.",
         "startTranscription": "Démarrer la Transcription",
         "processing": "Traitement en cours...",
-        "uploading": "Téléchargement des fichiers..."
+        "uploading": "Téléchargement des fichiers...",
+        "lowCredits": "Crédits Faibles",
+        "lowCreditsDescription": "Il vous reste {{credits}} crédits. Pensez à ajouter plus de crédits pour continuer à transcrire.",
+        "viewBillingOptions": "Voir les options de facturation"
     },
     "feedback": {
         "title": "Vous aimez notre application ?",

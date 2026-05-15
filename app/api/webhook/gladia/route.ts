@@ -16,15 +16,18 @@ import type { TranscriptionResult } from "@/lib/stt/gladia";
  * Webhook payload structure from Gladia:
  * {
  *   "id": "string",
- *   "status": "queued" | "done" | "error" | "failed",
- *   "result": {
+ *   "event": "transcription.success" | "transcription.error",
+ *   "payload": {
  *     "transcription": {
  *       "full_transcript": "string",
  *       "utterances": [...],
  *       "languages": [...]
+ *     },
+ *     "diarization": {
+ *       "success": boolean,
+ *       "results": [...]
  *     }
- *   },
- *   "error_code": number (optional)
+ *   }
  * }
  */
 export async function POST(request: NextRequest) {
@@ -33,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     console.log("Received Gladia webhook:", {
       id: payload.id,
-      status: payload.status,
+      event: payload.event,
     });
 
     // Extract transcription ID
@@ -69,10 +72,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Check status and process accordingly
-    const status = String(payload.status || "").toLowerCase();
+    // Check event and process accordingly
+    const event = String(payload.event || "").toLowerCase();
 
-    if (status === "done" && payload.result?.transcription) {
+    if (event === "transcription.success" && payload.payload?.transcription) {
       // Transcription completed successfully
       console.log(`Transcription ${transcription.id} completed via webhook`);
 
@@ -99,17 +102,20 @@ export async function POST(request: NextRequest) {
       }
 
       return NextResponse.json({ received: true, status: "completed" });
-    } else if (status === "error" || status === "failed") {
+    } else if (
+      event === "transcription.error" ||
+      event === "transcription.failed"
+    ) {
       // Transcription failed
       console.error(
         `Transcription ${transcription.id} failed via webhook:`,
-        payload.error_code,
+        payload.payload?.error,
       );
 
       // Use the common function to mark as failed
       await failTranscription(
         transcription.id,
-        `Transcription failed with error code: ${payload.error_code || "unknown"}`,
+        `Transcription failed: ${payload.payload?.error || "unknown error"}`,
         transcription,
       );
 
@@ -127,14 +133,14 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({ received: true, status: "failed" });
     } else {
-      // Unknown status or incomplete data (queued, etc.)
+      // Unknown event or incomplete data
       console.warn(
-        `Unexpected webhook status for transcription ${transcription.id}:`,
-        status,
+        `Unexpected webhook event for transcription ${transcription.id}:`,
+        event,
       );
       return NextResponse.json({
         received: true,
-        warning: "Unexpected status",
+        warning: "Unexpected event",
       });
     }
   } catch (error) {
@@ -150,13 +156,14 @@ export async function POST(request: NextRequest) {
  * Map Gladia's response format to our TranscriptionResult format
  */
 function mapGladiaToTranscriptionResult(payload: any): TranscriptionResult {
-  const transcription = payload.result?.transcription;
+  const transcription = payload.payload?.transcription;
+  const diarization = payload.payload?.diarization;
 
   if (!transcription) {
     throw new Error("No transcription data in payload");
   }
 
-  // Extract words from utterances
+  // Extract words from diarization results (preferred) or utterances (fallback)
   const words: Array<{
     text: string;
     start: number;
@@ -167,11 +174,18 @@ function mapGladiaToTranscriptionResult(payload: any): TranscriptionResult {
 
   const speakerSet = new Set<string>();
 
-  if (transcription.utterances && Array.isArray(transcription.utterances)) {
-    for (const utterance of transcription.utterances) {
-      const speakerId = utterance.speaker
-        ? `Speaker ${utterance.speaker}`
-        : undefined;
+  // Use diarization results if available (more accurate speaker info)
+  const sourceData =
+    diarization?.results && Array.isArray(diarization.results)
+      ? diarization.results
+      : transcription.utterances || [];
+
+  if (Array.isArray(sourceData)) {
+    for (const utterance of sourceData) {
+      const speakerId =
+        utterance.speaker !== undefined && utterance.speaker !== null
+          ? `Speaker ${utterance.speaker}`
+          : undefined;
 
       if (speakerId) {
         speakerSet.add(speakerId);

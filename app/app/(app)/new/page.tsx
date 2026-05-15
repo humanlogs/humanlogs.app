@@ -82,7 +82,7 @@ const supportedLanguages = {
   hye: "Armenian",
   aze: "Azerbaijani",
   ben: "Bengali",
-  yue: "Cantonese",
+  // yue: "Cantonese", // Not supported by Gladia
   fil: "Filipino",
   kat: "Georgian",
   guj: "Gujarati",
@@ -93,7 +93,7 @@ const supportedLanguages = {
   cmn: "Mandarin",
   mar: "Marathi",
   nep: "Nepali",
-  ori: "Odia",
+  // ori: "Odia", // Not supported by Gladia
   fas: "Persian",
   srp: "Serbian",
   slv: "Slovenian",
@@ -103,13 +103,13 @@ const supportedLanguages = {
   afr: "Afrikaans",
   ara: "Arabic",
   asm: "Assamese",
-  ast: "Asturian",
+  // ast: "Asturian", // Not supported by Gladia
   mya: "Burmese",
   hau: "Hausa",
   heb: "Hebrew",
   jav: "Javanese",
   kor: "Korean",
-  kir: "Kyrgyz",
+  // kir: "Kyrgyz", // Not supported by Gladia
   ltz: "Luxembourgish",
   mri: "Māori",
   oci: "Occitan",
@@ -119,23 +119,23 @@ const supportedLanguages = {
   uzb: "Uzbek",
   cym: "Welsh",
   amh: "Amharic",
-  lug: "Ganda",
-  ibo: "Igbo",
-  gle: "Irish",
+  // lug: "Ganda", // Not supported by Gladia
+  // ibo: "Igbo", // Not supported by Gladia
+  // gle: "Irish", // Not supported by Gladia
   khm: "Khmer",
-  kur: "Kurdish",
+  // kur: "Kurdish", // Not supported by Gladia
   lao: "Lao",
   mon: "Mongolian",
-  nso: "Northern Sotho",
+  // nso: "Northern Sotho", // Not supported by Gladia
   pus: "Pashto",
   sna: "Shona",
   snd: "Sindhi",
   som: "Somali",
   urd: "Urdu",
-  wol: "Wolof",
-  xho: "Xhosa",
+  // wol: "Wolof", // Not supported by Gladia
+  // xho: "Xhosa", // Not supported by Gladia
   yor: "Yoruba",
-  zul: "Zulu",
+  // zul: "Zulu", // Not supported by Gladia
 };
 
 export default function NewTranscriptionPage() {
@@ -146,11 +146,18 @@ export default function NewTranscriptionPage() {
 
   // Form state
   const [audioFiles, setAudioFiles] = React.useState<AudioFile[]>([]);
-  const [projectId, setProjectId] = React.useState<string | undefined>();
-  const [language, setLanguage] = React.useState<string>(
-    Object.keys(supportedLanguages).find((key) => key.startsWith(locale)) ||
-      "eng",
-  );
+  const [projectId, setProjectId] = React.useState<string | undefined>(() => {
+    const saved = localStorage.getItem("transcription_project");
+    return saved || undefined;
+  });
+  const [language, setLanguage] = React.useState<string>(() => {
+    const saved = localStorage.getItem("transcription_language");
+    if (saved) return saved;
+    return (
+      Object.keys(supportedLanguages).find((key) => key.startsWith(locale)) ||
+      "eng"
+    );
+  });
   const [speakers, setSpeakers] = React.useState<number>(2);
   const [vocabulary, setVocabulary] = React.useState<string>("Euh, Hmm, Bah");
   const [isDragging, setIsDragging] = React.useState(false);
@@ -182,6 +189,20 @@ export default function NewTranscriptionPage() {
   React.useEffect(() => {
     localStorage.setItem("transcription_speakers", speakers.toString());
   }, [speakers]);
+
+  // Save language to localStorage when it changes
+  React.useEffect(() => {
+    localStorage.setItem("transcription_language", language);
+  }, [language]);
+
+  // Save projectId to localStorage when it changes
+  React.useEffect(() => {
+    if (projectId) {
+      localStorage.setItem("transcription_project", projectId);
+    } else {
+      localStorage.removeItem("transcription_project");
+    }
+  }, [projectId]);
 
   // Calculate audio duration
   const loadAudioDuration = async (file: File): Promise<number> => {
@@ -497,16 +518,15 @@ export default function NewTranscriptionPage() {
             >
               <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
               <AlertTitle className="text-yellow-800 dark:text-yellow-300">
-                Low Credits
+                {t("lowCredits")}
               </AlertTitle>
               <AlertDescription className="text-yellow-700 dark:text-yellow-400">
-                You have {user?.credits || 0} credits remaining. Consider adding
-                more credits to continue transcribing.{" "}
+                {t("lowCreditsDescription", { credits: user?.credits || 0 })}{" "}
                 <Link
                   href="/app/account/billing"
                   className="font-semibold underline hover:no-underline"
                 >
-                  View billing options
+                  {t("viewBillingOptions")}
                 </Link>
               </AlertDescription>
             </Alert>

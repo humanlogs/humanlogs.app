@@ -56,7 +56,10 @@
         "insufficientCredits": "Nicht genügend Credits. Bitte upgraden Sie Ihren Tarif.",
         "startTranscription": "Transkription Starten",
         "processing": "Verarbeitung...",
-        "uploading": "Dateien werden hochgeladen..."
+        "uploading": "Dateien werden hochgeladen...",
+        "lowCredits": "Wenige Credits",
+        "lowCreditsDescription": "Sie haben noch {{credits}} Credits übrig. Erwägen Sie, mehr Credits hinzuzufügen, um weiter zu transkribieren.",
+        "viewBillingOptions": "Abrechnungsoptionen anzeigen"
     },
     "feedback": {
         "title": "Feedback & Bewertungen",
