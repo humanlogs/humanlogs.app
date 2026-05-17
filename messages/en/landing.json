@@ -60,7 +60,7 @@
         "cloud": {
             "free": {
                 "name": "Free",
-                "price": "€0",
+                "price": "$0",
                 "minutes": "100 minutes per month",
                 "cta": "Get Started",
                 "noCreditCard": "No credit card required",
@@ -70,9 +70,9 @@
             "subscription": {
                 "name": "Subscription",
                 "badge": "Most popular",
-                "price": "€15",
+                "price": "$15",
                 "perMonth": "/month",
-                "yearly": "or €165/year",
+                "yearly": "or $165/year",
                 "minutes": "1,200 minutes per month (20h)",
                 "cta": "Subscribe Now",
                 "transcriptionsPerMonth": "20 transcriptions per month (1,200 minutes = 20 hours)",
@@ -81,7 +81,7 @@
             },
             "oneTime": {
                 "name": "One-Time Pack",
-                "price": "€20",
+                "price": "$20",
                 "minutes": "1,200 minutes (20h)",
                 "cta": "Buy Now",
                 "transcriptions": "1,200 minutes (20 hours)",
@@ -487,7 +487,7 @@
                 "Speaker diarization",
                 "Free tier",
                 "Monthly subscription price",
-                "Monthly hours (at €15/mo)",
+                "Monthly hours (at $15/mo)",
                 "Value per hour",
                 "Custom vocabulary"
             ]

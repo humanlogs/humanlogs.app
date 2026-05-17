@@ -29,7 +29,7 @@
                 },
                 "monthly": {
                     "name": "Pro Monthly",
-                    "price": "€15/month",
+                    "price": "$15/month",
                     "features": [
                         "1200 minutes (20 hours) per month",
                         "Unlimited collaboration",
@@ -38,18 +38,18 @@
                 },
                 "yearly": {
                     "name": "Pro Yearly",
-                    "price": "€13.75/month",
-                    "billed": "Billed €165 yearly",
+                    "price": "$13.75/month",
+                    "billed": "Billed $165 yearly",
                     "features": [
                         "1200 minutes (20 hours) per month",
                         "Unlimited collaboration",
                         "All features included",
-                        "Save €15/year"
+                        "Save $15/year"
                     ]
                 },
                 "one_time": {
                     "name": "One-Time Purchase",
-                    "price": "€20",
+                    "price": "$20",
                     "features": [
                         "1200 minutes (20 hours)",
                         "Single use credits",
