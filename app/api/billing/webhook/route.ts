@@ -28,9 +28,14 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    console.log(`[WEBHOOK] Received event: ${event.type}`);
+
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+        console.log(
+          `[WEBHOOK] Processing checkout.session.completed - Session ID: ${session.id}, Customer: ${session.customer}, Mode: ${session.mode}`,
+        );
         await handleCheckoutSessionCompleted(session);
         break;
       }
@@ -38,27 +43,40 @@ export async function POST(request: NextRequest) {
       case "customer.subscription.created":
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
+        console.log(
+          `[WEBHOOK] Processing ${event.type} - Subscription ID: ${subscription.id}, Customer: ${subscription.customer}, Status: ${subscription.status}`,
+        );
         await handleSubscriptionUpdate(subscription);
         break;
       }
 
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
+        console.log(
+          `[WEBHOOK] Processing customer.subscription.deleted - Subscription ID: ${subscription.id}, Customer: ${subscription.customer}`,
+        );
         await handleSubscriptionDeleted(subscription);
         break;
       }
 
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
+        console.log(
+          `[WEBHOOK] Processing invoice.payment_succeeded - Invoice ID: ${invoice.id}, Customer: ${invoice.customer}, Subscription: ${(invoice as any).subscription}`,
+        );
         // Only process recurring subscription payments
         if ((invoice as any).subscription) {
           await handleInvoicePaymentSucceeded(invoice);
+        } else {
+          console.log(
+            `[WEBHOOK] Skipping invoice - not a subscription payment`,
+          );
         }
         break;
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        console.log(`[WEBHOOK] Unhandled event type: ${event.type}`);
     }
 
     return NextResponse.json({ received: true });
@@ -77,7 +95,7 @@ async function handleCheckoutSessionCompleted(
   const customerId = session.customer as string;
 
   if (!customerId) {
-    console.error("No customer ID in checkout session");
+    console.error("[WEBHOOK] No customer ID in checkout session");
     return;
   }
 
@@ -86,18 +104,31 @@ async function handleCheckoutSessionCompleted(
   });
 
   if (!user) {
-    console.error("User not found for customer:", customerId);
+    console.error("[WEBHOOK] User not found for customer:", customerId);
     return;
   }
 
+  console.log(
+    `[WEBHOOK] Found user: ${user.id} (${user.email}), current credits: ${user.credits}`,
+  );
+
   // Handle one-time payment
   if (session.mode === "payment") {
+    const newCredits = user.credits + PLANS.ONE_TIME.credits;
+    console.log(
+      `[WEBHOOK] One-time payment - adding ${PLANS.ONE_TIME.credits} credits (${user.credits} -> ${newCredits})`,
+    );
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        credits: user.credits + PLANS.ONE_TIME.credits,
+        credits: newCredits,
       },
     });
+    console.log(`[WEBHOOK] Credits updated successfully`);
+  } else {
+    console.log(
+      `[WEBHOOK] Session mode is "${session.mode}" - not a one-time payment, skipping credit addition`,
+    );
   }
 }
 
@@ -109,9 +140,13 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   });
 
   if (!user) {
-    console.error("User not found for customer:", customerId);
+    console.error("[WEBHOOK] User not found for customer:", customerId);
     return;
   }
+
+  console.log(
+    `[WEBHOOK] Found user: ${user.id} (${user.email}), current plan: ${user.plan}, credits: ${user.credits}`,
+  );
 
   // Determine plan based on subscription price
   const priceId = subscription.items.data[0]?.price.id;
@@ -126,9 +161,17 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     creditsRefill = PLANS.YEARLY.creditsRefill;
   }
 
+  console.log(
+    `[WEBHOOK] Subscription price ID: ${priceId}, detected plan: ${plan}, creditsRefill: ${creditsRefill}`,
+  );
+
   const currentPeriodEnd = (subscription as any).current_period_end
     ? new Date((subscription as any).current_period_end * 1000)
     : null;
+
+  console.log(
+    `[WEBHOOK] Updating user subscription - plan: ${plan}, status: ${subscription.status}, periodEnd: ${currentPeriodEnd}`,
+  );
 
   await prisma.user.update({
     where: { id: user.id },
@@ -140,6 +183,8 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       creditsRefill,
     },
   });
+
+  console.log(`[WEBHOOK] Subscription updated successfully`);
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
@@ -150,9 +195,13 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   });
 
   if (!user) {
-    console.error("User not found for customer:", customerId);
+    console.error("[WEBHOOK] User not found for customer:", customerId);
     return;
   }
+
+  console.log(
+    `[WEBHOOK] Deleting subscription for user: ${user.id} (${user.email})`,
+  );
 
   await prisma.user.update({
     where: { id: user.id },
@@ -164,29 +213,71 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       creditsRefill: PLANS.FREE.creditsRefill,
     },
   });
+
+  console.log(`[WEBHOOK] Subscription deleted successfully`);
 }
 
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   const customerId = invoice.customer as string;
+  const subscriptionId = (invoice as any).subscription as string;
+
+  // Fetch subscription details to get the current plan info
+  let subscription: Stripe.Subscription | null = null;
+  if (subscriptionId) {
+    try {
+      subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      console.log(
+        `[WEBHOOK] Retrieved subscription: ${subscription.id}, status: ${subscription.status}`,
+      );
+    } catch (error) {
+      console.error("[WEBHOOK] Failed to retrieve subscription:", error);
+    }
+  }
 
   const user = await prisma.user.findUnique({
     where: { stripeCustomerId: customerId },
   });
 
   if (!user) {
-    console.error("User not found for customer:", customerId);
+    console.error("[WEBHOOK] User not found for customer:", customerId);
     return;
+  }
+
+  console.log(
+    `[WEBHOOK] Found user: ${user.id} (${user.email}), current credits: ${user.credits}, creditsRefill: ${user.creditsRefill}`,
+  );
+
+  // Determine creditsRefill from subscription if available (handles race condition)
+  let creditsRefill = user.creditsRefill;
+  if (subscription) {
+    const priceId = subscription.items.data[0]?.price.id;
+    if (priceId === PLANS.MONTHLY.priceId) {
+      creditsRefill = PLANS.MONTHLY.creditsRefill;
+    } else if (priceId === PLANS.YEARLY.priceId) {
+      creditsRefill = PLANS.YEARLY.creditsRefill;
+    }
+    console.log(
+      `[WEBHOOK] Subscription price ID: ${priceId}, calculated creditsRefill: ${creditsRefill}`,
+    );
   }
 
   // Refill credits on successful subscription payment
   // Only refill if credits are below the refill amount
-  if (user.credits < user.creditsRefill) {
+  if (user.credits < creditsRefill) {
+    console.log(
+      `[WEBHOOK] Refilling credits: ${user.credits} -> ${creditsRefill}`,
+    );
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        credits: user.creditsRefill,
+        credits: creditsRefill,
         lastCreditsRefill: new Date(),
       },
     });
+    console.log(`[WEBHOOK] Credits refilled successfully`);
+  } else {
+    console.log(
+      `[WEBHOOK] Credits not refilled - user already has ${user.credits} credits (refill amount: ${creditsRefill})`,
+    );
   }
 }
