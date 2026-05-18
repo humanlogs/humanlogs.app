@@ -54,6 +54,12 @@ function getPreferredLocale(request: NextRequest): string {
 // The proxy handles all auth routes automatically via auth0.middleware()
 export default async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+  const method = request.method;
+
+  // Log all API requests
+  if (pathname.startsWith("/api")) {
+    console.log(`[API] ${method} ${pathname}${search}`);
+  }
 
   // Handle locale routing for landing pages BEFORE auth middleware
   if (
