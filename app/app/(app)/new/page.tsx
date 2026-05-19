@@ -654,25 +654,25 @@ export default function NewTranscriptionPage() {
                 value={language}
                 onChange={setLanguage}
                 placeholder={t("language")}
-                searchPlaceholder="Search languages..."
+                searchPlaceholder={t("searchLanguages")}
               />
               <Select
                 disabled={isSubmitting}
                 size="sm"
                 className="w-max inline-flex"
-                options={[1, 2, 3, 4, 5, 32].map((num) => ({
+                options={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 32].map((num) => ({
                   label:
                     num === 1
-                      ? "Single speaker"
+                      ? t("singleSpeaker")
                       : num === 32
-                        ? "More than 5 speakers"
-                        : `${num.toString()} speakers`,
+                        ? t("moreThanFiveSpeakers")
+                        : t("speakersCount", { count: num }),
                   value: num.toString(),
                 }))}
                 value={speakers.toString()}
                 onChange={(value) => setSpeakers(parseInt(value, 10))}
                 placeholder={t("language")}
-                searchPlaceholder="Search languages..."
+                searchPlaceholder={t("searchLanguages")}
               />
             </div>
 
@@ -718,20 +718,20 @@ export default function NewTranscriptionPage() {
       <Dialog open={renameModalOpen} onOpenChange={setRenameModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rename Audio File</DialogTitle>
+            <DialogTitle>{t("renameAudioFile")}</DialogTitle>
             <DialogDescription>
-              Enter a new name for your audio file.
+              {t("renameAudioFileDescription")}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleRenameSubmit}>
             <div className="px-6">
               <div className="space-y-2">
-                <Label htmlFor="file-name">File Name</Label>
+                <Label htmlFor="file-name">{t("fileName")}</Label>
                 <Input
                   id="file-name"
                   value={tempFileName}
                   onChange={(e) => setTempFileName(e.target.value)}
-                  placeholder="e.g., Interview Recording"
+                  placeholder={t("fileNamePlaceholder")}
                   autoFocus
                 />
               </div>
@@ -742,10 +742,10 @@ export default function NewTranscriptionPage() {
                 variant="outline"
                 onClick={() => setRenameModalOpen(false)}
               >
-                Cancel
+                {t("cancel")}
               </Button>
               <Button type="submit" variant={"primary"}>
-                Rename
+                {t("rename")}
               </Button>
             </DialogFooter>
           </form>
