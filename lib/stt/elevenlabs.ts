@@ -59,7 +59,7 @@ class ElevenLabsClient {
   constructor() {
     const config = getConfig();
 
-    const dispatcher = new Agent({
+    const _dispatcher = new Agent({
       headersTimeout: 15 * 60 * 1000,
       bodyTimeout: 15 * 60 * 1000,
     });
@@ -67,8 +67,8 @@ class ElevenLabsClient {
     this.client = new ElevenLabsSDK({
       apiKey: config.stt.elevenlabs.apiKey,
       timeoutInSeconds: 15 * 60,
-      fetch: ((input, init) =>
-        fetch(input, { ...init, dispatcher } as RequestInit)) as typeof fetch,
+      // fetch: ((input, init) =>
+      //   fetch(input, { ...init, dispatcher } as RequestInit)) as typeof fetch,
     });
     this.useWebhook = config.stt.elevenlabs.useWebhook ?? false;
   }
