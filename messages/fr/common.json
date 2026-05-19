@@ -58,8 +58,17 @@
         "processing": "Traitement en cours...",
         "uploading": "Téléchargement des fichiers...",
         "lowCredits": "Crédits Faibles",
-        "lowCreditsDescription": "Il vous reste {{credits}} crédits. Pensez à ajouter plus de crédits pour continuer à transcrire.",
-        "viewBillingOptions": "Voir les options de facturation"
+        "lowCreditsDescription": "Il vous reste {credits} crédits. Pensez à ajouter plus de crédits pour continuer à transcrire.",
+        "viewBillingOptions": "Voir les options de facturation",
+        "singleSpeaker": "Un seul intervenant",
+        "moreThanTenSpeakers": "Plus de 10 intervenants",
+        "speakersCount": "{count} intervenants",
+        "searchLanguages": "Rechercher des langues...",
+        "renameAudioFile": "Renommer le Fichier Audio",
+        "renameAudioFileDescription": "Entrez un nouveau nom pour votre fichier audio.",
+        "fileNamePlaceholder": "ex : Enregistrement d'entretien",
+        "cancel": "Annuler",
+        "rename": "Renommer"
     },
     "feedback": {
         "title": "Vous aimez notre application ?",

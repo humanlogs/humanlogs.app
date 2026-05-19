@@ -58,8 +58,17 @@
         "processing": "Processing...",
         "uploading": "Uploading files...",
         "lowCredits": "Low Credits",
-        "lowCreditsDescription": "You have {{credits}} credits remaining. Consider adding more credits to continue transcribing.",
-        "viewBillingOptions": "View billing options"
+        "lowCreditsDescription": "You have {credits} credits remaining. Consider adding more credits to continue transcribing.",
+        "viewBillingOptions": "View billing options",
+        "singleSpeaker": "Single speaker",
+        "moreThanTenSpeakers": "More than 10 speakers",
+        "speakersCount": "{count} speakers",
+        "searchLanguages": "Search languages...",
+        "renameAudioFile": "Rename Audio File",
+        "renameAudioFileDescription": "Enter a new name for your audio file.",
+        "fileNamePlaceholder": "e.g., Interview Recording",
+        "cancel": "Cancel",
+        "rename": "Rename"
     },
     "feedback": {
         "title": "Feedback & Reviews",

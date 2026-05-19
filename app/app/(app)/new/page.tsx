@@ -665,7 +665,7 @@ export default function NewTranscriptionPage() {
                     num === 1
                       ? t("singleSpeaker")
                       : num === 32
-                        ? t("moreThanFiveSpeakers")
+                        ? t("moreThanTenSpeakers")
                         : t("speakersCount", { count: num }),
                   value: num.toString(),
                 }))}

@@ -58,8 +58,17 @@
         "processing": "Verarbeitung...",
         "uploading": "Dateien werden hochgeladen...",
         "lowCredits": "Wenige Credits",
-        "lowCreditsDescription": "Sie haben noch {{credits}} Credits übrig. Erwägen Sie, mehr Credits hinzuzufügen, um weiter zu transkribieren.",
-        "viewBillingOptions": "Abrechnungsoptionen anzeigen"
+        "lowCreditsDescription": "Sie haben noch {credits} Credits übrig. Erwägen Sie, mehr Credits hinzuzufügen, um weiter zu transkribieren.",
+        "viewBillingOptions": "Abrechnungsoptionen anzeigen",
+        "singleSpeaker": "Ein einzelner Sprecher",
+        "moreThanTenSpeakers": "Mehr als 10 Sprecher",
+        "speakersCount": "{count} Sprecher",
+        "searchLanguages": "Sprachen suchen...",
+        "renameAudioFile": "Audiodatei Umbenennen",
+        "renameAudioFileDescription": "Geben Sie einen neuen Namen für Ihre Audiodatei ein.",
+        "fileNamePlaceholder": "z.B. Interview-Aufnahme",
+        "cancel": "Abbrechen",
+        "rename": "Umbenennen"
     },
     "feedback": {
         "title": "Feedback & Bewertungen",

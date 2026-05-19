@@ -58,8 +58,17 @@
         "processing": "Procesando...",
         "uploading": "Subiendo archivos...",
         "lowCredits": "Pocos Créditos",
-        "lowCreditsDescription": "Te quedan {{credits}} créditos. Considera agregar más créditos para continuar transcribiendo.",
-        "viewBillingOptions": "Ver opciones de facturación"
+        "lowCreditsDescription": "Te quedan {credits} créditos. Considera agregar más créditos para continuar transcribiendo.",
+        "viewBillingOptions": "Ver opciones de facturación",
+        "singleSpeaker": "Un solo hablante",
+        "moreThanTenSpeakers": "Más de 10 hablantes",
+        "speakersCount": "{count} hablantes",
+        "searchLanguages": "Buscar idiomas...",
+        "renameAudioFile": "Renombrar Archivo de Audio",
+        "renameAudioFileDescription": "Introduce un nuevo nombre para tu archivo de audio.",
+        "fileNamePlaceholder": "ej: Grabación de entrevista",
+        "cancel": "Cancelar",
+        "rename": "Renombrar"
     },
     "feedback": {
         "title": "Comentarios y Opiniones",
