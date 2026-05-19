@@ -54,6 +54,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
 
     // Extract form fields
     const language = (formData.get("language") as string) || "en";
+    const projectId = (formData.get("projectId") as string) || "";
     const speakerCountRaw = formData.get("speakerCount");
     const speakerCount = speakerCountRaw
       ? parseInt(speakerCountRaw as string, 10)
@@ -175,13 +176,18 @@ export const POST = withAuthRateLimit(async (request, user) => {
         const fileName = fileNames[i];
         const duration = fileDurations[i];
 
-        console.log(`Creating transcription for file ${i + 1}/${audioFiles.length}: ${fileName} (${file.size} bytes)`);
+        console.log(
+          `Creating transcription for file ${i + 1}/${audioFiles.length}: ${fileName} (${file.size} bytes)`,
+        );
 
         // Create transcription record
         const transcription = await prisma.transcription.create({
           data: {
             user: {
               connect: { id: user.id },
+            },
+            project: {
+              connect: projectId ? { id: projectId } : undefined,
             },
             title: fileName,
             audioFileName: fileName,
@@ -200,8 +206,10 @@ export const POST = withAuthRateLimit(async (request, user) => {
         // Get file buffer and immediately start processing (don't accumulate in memory)
         console.log(`Loading file buffer for ${fileName}...`);
         const originalBuffer = Buffer.from(await file.arrayBuffer());
-        console.log(`File buffer loaded, starting async processing for ${transcription.id}`);
-        
+        console.log(
+          `File buffer loaded, starting async processing for ${transcription.id}`,
+        );
+
         // Start async processing immediately - don't await
         processAudioAndTranscription(
           transcription.id,
@@ -221,7 +229,9 @@ export const POST = withAuthRateLimit(async (request, user) => {
           );
         });
 
-        console.log(`Async processing started for ${transcription.id}, buffer can be garbage collected`);
+        console.log(
+          `Async processing started for ${transcription.id}, buffer can be garbage collected`,
+        );
       }
 
       // Return immediately - processing happens in background

@@ -33,6 +33,7 @@ import * as React from "react";
 import { toast } from "sonner";
 import { useUserProfile } from "../../../../hooks/use-api";
 import { fetchGateway } from "@/hooks/fetch";
+import { useQueryClient } from "@tanstack/react-query";
 
 type AudioFile = {
   id: string;
@@ -143,6 +144,7 @@ export default function NewTranscriptionPage() {
   const { locale } = useLocale();
   const { data: user } = useUserProfile();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   // Form state
   const [audioFiles, setAudioFiles] = React.useState<AudioFile[]>([]);
@@ -485,6 +487,8 @@ export default function NewTranscriptionPage() {
       console.log("Transcription created:", result);
 
       toast.success("Transcription started successfully!");
+
+      queryClient.invalidateQueries({ queryKey: ["transcriptions"] });
 
       // Socket.io will automatically update the sidebar via React Query
 
