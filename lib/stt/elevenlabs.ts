@@ -57,8 +57,21 @@ class ElevenLabsClient {
 
   constructor() {
     const config = getConfig();
+
+    // Create a custom fetch with longer timeout for large file uploads
+    const customFetch = (url: any, init?: any) => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10 * 60 * 1000); // 10 minutes timeout
+
+      return fetch(url, {
+        ...init,
+        signal: controller.signal,
+      }).finally(() => clearTimeout(timeoutId));
+    };
+
     this.client = new ElevenLabsSDK({
       apiKey: config.stt.elevenlabs.apiKey,
+      fetcher: customFetch as any,
     });
     this.useWebhook = config.stt.elevenlabs.useWebhook ?? false;
   }
