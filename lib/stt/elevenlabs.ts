@@ -1,4 +1,5 @@
 import { ElevenLabsClient as ElevenLabsSDK } from "@elevenlabs/elevenlabs-js";
+import { Agent } from "undici";
 import { getConfig } from "../config";
 
 export interface TranscriptionWord {
@@ -58,15 +59,21 @@ class ElevenLabsClient {
   constructor() {
     const config = getConfig();
 
-    // Create a custom fetch with longer timeout for large file uploads
-    const customFetch = (url: any, init?: any) => {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10 * 60 * 1000); // 10 minutes timeout
+    // Create a custom undici agent with longer timeouts for large file uploads
+    // ElevenLabs API can take 5+ minutes to transcribe and respond
+    const agent = new Agent({
+      headersTimeout: 30 * 60 * 1000, // 30 minutes for headers
+      bodyTimeout: 30 * 60 * 1000, // 30 minutes for body
+      connectTimeout: 60 * 1000, // 1 minute for connection
+    });
 
+    // Create a custom fetch that uses our agent
+    const customFetch = (url: any, init?: any) => {
       return fetch(url, {
         ...init,
-        signal: controller.signal,
-      }).finally(() => clearTimeout(timeoutId));
+        // @ts-ignore - dispatcher is a valid option for Node.js fetch
+        dispatcher: agent,
+      });
     };
 
     this.client = new ElevenLabsSDK({
