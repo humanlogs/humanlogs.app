@@ -26,6 +26,10 @@ export async function compressAudio(
   const inputPath = join(tmpDir, `input-${randomId}-${originalFileName}`);
   const outputPath = join(tmpDir, `output-${randomId}.opus`);
 
+  console.log(
+    `Starting ffmpeg compression for ${originalFileName} (${inputBuffer.length} bytes)`,
+  );
+
   try {
     // Write input file to temp location
     await writeFile(inputPath, inputBuffer);
@@ -36,14 +40,20 @@ export async function compressAudio(
     // -b:a 32k: set audio bitrate to 32 kbps
     // -vn: no video
     // -y: overwrite output file
-    const ffmpegCommand = `ffmpeg -i "${inputPath}" -c:a libopus -b:a 32k -vn -y "${outputPath}"`;
+    // -loglevel error: only show errors to reduce buffer usage
+    const ffmpegCommand = `ffmpeg -i "${inputPath}" -c:a libopus -b:a 32k -vn -loglevel error -y "${outputPath}"`;
+
+    console.log(`Running ffmpeg command: ${ffmpegCommand}`);
 
     await execAsync(ffmpegCommand, {
-      maxBuffer: 10 * 1024 * 1024, // 10MB buffer for stderr
+      maxBuffer: 100 * 1024 * 1024, // 100MB buffer for stderr (needed for large files)
+      timeout: 600000, // 10 minute timeout for very large files
     });
 
     // Read compressed file
     const compressedBuffer = await readFile(outputPath);
+
+    console.log(`Compression complete: ${compressedBuffer.length} bytes`);
 
     // Verify size is within limits
     if (compressedBuffer.length > MAX_COMPRESSED_SIZE) {
@@ -52,16 +62,21 @@ export async function compressAudio(
       );
 
       // Try with lower bitrate
-      const lowerBitrateCommand = `ffmpeg -i "${inputPath}" -c:a libopus -b:a 24k -vn -y "${outputPath}"`;
+      const lowerBitrateCommand = `ffmpeg -i "${inputPath}" -c:a libopus -b:a 24k -vn -loglevel error -y "${outputPath}"`;
       await execAsync(lowerBitrateCommand, {
-        maxBuffer: 10 * 1024 * 1024,
+        maxBuffer: 100 * 1024 * 1024,
+        timeout: 600000,
       });
 
       const recompressedBuffer = await readFile(outputPath);
+      console.log(`Recompression complete: ${recompressedBuffer.length} bytes`);
       return recompressedBuffer;
     }
 
     return compressedBuffer;
+  } catch (error) {
+    console.error(`FFmpeg compression failed for ${originalFileName}:`, error);
+    throw error;
   } finally {
     // Clean up temp files
     try {

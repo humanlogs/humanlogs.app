@@ -54,10 +54,11 @@ export const POST = withAuthRateLimit(async (request, user) => {
 
     // Extract form fields
     const language = (formData.get("language") as string) || "en";
-    const speakerCount = parseInt(
-      (formData.get("speakerCount") as string) || "2",
-      10,
-    );
+    const speakerCountRaw = formData.get("speakerCount");
+    const speakerCount = speakerCountRaw
+      ? parseInt(speakerCountRaw as string, 10)
+      : 2;
+
     const vocabulary = (formData.get("vocabulary") as string) || "";
     const vocabularyArray = vocabulary
       .split(",")
@@ -151,37 +152,9 @@ export const POST = withAuthRateLimit(async (request, user) => {
 
     // Create transcription records and get file buffers
     const createdTranscriptions: string[] = [];
-    const audioBuffers: Buffer[] = [];
 
     try {
-      // Create all transcription records first
-      for (let i = 0; i < audioFiles.length; i++) {
-        const file = audioFiles[i];
-        const fileName = fileNames[i];
-
-        // Create transcription record
-        const transcription = await prisma.transcription.create({
-          data: {
-            userId: user.id,
-            title: fileName,
-            audioFileName: fileName,
-            audioFileSize: file.size,
-            audioFileKey: "", // Will be updated after upload in async processing
-            language,
-            speakerCount,
-            vocabulary: vocabularyArray,
-            state: "PENDING",
-          },
-        });
-
-        createdTranscriptions.push(transcription.id);
-
-        // Get original file buffer
-        const originalBuffer = Buffer.from(await file.arrayBuffer());
-        audioBuffers.push(originalBuffer);
-      }
-
-      // Deduct credits only if billable version
+      // Deduct credits first (before processing files)
       if (isBillable) {
         await prisma.user.update({
           where: { id: user.id },
@@ -196,31 +169,59 @@ export const POST = withAuthRateLimit(async (request, user) => {
         });
       }
 
-      // Start async processing for all files (compression, encryption, upload, transcription)
-      // We don't await this to return the response immediately
+      // Process files one at a time to avoid memory issues
       for (let i = 0; i < audioFiles.length; i++) {
-        const transcriptionId = createdTranscriptions[i];
-        const originalBuffer = audioBuffers[i];
+        const file = audioFiles[i];
         const fileName = fileNames[i];
         const duration = fileDurations[i];
 
+        console.log(`Creating transcription for file ${i + 1}/${audioFiles.length}: ${fileName} (${file.size} bytes)`);
+
+        // Create transcription record
+        const transcription = await prisma.transcription.create({
+          data: {
+            user: {
+              connect: { id: user.id },
+            },
+            title: fileName,
+            audioFileName: fileName,
+            audioFileSize: file.size,
+            audioFileKey: "", // Will be updated after upload in async processing
+            language,
+            speakerCount: speakerCount || 16,
+            vocabulary: vocabularyArray,
+            state: "PENDING",
+          },
+        });
+
+        createdTranscriptions.push(transcription.id);
+        console.log(`Transcription record created: ${transcription.id}`);
+
+        // Get file buffer and immediately start processing (don't accumulate in memory)
+        console.log(`Loading file buffer for ${fileName}...`);
+        const originalBuffer = Buffer.from(await file.arrayBuffer());
+        console.log(`File buffer loaded, starting async processing for ${transcription.id}`);
+        
+        // Start async processing immediately - don't await
         processAudioAndTranscription(
-          transcriptionId,
+          transcription.id,
           originalBuffer,
           fileName,
           user.id,
           {
             language,
-            speakerCount,
+            speakerCount: speakerCount || 16,
             vocabulary: vocabularyArray,
             duration,
           },
         ).catch((error) => {
           console.error(
-            `Error processing audio and transcription ${transcriptionId}:`,
+            `Error processing audio and transcription ${transcription.id}:`,
             error,
           );
         });
+
+        console.log(`Async processing started for ${transcription.id}, buffer can be garbage collected`);
       }
 
       // Return immediately - processing happens in background

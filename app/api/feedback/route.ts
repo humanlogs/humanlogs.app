@@ -53,7 +53,9 @@ export const POST = withAuthRateLimit(async (request, user) => {
     // Create feedback
     const feedback = await prisma.feedback.create({
       data: {
-        userId: user.id,
+        user: {
+          connect: { id: user.id },
+        },
         type,
         rating: rating || null,
         message: message?.trim() || null,

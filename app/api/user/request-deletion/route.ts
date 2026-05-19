@@ -21,7 +21,9 @@ export const POST = withAuthRateLimit(async (request, user) => {
     // Store the deletion token
     await prisma.deletionToken.create({
       data: {
-        userId: user.id,
+        user: {
+          connect: { id: user.id },
+        },
         token,
         expiresAt,
       },

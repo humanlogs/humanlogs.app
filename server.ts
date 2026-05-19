@@ -3,6 +3,21 @@ import { parse } from "url";
 import next from "next";
 import { initSocketServer } from "./lib/sockets/socket-server";
 
+// Global error handlers to prevent silent crashes
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  // Don't exit the process, just log the error
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+  // Don't exit immediately, give time for logging
+  setTimeout(() => {
+    console.error("Process will exit due to uncaught exception");
+    process.exit(1);
+  }, 1000);
+});
+
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
 const port = parseInt(process.env.PORT || "3000", 10);

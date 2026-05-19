@@ -37,6 +37,8 @@ RUN apk add --no-cache ffmpeg
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+# Increase Node.js memory limit to 4GB for large file processing
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs

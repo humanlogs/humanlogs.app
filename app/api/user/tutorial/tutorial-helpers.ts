@@ -89,7 +89,9 @@ export async function createTutorialTranscription(
     // Create the tutorial transcription
     await prisma.transcription.create({
       data: {
-        userId: userId,
+        user: {
+          connect: { id: userId },
+        },
         isTutorial: true,
         title: TUTORIAL_TITLES[tutorialLanguage],
         audioFileKey: `tutorial:${tutorialLanguage}:audio.mp3`,

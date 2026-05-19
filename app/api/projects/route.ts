@@ -46,7 +46,9 @@ export const POST = withAuthRateLimit(async (request, user) => {
     const project = await prisma.project.create({
       data: {
         name: name.trim(),
-        userId: user.id,
+        user: {
+          connect: { id: user.id },
+        },
       },
     });
 

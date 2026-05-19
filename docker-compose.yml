@@ -42,6 +42,13 @@ services:
         condition: service_healthy
     networks:
       - humanlogs-network
+    # Set memory limits for large file processing (1GB files)
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+        reservations:
+          memory: 2G
     logging:
       driver: "json-file"
       options:
