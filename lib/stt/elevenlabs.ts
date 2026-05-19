@@ -59,26 +59,16 @@ class ElevenLabsClient {
   constructor() {
     const config = getConfig();
 
-    // Create a custom undici agent with longer timeouts for large file uploads
-    // ElevenLabs API can take 5+ minutes to transcribe and respond
-    const agent = new Agent({
-      headersTimeout: 30 * 60 * 1000, // 30 minutes for headers
-      bodyTimeout: 30 * 60 * 1000, // 30 minutes for body
-      connectTimeout: 60 * 1000, // 1 minute for connection
+    const dispatcher = new Agent({
+      headersTimeout: 15 * 60 * 1000,
+      bodyTimeout: 15 * 60 * 1000,
     });
-
-    // Create a custom fetch that uses our agent
-    const customFetch = (url: any, init?: any) => {
-      return fetch(url, {
-        ...init,
-        // @ts-ignore - dispatcher is a valid option for Node.js fetch
-        dispatcher: agent,
-      });
-    };
 
     this.client = new ElevenLabsSDK({
       apiKey: config.stt.elevenlabs.apiKey,
-      fetcher: customFetch as any,
+      timeoutInSeconds: 15 * 60,
+      fetch: ((input, init) =>
+        fetch(input, { ...init, dispatcher } as RequestInit)) as typeof fetch,
     });
     this.useWebhook = config.stt.elevenlabs.useWebhook ?? false;
   }
