@@ -14,8 +14,8 @@ import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 
 export const dynamic = "force-dynamic";
 
-// Maximum file size: 1GB
-const MAX_FILE_SIZE = 1024 * 1024 * 1024;
+// Maximum file size: 300MB
+const MAX_FILE_SIZE = 300 * 1024 * 1024;
 
 // Supported audio and video formats (ffmpeg can handle these)
 const SUPPORTED_FORMATS = [

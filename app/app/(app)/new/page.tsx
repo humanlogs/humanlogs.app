@@ -273,8 +273,8 @@ export default function NewTranscriptionPage() {
         continue;
       }
 
-      // Check file size (1GB max)
-      if (file.size > 1024 * 1024 * 1024) {
+      // Check file size (300MB max)
+      if (file.size > 300 * 1024 * 1024) {
         toast.error(`File "${file.name}" is too large (max 1GB)`);
         continue;
       }

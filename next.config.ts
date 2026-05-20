@@ -10,9 +10,9 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_AUTH_MODE: process.env.AUTH_MODE || "auth0",
   },
   experimental: {
-    proxyClientMaxBodySize: "1gb",
+    proxyClientMaxBodySize: "300mb",
     serverActions: {
-      bodySizeLimit: "1gb",
+      bodySizeLimit: "300mb",
     },
   },
   images: {
