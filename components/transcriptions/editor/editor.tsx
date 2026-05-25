@@ -231,7 +231,7 @@ export function TranscriptEditor({
             readOnly={!(isLockedByMe && hasWriteAccess)}
           />
           <div className="flex-[1_1_0%] px-2 min-w-0 flex gap-4 overflow-hidden">
-            <div className="relative flex-[1_1_0%] min-w-0 overflow-hidden">
+            <div className="relative flex-[1_1_0%] min-w-0 overflow-visible">
               <RemoteCursors editorAPI={editorAPI} cursors={cursors} />
               <SearchHighlights highlights={searchReplace.highlights} />
               <ActiveSegmentHighlight

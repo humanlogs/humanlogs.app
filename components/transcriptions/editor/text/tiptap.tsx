@@ -32,6 +32,7 @@ export function TranscriptEditorContentTipTap({
     transcriptionId,
     segments, // Replace \n\n with space for better handling in Tiptap
     onChange,
+    editorAPI,
     editable: hasWriteAccess,
     onSelectionUpdate: onSelectionUpdate,
     onUpdate: onUpdate,

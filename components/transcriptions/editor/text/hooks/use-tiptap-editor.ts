@@ -5,7 +5,6 @@ import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { getSocket } from "@/lib/sockets/socket-client";
 import { YjsSocketIOProvider } from "@/lib/sockets/yjs-socket-provider";
 import Bold from "@tiptap/extension-bold";
-import Collaboration from "@tiptap/extension-collaboration";
 import Italic from "@tiptap/extension-italic";
 import Paragraph from "@tiptap/extension-paragraph";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -17,6 +16,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useRef, useState } from "react";
 import * as awarenessProtocol from "y-protocols/awareness";
 import * as Y from "yjs";
+import { EditorAPI } from "../api";
 import { AutoWrapExtension } from "../extensions/auto-wrap-extension";
 import { segmentsToHtml } from "../utils/html";
 import { applyTransactionOnSegments } from "../utils/transaction-on-segments";
@@ -72,6 +72,7 @@ interface UseTiptapEditorOptions {
   onTransaction?: (editor: any) => void;
   onUpdate?: (editor: any) => void;
   onSelectionUpdate?: (editor: any) => void;
+  editorAPI: EditorAPI;
 }
 
 /**
@@ -82,6 +83,7 @@ export function useTiptapEditor({
   transcriptionId,
   segments,
   onChange,
+  editorAPI,
   editable,
   onSelectionUpdate,
 }: UseTiptapEditorOptions) {
@@ -225,6 +227,8 @@ export function useTiptapEditor({
           segmentsRef.current ?? [],
           transaction,
         );
+
+        editorAPI.emit("speakersOffsets");
 
         // Debounce normalize and onChange call
         if (onChange) {

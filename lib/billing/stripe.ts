@@ -87,16 +87,20 @@ export async function createCheckoutSession({
   customerId,
   priceId,
   mode,
+  quantity = 1,
   successUrl,
   cancelUrl,
   allowPromotionCodes = true,
+  metadata,
 }: {
   customerId?: string;
   priceId: string;
   mode: "subscription" | "payment";
+  quantity?: number;
   successUrl: string;
   cancelUrl: string;
   allowPromotionCodes?: boolean;
+  metadata?: Record<string, string>;
 }) {
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
@@ -104,12 +108,13 @@ export async function createCheckoutSession({
     line_items: [
       {
         price: priceId,
-        quantity: 1,
+        quantity,
       },
     ],
     success_url: successUrl,
     cancel_url: cancelUrl,
     allow_promotion_codes: allowPromotionCodes,
+    metadata,
   });
 
   return session;

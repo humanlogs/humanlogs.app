@@ -80,7 +80,7 @@ export function segmentsToHtml(segments: TranscriptionSegment[]): string {
         html += `</${currentModifiers[i]}>`;
       }
       currentModifiers = [];
-      html += `</p><p data-speaker-id="${nextSegment.speakerId}">`; // Start new paragraph for new speaker
+      html += `</p><p data-speaker-id="${nextSegment?.speakerId || "speaker_0"}">`; // Start new paragraph for new speaker
     } else {
       // Add content
       let content = escapeHtml(seg.text);

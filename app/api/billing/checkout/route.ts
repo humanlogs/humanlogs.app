@@ -17,10 +17,20 @@ export const POST = withAuthRateLimit(async (request, user) => {
       );
     }
     const body = await request.json();
-    const { planType } = body; // 'monthly', 'yearly', or 'one-time'
+    const { planType, quantity: requestedQuantity } = body; // 'monthly', 'yearly', or 'one-time'
 
     if (!planType || !["monthly", "yearly", "one-time"].includes(planType)) {
       return NextResponse.json({ error: "Invalid plan type" }, { status: 400 });
+    }
+
+    const quantity =
+      typeof requestedQuantity === "number" ? Math.floor(requestedQuantity) : 1;
+
+    if (planType === "one-time" && (quantity < 1 || quantity > 50)) {
+      return NextResponse.json(
+        { error: "Invalid one-time quantity" },
+        { status: 400 },
+      );
     }
 
     const dbUser = await prisma.user.findUnique({
@@ -54,6 +64,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
     // Get the price ID based on plan type
     let priceId: string;
     let mode: "subscription" | "payment";
+    let checkoutQuantity = 1;
 
     if (planType === "monthly") {
       priceId = PLANS.MONTHLY.priceId;
@@ -64,6 +75,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
     } else {
       priceId = PLANS.ONE_TIME.priceId;
       mode = "payment";
+      checkoutQuantity = quantity;
     }
 
     // Create checkout session
@@ -71,6 +83,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
       customerId,
       priceId,
       mode,
+      quantity: checkoutQuantity,
       successUrl: `${request.headers.get("origin")}/app/account/billing?success=true`,
       cancelUrl: `${request.headers.get("origin")}/app/account/billing?canceled=true`,
     });

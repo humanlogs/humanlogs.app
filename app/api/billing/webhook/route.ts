@@ -114,9 +114,14 @@ async function handleCheckoutSessionCompleted(
 
   // Handle one-time payment
   if (session.mode === "payment") {
-    const newCredits = user.credits + PLANS.ONE_TIME.credits;
+    const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+      limit: 1,
+    });
+    const quantity = lineItems.data[0]?.quantity ?? 1;
+    const creditsToAdd = PLANS.ONE_TIME.credits * quantity;
+    const newCredits = user.credits + creditsToAdd;
     console.log(
-      `[WEBHOOK] One-time payment - adding ${PLANS.ONE_TIME.credits} credits (${user.credits} -> ${newCredits})`,
+      `[WEBHOOK] One-time payment - quantity ${quantity}, adding ${creditsToAdd} credits (${user.credits} -> ${newCredits})`,
     );
     await prisma.user.update({
       where: { id: user.id },

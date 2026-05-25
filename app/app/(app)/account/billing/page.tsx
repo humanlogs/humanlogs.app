@@ -11,10 +11,17 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { CreditCardIcon, CheckIcon, ClockIcon } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { cn } from "@/lib/utils/utils";
+
+const ONE_TIME_HOURS_PER_PACKAGE = 20;
+const ONE_TIME_PRICE_PER_PACKAGE = 20;
+const MAX_ONE_TIME_PACKAGES = 50;
+const MAX_ONE_TIME_HOURS = ONE_TIME_HOURS_PER_PACKAGE * MAX_ONE_TIME_PACKAGES;
 
 type BillingInfo = {
   credits: number;
@@ -40,6 +47,9 @@ export default function BillingPage() {
   const t = useTranslations("account");
   const queryClient = useQueryClient();
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [oneTimeHoursNeeded, setOneTimeHoursNeeded] = useState(
+    ONE_TIME_HOURS_PER_PACKAGE,
+  );
 
   const { data: billing, isLoading } = useQuery<BillingInfo>({
     queryKey: ["billing"],
@@ -53,11 +63,17 @@ export default function BillingPage() {
   });
 
   const checkoutMutation = useMutation({
-    mutationFn: async (planType: string) => {
+    mutationFn: async ({
+      planType,
+      quantity,
+    }: {
+      planType: string;
+      quantity?: number;
+    }) => {
       const response = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planType }),
+        body: JSON.stringify({ planType, quantity }),
       });
       if (!response.ok) {
         throw new Error("Failed to create checkout session");
@@ -104,8 +120,8 @@ export default function BillingPage() {
     },
   });
 
-  const handleCheckout = (planType: string) => {
-    checkoutMutation.mutate(planType);
+  const handleCheckout = (planType: string, quantity?: number) => {
+    checkoutMutation.mutate({ planType, quantity });
   };
 
   const handleCancelSubscription = () => {
@@ -134,6 +150,13 @@ export default function BillingPage() {
   if (!billing) {
     return null;
   }
+
+  const oneTimePackageQuantity = Math.ceil(
+    oneTimeHoursNeeded / ONE_TIME_HOURS_PER_PACKAGE,
+  );
+  const oneTimeBilledHours =
+    oneTimePackageQuantity * ONE_TIME_HOURS_PER_PACKAGE;
+  const oneTimeTotalPrice = oneTimePackageQuantity * ONE_TIME_PRICE_PER_PACKAGE;
 
   const plans = [
     {
@@ -297,71 +320,115 @@ export default function BillingPage() {
           {t("billing.plans.title")}
         </h2>
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-2">
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              className={cn(
-                "border rounded-lg p-8 hover:shadow-lg transition-shadow flex flex-col relative",
-                plan.isCurrent && "border-2 border-green-500",
-                plan.id === "monthly" &&
-                  !plan.isCurrent &&
-                  "border-2 border-blue-500",
-              )}
-            >
-              {plan.id === "monthly" && !plan.isCurrent && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-100 border-2 border-blue-500 text-blue-500 px-4 py-1 rounded-full text-sm font-medium">
-                  Most Popular
-                </div>
-              )}
-              {plan.isCurrent && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-green-100 border-2 border-green-500 text-green-600 px-4 py-1 rounded-full text-sm font-medium">
-                  Current Plan
-                </div>
-              )}
-
-              <h3 className="text-xl font-bold text-foreground mb-2">
-                {plan.name}
-              </h3>
-              <div className="mb-4">
-                <span className="text-4xl font-bold text-foreground">
-                  {plan.price}
-                </span>
-                {plan.billed && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {plan.billed}
-                  </p>
+          {plans
+            .filter((a) => !!a.planType)
+            .map((plan) => (
+              <div
+                key={plan.id}
+                className={cn(
+                  "border rounded-lg p-8 hover:shadow-lg transition-shadow flex flex-col relative",
+                  plan.isCurrent && "border-2 border-green-500",
+                  plan.id === "monthly" &&
+                    !plan.isCurrent &&
+                    "border-2 border-blue-500",
                 )}
-              </div>
+              >
+                {plan.id === "monthly" && !plan.isCurrent && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-100 border-2 border-blue-500 text-blue-500 px-4 py-1 rounded-full text-sm font-medium">
+                    Most Popular
+                  </div>
+                )}
+                {plan.isCurrent && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-green-100 border-2 border-green-500 text-green-600 px-4 py-1 rounded-full text-sm font-medium">
+                    Current Plan
+                  </div>
+                )}
 
-              {plan.planType && !plan.isCurrent && (
-                <Button
-                  className={cn(
-                    "w-full mb-6",
-                    plan.id === "monthly"
-                      ? "bg-blue-500 hover:bg-blue-600"
-                      : "border border-foreground bg-background hover:bg-accent",
+                <h3 className="text-xl font-bold text-foreground mb-2">
+                  {plan.name}
+                </h3>
+                <div className="mb-4">
+                  <span className="text-4xl font-bold text-foreground">
+                    {plan.price}
+                  </span>
+                  {plan.billed && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {plan.billed}
+                    </p>
                   )}
-                  variant={plan.id === "monthly" ? "default" : "outline"}
-                  onClick={() => handleCheckout(plan.planType!)}
-                  disabled={checkoutMutation.isPending}
-                >
-                  {plan.id === "one-time"
-                    ? t("billing.purchase")
-                    : t("billing.subscribe")}
-                </Button>
-              )}
-              {!plan.planType && plan.isCurrent && <div className="mb-6" />}
+                </div>
 
-              <ul className="space-y-3 flex-grow">
-                {plan.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-sm">
-                    <CheckIcon className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                    <span className="text-foreground">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+                {plan.planType && !plan.isCurrent && (
+                  <>
+                    {plan.id === "one-time" && (
+                      <div className="mb-4 space-y-2">
+                        <Label htmlFor="one-time-hours-needed">
+                          {t("billing.one_time_hours_needed")}
+                        </Label>
+                        <Input
+                          id="one-time-hours-needed"
+                          type="number"
+                          min={1}
+                          max={MAX_ONE_TIME_HOURS}
+                          step={1}
+                          value={oneTimeHoursNeeded}
+                          onChange={(e) => {
+                            const value = Number.parseInt(e.target.value, 10);
+                            if (Number.isNaN(value)) {
+                              return;
+                            }
+                            setOneTimeHoursNeeded(
+                              Math.min(MAX_ONE_TIME_HOURS, Math.max(1, value)),
+                            );
+                          }}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          {t("billing.one_time_rounded_summary", {
+                            hours: oneTimeHoursNeeded,
+                            packages: oneTimePackageQuantity,
+                            billedHours: oneTimeBilledHours,
+                            totalPrice: oneTimeTotalPrice,
+                          })}
+                        </p>
+                      </div>
+                    )}
+
+                    <Button
+                      className={cn(
+                        "w-full mb-6",
+                        plan.id === "monthly"
+                          ? "bg-blue-500 hover:bg-blue-600"
+                          : "border border-foreground bg-background hover:bg-accent",
+                      )}
+                      variant={plan.id === "monthly" ? "default" : "outline"}
+                      onClick={() =>
+                        handleCheckout(
+                          plan.planType!,
+                          plan.id === "one-time"
+                            ? oneTimePackageQuantity
+                            : undefined,
+                        )
+                      }
+                      disabled={checkoutMutation.isPending}
+                    >
+                      {plan.id === "one-time"
+                        ? t("billing.purchase")
+                        : t("billing.subscribe")}
+                    </Button>
+                  </>
+                )}
+                {!plan.planType && plan.isCurrent && <div className="mb-6" />}
+
+                <ul className="space-y-3 flex-grow">
+                  {plan.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-sm">
+                      <CheckIcon className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-foreground">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
         </div>
       </div>
 
