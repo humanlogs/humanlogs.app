@@ -47,7 +47,7 @@ export function useSpeakerPositions(editorAPI: EditorAPI): {
       window.removeEventListener("scroll", recalculate);
       window.removeEventListener("resize", recalculate);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [recalculate]);
 
   // Re-measure when the editor is resized (window resize, sidebar toggle, etc.)

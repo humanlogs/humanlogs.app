@@ -309,18 +309,22 @@ export function normalizeEditorSegments(
     for (let leftWordPos = 0; leftWordPos < words.length - 1; leftWordPos++) {
       const leftWord = words[leftWordPos];
       const rightWord = words[leftWordPos + 1];
-      const { spacingIndex, hasParagraphBreak } = getBestSpacingIndexBetweenWords(
-        leftWord.segmentIndex,
-        rightWord.segmentIndex,
-      );
+      const { spacingIndex, hasParagraphBreak } =
+        getBestSpacingIndexBetweenWords(
+          leftWord.segmentIndex,
+          rightWord.segmentIndex,
+        );
 
       boundaries.push({
         spacingIndex,
         pause:
-          spacingIndex === undefined ? 0 : getPauseDuration(withMeta[spacingIndex]),
+          spacingIndex === undefined
+            ? 0
+            : getPauseDuration(withMeta[spacingIndex]),
         hasStrongPunctuation:
           leftWord.hasStrongPunctuation || rightWord.hasStrongPunctuation,
-        hasAnyPunctuation: leftWord.hasAnyPunctuation || rightWord.hasAnyPunctuation,
+        hasAnyPunctuation:
+          leftWord.hasAnyPunctuation || rightWord.hasAnyPunctuation,
         hasParagraphBreak,
       });
     }

@@ -1,24 +1,7 @@
 "use client";
 
-import {
-  useEnableEncryption,
-  useEncryptionStatus,
-  useGenerateCertificate,
-  useToggleDeviceTrust,
-} from "@/hooks/use-encryption";
-import { CheckCircleIcon, KeyIcon } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { Button } from "../ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
-import { Label } from "../ui/label";
+import { useEncryptionStatus } from "@/hooks/use-encryption";
+import { useEffect } from "react";
 import { SetupEncryption } from "../encryption/setup-encryption";
 
 interface SecurityStepProps {
@@ -27,7 +10,7 @@ interface SecurityStepProps {
   userName?: string;
 }
 
-export function SecurityStep({ onContinue, onSkip }: SecurityStepProps) {
+export function SecurityStep({ onContinue }: SecurityStepProps) {
   const status = useEncryptionStatus();
 
   useEffect(() => {

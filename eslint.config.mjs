@@ -1,7 +1,6 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
-import { rules } from "@elevenlabs/elevenlabs-js/api/resources/pronunciationDictionaries";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -14,6 +13,18 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // Disable the rule that disallows console.log, as it can be useful for debugging.
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_.*",
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;

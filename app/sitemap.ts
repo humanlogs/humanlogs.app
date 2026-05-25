@@ -3,7 +3,7 @@ import { MetadataRoute } from "next";
 export default function sitemap(): MetadataRoute.Sitemap {
   // Only use locale prefixes (no empty string since / redirects to /en)
   const localesPrefixes = ["", "/en", "/fr", "/es", "/de"];
-  let localizedRoutes = [];
+  const localizedRoutes = [];
 
   for (const prefix of localesPrefixes) {
     const baseUrl =

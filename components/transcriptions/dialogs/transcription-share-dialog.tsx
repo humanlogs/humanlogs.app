@@ -175,7 +175,7 @@ export function TranscriptionShareDialog() {
       }
 
       // Prepare updated encrypted data if encryption is enabled
-      let updatedEncryptedData: any = {};
+      const updatedEncryptedData: any = {};
 
       if (
         encryptionState?.hasLocalKey &&

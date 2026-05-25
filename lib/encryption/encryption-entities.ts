@@ -575,7 +575,7 @@ export class EncryptionUtils {
 // Server-side instance (Node.js crypto)
 let serverEncryption: EncryptionUtils | null = null;
 if (typeof window === "undefined") {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+   
   const crypto = require("crypto");
   serverEncryption = new EncryptionUtils(crypto);
 }

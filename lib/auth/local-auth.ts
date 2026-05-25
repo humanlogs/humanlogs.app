@@ -104,7 +104,7 @@ async function authenticateLDAP(
               scope: "sub",
               attributes: ["mail", "cn", "displayName"],
             },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+             
             (searchErr: Error | null, searchRes: any) => {
               if (searchErr) {
                 client.unbind();
@@ -116,7 +116,7 @@ async function authenticateLDAP(
               let userEmail: string | null = null;
               let userName: string | null = null;
 
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+               
               searchRes.on("searchEntry", (entry: any) => {
                 userDN = entry.objectName || null;
                 userEmail =
