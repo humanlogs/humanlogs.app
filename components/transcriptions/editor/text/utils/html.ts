@@ -15,7 +15,10 @@ export function escapeHtml(text: string): string {
  * Converts newlines to <br> tags for proper display.
  * Tags are kept open across segments until modifiers change, respecting proper nesting hierarchy.
  */
-export function segmentsToHtml(segments: TranscriptionSegment[]): string {
+export function segmentsToHtml(
+  segments: TranscriptionSegment[],
+  options?: { initialFormatting?: boolean },
+): string {
   if (!segments.length) {
     return "<p></p>";
   }
@@ -23,7 +26,7 @@ export function segmentsToHtml(segments: TranscriptionSegment[]): string {
   let html = "";
   let currentModifiers: string[] = []; // Track currently open tags in order
 
-  segments = normalizeEditorSegments(segments);
+  segments = normalizeEditorSegments(segments, options);
 
   // Define consistent order for modifiers to ensure proper nesting
   const modifierOrder = ["b", "i", "u", "s"];

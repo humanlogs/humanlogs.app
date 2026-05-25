@@ -59,6 +59,11 @@ export const POST = withAuthRateLimit(async (request, user) => {
     const speakerCount = speakerCountRaw
       ? parseInt(speakerCountRaw as string, 10)
       : 2;
+    const tagAudioEventsRaw = formData.get("tagAudioEvents");
+    const tagAudioEvents =
+      typeof tagAudioEventsRaw === "string"
+        ? tagAudioEventsRaw.toLowerCase() !== "false"
+        : true;
 
     const vocabulary = (formData.get("vocabulary") as string) || "";
     const vocabularyArray = vocabulary
@@ -220,6 +225,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
             language,
             speakerCount: speakerCount || 16,
             vocabulary: vocabularyArray,
+            tagAudioEvents,
             duration,
           },
         ).catch((error) => {
@@ -274,6 +280,7 @@ async function processAudioAndTranscription(
     language: string;
     speakerCount: number;
     vocabulary: string[];
+    tagAudioEvents: boolean;
     duration: number;
   },
 ): Promise<void> {
@@ -388,6 +395,7 @@ async function processTranscription(
     language: string;
     speakerCount: number;
     vocabulary: string[];
+    tagAudioEvents: boolean;
     duration: number;
   },
 ): Promise<void> {
@@ -423,6 +431,7 @@ async function processTranscription(
           language: options.language,
           speakerCount: options.speakerCount,
           vocabulary: options.vocabulary,
+          tagAudioEvents: options.tagAudioEvents,
         });
 
         sttTranscriptionId = result.transcriptionId;
@@ -433,6 +442,7 @@ async function processTranscription(
           language: options.language,
           speakerCount: options.speakerCount,
           vocabulary: options.vocabulary,
+          tagAudioEvents: options.tagAudioEvents,
         });
 
         sttTranscriptionId = result.transcriptionId;
@@ -460,6 +470,7 @@ async function processTranscription(
           language: options.language,
           speakerCount: options.speakerCount,
           vocabulary: options.vocabulary,
+          tagAudioEvents: options.tagAudioEvents,
         },
         options.duration,
       );

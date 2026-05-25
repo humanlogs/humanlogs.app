@@ -240,6 +240,180 @@ export function normalizeEditorSegments(
         }
       }
     }
+
+    const MAX_WORDS_PER_SECTION = 200;
+    const strongSentencePunctuation = /[.!?]/;
+    const anyPunctuation = /[.,!?;:…¿¡]/;
+    const paragraphBreakRegex = /\n\s*\n/;
+
+    const getPauseDuration = (spacing: TranscriptionSegment): number => {
+      if (spacing.type !== "spacing") return 0;
+      if (spacing.start === undefined || spacing.end === undefined) return 0;
+      return Math.max(0, spacing.end - spacing.start);
+    };
+
+    const getBestSpacingIndexBetweenWords = (
+      leftSegmentIndex: number,
+      rightSegmentIndex: number,
+    ): { spacingIndex: number | undefined; hasParagraphBreak: boolean } => {
+      let bestSpacingIndex: number | undefined;
+      let bestSpacingDuration = -1;
+      let hasParagraphBreak = false;
+
+      for (let i = leftSegmentIndex + 1; i < rightSegmentIndex; i++) {
+        if (withMeta[i].type !== "spacing") continue;
+
+        if (paragraphBreakRegex.test(withMeta[i].text)) {
+          hasParagraphBreak = true;
+        }
+
+        const duration = getPauseDuration(withMeta[i]);
+        if (duration > bestSpacingDuration) {
+          bestSpacingDuration = duration;
+          bestSpacingIndex = i;
+        }
+      }
+
+      return { spacingIndex: bestSpacingIndex, hasParagraphBreak };
+    };
+
+    type WordRef = {
+      segmentIndex: number;
+      speakerId: string | undefined;
+      hasStrongPunctuation: boolean;
+      hasAnyPunctuation: boolean;
+    };
+
+    const words: WordRef[] = [];
+    for (let i = 0; i < withMeta.length; i++) {
+      if (withMeta[i].type === "word") {
+        const text = withMeta[i].text;
+        words.push({
+          segmentIndex: i,
+          speakerId: withMeta[i].speakerId,
+          hasStrongPunctuation: strongSentencePunctuation.test(text),
+          hasAnyPunctuation: anyPunctuation.test(text),
+        });
+      }
+    }
+
+    type BoundaryRef = {
+      spacingIndex: number | undefined;
+      pause: number;
+      hasStrongPunctuation: boolean;
+      hasAnyPunctuation: boolean;
+      hasParagraphBreak: boolean;
+    };
+
+    const boundaries: BoundaryRef[] = [];
+    for (let leftWordPos = 0; leftWordPos < words.length - 1; leftWordPos++) {
+      const leftWord = words[leftWordPos];
+      const rightWord = words[leftWordPos + 1];
+      const { spacingIndex, hasParagraphBreak } = getBestSpacingIndexBetweenWords(
+        leftWord.segmentIndex,
+        rightWord.segmentIndex,
+      );
+
+      boundaries.push({
+        spacingIndex,
+        pause:
+          spacingIndex === undefined ? 0 : getPauseDuration(withMeta[spacingIndex]),
+        hasStrongPunctuation:
+          leftWord.hasStrongPunctuation || rightWord.hasStrongPunctuation,
+        hasAnyPunctuation: leftWord.hasAnyPunctuation || rightWord.hasAnyPunctuation,
+        hasParagraphBreak,
+      });
+    }
+
+    type CutCandidate = {
+      leftWordPos: number;
+      spacingIndex: number;
+      pause: number;
+      score: number;
+    };
+
+    const chooseBestCut = (
+      startWordPos: number,
+      endWordPos: number,
+    ): CutCandidate | undefined => {
+      let best: CutCandidate | undefined;
+
+      for (
+        let leftWordPos = startWordPos;
+        leftWordPos < endWordPos;
+        leftWordPos++
+      ) {
+        const boundary = boundaries[leftWordPos];
+        const spacingIndex = boundary?.spacingIndex;
+        if (spacingIndex === undefined) continue;
+
+        const score = boundary.hasStrongPunctuation
+          ? 2
+          : boundary.hasAnyPunctuation
+            ? 1
+            : 0;
+        const candidate: CutCandidate = {
+          leftWordPos,
+          spacingIndex,
+          pause: boundary.pause,
+          score,
+        };
+
+        if (!best) {
+          best = candidate;
+          continue;
+        }
+
+        if (
+          candidate.score > best.score ||
+          (candidate.score === best.score && candidate.pause > best.pause)
+        ) {
+          best = candidate;
+        }
+      }
+
+      return best;
+    };
+
+    const splitSection = (startWordPos: number, endWordPos: number): void => {
+      const ranges: Array<[number, number]> = [[startWordPos, endWordPos]];
+
+      while (ranges.length > 0) {
+        const range = ranges.pop();
+        if (!range) continue;
+
+        const [start, end] = range;
+        const wordCount = end - start + 1;
+        if (wordCount <= MAX_WORDS_PER_SECTION) continue;
+
+        const cut = chooseBestCut(start, end);
+        if (!cut) continue;
+
+        const spacing = withMeta[cut.spacingIndex];
+        if (spacing.type === "spacing") {
+          spacing.text = "\n\n";
+        }
+
+        ranges.push([start, cut.leftWordPos]);
+        ranges.push([cut.leftWordPos + 1, end]);
+      }
+    };
+
+    // Group consecutive words by speaker and split runs that exceed MAX_WORDS_PER_SECTION.
+    let runStart = 0;
+    while (runStart < words.length) {
+      let runEnd = runStart;
+      while (
+        runEnd + 1 < words.length &&
+        words[runEnd + 1].speakerId === words[runStart].speakerId &&
+        !boundaries[runEnd]?.hasParagraphBreak
+      ) {
+        runEnd++;
+      }
+
+      splitSection(runStart, runEnd);
+      runStart = runEnd + 1;
+    }
   }
 
   return withMeta;

@@ -1,7 +1,14 @@
 "use client";
 
 import { useSaveTranscription } from "@/hooks/use-transcriptions";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  MutableRefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import { EditorAPI } from "../api";
 
@@ -32,6 +39,11 @@ export function useAutoSave({
   const lastSavedRef = useRef<string | null>(null);
   const lastSaveTimestampRef = useRef<number>(0);
   const isMountedRef = useRef(false);
+  const isDirtyRef = useRef(false);
+  const performSaveRef = useRef<
+    (isManual?: boolean, forceSave?: boolean) => Promise<void>
+  >(async () => {});
+  const queryClient = useQueryClient();
   const saveTranscription = useSaveTranscription(transcriptionId);
 
   // Track if this is the first render
@@ -70,9 +82,18 @@ export function useAutoSave({
         speakers: editorAPI.getSpeakers(),
       });
 
+      // Keep cache warm and fresh for fast back navigation to this transcription.
+      await queryClient.invalidateQueries({
+        queryKey: ["transcriptions", transcriptionId],
+      });
+      await queryClient.refetchQueries({
+        queryKey: ["transcriptions", transcriptionId],
+        type: "all",
+      });
+
       lastSavedRef.current = currentState;
       lastSaveTimestampRef.current = Date.now();
-      setBeforeUnloadWarning(false);
+      setBeforeUnloadWarning(false, isDirtyRef);
       setSaveStatus("saved");
       onSaveComplete?.();
 
@@ -97,6 +118,9 @@ export function useAutoSave({
       }, 3000);
     }
   };
+
+  // Keep performSaveRef up to date so the navigation guard can always call the latest version
+  performSaveRef.current = performSave;
 
   // Handle Ctrl+S / Cmd+S keyboard shortcut
   useEffect(() => {
@@ -142,7 +166,7 @@ export function useAutoSave({
       return;
     }
 
-    setBeforeUnloadWarning(true);
+    setBeforeUnloadWarning(true, isDirtyRef);
 
     // Show "Saving..." immediately when change is detected
     setSaveStatus("saving");
@@ -183,10 +207,48 @@ export function useAutoSave({
     };
   }, []);
 
+  // Guard against in-app navigation (Next.js client-side routing via history.pushState)
+  // When navigating away with unsaved changes, flush the save immediately then navigate.
+  useEffect(() => {
+    const originalPushState = window.history.pushState.bind(window.history);
+
+    window.history.pushState = (
+      state: Parameters<typeof window.history.pushState>[0],
+      unused: string,
+      url?: string | URL | null,
+    ) => {
+      if (isDirtyRef.current) {
+        // Cancel pending debounce timers
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+          saveTimeoutRef.current = null;
+        }
+        if (maxDebounceTimeoutRef.current) {
+          clearTimeout(maxDebounceTimeoutRef.current);
+          maxDebounceTimeoutRef.current = null;
+        }
+        // Save immediately, then navigate regardless of outcome
+        performSaveRef.current().finally(() => {
+          originalPushState(state, unused, url);
+        });
+        return;
+      }
+      originalPushState(state, unused, url);
+    };
+
+    return () => {
+      window.history.pushState = originalPushState;
+    };
+  }, []);
+
   return { saveStatus, onChange };
 }
 
-const setBeforeUnloadWarning = (enabled: boolean) => {
+const setBeforeUnloadWarning = (
+  enabled: boolean,
+  isDirtyRef?: MutableRefObject<boolean>,
+) => {
+  if (isDirtyRef) isDirtyRef.current = enabled;
   if (enabled) {
     window.onbeforeunload = () =>
       "You have unsaved changes. Are you sure you want to leave?";

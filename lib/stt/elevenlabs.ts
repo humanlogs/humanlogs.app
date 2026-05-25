@@ -31,6 +31,7 @@ export interface TranscriptionRequest {
   language?: string;
   speakerCount?: number;
   vocabulary?: string[];
+  tagAudioEvents?: boolean;
 }
 
 export interface TranscriptionFileRequest {
@@ -39,6 +40,7 @@ export interface TranscriptionFileRequest {
   language?: string;
   speakerCount?: number;
   vocabulary?: string[];
+  tagAudioEvents?: boolean;
 }
 
 export interface AsyncTranscriptionResponse {
@@ -86,7 +88,7 @@ class ElevenLabsClient {
         : true,
 
       modelId: "scribe_v2" as const,
-      tagAudioEvents: true,
+      tagAudioEvents: request.tagAudioEvents ?? true,
       webhook: this.useWebhook,
       languageCode: request.language || undefined,
       numSpeakers: request.speakerCount || undefined,

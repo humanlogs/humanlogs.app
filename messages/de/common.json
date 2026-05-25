@@ -47,6 +47,7 @@
         "speakersHelper": "Wie viele verschiedene Personen sprechen?",
         "vocabulary": "Benutzerdefiniertes Vokabular",
         "vocabularyHelper": "Fügen Sie spezifische Wörter oder Begriffe hinzu, getrennt durch Kommas (z.B. Fachbegriffe, Namen, Akronyme)",
+        "tagAudioEvents": "Audioereignisse markieren (Lachen, Applaus, Musik usw.)",
         "vocabularyPlaceholder": "Euh, Hmm",
         "summary": "Zusammenfassung",
         "totalDuration": "Gesamtdauer",

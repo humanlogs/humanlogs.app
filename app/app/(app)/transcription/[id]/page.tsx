@@ -24,7 +24,13 @@ type TranscriptionPageProps = {
 
 export default function TranscriptionPage({ params }: TranscriptionPageProps) {
   const { id } = use(params);
-  const { data: transcription, isLoading, error } = useTranscription(id);
+  const {
+    data: transcription,
+    isLoading,
+    isFetching,
+    isFetchedAfterMount,
+    error,
+  } = useTranscription(id);
   const { data: encryptionState } = useEncryptionStatus();
   const { openRename } = useTranscriptionRenameModal();
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
@@ -63,7 +69,9 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
     );
   }
 
-  if (isLoading || error) {
+  const waitingForFreshMountData = isFetching && !isFetchedAfterMount;
+
+  if (isLoading || waitingForFreshMountData || error) {
     return <></>;
   }
 

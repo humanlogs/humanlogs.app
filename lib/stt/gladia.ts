@@ -36,6 +36,7 @@ export interface TranscriptionRequest {
   language?: string;
   speakerCount?: number;
   vocabulary?: string[];
+  tagAudioEvents?: boolean;
   translation?: {
     targetLanguages: string[];
     context?: string;
@@ -51,6 +52,7 @@ export interface TranscriptionFileRequest {
   language?: string;
   speakerCount?: number;
   vocabulary?: string[];
+  tagAudioEvents?: boolean;
   translation?: {
     targetLanguages: string[];
     context?: string;

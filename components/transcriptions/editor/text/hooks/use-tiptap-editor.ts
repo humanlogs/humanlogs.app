@@ -97,7 +97,8 @@ export function useTiptapEditor({
 
   const segmentsHtmlRef = useRef<any>("");
   if (!segmentsHtmlRef.current)
-    segmentsHtmlRef.current = segmentsToHtml(segments);
+    segmentsHtmlRef.current = segmentsToHtml(segmentsRef.current);
+
   const editorRef = useRef<Editor>(null);
   const isUpdatingFromSegmentsRef = useRef(false);
   const normalizeDebounceRef = useRef<NodeJS.Timeout | null>(null);

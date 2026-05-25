@@ -47,6 +47,7 @@
         "speakersHelper": "How many different people are speaking?",
         "vocabulary": "Custom Vocabulary",
         "vocabularyHelper": "Add specific words or terms separated by commas (e.g., technical terms, names, acronyms)",
+        "tagAudioEvents": "Tag audio events (laughter, applause, music, etc.)",
         "vocabularyPlaceholder": "Euh, Hmm",
         "summary": "Summary",
         "totalDuration": "Total Duration",

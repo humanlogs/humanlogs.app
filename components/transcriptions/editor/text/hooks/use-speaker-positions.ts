@@ -52,11 +52,17 @@ export function useSpeakerPositions(editorAPI: EditorAPI): {
 
   // Re-measure when the editor is resized (window resize, sidebar toggle, etc.)
   useEffect(() => {
-    editorAPI.addListener("speakersOffsets", recalculate);
-    editorAPI.addListener("change", recalculate);
+    const handle = () => {
+      requestAnimationFrame(() => {
+        recalculate();
+      });
+    };
+
+    editorAPI.addListener("speakersOffsets", handle);
+    editorAPI.addListener("change", handle);
     return () => {
-      editorAPI.removeListener("speakersOffsets", recalculate);
-      editorAPI.removeListener("change", recalculate);
+      editorAPI.removeListener("speakersOffsets", handle);
+      editorAPI.removeListener("change", handle);
     };
   }, [recalculate]);
 

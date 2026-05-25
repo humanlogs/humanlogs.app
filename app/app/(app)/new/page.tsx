@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import _ from "lodash";
 import {
   AlertCircle,
@@ -162,6 +163,11 @@ export default function NewTranscriptionPage() {
   });
   const [speakers, setSpeakers] = React.useState<number>(2);
   const [vocabulary, setVocabulary] = React.useState<string>("Euh, Hmm, Bah");
+  const [tagAudioEvents, setTagAudioEvents] = React.useState<boolean>(() => {
+    const saved = localStorage.getItem("transcription_tag_audio_events");
+    if (saved === null) return true;
+    return saved === "true";
+  });
   const [isDragging, setIsDragging] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [playingAudioId, setPlayingAudioId] = React.useState<string | null>(
@@ -196,6 +202,14 @@ export default function NewTranscriptionPage() {
   React.useEffect(() => {
     localStorage.setItem("transcription_language", language);
   }, [language]);
+
+  // Save tagAudioEvents to localStorage when it changes
+  React.useEffect(() => {
+    localStorage.setItem(
+      "transcription_tag_audio_events",
+      tagAudioEvents.toString(),
+    );
+  }, [tagAudioEvents]);
 
   // Save projectId to localStorage when it changes
   React.useEffect(() => {
@@ -461,6 +475,7 @@ export default function NewTranscriptionPage() {
       formData.append("language", language);
       formData.append("speakerCount", speakers.toString());
       formData.append("vocabulary", vocabulary);
+      formData.append("tagAudioEvents", tagAudioEvents.toString());
 
       // Add all audio files
       audioFiles.forEach((audioFile, index) => {
@@ -690,6 +705,23 @@ export default function NewTranscriptionPage() {
               <p className="text-xs text-muted-foreground">
                 {t("vocabularyHelper")}
               </p>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="tag-audio-events"
+                checked={tagAudioEvents}
+                onCheckedChange={(checked) =>
+                  setTagAudioEvents(checked === true)
+                }
+                disabled={isSubmitting}
+              />
+              <Label
+                htmlFor="tag-audio-events"
+                className="text-sm font-medium leading-none"
+              >
+                {t("tagAudioEvents")}
+              </Label>
             </div>
           </div>
 
