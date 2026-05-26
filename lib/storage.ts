@@ -6,12 +6,15 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { getConfig } from "./config";
-import fs from "fs/promises";
+import fs from "fs";
+import fsPromises from "fs/promises";
 import path from "path";
+import { Readable } from "stream";
 
 export interface StorageAdapter {
   upload(key: string, buffer: Buffer, contentType: string): Promise<string>;
   getUrl(key: string, expiresIn?: number): Promise<string>;
+  getFileStream(key: string): Promise<NodeJS.ReadableStream>;
   getFileBuffer(key: string): Promise<Buffer>;
   delete(key: string): Promise<void>;
   exists(key: string): Promise<boolean>;
@@ -59,19 +62,40 @@ class S3StorageAdapter implements StorageAdapter {
     return await getSignedUrl(this.client, command, { expiresIn });
   }
 
-  async getFileBuffer(key: string): Promise<Buffer> {
+  async getFileStream(key: string): Promise<NodeJS.ReadableStream> {
     const command = new GetObjectCommand({
       Bucket: this.bucketName,
       Key: key,
     });
 
     const response = await this.client.send(command);
+    if (!response.Body) {
+      throw new Error(`Storage key not found: ${key}`);
+    }
+
+    const body = response.Body as unknown;
+
+    if (body instanceof Readable) {
+      return body;
+    }
+
+    if (
+      body &&
+      typeof (body as AsyncIterable<Uint8Array>)[Symbol.asyncIterator] ===
+        "function"
+    ) {
+      return Readable.from(body as AsyncIterable<Uint8Array>);
+    }
+
+    throw new Error("Unsupported S3 body stream type");
+  }
+
+  async getFileBuffer(key: string): Promise<Buffer> {
+    const response = await this.getFileStream(key);
     const chunks: Uint8Array[] = [];
 
-    if (response.Body) {
-      for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
-        chunks.push(chunk);
-      }
+    for await (const chunk of response as AsyncIterable<Uint8Array>) {
+      chunks.push(chunk);
     }
 
     return Buffer.concat(chunks);
@@ -111,7 +135,7 @@ class LocalStorageAdapter implements StorageAdapter {
 
   private async ensureDir(filePath: string): Promise<void> {
     const dir = path.dirname(filePath);
-    await fs.mkdir(dir, { recursive: true });
+    await fsPromises.mkdir(dir, { recursive: true });
   }
 
   private getFullPath(key: string): string {
@@ -121,7 +145,7 @@ class LocalStorageAdapter implements StorageAdapter {
   async upload(key: string, buffer: Buffer): Promise<string> {
     const fullPath = this.getFullPath(key);
     await this.ensureDir(fullPath);
-    await fs.writeFile(fullPath, buffer);
+    await fsPromises.writeFile(fullPath, buffer);
     return `local://${key}`;
   }
 
@@ -134,13 +158,18 @@ class LocalStorageAdapter implements StorageAdapter {
 
   async getFileBuffer(key: string): Promise<Buffer> {
     const fullPath = this.getFullPath(key);
-    return await fs.readFile(fullPath);
+    return await fsPromises.readFile(fullPath);
+  }
+
+  async getFileStream(key: string): Promise<NodeJS.ReadableStream> {
+    const fullPath = this.getFullPath(key);
+    return fs.createReadStream(fullPath);
   }
 
   async delete(key: string): Promise<void> {
     const fullPath = this.getFullPath(key);
     try {
-      await fs.unlink(fullPath);
+      await fsPromises.unlink(fullPath);
     } catch (error) {
       // Ignore if file doesn't exist
       if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
@@ -152,7 +181,7 @@ class LocalStorageAdapter implements StorageAdapter {
   async exists(key: string): Promise<boolean> {
     const fullPath = this.getFullPath(key);
     try {
-      await fs.access(fullPath);
+      await fsPromises.access(fullPath);
       return true;
     } catch {
       return false;

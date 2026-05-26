@@ -1,8 +1,10 @@
 import { getConfig } from "@/lib/config";
-import { decryptBuffer } from "@/lib/encryption/utils";
 import { getStorage } from "@/lib/storage";
 import { jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
+import { Readable } from "stream";
+import { finished } from "stream/promises";
 
 /**
  * Download encrypted audio file for Gladia transcription
@@ -61,28 +63,36 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "File not found" }, { status: 404 });
     }
 
-    // Download encrypted file from S3
-    const encryptedBuffer = await storage.getFileBuffer(s3Key);
-
-    // Decrypt the file
+    // Download encrypted file from storage as stream and decrypt on-the-fly
+    const encryptedStream = await storage.getFileStream(s3Key);
     const key = Buffer.from(keyHex, "hex");
     const iv = Buffer.from(ivHex, "hex");
-    const decryptedBuffer = decryptBuffer(encryptedBuffer, key, iv);
+    const decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);
+    const decryptedStream = (encryptedStream as Readable).pipe(decipher);
 
-    // Delete the file from S3 immediately after decryption
-    await storage.delete(s3Key);
+    // Delete the source file after the stream completes (success or error)
+    void finished(decryptedStream).finally(async () => {
+      try {
+        await storage.delete(s3Key);
+      } catch (deleteError) {
+        console.error("Failed to delete streamed audio file:", deleteError);
+      }
+    });
 
     // Determine content type based on file extension
     const contentType = "application/octet-stream";
 
-    // Return the decrypted file
-    return new Response(new Uint8Array(decryptedBuffer), {
-      headers: {
-        "Content-Type": contentType,
-        "Content-Disposition": `attachment; filename="audio.opus"`,
-        "Cache-Control": "no-cache, no-store, must-revalidate",
+    // Return the decrypted file stream
+    return new Response(
+      Readable.toWeb(decryptedStream) as ReadableStream<Uint8Array>,
+      {
+        headers: {
+          "Content-Type": contentType,
+          "Content-Disposition": `attachment; filename="audio.opus"`,
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+        },
       },
-    });
+    );
   } catch (error) {
     console.error("Error downloading audio file:", error);
     return NextResponse.json({ error: "Download failed" }, { status: 500 });

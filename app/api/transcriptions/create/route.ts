@@ -3,14 +3,15 @@ import {
   compressAudio,
   encryptAudioBuffer,
 } from "@/lib/audio/audio-processing";
-import { getSTTService } from "@/lib/stt/stt-service";
-import { prisma } from "@/lib/prisma";
-import { generateAudioKey, getStorage } from "@/lib/storage";
 import { isBillableVersion } from "@/lib/billing/stripe";
-import crypto from "crypto";
-import { NextRequest, NextResponse } from "next/server";
-import { EncryptionUtils } from "../../../../lib/encryption/encryption-entities";
+import { prisma } from "@/lib/prisma";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
+import { generateAudioKey, getStorage } from "@/lib/storage";
+import { getSTTService } from "@/lib/stt/stt-service";
+import crypto from "crypto";
+import { NextResponse } from "next/server";
+import { v4 } from "uuid";
+import { EncryptionUtils } from "../../../../lib/encryption/encryption-entities";
 
 export const dynamic = "force-dynamic";
 
@@ -178,11 +179,12 @@ export const POST = withAuthRateLimit(async (request, user) => {
       // Process files one at a time to avoid memory issues
       for (let i = 0; i < audioFiles.length; i++) {
         const file = audioFiles[i];
-        const fileName = fileNames[i];
+        const title = fileNames[i];
+        const fileName = v4();
         const duration = fileDurations[i];
 
         console.log(
-          `Creating transcription for file ${i + 1}/${audioFiles.length}: ${fileName} (${file.size} bytes)`,
+          `Creating transcription for file ${i + 1}/${audioFiles.length}: (${file.size} bytes)`,
         );
 
         // Create transcription record
@@ -194,7 +196,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
             project: {
               connect: projectId ? { id: projectId } : undefined,
             },
-            title: fileName,
+            title,
             audioFileName: fileName,
             audioFileSize: file.size,
             audioFileKey: "", // Will be updated after upload in async processing
@@ -293,7 +295,7 @@ async function processAudioAndTranscription(
       const ffmpegAvailable = await checkFfmpegAvailable();
       if (ffmpegAvailable) {
         console.log(
-          `Compressing audio file ${fileName} (${originalBuffer.length} bytes)...`,
+          `Compressing audio file (${originalBuffer.length} bytes)...`,
         );
         unencryptedFile = await compressAudio(originalBuffer, fileName);
         console.log(

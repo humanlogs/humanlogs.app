@@ -85,7 +85,9 @@ export const GET = withAuthRateLimit(
       }
 
       // If transcription is PENDING and we have an ElevenLabs ID, check status
-      transcription = await pollPendingTranscriptions(transcription);
+      if (transcription.state === "PENDING") {
+        transcription = await pollPendingTranscriptions(transcription);
+      }
 
       // Return the transcription with access information
       const details = mapTransactionDetails(transcription);

@@ -499,7 +499,6 @@ export default function NewTranscriptionPage() {
       }
 
       const result = await response.json();
-      console.log("Transcription created:", result);
 
       toast.success("Transcription started successfully!");
 

@@ -84,36 +84,6 @@ export async function exportKeyToPem(
 }
 
 /**
- * Imports a PEM key to CryptoKey.
- */
-async function importKeyFromPem(
-  pem: string,
-  type: "public" | "private",
-): Promise<CryptoKey> {
-  const pemHeader = `-----BEGIN ${type.toUpperCase()} KEY-----`;
-  const pemFooter = `-----END ${type.toUpperCase()} KEY-----`;
-  const pemContents = pem
-    .replace(pemHeader, "")
-    .replace(pemFooter, "")
-    .replace(/\s/g, "");
-  const binaryDer = atob(pemContents);
-  const binaryDerArray = new Uint8Array(
-    Array.from(binaryDer).map((char) => char.charCodeAt(0)),
-  );
-
-  return await crypto.subtle.importKey(
-    type === "public" ? "spki" : "pkcs8",
-    binaryDerArray,
-    {
-      name: "RSA-OAEP",
-      hash: "SHA-256",
-    },
-    true,
-    type === "public" ? ["encrypt"] : ["decrypt"],
-  );
-}
-
-/**
  * Generates a random device secret for encrypting the private key.
  */
 export async function generateDeviceSecret(): Promise<string> {

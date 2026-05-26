@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { getStorage } from "@/lib/storage";
 import { NextResponse } from "next/server";
-import * as fs from "fs/promises";
+import * as fs from "fs";
+import * as fsPromises from "fs/promises";
 import * as path from "path";
+import { Readable } from "stream";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 
 type RouteParams = {
@@ -56,7 +58,8 @@ export const GET = withAuthRateLimit(
         );
       }
 
-      let buffer: Buffer;
+      let stream: ReadableStream<Uint8Array>;
+      let contentLength: number | undefined;
 
       // Check if this is a tutorial transcription (stored locally)
       if (transcription.audioFileKey.startsWith("tutorial:")) {
@@ -72,11 +75,19 @@ export const GET = withAuthRateLimit(
           language,
           "audio.mp3",
         );
-        buffer = await fs.readFile(audioPath);
+        const stats = await fsPromises.stat(audioPath);
+        const nodeStream = fs.createReadStream(audioPath);
+        stream = Readable.toWeb(nodeStream) as ReadableStream<Uint8Array>;
+        contentLength = stats.size;
       } else {
-        // Get the audio file from storage (S3 or local)
+        // Stream audio from storage (S3 or local)
         const storage = getStorage();
-        buffer = await storage.getFileBuffer(transcription.audioFileKey);
+        const nodeStream = await storage.getFileStream(
+          transcription.audioFileKey,
+        );
+        stream = Readable.toWeb(
+          nodeStream as Readable,
+        ) as ReadableStream<Uint8Array>;
       }
 
       // Determine content type from file extension
@@ -94,15 +105,20 @@ export const GET = withAuthRateLimit(
                   ? "audio/webm"
                   : "audio/mpeg";
 
-      // Return audio file with streaming support
-      return new Response(buffer as BodyInit, {
+      const headers: HeadersInit = {
+        "Content-Type": contentType,
+        "Accept-Ranges": "bytes",
+        "Cache-Control": "private, max-age=3600",
+      };
+
+      if (contentLength !== undefined) {
+        headers["Content-Length"] = contentLength.toString();
+      }
+
+      // Return audio stream
+      return new Response(stream, {
         status: 200,
-        headers: {
-          "Content-Type": contentType,
-          "Content-Length": buffer.length.toString(),
-          "Accept-Ranges": "bytes",
-          "Cache-Control": "private, max-age=3600",
-        },
+        headers,
       });
     } catch (error) {
       console.error("Error streaming audio:", error);

@@ -138,8 +138,6 @@ class ElevenLabsClient {
         file,
       });
 
-      console.log(response);
-
       return this.extractTranscriptionId(response);
     } catch (error) {
       console.error("Error starting async transcription:", error);
