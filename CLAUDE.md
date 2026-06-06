@@ -69,7 +69,9 @@ PostgreSQL via Prisma 7 with the **`@prisma/adapter-pg`** driver adapter (see `l
 
 ### Speech-to-text (pluggable providers)
 
-`lib/stt/stt-service.ts` exposes a singleton `getSTTService()` that delegates to one of three clients based on `stt.type` config: `gladia.ts` (default, EU/no-retention), `elevenlabs.ts`, `whisper.ts` (local HTTP server). All clients implement the same async interface (`transcribeFromFileAsync`, `transcribeFromUrlAsync`, `getTranscriptionStatus`). **Provider is inferred from the transcription ID prefix** (`whisper-`, `gladia-`, else ElevenLabs) when polling status. Completion handling and webhook flows live in `lib/stt/transcription-completion.ts` and `app/api/webhook/{gladia,elevenlabs}`. When adding a provider, register it in the config Zod schema, `sttConfig`, the `STTService` switch statements, and the ID-prefix routing.
+`lib/stt/stt-service.ts` exposes `getSTTService(provider?)` that delegates to one of three clients: `gladia.ts` (default, EU/no-retention), `elevenlabs.ts`, `whisper.ts` (local HTTP server). All clients implement the same async interface (`transcribeFromFileAsync`, `transcribeFromUrlAsync`, `getTranscriptionStatus`). **Provider is inferred from the transcription ID prefix** (`whisper-`, `gladia-`, else ElevenLabs) when polling status. Completion handling and webhook flows live in `lib/stt/transcription-completion.ts` and `app/api/webhook/{gladia,elevenlabs}`. When adding a provider, register it in the config Zod schema, `sttConfig`, the `STTService` switch statements, the ID-prefix routing, and the `isProviderConfigured`/`getAvailableSttProviders` helpers.
+
+**Per-transcription provider selection (data residency):** users have a `dataResidency` preference (`"eu"` → Gladia, `"us"` → ElevenLabs), set during onboarding. The create flow (`app/app/(app)/new/page.tsx`) shows an EU/US selector only when both providers are configured (`getAvailableSttProviders()`, surfaced via `/api/user`), defaulting to the user's `dataResidency` then a remembered localStorage choice. `resolveSttProvider(residencyOrProvider)` maps the request to a configured provider (falling back to `stt.type`), and the chosen provider is persisted on `Transcription.sttProvider`.
 
 ### Real-time collaborative editor
 
@@ -90,7 +92,8 @@ Optional client-side E2E encryption so audio/transcripts never reach the server 
 ### Storage, billing, email
 
 - `lib/storage.ts` defines a `StorageAdapter` interface with an S3 implementation (AWS SDK v3, presigned URLs) and a local-filesystem fallback for self-hosting. Audio keys are namespaced per user/transcription.
-- Billing: `lib/billing/stripe.ts` + `lib/billing/credits-refill-service.ts`; webhooks at `app/api/billing/webhook`. The credits system (`User.credits`/`creditsUsed`/`creditsRefill`) gates transcription minutes; refills run via cron.
+- Billing: `lib/billing/stripe.ts` + `lib/billing/credits-refill-service.ts`; webhooks at `app/api/billing/webhook`. The credits system (`User.credits`/`creditsUsed`/`creditsRefill`) gates transcription minutes (1 credit = 1 minute); refills run via cron.
+- Referral program (`lib/referral.ts`): users invite emails (max 10) via onboarding or the referral tab (`app/app/(app)/account/referral`). When an invited email registers a *new* account, `processReferralOnSignup` (wired into both `registerLocal` and the Auth0 first-login path in `auth-helpers.ts`) marks the `Referral` REGISTERED and grants the referrer `REFERRAL_BONUS_CREDITS` (15) immediately plus the same amount monthly via `User.referralBonusCredits` in the refill service. Invitations are emailed through `lib/email`.
 - Email: `lib/email/` supports SMTP (nodemailer) or AWS SES, selected by `email.provider` config.
 
 ## Conventions & gotchas
@@ -98,7 +101,6 @@ Optional client-side E2E encryption so audio/transcripts never reach the server 
 - **TypeScript strict** is on. `@typescript-eslint/no-explicit-any` is **disabled** and `console.log` is allowed; unused vars must be prefixed `_`. Prettier: 2-space indent, no tabs.
 - Large uploads: Next is configured for `300mb` body limits (`next.config.ts` `proxyClientMaxBodySize` / `serverActions.bodySizeLimit`); the prod container sets `NODE_OPTIONS=--max-old-space-size=4096` and bundles `ffmpeg`.
 - The custom server means changes to `server.ts`, Socket.io handlers, or cron jobs require a full restart, not just HMR.
-- The `package.json` `name` is still `"frontend"` and assorted strings reference legacy names ("totext.app", "transcription-app") — the product is humanlogs.app.
 - Deployment: pushing to `main` triggers `.github/workflows/deploy.yml`, which builds the Docker image and pushes to AWS ECR (→ ECS). Don't push to `main` unless asked.
 
 ## Further docs
