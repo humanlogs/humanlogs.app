@@ -37,6 +37,34 @@ model User {
   feedbacks              Feedback[]
   deletionTokens         DeletionToken[]
   isWelcomeDone          Boolean         @default(false)
+  // Onboarding profile
+  profession             String?
+  monthlyUsage           String?
+  // Speech-to-text data residency preference: "eu" (Gladia) or "us" (ElevenLabs)
+  dataResidency          String          @default("eu")
+  // Referral program: extra monthly credits earned from referred users who registered
+  referralBonusCredits   Int             @default(0)
+  referralsSent          Referral[]
+}
+
+enum ReferralStatus {
+  INVITED
+  REGISTERED
+}
+
+model Referral {
+  id               String         @id @default(uuid())
+  referrerId       String
+  email            String
+  status           ReferralStatus @default(INVITED)
+  registeredUserId String?
+  createdAt        DateTime       @default(now())
+  registeredAt     DateTime?
+  referrer         User           @relation(fields: [referrerId], references: [id], onDelete: Cascade)
+
+  @@unique([referrerId, email])
+  @@index([referrerId])
+  @@index([email])
 }
 
 model Project {
@@ -67,6 +95,8 @@ model Transcription {
   speakerCount              Int                           @default(1)
   state                     TranscriptionState            @default(PENDING)
   errorMessage              String?
+  // STT provider used for this transcription: "gladia" | "elevenlabs" | "whisper"
+  sttProvider               String?
   elevenLabsTranscriptionId String?
   shared                    Json?
   createdAt                 DateTime                      @default(now())

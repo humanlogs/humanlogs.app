@@ -26,6 +26,7 @@ import {
   DownloadIcon,
   TrashIcon,
   AlertTriangleIcon,
+  GiftIcon,
 } from "lucide-react";
 import { useUserProfile } from "@/hooks/use-api";
 import { useTranscriptions } from "@/hooks/use-transcriptions";
@@ -302,6 +303,26 @@ ${includeAudio ? "- **audio file**: Original audio file (decrypted if it was enc
             >
               <ShieldCheckIcon className="w-4 h-4 mr-2" />
               Encryption Settings
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Referral Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <GiftIcon className="w-5 h-5" />
+              {t("referralCardTitle")}
+            </CardTitle>
+            <CardDescription>{t("referralCardDescription")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              onClick={() => router.push("/app/account/referral")}
+              variant="outline"
+            >
+              <GiftIcon className="w-4 h-4 mr-2" />
+              {t("referralCardButton")}
             </Button>
           </CardContent>
         </Card>

@@ -14,6 +14,7 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import {
   CheckIcon,
   CreditCardIcon,
+  GiftIcon,
   HelpCircleIcon,
   LanguagesIcon,
   LightbulbIcon,
@@ -180,6 +181,13 @@ export function SidebarUserMenu({
           >
             <ShieldCheckIcon className="w-4 h-4 mr-2" />
             {t("user.security")}
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            onClick={() => (window.location.href = "/app/account/referral")}
+          >
+            <GiftIcon className="w-4 h-4 mr-2" />
+            {t("user.referral")}
           </DropdownMenuItem>
 
           <DropdownMenuSub

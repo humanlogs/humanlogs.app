@@ -2,6 +2,7 @@ import { prisma } from "../prisma";
 import { getAuth0Client } from "./auth0";
 import { getLocalSession } from "./local-auth";
 import { authConfig } from "../config";
+import { processReferralOnSignup } from "../referral";
 
 export interface UserSession {
   id: string;
@@ -70,6 +71,12 @@ export async function getCurrentUser(): Promise<UserSession | null> {
     pictureBase64 = await fetchImageAsBase64(auth0User.picture);
   }
 
+  // Detect whether this is a brand new user so we can process referrals
+  const existingUser = await prisma.user.findUnique({
+    where: { auth0Id: auth0User.sub },
+    select: { id: true },
+  });
+
   // Ensure user exists in database (create or update)
   const dbUser = await prisma.user.upsert({
     where: { auth0Id: auth0User.sub },
@@ -87,6 +94,11 @@ export async function getCurrentUser(): Promise<UserSession | null> {
       language: defaultLanguage, // Set default language on signup
     },
   });
+
+  // Grant referral bonus to whoever invited this email (only on first login/signup)
+  if (!existingUser && dbUser.email) {
+    await processReferralOnSignup({ id: dbUser.id, email: dbUser.email });
+  }
 
   return {
     id: dbUser.id,

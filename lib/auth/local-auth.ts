@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { authConfig, ldapConfig } from "../config";
 import { prisma } from "../prisma";
 import { sendWelcomeMarketingEmail } from "../email/marketing-email-service";
+import { processReferralOnSignup } from "../referral";
 
 const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days
 
@@ -260,6 +261,9 @@ export async function registerLocal(
   ).catch((error) => {
     console.error("[Auth] Failed to send welcome email:", error);
   });
+
+  // Grant referral bonus to whoever invited this email (if any)
+  await processReferralOnSignup({ id: user.id, email: user.email });
 
   return {
     id: user.id,

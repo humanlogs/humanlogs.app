@@ -1,289 +1,292 @@
 {
-    "account": {
-        "title": "Cuenta",
-        "description": "Administre la información de su cuenta, suscripciones y configuraciones de seguridad",
-        "billing": {
-            "title": "Facturación y Suscripción",
-            "description": "Gestionar su suscripción y créditos",
-            "current_plan": "Plan Actual",
-            "credits": "Créditos",
-            "available_credits": "Créditos Disponibles",
-            "credits_refill": "Recarga Mensual",
-            "credits_used": "Créditos Usados",
-            "next_renewal": "Próxima Renovación",
-            "subscription_status": "Estado",
-            "cancel_subscription": "Cancelar Suscripción",
-            "manage_subscription": "Gestionar Suscripción",
-            "manage_subscription_description": "Actualizar método de pago, ver facturas y gestionar su suscripción",
-            "upgrade_plan": "Mejorar Plan",
-            "plans": {
-                "title": "Planes Disponibles",
-                "free": {
-                    "name": "Gratuito",
-                    "price": "Gratis",
-                    "features": [
-                        "100 minutos por mes",
-                        "Colaboración ilimitada",
-                        "Todas las funciones"
-                    ]
-                },
-                "monthly": {
-                    "name": "Pro Mensual",
-                    "price": "15€/mes",
-                    "features": [
-                        "1200 minutos (20 horas) por mes",
-                        "Colaboración ilimitada",
-                        "Todas las funciones"
-                    ]
-                },
-                "yearly": {
-                    "name": "Pro Anual",
-                    "price": "13,75€/mes",
-                    "billed": "Facturado 165€ anualmente",
-                    "features": [
-                        "1200 minutos (20 horas) por mes",
-                        "Colaboración ilimitada",
-                        "Todas las funciones",
-                        "Ahorre 15€/año"
-                    ]
-                },
-                "one_time": {
-                    "name": "Compra Única",
-                    "price": "20€",
-                    "features": [
-                        "1200 minutos (20 horas)",
-                        "Créditos de uso único",
-                        "Sin expiración"
-                    ]
-                }
-            },
-            "subscribe": "Suscribirse",
-            "purchase": "Comprar",
-            "one_time_hours_needed": "Horas necesarias",
-            "one_time_rounded_summary": "{packages} packs de 20h = {totalPrice}€",
-            "one_time_quantity": "Paquetes de 20 horas",
-            "one_time_summary": "Seleccionado",
-            "current": "Plan Actual",
-            "cancel_confirm_title": "¿Cancelar Suscripción?",
-            "cancel_confirm_description": "Su suscripción permanecerá activa hasta el final del período de facturación. Todavía tendrá acceso a sus créditos.",
-            "cancel_confirm": "Sí, Cancelar",
-            "canceling": "Cancelando...",
-            "loading": "Cargando...",
-            "active": "Activo",
-            "canceled": "Cancelado",
-            "minutes": "minutos",
-            "no_renewal": "Sin suscripción activa"
+  "account": {
+    "title": "Cuenta",
+    "description": "Administre la información de su cuenta, suscripciones y configuraciones de seguridad",
+    "billing": {
+      "title": "Facturación y Suscripción",
+      "description": "Gestionar su suscripción y créditos",
+      "current_plan": "Plan Actual",
+      "credits": "Créditos",
+      "available_credits": "Créditos Disponibles",
+      "credits_refill": "Recarga Mensual",
+      "credits_used": "Créditos Usados",
+      "next_renewal": "Próxima Renovación",
+      "subscription_status": "Estado",
+      "cancel_subscription": "Cancelar Suscripción",
+      "manage_subscription": "Gestionar Suscripción",
+      "manage_subscription_description": "Actualizar método de pago, ver facturas y gestionar su suscripción",
+      "upgrade_plan": "Mejorar Plan",
+      "plans": {
+        "title": "Planes Disponibles",
+        "free": {
+          "name": "Gratuito",
+          "price": "Gratis",
+          "features": [
+            "100 minutos por mes",
+            "Colaboración ilimitada",
+            "Todas las funciones"
+          ]
         },
-        "security": {
-            "title": "Seguridad",
-            "description": "Gestionar el cifrado de extremo a extremo y la configuración de confianza del dispositivo",
-            "encryption_status": "Cifrado de Extremo a Extremo",
-            "encryption_disabled_title": "El cifrado no está habilitado",
-            "encryption_disabled_description": "Active el cifrado de extremo a extremo para proteger sus datos. Se generará un certificado que deberá almacenar de forma segura.",
-            "encryption_enabled_title": "El cifrado de extremo a extremo está activo",
-            "encryption_enabled_description": "Sus datos están protegidos con cifrado de extremo a extremo. Mantenga su certificado seguro.",
-            "enable_encryption": "Habilitar Cifrado",
-            "disable_encryption": "Deshabilitar Cifrado",
-            "generating": "Generando...",
-            "key_loaded": "Clave de cifrado cargada en este dispositivo",
-            "key_loaded_description": "Puede acceder a los datos cifrados desde este dispositivo.",
-            "key_required": "Se requiere clave de cifrado",
-            "key_required_description": "Por favor, cargue su certificado para acceder a los datos cifrados en este dispositivo.",
-            "upload_certificate": "Cargar Certificado",
-            "uploading": "Cargando...",
-            "device_trust": "Confianza del Dispositivo",
-            "device_trusted_description": "Este dispositivo es de confianza. Su clave de cifrado permanecerá almacenada incluso después de cerrar sesión.",
-            "device_not_trusted_description": "Este dispositivo no es de confianza. Su clave de cifrado se eliminará al cerrar sesión.",
-            "trusted": "Dispositivo de Confianza",
-            "not_trusted": "Dispositivo No Confiable",
-            "key_persists": "Clave permanece después de cerrar sesión",
-            "key_removed_on_logout": "Clave eliminada al cerrar sesión",
-            "trust_device": "Confiar en Este Dispositivo",
-            "untrust_device": "Dejar de Confiar",
-            "remove_key_from_device": "Eliminar Clave del Dispositivo",
-            "how_it_works": "Cómo Funciona",
-            "step_1_title": "1. Generación de Certificado",
-            "step_1_description": "Se genera un certificado que contiene un par de claves pública y privada en su navegador. La clave pública se almacena en nuestros servidores, mientras que la clave privada permanece con usted.",
-            "step_2_title": "2. Almacenamiento Seguro",
-            "step_2_description": "La clave privada se cifra y se almacena en el almacenamiento seguro de su navegador. Puede descargar el certificado como copia de seguridad.",
-            "step_3_title": "3. Confianza del Dispositivo",
-            "step_3_description": "Elija si desea mantener la clave de cifrado en este dispositivo después de cerrar sesión. Los dispositivos no confiables requerirán que cargue su certificado nuevamente.",
-            "tip_title": "Consejo: ¡Mantenga su certificado seguro!",
-            "tip_description": "Envíe su certificado por correo electrónico o guárdelo en un lugar seguro. Lo necesitará para acceder a sus datos cifrados desde nuevos dispositivos."
+        "monthly": {
+          "name": "Pro Mensual",
+          "price": "15€/mes",
+          "features": [
+            "1200 minutos (20 horas) por mes",
+            "Colaboración ilimitada",
+            "Todas las funciones"
+          ]
         },
-        "encryption": {
-            "cannotAccess": {
-                "title": "No se puede acceder a la transcripción",
-                "noCertificate": {
-                    "badge": "Certificado de cifrado requerido",
-                    "description": "Esta transcripción está cifrada. Necesita importar su certificado de cifrado para acceder a ella.",
-                    "steps": {
-                        "title": "Lo que necesita hacer:",
-                        "step1": "Localice su archivo de certificado de cifrado (descargado cuando habilitó el cifrado)",
-                        "step2": "Haga clic en el botón de abajo para importarlo",
-                        "step3": "Sus transcripciones cifradas estarán entonces accesibles"
-                    },
-                    "button": "Importar certificado"
-                },
-                "certificateMismatch": {
-                    "badge": "Certificado incompatible",
-                    "description": "Esta transcripción fue cifrada con un certificado diferente. El certificado cargado en este dispositivo no puede descifrarla.",
-                    "reasons": {
-                        "title": "Posibles razones:",
-                        "reason1": "Esta transcripción fue creada por un usuario diferente",
-                        "reason2": "Ha restablecido su cifrado y esta es una transcripción antigua",
-                        "reason3": "Está usando un certificado de cifrado diferente"
-                    },
-                    "note": "Si tiene el certificado original que se usó para cifrar esta transcripción, puede intentar importarlo.",
-                    "button": "Probar otro certificado"
-                }
-            },
-            "settings": {
-                "loading": "Cargando...",
-                "activeStatus": {
-                    "title": "Cifrado activo",
-                    "description": "Sus transcripciones están protegidas con cifrado de extremo a extremo.",
-                    "button": "Descargar certificado"
-                },
-                "deviceTrust": {
-                    "title": "Confianza del dispositivo",
-                    "description": "Cuando confía en un dispositivo, su certificado de cifrado permanece almacenado en su navegador incluso después de cerrar sesión. Solo confíe en sus dispositivos personales.",
-                    "label": "Confiar en este dispositivo",
-                    "enabled": "Este dispositivo es de confianza",
-                    "disabled": "Este dispositivo no es de confianza",
-                    "removeButton": "Eliminar clave de este dispositivo"
-                },
-                "dangerZone": {
-                    "title": "Zona de peligro",
-                    "description": "Deshabilitar el cifrado eliminará todas las claves de cifrado y perderá el acceso a los datos previamente cifrados.",
-                    "button": "Deshabilitar cifrado de extremo a extremo"
-                },
-                "disableDialog": {
-                    "title": "¿Deshabilitar el cifrado de extremo a extremo?",
-                    "description": "Esta acción eliminará todas las claves y configuraciones de cifrado.",
-                    "warning": {
-                        "title": "Advertencia: Esta acción es irreversible",
-                        "point1": "Todas sus claves de cifrado se eliminarán permanentemente",
-                        "point2": "Perderá el acceso a todas las transcripciones previamente cifradas",
-                        "point3": "Esto no se puede deshacer"
-                    },
-                    "confirmation": "¿Está absolutamente seguro de que desea deshabilitar el cifrado?",
-                    "cancel": "Cancelar",
-                    "confirm": "Sí, deshabilitar cifrado"
-                },
-                "removeKeyDialog": {
-                    "title": "¿Eliminar la clave de cifrado de este dispositivo?",
-                    "description": "Su certificado de cifrado se eliminará de este navegador.",
-                    "warning": {
-                        "title": "Antes de continuar:",
-                        "point1": "Asegúrese de tener su certificado de cifrado guardado en otro lugar",
-                        "point2": "Necesitará volver a importar su certificado para acceder a las transcripciones cifradas en este dispositivo",
-                        "point3": "Esto solo afecta a este dispositivo - su configuración de cifrado permanece activa"
-                    },
-                    "cancel": "Cancelar",
-                    "confirm": "Eliminar clave"
-                }
-            },
-            "import": {
-                "compact": {
-                    "badge": "Certificado de cifrado requerido",
-                    "description": "Suba su certificado para acceder a los datos cifrados en este dispositivo.",
-                    "button": "Subir certificado",
-                    "uploading": "Subiendo..."
-                },
-                "full": {
-                    "title": "Importar certificado de cifrado",
-                    "subtitle": "Acceda a sus transcripciones cifradas",
-                    "description": "Para acceder a sus transcripciones cifradas, importe su certificado de cifrado. Este es el archivo que descargó cuando habilitó el cifrado por primera vez.",
-                    "howToFind": {
-                        "title": "Cómo encontrar su certificado:",
-                        "point1": "Busque en su carpeta de Descargas un archivo llamado encryption-certificate-*.json",
-                        "point2": "Revise su ubicación de copia de seguridad segura donde lo guardó",
-                        "point3": "Si usa varios dispositivos, puede tenerlo en otra computadora"
-                    },
-                    "button": "Elegir archivo de certificado",
-                    "uploading": "Subiendo certificado...",
-                    "lostCertificate": {
-                        "title": "¿Perdió su certificado?",
-                        "description": "Si ha perdido su certificado de cifrado, no podrá acceder a los datos previamente cifrados. Puede deshabilitar y volver a habilitar el cifrado para empezar de nuevo, pero los datos antiguos serán inaccesibles."
-                    }
-                },
-                "trustDialog": {
-                    "title": "¿Confía en esta computadora?",
-                    "description": "¿Debemos mantener su certificado de cifrado almacenado en este dispositivo?",
-                    "trusted": {
-                        "title": "Dispositivo de confianza",
-                        "description": "Su certificado permanecerá almacenado después de cerrar sesión. Solo use esto en sus dispositivos personales."
-                    },
-                    "untrusted": {
-                        "title": "Dispositivo no confiable",
-                        "description": "Su certificado se eliminará cuando cierre sesión. Use esto en computadoras compartidas o públicas."
-                    },
-                    "dontTrust": "No confiar",
-                    "trust": "Confiar en esta computadora"
-                },
-                "success": "¡Certificado cargado exitosamente!",
-                "error": "Error al cargar el certificado. Verifique el archivo e intente nuevamente."
-            },
-            "setup": {
-                "title": "Proteja su privacidad",
-                "subtitle": "Elija cómo asegurar sus transcripciones",
-                "enabled": {
-                    "title": "Cifrado de extremo a extremo",
-                    "badge": "Recomendado",
-                    "description": "Sus datos se cifran en su dispositivo antes de ser enviados a nuestros servidores. Solo usted puede descifrar sus datos — ni siquiera nosotros podemos leer sus transcripciones.",
-                    "generate": {
-                        "intro": "Generaremos un certificado de cifrado único para usted. Necesitará este certificado para:",
-                        "point1": "Acceder a sus transcripciones cifradas",
-                        "point2": "Usar la aplicación en otros dispositivos",
-                        "point3": "Recuperar sus datos si pierde el acceso a este dispositivo",
-                        "button": "Generar certificado",
-                        "generating": "Generando..."
-                    },
-                    "downloaded": {
-                        "success": "¡Certificado descargado!",
-                        "instruction": "Su certificado de cifrado se ha guardado en su carpeta de descargas. ¡Manténgalo seguro!"
-                    },
-                    "checklist": {
-                        "title": "Antes de continuar, confirme:",
-                        "saved": "He guardado mi certificado en una ubicación segura (administrador de contraseñas, almacenamiento en la nube cifrado, etc.)",
-                        "emailed": "Entiendo que debo hacer una copia de seguridad de mi certificado (enviármelo por correo electrónico, almacenarlo en otro dispositivo, etc.)",
-                        "understood": "Entiendo que si pierdo mi certificado, perderé permanentemente el acceso a mis transcripciones cifradas"
-                    }
-                },
-                "skip": {
-                    "title": "Omitir cifrado",
-                    "description": "Puede configurar el cifrado más tarde en la configuración de su cuenta. Sus datos se almacenarán en nuestros servidores sin cifrado de extremo a extremo.",
-                    "button": "Continuar sin cifrado"
-                },
-                "actions": {
-                    "downloadAgain": "Descargar de nuevo",
-                    "continue": "Continuar"
-                },
-                "trustDialog": {
-                    "title": "¿Confía en esta computadora?",
-                    "description": "Si confía en esta computadora, almacenaremos su certificado de cifrado de forma segura en su navegador. No necesitará subirlo nuevamente cuando inicie sesión (¡pero esto no es una razón para no guardar una copia de seguridad!).",
-                    "trusted": {
-                        "title": "Dispositivo de confianza",
-                        "description": "Su certificado permanecerá almacenado después de cerrar sesión. Solo use esto en sus dispositivos personales."
-                    },
-                    "untrusted": {
-                        "title": "Dispositivo no confiable",
-                        "description": "Su certificado se eliminará cuando cierre sesión. Use esto en computadoras compartidas o públicas."
-                    },
-                    "dontTrust": "No confiar",
-                    "trust": "Confiar en esta computadora"
-                },
-                "errors": {
-                    "generate": "Error al generar el certificado. Inténtelo de nuevo.",
-                    "enable": "Error al habilitar el cifrado. Inténtelo de nuevo."
-                },
-                "success": {
-                    "generate": "¡Certificado generado y descargado! Guárdelo de forma segura.",
-                    "deviceTrust": "El dispositivo ahora es de confianza",
-                    "deviceUntrust": "El dispositivo ya no es de confianza"
-                }
-            }
+        "yearly": {
+          "name": "Pro Anual",
+          "price": "13,75€/mes",
+          "billed": "Facturado 165€ anualmente",
+          "features": [
+            "1200 minutos (20 horas) por mes",
+            "Colaboración ilimitada",
+            "Todas las funciones",
+            "Ahorre 15€/año"
+          ]
+        },
+        "one_time": {
+          "name": "Compra Única",
+          "price": "20€",
+          "features": [
+            "1200 minutos (20 horas)",
+            "Créditos de uso único",
+            "Sin expiración"
+          ]
         }
-    }
+      },
+      "subscribe": "Suscribirse",
+      "purchase": "Comprar",
+      "one_time_hours_needed": "Horas necesarias",
+      "one_time_rounded_summary": "{packages} packs de 20h = {totalPrice}€",
+      "one_time_quantity": "Paquetes de 20 horas",
+      "one_time_summary": "Seleccionado",
+      "current": "Plan Actual",
+      "cancel_confirm_title": "¿Cancelar Suscripción?",
+      "cancel_confirm_description": "Su suscripción permanecerá activa hasta el final del período de facturación. Todavía tendrá acceso a sus créditos.",
+      "cancel_confirm": "Sí, Cancelar",
+      "canceling": "Cancelando...",
+      "loading": "Cargando...",
+      "active": "Activo",
+      "canceled": "Cancelado",
+      "minutes": "minutos",
+      "no_renewal": "Sin suscripción activa"
+    },
+    "security": {
+      "title": "Seguridad",
+      "description": "Gestionar el cifrado de extremo a extremo y la configuración de confianza del dispositivo",
+      "encryption_status": "Cifrado de Extremo a Extremo",
+      "encryption_disabled_title": "El cifrado no está habilitado",
+      "encryption_disabled_description": "Active el cifrado de extremo a extremo para proteger sus datos. Se generará un certificado que deberá almacenar de forma segura.",
+      "encryption_enabled_title": "El cifrado de extremo a extremo está activo",
+      "encryption_enabled_description": "Sus datos están protegidos con cifrado de extremo a extremo. Mantenga su certificado seguro.",
+      "enable_encryption": "Habilitar Cifrado",
+      "disable_encryption": "Deshabilitar Cifrado",
+      "generating": "Generando...",
+      "key_loaded": "Clave de cifrado cargada en este dispositivo",
+      "key_loaded_description": "Puede acceder a los datos cifrados desde este dispositivo.",
+      "key_required": "Se requiere clave de cifrado",
+      "key_required_description": "Por favor, cargue su certificado para acceder a los datos cifrados en este dispositivo.",
+      "upload_certificate": "Cargar Certificado",
+      "uploading": "Cargando...",
+      "device_trust": "Confianza del Dispositivo",
+      "device_trusted_description": "Este dispositivo es de confianza. Su clave de cifrado permanecerá almacenada incluso después de cerrar sesión.",
+      "device_not_trusted_description": "Este dispositivo no es de confianza. Su clave de cifrado se eliminará al cerrar sesión.",
+      "trusted": "Dispositivo de Confianza",
+      "not_trusted": "Dispositivo No Confiable",
+      "key_persists": "Clave permanece después de cerrar sesión",
+      "key_removed_on_logout": "Clave eliminada al cerrar sesión",
+      "trust_device": "Confiar en Este Dispositivo",
+      "untrust_device": "Dejar de Confiar",
+      "remove_key_from_device": "Eliminar Clave del Dispositivo",
+      "how_it_works": "Cómo Funciona",
+      "step_1_title": "1. Generación de Certificado",
+      "step_1_description": "Se genera un certificado que contiene un par de claves pública y privada en su navegador. La clave pública se almacena en nuestros servidores, mientras que la clave privada permanece con usted.",
+      "step_2_title": "2. Almacenamiento Seguro",
+      "step_2_description": "La clave privada se cifra y se almacena en el almacenamiento seguro de su navegador. Puede descargar el certificado como copia de seguridad.",
+      "step_3_title": "3. Confianza del Dispositivo",
+      "step_3_description": "Elija si desea mantener la clave de cifrado en este dispositivo después de cerrar sesión. Los dispositivos no confiables requerirán que cargue su certificado nuevamente.",
+      "tip_title": "Consejo: ¡Mantenga su certificado seguro!",
+      "tip_description": "Envíe su certificado por correo electrónico o guárdelo en un lugar seguro. Lo necesitará para acceder a sus datos cifrados desde nuevos dispositivos."
+    },
+    "encryption": {
+      "cannotAccess": {
+        "title": "No se puede acceder a la transcripción",
+        "noCertificate": {
+          "badge": "Certificado de cifrado requerido",
+          "description": "Esta transcripción está cifrada. Necesita importar su certificado de cifrado para acceder a ella.",
+          "steps": {
+            "title": "Lo que necesita hacer:",
+            "step1": "Localice su archivo de certificado de cifrado (descargado cuando habilitó el cifrado)",
+            "step2": "Haga clic en el botón de abajo para importarlo",
+            "step3": "Sus transcripciones cifradas estarán entonces accesibles"
+          },
+          "button": "Importar certificado"
+        },
+        "certificateMismatch": {
+          "badge": "Certificado incompatible",
+          "description": "Esta transcripción fue cifrada con un certificado diferente. El certificado cargado en este dispositivo no puede descifrarla.",
+          "reasons": {
+            "title": "Posibles razones:",
+            "reason1": "Esta transcripción fue creada por un usuario diferente",
+            "reason2": "Ha restablecido su cifrado y esta es una transcripción antigua",
+            "reason3": "Está usando un certificado de cifrado diferente"
+          },
+          "note": "Si tiene el certificado original que se usó para cifrar esta transcripción, puede intentar importarlo.",
+          "button": "Probar otro certificado"
+        }
+      },
+      "settings": {
+        "loading": "Cargando...",
+        "activeStatus": {
+          "title": "Cifrado activo",
+          "description": "Sus transcripciones están protegidas con cifrado de extremo a extremo.",
+          "button": "Descargar certificado"
+        },
+        "deviceTrust": {
+          "title": "Confianza del dispositivo",
+          "description": "Cuando confía en un dispositivo, su certificado de cifrado permanece almacenado en su navegador incluso después de cerrar sesión. Solo confíe en sus dispositivos personales.",
+          "label": "Confiar en este dispositivo",
+          "enabled": "Este dispositivo es de confianza",
+          "disabled": "Este dispositivo no es de confianza",
+          "removeButton": "Eliminar clave de este dispositivo"
+        },
+        "dangerZone": {
+          "title": "Zona de peligro",
+          "description": "Deshabilitar el cifrado eliminará todas las claves de cifrado y perderá el acceso a los datos previamente cifrados.",
+          "button": "Deshabilitar cifrado de extremo a extremo"
+        },
+        "disableDialog": {
+          "title": "¿Deshabilitar el cifrado de extremo a extremo?",
+          "description": "Esta acción eliminará todas las claves y configuraciones de cifrado.",
+          "warning": {
+            "title": "Advertencia: Esta acción es irreversible",
+            "point1": "Todas sus claves de cifrado se eliminarán permanentemente",
+            "point2": "Perderá el acceso a todas las transcripciones previamente cifradas",
+            "point3": "Esto no se puede deshacer"
+          },
+          "confirmation": "¿Está absolutamente seguro de que desea deshabilitar el cifrado?",
+          "cancel": "Cancelar",
+          "confirm": "Sí, deshabilitar cifrado"
+        },
+        "removeKeyDialog": {
+          "title": "¿Eliminar la clave de cifrado de este dispositivo?",
+          "description": "Su certificado de cifrado se eliminará de este navegador.",
+          "warning": {
+            "title": "Antes de continuar:",
+            "point1": "Asegúrese de tener su certificado de cifrado guardado en otro lugar",
+            "point2": "Necesitará volver a importar su certificado para acceder a las transcripciones cifradas en este dispositivo",
+            "point3": "Esto solo afecta a este dispositivo - su configuración de cifrado permanece activa"
+          },
+          "cancel": "Cancelar",
+          "confirm": "Eliminar clave"
+        }
+      },
+      "import": {
+        "compact": {
+          "badge": "Certificado de cifrado requerido",
+          "description": "Suba su certificado para acceder a los datos cifrados en este dispositivo.",
+          "button": "Subir certificado",
+          "uploading": "Subiendo..."
+        },
+        "full": {
+          "title": "Importar certificado de cifrado",
+          "subtitle": "Acceda a sus transcripciones cifradas",
+          "description": "Para acceder a sus transcripciones cifradas, importe su certificado de cifrado. Este es el archivo que descargó cuando habilitó el cifrado por primera vez.",
+          "howToFind": {
+            "title": "Cómo encontrar su certificado:",
+            "point1": "Busque en su carpeta de Descargas un archivo llamado encryption-certificate-*.json",
+            "point2": "Revise su ubicación de copia de seguridad segura donde lo guardó",
+            "point3": "Si usa varios dispositivos, puede tenerlo en otra computadora"
+          },
+          "button": "Elegir archivo de certificado",
+          "uploading": "Subiendo certificado...",
+          "lostCertificate": {
+            "title": "¿Perdió su certificado?",
+            "description": "Si ha perdido su certificado de cifrado, no podrá acceder a los datos previamente cifrados. Puede deshabilitar y volver a habilitar el cifrado para empezar de nuevo, pero los datos antiguos serán inaccesibles."
+          }
+        },
+        "trustDialog": {
+          "title": "¿Confía en esta computadora?",
+          "description": "¿Debemos mantener su certificado de cifrado almacenado en este dispositivo?",
+          "trusted": {
+            "title": "Dispositivo de confianza",
+            "description": "Su certificado permanecerá almacenado después de cerrar sesión. Solo use esto en sus dispositivos personales."
+          },
+          "untrusted": {
+            "title": "Dispositivo no confiable",
+            "description": "Su certificado se eliminará cuando cierre sesión. Use esto en computadoras compartidas o públicas."
+          },
+          "dontTrust": "No confiar",
+          "trust": "Confiar en esta computadora"
+        },
+        "success": "¡Certificado cargado exitosamente!",
+        "error": "Error al cargar el certificado. Verifique el archivo e intente nuevamente."
+      },
+      "setup": {
+        "title": "Proteja su privacidad",
+        "subtitle": "Elija cómo asegurar sus transcripciones",
+        "enabled": {
+          "title": "Cifrado de extremo a extremo",
+          "badge": "Recomendado",
+          "description": "Sus datos se cifran en su dispositivo antes de ser enviados a nuestros servidores. Solo usted puede descifrar sus datos — ni siquiera nosotros podemos leer sus transcripciones.",
+          "generate": {
+            "intro": "Generaremos un certificado de cifrado único para usted. Necesitará este certificado para:",
+            "point1": "Acceder a sus transcripciones cifradas",
+            "point2": "Usar la aplicación en otros dispositivos",
+            "point3": "Recuperar sus datos si pierde el acceso a este dispositivo",
+            "button": "Generar certificado",
+            "generating": "Generando..."
+          },
+          "downloaded": {
+            "success": "¡Certificado descargado!",
+            "instruction": "Su certificado de cifrado se ha guardado en su carpeta de descargas. ¡Manténgalo seguro!"
+          },
+          "checklist": {
+            "title": "Antes de continuar, confirme:",
+            "saved": "He guardado mi certificado en una ubicación segura (administrador de contraseñas, almacenamiento en la nube cifrado, etc.)",
+            "emailed": "Entiendo que debo hacer una copia de seguridad de mi certificado (enviármelo por correo electrónico, almacenarlo en otro dispositivo, etc.)",
+            "understood": "Entiendo que si pierdo mi certificado, perderé permanentemente el acceso a mis transcripciones cifradas"
+          }
+        },
+        "skip": {
+          "title": "Omitir cifrado",
+          "description": "Puede configurar el cifrado más tarde en la configuración de su cuenta. Sus datos se almacenarán en nuestros servidores sin cifrado de extremo a extremo.",
+          "button": "Continuar sin cifrado"
+        },
+        "actions": {
+          "downloadAgain": "Descargar de nuevo",
+          "continue": "Continuar"
+        },
+        "trustDialog": {
+          "title": "¿Confía en esta computadora?",
+          "description": "Si confía en esta computadora, almacenaremos su certificado de cifrado de forma segura en su navegador. No necesitará subirlo nuevamente cuando inicie sesión (¡pero esto no es una razón para no guardar una copia de seguridad!).",
+          "trusted": {
+            "title": "Dispositivo de confianza",
+            "description": "Su certificado permanecerá almacenado después de cerrar sesión. Solo use esto en sus dispositivos personales."
+          },
+          "untrusted": {
+            "title": "Dispositivo no confiable",
+            "description": "Su certificado se eliminará cuando cierre sesión. Use esto en computadoras compartidas o públicas."
+          },
+          "dontTrust": "No confiar",
+          "trust": "Confiar en esta computadora"
+        },
+        "errors": {
+          "generate": "Error al generar el certificado. Inténtelo de nuevo.",
+          "enable": "Error al habilitar el cifrado. Inténtelo de nuevo."
+        },
+        "success": {
+          "generate": "¡Certificado generado y descargado! Guárdelo de forma segura.",
+          "deviceTrust": "El dispositivo ahora es de confianza",
+          "deviceUntrust": "El dispositivo ya no es de confianza"
+        }
+      }
+    },
+    "referralCardTitle": "Referidos",
+    "referralCardDescription": "Invita a amigos y gana minutos de transcripción gratis",
+    "referralCardButton": "Abrir referidos"
+  }
 }
