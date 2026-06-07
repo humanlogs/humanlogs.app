@@ -1,292 +1,292 @@
 {
-  "account": {
-    "title": "Account Settings",
-    "description": "Manage your account, data, and preferences",
-    "billing": {
-      "title": "Billing & Subscription",
-      "description": "Manage your subscription and credits",
-      "current_plan": "Current Plan",
-      "credits": "Credits",
-      "available_credits": "Available Credits",
-      "credits_refill": "Monthly Refill",
-      "credits_used": "Credits Used",
-      "next_renewal": "Next Renewal",
-      "subscription_status": "Status",
-      "cancel_subscription": "Cancel Subscription",
-      "manage_subscription": "Manage Subscription",
-      "manage_subscription_description": "Update payment method, view invoices, and manage your subscription",
-      "upgrade_plan": "Upgrade Plan",
-      "plans": {
-        "title": "Available Plans",
-        "free": {
-          "name": "Free",
-          "price": "Free",
-          "features": [
-            "100 minutes per month",
-            "Unlimited collaboration",
-            "All features included"
-          ]
+    "account": {
+        "title": "Account Settings",
+        "description": "Manage your account, data, and preferences",
+        "billing": {
+            "title": "Billing & Subscription",
+            "description": "Manage your subscription and credits",
+            "current_plan": "Current Plan",
+            "credits": "Credits",
+            "available_credits": "Available Credits",
+            "credits_refill": "Monthly Refill",
+            "credits_used": "Credits Used",
+            "next_renewal": "Next Renewal",
+            "subscription_status": "Status",
+            "cancel_subscription": "Cancel Subscription",
+            "manage_subscription": "Manage Subscription",
+            "manage_subscription_description": "Update payment method, view invoices, and manage your subscription",
+            "upgrade_plan": "Upgrade Plan",
+            "plans": {
+                "title": "Available Plans",
+                "free": {
+                    "name": "Free",
+                    "price": "Free",
+                    "features": [
+                        "100 minutes per month",
+                        "Unlimited collaboration",
+                        "All features included"
+                    ]
+                },
+                "monthly": {
+                    "name": "Pro Monthly",
+                    "price": "$15/month",
+                    "features": [
+                        "1200 minutes (20 hours) per month",
+                        "Unlimited collaboration",
+                        "All features included"
+                    ]
+                },
+                "yearly": {
+                    "name": "Pro Yearly",
+                    "price": "$13.75/month",
+                    "billed": "Billed $165 yearly",
+                    "features": [
+                        "1200 minutes (20 hours) per month",
+                        "Unlimited collaboration",
+                        "All features included",
+                        "Save $15/year"
+                    ]
+                },
+                "one_time": {
+                    "name": "One-Time Purchase",
+                    "price": "$20",
+                    "features": [
+                        "1200 minutes (20 hours)",
+                        "Single use credits",
+                        "No expiration"
+                    ]
+                }
+            },
+            "subscribe": "Subscribe",
+            "purchase": "Purchase",
+            "one_time_hours_needed": "Hours needed",
+            "one_time_rounded_summary": "{packages} packages of 20h = ${totalPrice}",
+            "one_time_quantity": "Packages of 20 hours",
+            "one_time_summary": "Selected",
+            "current": "Current Plan",
+            "cancel_confirm_title": "Cancel Subscription?",
+            "cancel_confirm_description": "Your subscription will remain active until the end of the billing period. You'll still have access to your credits.",
+            "cancel_confirm": "Yes, Cancel",
+            "canceling": "Canceling...",
+            "loading": "Loading...",
+            "active": "Active",
+            "canceled": "Canceled",
+            "minutes": "minutes",
+            "no_renewal": "No active subscription"
         },
-        "monthly": {
-          "name": "Pro Monthly",
-          "price": "$15/month",
-          "features": [
-            "1200 minutes (20 hours) per month",
-            "Unlimited collaboration",
-            "All features included"
-          ]
+        "security": {
+            "title": "Security",
+            "description": "Manage end-to-end encryption and device trust settings",
+            "encryption_status": "End-to-End Encryption",
+            "encryption_disabled_title": "Encryption is not enabled",
+            "encryption_disabled_description": "Enable end-to-end encryption to secure your data. A certificate will be generated and you'll need to store it securely.",
+            "encryption_enabled_title": "End-to-end encryption is active",
+            "encryption_enabled_description": "Your data is protected with end-to-end encryption. Keep your certificate safe.",
+            "enable_encryption": "Enable Encryption",
+            "disable_encryption": "Disable Encryption",
+            "generating": "Generating...",
+            "key_loaded": "Encryption key is loaded on this device",
+            "key_loaded_description": "You can access encrypted data from this device.",
+            "key_required": "Encryption key required",
+            "key_required_description": "Please upload your certificate to access encrypted data on this device.",
+            "upload_certificate": "Upload Certificate",
+            "uploading": "Uploading...",
+            "device_trust": "Device Trust",
+            "device_trusted_description": "This device is trusted. Your encryption key will remain stored even after logout.",
+            "device_not_trusted_description": "This device is not trusted. Your encryption key will be removed when you logout.",
+            "trusted": "Trusted Device",
+            "not_trusted": "Untrusted Device",
+            "key_persists": "Key remains after logout",
+            "key_removed_on_logout": "Key removed on logout",
+            "trust_device": "Trust This Device",
+            "untrust_device": "Untrust This Device",
+            "remove_key_from_device": "Remove Key from Device",
+            "how_it_works": "How It Works",
+            "step_1_title": "1. Certificate Generation",
+            "step_1_description": "A certificate containing a public and private key pair is generated in your browser. The public key is stored on our servers, while the private key stays with you.",
+            "step_2_title": "2. Secure Storage",
+            "step_2_description": "The private key is encrypted and stored in your browser's secure storage. You can download the certificate as a backup.",
+            "step_3_title": "3. Device Trust",
+            "step_3_description": "Choose whether to keep the encryption key on this device after logout. Untrusted devices will require you to upload your certificate again.",
+            "tip_title": "Tip: Keep your certificate safe!",
+            "tip_description": "Send your certificate to yourself by email or store it in a secure location. You'll need it to access your encrypted data from new devices."
         },
-        "yearly": {
-          "name": "Pro Yearly",
-          "price": "$13.75/month",
-          "billed": "Billed $165 yearly",
-          "features": [
-            "1200 minutes (20 hours) per month",
-            "Unlimited collaboration",
-            "All features included",
-            "Save $15/year"
-          ]
+        "encryption": {
+            "cannotAccess": {
+                "title": "Cannot Access Transcription",
+                "noCertificate": {
+                    "badge": "Encryption Certificate Required",
+                    "description": "This transcription is encrypted. You need to import your encryption certificate to access it.",
+                    "steps": {
+                        "title": "What you need to do:",
+                        "step1": "Locate your encryption certificate file (downloaded when you enabled encryption)",
+                        "step2": "Click the button below to import it",
+                        "step3": "Your encrypted transcriptions will then be accessible"
+                    },
+                    "button": "Import Certificate"
+                },
+                "certificateMismatch": {
+                    "badge": "Certificate Mismatch",
+                    "description": "This transcription was encrypted with a different certificate. The certificate loaded on this device cannot decrypt it.",
+                    "reasons": {
+                        "title": "Possible reasons:",
+                        "reason1": "This transcription was created by a different user",
+                        "reason2": "You've reset your encryption and this is an old transcription",
+                        "reason3": "You're using a different encryption certificate"
+                    },
+                    "note": "If you have the original certificate that was used to encrypt this transcription, you can try importing it.",
+                    "button": "Try Different Certificate"
+                }
+            },
+            "settings": {
+                "loading": "Loading...",
+                "activeStatus": {
+                    "title": "Encryption Active",
+                    "description": "Your transcriptions are protected with end-to-end encryption.",
+                    "button": "Download Certificate"
+                },
+                "deviceTrust": {
+                    "title": "Device Trust",
+                    "description": "When you trust a device, your encryption certificate stays stored in your browser even after logging out. Only trust your personal devices.",
+                    "label": "Trust this device",
+                    "enabled": "This device is trusted",
+                    "disabled": "This device is not trusted",
+                    "removeButton": "Remove Key from This Device"
+                },
+                "dangerZone": {
+                    "title": "Danger Zone",
+                    "description": "Disabling encryption will remove all encryption keys and you will lose access to previously encrypted data.",
+                    "button": "Disable End-to-End Encryption"
+                },
+                "disableDialog": {
+                    "title": "Disable End-to-End Encryption?",
+                    "description": "This action will remove all encryption keys and settings.",
+                    "warning": {
+                        "title": "Warning: This action is irreversible",
+                        "point1": "All your encryption keys will be permanently deleted",
+                        "point2": "You will lose access to all previously encrypted transcriptions",
+                        "point3": "This cannot be undone"
+                    },
+                    "confirmation": "Are you absolutely sure you want to disable encryption?",
+                    "cancel": "Cancel",
+                    "confirm": "Yes, Disable Encryption"
+                },
+                "removeKeyDialog": {
+                    "title": "Remove Encryption Key from This Device?",
+                    "description": "Your encryption certificate will be removed from this browser.",
+                    "warning": {
+                        "title": "Before you continue:",
+                        "point1": "Make sure you have your encryption certificate saved elsewhere",
+                        "point2": "You'll need to re-import your certificate to access encrypted transcriptions on this device",
+                        "point3": "This only affects this device - your encryption settings remain active"
+                    },
+                    "cancel": "Cancel",
+                    "confirm": "Remove Key"
+                }
+            },
+            "import": {
+                "compact": {
+                    "badge": "Encryption Certificate Required",
+                    "description": "Upload your certificate to access encrypted data on this device.",
+                    "button": "Upload Certificate",
+                    "uploading": "Uploading..."
+                },
+                "full": {
+                    "title": "Import Encryption Certificate",
+                    "subtitle": "Access Your Encrypted Transcriptions",
+                    "description": "To access your encrypted transcriptions, please import your encryption certificate. This is the file you downloaded when you first enabled encryption.",
+                    "howToFind": {
+                        "title": "How to find your certificate:",
+                        "point1": "Look in your Downloads folder for a file named like encryption-certificate-*.json",
+                        "point2": "Check your secure backup location where you saved it",
+                        "point3": "If you use multiple devices, you may have it on another computer"
+                    },
+                    "button": "Choose Certificate File",
+                    "uploading": "Uploading Certificate...",
+                    "lostCertificate": {
+                        "title": "Lost your certificate?",
+                        "description": "If you've lost your encryption certificate, you won't be able to access previously encrypted data. You can disable and re-enable encryption to start fresh, but old data will be inaccessible."
+                    }
+                },
+                "trustDialog": {
+                    "title": "Do you trust this computer?",
+                    "description": "Should we keep your encryption certificate stored on this device?",
+                    "trusted": {
+                        "title": "Trusted Device",
+                        "description": "Your certificate will remain stored after logout. Only use this on your personal devices."
+                    },
+                    "untrusted": {
+                        "title": "Untrusted Device",
+                        "description": "Your certificate will be removed when you logout. Use this on shared or public computers."
+                    },
+                    "dontTrust": "Don't Trust",
+                    "trust": "Trust This Computer"
+                },
+                "success": "Certificate loaded successfully!",
+                "error": "Failed to load certificate. Please check the file and try again."
+            },
+            "setup": {
+                "title": "Protect Your Privacy",
+                "subtitle": "Choose how to secure your transcriptions",
+                "enabled": {
+                    "title": "End-to-End Encryption",
+                    "badge": "Recommended",
+                    "description": "Your data is encrypted on your device before being sent to our servers. Only you can decrypt your data — not even we can read your transcriptions.",
+                    "generate": {
+                        "intro": "We'll generate a unique encryption certificate for you. You'll need this certificate to:",
+                        "point1": "Access your encrypted transcriptions",
+                        "point2": "Use the app on other devices",
+                        "point3": "Recover your data if you lose access to this device",
+                        "button": "Generate Certificate",
+                        "generating": "Generating..."
+                    },
+                    "downloaded": {
+                        "success": "Certificate Downloaded!",
+                        "instruction": "Your encryption certificate has been saved to your downloads folder. Keep it safe!"
+                    },
+                    "checklist": {
+                        "title": "Before you continue, please confirm:",
+                        "saved": "I have saved my certificate in a secure location (password manager, encrypted cloud storage, etc.)",
+                        "emailed": "I understand I should back up my certificate (email it to myself, store it on another device, etc.)",
+                        "understood": "I understand that if I lose my certificate, I will permanently lose access to my encrypted transcriptions"
+                    }
+                },
+                "skip": {
+                    "title": "Skip Encryption",
+                    "description": "You can set up encryption later in your account settings. Your data will be stored on our servers without end-to-end encryption.",
+                    "button": "Continue Without Encryption"
+                },
+                "actions": {
+                    "downloadAgain": "Download Again",
+                    "continue": "Continue"
+                },
+                "trustDialog": {
+                    "title": "Do you trust this computer?",
+                    "description": "If you trust this computer, we'll store your encryption certificate securely in your browser. You won't need to upload it again when you log in (but this is not a reason not to keep a backup!).",
+                    "trusted": {
+                        "title": "Trusted Device",
+                        "description": "Your certificate will remain stored after logout. Only use this on your personal devices."
+                    },
+                    "untrusted": {
+                        "title": "Untrusted Device",
+                        "description": "Your certificate will be removed when you logout. Use this on shared or public computers."
+                    },
+                    "dontTrust": "Don't Trust",
+                    "trust": "Trust This Computer"
+                },
+                "errors": {
+                    "generate": "Failed to generate certificate. Please try again.",
+                    "enable": "Failed to enable encryption. Please try again."
+                },
+                "success": {
+                    "generate": "Certificate generated and downloaded! Please save it securely.",
+                    "deviceTrust": "Device is now trusted",
+                    "deviceUntrust": "Device is no longer trusted"
+                }
+            }
         },
-        "one_time": {
-          "name": "One-Time Purchase",
-          "price": "$20",
-          "features": [
-            "1200 minutes (20 hours)",
-            "Single use credits",
-            "No expiration"
-          ]
-        }
-      },
-      "subscribe": "Subscribe",
-      "purchase": "Purchase",
-      "one_time_hours_needed": "Hours needed",
-      "one_time_rounded_summary": "{packages} packages of 20h = ${totalPrice}",
-      "one_time_quantity": "Packages of 20 hours",
-      "one_time_summary": "Selected",
-      "current": "Current Plan",
-      "cancel_confirm_title": "Cancel Subscription?",
-      "cancel_confirm_description": "Your subscription will remain active until the end of the billing period. You'll still have access to your credits.",
-      "cancel_confirm": "Yes, Cancel",
-      "canceling": "Canceling...",
-      "loading": "Loading...",
-      "active": "Active",
-      "canceled": "Canceled",
-      "minutes": "minutes",
-      "no_renewal": "No active subscription"
-    },
-    "security": {
-      "title": "Security",
-      "description": "Manage end-to-end encryption and device trust settings",
-      "encryption_status": "End-to-End Encryption",
-      "encryption_disabled_title": "Encryption is not enabled",
-      "encryption_disabled_description": "Enable end-to-end encryption to secure your data. A certificate will be generated and you'll need to store it securely.",
-      "encryption_enabled_title": "End-to-end encryption is active",
-      "encryption_enabled_description": "Your data is protected with end-to-end encryption. Keep your certificate safe.",
-      "enable_encryption": "Enable Encryption",
-      "disable_encryption": "Disable Encryption",
-      "generating": "Generating...",
-      "key_loaded": "Encryption key is loaded on this device",
-      "key_loaded_description": "You can access encrypted data from this device.",
-      "key_required": "Encryption key required",
-      "key_required_description": "Please upload your certificate to access encrypted data on this device.",
-      "upload_certificate": "Upload Certificate",
-      "uploading": "Uploading...",
-      "device_trust": "Device Trust",
-      "device_trusted_description": "This device is trusted. Your encryption key will remain stored even after logout.",
-      "device_not_trusted_description": "This device is not trusted. Your encryption key will be removed when you logout.",
-      "trusted": "Trusted Device",
-      "not_trusted": "Untrusted Device",
-      "key_persists": "Key remains after logout",
-      "key_removed_on_logout": "Key removed on logout",
-      "trust_device": "Trust This Device",
-      "untrust_device": "Untrust This Device",
-      "remove_key_from_device": "Remove Key from Device",
-      "how_it_works": "How It Works",
-      "step_1_title": "1. Certificate Generation",
-      "step_1_description": "A certificate containing a public and private key pair is generated in your browser. The public key is stored on our servers, while the private key stays with you.",
-      "step_2_title": "2. Secure Storage",
-      "step_2_description": "The private key is encrypted and stored in your browser's secure storage. You can download the certificate as a backup.",
-      "step_3_title": "3. Device Trust",
-      "step_3_description": "Choose whether to keep the encryption key on this device after logout. Untrusted devices will require you to upload your certificate again.",
-      "tip_title": "Tip: Keep your certificate safe!",
-      "tip_description": "Send your certificate to yourself by email or store it in a secure location. You'll need it to access your encrypted data from new devices."
-    },
-    "encryption": {
-      "cannotAccess": {
-        "title": "Cannot Access Transcription",
-        "noCertificate": {
-          "badge": "Encryption Certificate Required",
-          "description": "This transcription is encrypted. You need to import your encryption certificate to access it.",
-          "steps": {
-            "title": "What you need to do:",
-            "step1": "Locate your encryption certificate file (downloaded when you enabled encryption)",
-            "step2": "Click the button below to import it",
-            "step3": "Your encrypted transcriptions will then be accessible"
-          },
-          "button": "Import Certificate"
-        },
-        "certificateMismatch": {
-          "badge": "Certificate Mismatch",
-          "description": "This transcription was encrypted with a different certificate. The certificate loaded on this device cannot decrypt it.",
-          "reasons": {
-            "title": "Possible reasons:",
-            "reason1": "This transcription was created by a different user",
-            "reason2": "You've reset your encryption and this is an old transcription",
-            "reason3": "You're using a different encryption certificate"
-          },
-          "note": "If you have the original certificate that was used to encrypt this transcription, you can try importing it.",
-          "button": "Try Different Certificate"
-        }
-      },
-      "settings": {
-        "loading": "Loading...",
-        "activeStatus": {
-          "title": "Encryption Active",
-          "description": "Your transcriptions are protected with end-to-end encryption.",
-          "button": "Download Certificate"
-        },
-        "deviceTrust": {
-          "title": "Device Trust",
-          "description": "When you trust a device, your encryption certificate stays stored in your browser even after logging out. Only trust your personal devices.",
-          "label": "Trust this device",
-          "enabled": "This device is trusted",
-          "disabled": "This device is not trusted",
-          "removeButton": "Remove Key from This Device"
-        },
-        "dangerZone": {
-          "title": "Danger Zone",
-          "description": "Disabling encryption will remove all encryption keys and you will lose access to previously encrypted data.",
-          "button": "Disable End-to-End Encryption"
-        },
-        "disableDialog": {
-          "title": "Disable End-to-End Encryption?",
-          "description": "This action will remove all encryption keys and settings.",
-          "warning": {
-            "title": "Warning: This action is irreversible",
-            "point1": "All your encryption keys will be permanently deleted",
-            "point2": "You will lose access to all previously encrypted transcriptions",
-            "point3": "This cannot be undone"
-          },
-          "confirmation": "Are you absolutely sure you want to disable encryption?",
-          "cancel": "Cancel",
-          "confirm": "Yes, Disable Encryption"
-        },
-        "removeKeyDialog": {
-          "title": "Remove Encryption Key from This Device?",
-          "description": "Your encryption certificate will be removed from this browser.",
-          "warning": {
-            "title": "Before you continue:",
-            "point1": "Make sure you have your encryption certificate saved elsewhere",
-            "point2": "You'll need to re-import your certificate to access encrypted transcriptions on this device",
-            "point3": "This only affects this device - your encryption settings remain active"
-          },
-          "cancel": "Cancel",
-          "confirm": "Remove Key"
-        }
-      },
-      "import": {
-        "compact": {
-          "badge": "Encryption Certificate Required",
-          "description": "Upload your certificate to access encrypted data on this device.",
-          "button": "Upload Certificate",
-          "uploading": "Uploading..."
-        },
-        "full": {
-          "title": "Import Encryption Certificate",
-          "subtitle": "Access Your Encrypted Transcriptions",
-          "description": "To access your encrypted transcriptions, please import your encryption certificate. This is the file you downloaded when you first enabled encryption.",
-          "howToFind": {
-            "title": "How to find your certificate:",
-            "point1": "Look in your Downloads folder for a file named like encryption-certificate-*.json",
-            "point2": "Check your secure backup location where you saved it",
-            "point3": "If you use multiple devices, you may have it on another computer"
-          },
-          "button": "Choose Certificate File",
-          "uploading": "Uploading Certificate...",
-          "lostCertificate": {
-            "title": "Lost your certificate?",
-            "description": "If you've lost your encryption certificate, you won't be able to access previously encrypted data. You can disable and re-enable encryption to start fresh, but old data will be inaccessible."
-          }
-        },
-        "trustDialog": {
-          "title": "Do you trust this computer?",
-          "description": "Should we keep your encryption certificate stored on this device?",
-          "trusted": {
-            "title": "Trusted Device",
-            "description": "Your certificate will remain stored after logout. Only use this on your personal devices."
-          },
-          "untrusted": {
-            "title": "Untrusted Device",
-            "description": "Your certificate will be removed when you logout. Use this on shared or public computers."
-          },
-          "dontTrust": "Don't Trust",
-          "trust": "Trust This Computer"
-        },
-        "success": "Certificate loaded successfully!",
-        "error": "Failed to load certificate. Please check the file and try again."
-      },
-      "setup": {
-        "title": "Protect Your Privacy",
-        "subtitle": "Choose how to secure your transcriptions",
-        "enabled": {
-          "title": "End-to-End Encryption",
-          "badge": "Recommended",
-          "description": "Your data is encrypted on your device before being sent to our servers. Only you can decrypt your data — not even we can read your transcriptions.",
-          "generate": {
-            "intro": "We'll generate a unique encryption certificate for you. You'll need this certificate to:",
-            "point1": "Access your encrypted transcriptions",
-            "point2": "Use the app on other devices",
-            "point3": "Recover your data if you lose access to this device",
-            "button": "Generate Certificate",
-            "generating": "Generating..."
-          },
-          "downloaded": {
-            "success": "Certificate Downloaded!",
-            "instruction": "Your encryption certificate has been saved to your downloads folder. Keep it safe!"
-          },
-          "checklist": {
-            "title": "Before you continue, please confirm:",
-            "saved": "I have saved my certificate in a secure location (password manager, encrypted cloud storage, etc.)",
-            "emailed": "I understand I should back up my certificate (email it to myself, store it on another device, etc.)",
-            "understood": "I understand that if I lose my certificate, I will permanently lose access to my encrypted transcriptions"
-          }
-        },
-        "skip": {
-          "title": "Skip Encryption",
-          "description": "You can set up encryption later in your account settings. Your data will be stored on our servers without end-to-end encryption.",
-          "button": "Continue Without Encryption"
-        },
-        "actions": {
-          "downloadAgain": "Download Again",
-          "continue": "Continue"
-        },
-        "trustDialog": {
-          "title": "Do you trust this computer?",
-          "description": "If you trust this computer, we'll store your encryption certificate securely in your browser. You won't need to upload it again when you log in (but this is not a reason not to keep a backup!).",
-          "trusted": {
-            "title": "Trusted Device",
-            "description": "Your certificate will remain stored after logout. Only use this on your personal devices."
-          },
-          "untrusted": {
-            "title": "Untrusted Device",
-            "description": "Your certificate will be removed when you logout. Use this on shared or public computers."
-          },
-          "dontTrust": "Don't Trust",
-          "trust": "Trust This Computer"
-        },
-        "errors": {
-          "generate": "Failed to generate certificate. Please try again.",
-          "enable": "Failed to enable encryption. Please try again."
-        },
-        "success": {
-          "generate": "Certificate generated and downloaded! Please save it securely.",
-          "deviceTrust": "Device is now trusted",
-          "deviceUntrust": "Device is no longer trusted"
-        }
-      }
-    },
-    "referralCardTitle": "Referral",
-    "referralCardDescription": "Invite friends and earn free transcription minutes",
-    "referralCardButton": "Open Referrals"
-  }
+        "referralCardTitle": "Referral",
+        "referralCardDescription": "Invite friends and earn free transcription minutes",
+        "referralCardButton": "Open Referrals"
+    }
 }

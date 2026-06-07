@@ -6,7 +6,7 @@ import {
   RocketIcon,
   ShieldCheckIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useResetTutorial } from "../../../components/dialogs/help-dialog";
 import {
@@ -66,6 +66,13 @@ export default function WelcomePage() {
   const [profession, setProfession] = useState<string>("");
   const [monthlyUsage, setMonthlyUsage] = useState<string>("");
   const [residency, setResidency] = useState<"eu" | "us">("eu");
+
+  // Seed the residency choice from any already-saved preference
+  useEffect(() => {
+    if (data?.dataResidency === "eu" || data?.dataResidency === "us") {
+      setResidency(data.dataResidency);
+    }
+  }, [data?.dataResidency]);
 
   if (state === "select-language") {
     return (

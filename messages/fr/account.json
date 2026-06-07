@@ -1,292 +1,292 @@
 {
-  "account": {
-    "title": "Compte",
-    "description": "Gérez les informations de votre compte, vos abonnements et vos paramètres de sécurité",
-    "billing": {
-      "title": "Facturation & Abonnement",
-      "description": "Gérez votre abonnement et vos crédits",
-      "current_plan": "Forfait Actuel",
-      "credits": "Crédits",
-      "available_credits": "Crédits Disponibles",
-      "credits_refill": "Recharge Mensuelle",
-      "credits_used": "Crédits Utilisés",
-      "next_renewal": "Prochain Renouvellement",
-      "subscription_status": "Statut",
-      "cancel_subscription": "Annuler l'Abonnement",
-      "manage_subscription": "Gérer l'Abonnement",
-      "manage_subscription_description": "Mettre à jour le mode de paiement, consulter les factures et gérer votre abonnement",
-      "upgrade_plan": "Améliorer le Forfait",
-      "plans": {
-        "title": "Forfaits Disponibles",
-        "free": {
-          "name": "Gratuit",
-          "price": "Gratuit",
-          "features": [
-            "100 minutes par mois",
-            "Collaboration illimitée",
-            "Toutes les fonctionnalités"
-          ]
+    "account": {
+        "title": "Compte",
+        "description": "Gérez les informations de votre compte, vos abonnements et vos paramètres de sécurité",
+        "billing": {
+            "title": "Facturation & Abonnement",
+            "description": "Gérez votre abonnement et vos crédits",
+            "current_plan": "Forfait Actuel",
+            "credits": "Crédits",
+            "available_credits": "Crédits Disponibles",
+            "credits_refill": "Recharge Mensuelle",
+            "credits_used": "Crédits Utilisés",
+            "next_renewal": "Prochain Renouvellement",
+            "subscription_status": "Statut",
+            "cancel_subscription": "Annuler l'Abonnement",
+            "manage_subscription": "Gérer l'Abonnement",
+            "manage_subscription_description": "Mettre à jour le mode de paiement, consulter les factures et gérer votre abonnement",
+            "upgrade_plan": "Améliorer le Forfait",
+            "plans": {
+                "title": "Forfaits Disponibles",
+                "free": {
+                    "name": "Gratuit",
+                    "price": "Gratuit",
+                    "features": [
+                        "100 minutes par mois",
+                        "Collaboration illimitée",
+                        "Toutes les fonctionnalités"
+                    ]
+                },
+                "monthly": {
+                    "name": "Pro Mensuel",
+                    "price": "15€/mois",
+                    "features": [
+                        "1200 minutes (20 heures) par mois",
+                        "Collaboration illimitée",
+                        "Toutes les fonctionnalités"
+                    ]
+                },
+                "yearly": {
+                    "name": "Pro Annuel",
+                    "price": "13,75€/mois",
+                    "billed": "Facturé 165€ annuellement",
+                    "features": [
+                        "1200 minutes (20 heures) par mois",
+                        "Collaboration illimitée",
+                        "Toutes les fonctionnalités",
+                        "Économisez 15€/an"
+                    ]
+                },
+                "one_time": {
+                    "name": "Achat Unique",
+                    "price": "20€",
+                    "features": [
+                        "1200 minutes (20 heures)",
+                        "Crédits à usage unique",
+                        "Sans expiration"
+                    ]
+                }
+            },
+            "subscribe": "S'abonner",
+            "purchase": "Acheter",
+            "one_time_hours_needed": "Nombre d'heures nécessaires",
+            "one_time_rounded_summary": "{packages} packs de 20h = {totalPrice}€",
+            "one_time_quantity": "Packs de 20 heures",
+            "one_time_summary": "Sélection",
+            "current": "Forfait Actuel",
+            "cancel_confirm_title": "Annuler l'Abonnement?",
+            "cancel_confirm_description": "Votre abonnement restera actif jusqu'à la fin de la période de facturation. Vous aurez toujours accès à vos crédits.",
+            "cancel_confirm": "Oui, Annuler",
+            "canceling": "Annulation...",
+            "loading": "Chargement...",
+            "active": "Actif",
+            "canceled": "Annulé",
+            "minutes": "minutes",
+            "no_renewal": "Aucun abonnement actif"
         },
-        "monthly": {
-          "name": "Pro Mensuel",
-          "price": "15€/mois",
-          "features": [
-            "1200 minutes (20 heures) par mois",
-            "Collaboration illimitée",
-            "Toutes les fonctionnalités"
-          ]
+        "security": {
+            "title": "Chiffrement",
+            "description": "Gérez le chiffrement de bout en bout et les paramètres de confiance des appareils",
+            "encryption_status": "Chiffrement de Bout en Bout",
+            "encryption_disabled_title": "Le chiffrement n'est pas activé",
+            "encryption_disabled_description": "Activez le chiffrement de bout en bout pour sécuriser vos données. Un certificat sera généré et vous devrez le stocker en lieu sûr.",
+            "encryption_enabled_title": "Le chiffrement de bout en bout est actif",
+            "encryption_enabled_description": "Vos données sont protégées par un chiffrement de bout en bout. Conservez votre certificat en lieu sûr.",
+            "enable_encryption": "Activer le Chiffrement",
+            "disable_encryption": "Désactiver le Chiffrement",
+            "generating": "Génération...",
+            "key_loaded": "Clé de chiffrement chargée sur cet appareil",
+            "key_loaded_description": "Vous pouvez accéder aux données chiffrées depuis cet appareil.",
+            "key_required": "Clé de chiffrement requise",
+            "key_required_description": "Veuillez télécharger votre certificat pour accéder aux données chiffrées sur cet appareil.",
+            "upload_certificate": "Télécharger le Certificat",
+            "uploading": "Téléchargement...",
+            "device_trust": "Confiance de l'Appareil",
+            "device_trusted_description": "Cet appareil est de confiance. Votre clé de chiffrement restera stockée même après déconnexion.",
+            "device_not_trusted_description": "Cet appareil n'est pas de confiance. Votre clé de chiffrement sera supprimée lors de la déconnexion.",
+            "trusted": "Appareil de Confiance",
+            "not_trusted": "Appareil Non Fiable",
+            "key_persists": "Clé conservée après déconnexion",
+            "key_removed_on_logout": "Clé supprimée à la déconnexion",
+            "trust_device": "Faire Confiance à cet Appareil",
+            "untrust_device": "Ne Plus Faire Confiance",
+            "remove_key_from_device": "Supprimer la Clé de l'Appareil",
+            "how_it_works": "Comment ça marche",
+            "step_1_title": "1. Génération du Certificat",
+            "step_1_description": "Un certificat contenant une paire de clés publique et privée est généré dans votre navigateur. La clé publique est stockée sur nos serveurs, tandis que la clé privée reste avec vous.",
+            "step_2_title": "2. Stockage Sécurisé",
+            "step_2_description": "La clé privée est chiffrée et stockée dans le stockage sécurisé de votre navigateur. Vous pouvez télécharger le certificat en tant que sauvegarde.",
+            "step_3_title": "3. Confiance de l'Appareil",
+            "step_3_description": "Choisissez si vous souhaitez conserver la clé de chiffrement sur cet appareil après déconnexion. Les appareils non fiables nécessiteront de télécharger à nouveau votre certificat.",
+            "tip_title": "Conseil : Gardez votre certificat en sécurité !",
+            "tip_description": "Envoyez votre certificat par email ou stockez-le dans un endroit sûr. Vous en aurez besoin pour accéder à vos données chiffrées depuis de nouveaux appareils."
         },
-        "yearly": {
-          "name": "Pro Annuel",
-          "price": "13,75€/mois",
-          "billed": "Facturé 165€ annuellement",
-          "features": [
-            "1200 minutes (20 heures) par mois",
-            "Collaboration illimitée",
-            "Toutes les fonctionnalités",
-            "Économisez 15€/an"
-          ]
+        "encryption": {
+            "cannotAccess": {
+                "title": "Impossible d'accéder à la transcription",
+                "noCertificate": {
+                    "badge": "Certificat de chiffrement requis",
+                    "description": "Cette transcription est chiffrée. Vous devez importer votre certificat de chiffrement pour y accéder.",
+                    "steps": {
+                        "title": "Ce que vous devez faire :",
+                        "step1": "Localisez votre fichier de certificat de chiffrement (téléchargé lors de l'activation du chiffrement)",
+                        "step2": "Cliquez sur le bouton ci-dessous pour l'importer",
+                        "step3": "Vos transcriptions chiffrées seront alors accessibles"
+                    },
+                    "button": "Importer le certificat"
+                },
+                "certificateMismatch": {
+                    "badge": "Certificat incompatible",
+                    "description": "Cette transcription a été chiffrée avec un certificat différent. Le certificat chargé sur cet appareil ne peut pas la déchiffrer.",
+                    "reasons": {
+                        "title": "Raisons possibles :",
+                        "reason1": "Cette transcription a été créée par un autre utilisateur",
+                        "reason2": "Vous avez réinitialisé votre chiffrement et il s'agit d'une ancienne transcription",
+                        "reason3": "Vous utilisez un certificat de chiffrement différent"
+                    },
+                    "note": "Si vous avez le certificat original utilisé pour chiffrer cette transcription, vous pouvez essayer de l'importer.",
+                    "button": "Essayer un autre certificat"
+                }
+            },
+            "settings": {
+                "loading": "Chargement...",
+                "activeStatus": {
+                    "title": "Chiffrement actif",
+                    "description": "Vos transcriptions sont protégées par un chiffrement de bout en bout.",
+                    "button": "Télécharger le certificat"
+                },
+                "deviceTrust": {
+                    "title": "Confiance de l'appareil",
+                    "description": "Lorsque vous faites confiance à un appareil, votre certificat de chiffrement reste stocké dans votre navigateur même après la déconnexion. Ne faites confiance qu'à vos appareils personnels.",
+                    "label": "Faire confiance à cet appareil",
+                    "enabled": "Cet appareil est de confiance",
+                    "disabled": "Cet appareil n'est pas de confiance",
+                    "removeButton": "Supprimer la clé de cet appareil"
+                },
+                "dangerZone": {
+                    "title": "Zone dangereuse",
+                    "description": "La désactivation du chiffrement supprimera toutes les clés de chiffrement et vous perdrez l'accès aux données précédemment chiffrées.",
+                    "button": "Désactiver le chiffrement de bout en bout"
+                },
+                "disableDialog": {
+                    "title": "Désactiver le chiffrement de bout en bout ?",
+                    "description": "Cette action supprimera toutes les clés et paramètres de chiffrement.",
+                    "warning": {
+                        "title": "Attention : Cette action est irréversible",
+                        "point1": "Toutes vos clés de chiffrement seront définitivement supprimées",
+                        "point2": "Vous perdrez l'accès à toutes les transcriptions précédemment chiffrées",
+                        "point3": "Cela ne peut pas être annulé"
+                    },
+                    "confirmation": "Êtes-vous absolument sûr de vouloir désactiver le chiffrement ?",
+                    "cancel": "Annuler",
+                    "confirm": "Oui, désactiver le chiffrement"
+                },
+                "removeKeyDialog": {
+                    "title": "Supprimer la clé de chiffrement de cet appareil ?",
+                    "description": "Votre certificat de chiffrement sera supprimé de ce navigateur.",
+                    "warning": {
+                        "title": "Avant de continuer :",
+                        "point1": "Assurez-vous d'avoir votre certificat de chiffrement sauvegardé ailleurs",
+                        "point2": "Vous devrez réimporter votre certificat pour accéder aux transcriptions chiffrées sur cet appareil",
+                        "point3": "Cela n'affecte que cet appareil - vos paramètres de chiffrement restent actifs"
+                    },
+                    "cancel": "Annuler",
+                    "confirm": "Supprimer la clé"
+                }
+            },
+            "import": {
+                "compact": {
+                    "badge": "Certificat de chiffrement requis",
+                    "description": "Téléchargez votre certificat pour accéder aux données chiffrées sur cet appareil.",
+                    "button": "Télécharger le certificat",
+                    "uploading": "Téléchargement en cours..."
+                },
+                "full": {
+                    "title": "Importer le certificat de chiffrement",
+                    "subtitle": "Accéder à vos transcriptions chiffrées",
+                    "description": "Pour accéder à vos transcriptions chiffrées, veuillez importer votre certificat de chiffrement. Il s'agit du fichier que vous avez téléchargé lors de l'activation du chiffrement.",
+                    "howToFind": {
+                        "title": "Comment trouver votre certificat :",
+                        "point1": "Recherchez dans votre dossier Téléchargements un fichier nommé comme encryption-certificate-*.json",
+                        "point2": "Vérifiez l'emplacement de sauvegarde sécurisé où vous l'avez enregistré",
+                        "point3": "Si vous utilisez plusieurs appareils, vous l'avez peut-être sur un autre ordinateur"
+                    },
+                    "button": "Choisir le fichier de certificat",
+                    "uploading": "Téléchargement du certificat...",
+                    "lostCertificate": {
+                        "title": "Certificat perdu ?",
+                        "description": "Si vous avez perdu votre certificat de chiffrement, vous ne pourrez pas accéder aux données précédemment chiffrées. Vous pouvez désactiver et réactiver le chiffrement pour recommencer, mais les anciennes données seront inaccessibles."
+                    }
+                },
+                "trustDialog": {
+                    "title": "Faites-vous confiance à cet ordinateur ?",
+                    "description": "Devons-nous conserver votre certificat de chiffrement stocké sur cet appareil ?",
+                    "trusted": {
+                        "title": "Appareil de confiance",
+                        "description": "Votre certificat restera stocké après la déconnexion. N'utilisez cela que sur vos appareils personnels."
+                    },
+                    "untrusted": {
+                        "title": "Appareil non fiable",
+                        "description": "Votre certificat sera supprimé lorsque vous vous déconnecterez. Utilisez cela sur les ordinateurs partagés ou publics."
+                    },
+                    "dontTrust": "Ne pas faire confiance",
+                    "trust": "Faire confiance à cet ordinateur"
+                },
+                "success": "Certificat chargé avec succès !",
+                "error": "Échec du chargement du certificat. Veuillez vérifier le fichier et réessayer."
+            },
+            "setup": {
+                "title": "Protégez votre vie privée",
+                "subtitle": "Choisissez comment sécuriser vos transcriptions",
+                "enabled": {
+                    "title": "Chiffrement de bout en bout",
+                    "badge": "Recommandé",
+                    "description": "Vos données sont chiffrées sur votre appareil avant d'être envoyées à nos serveurs. Vous seul pouvez déchiffrer vos données — même nous ne pouvons pas lire vos transcriptions.",
+                    "generate": {
+                        "intro": "Nous générerons un certificat de chiffrement unique pour vous. Vous aurez besoin de ce certificat pour :",
+                        "point1": "Accéder à vos transcriptions chiffrées",
+                        "point2": "Utiliser l'application sur d'autres appareils",
+                        "point3": "Récupérer vos données en cas de perte d'accès à cet appareil",
+                        "button": "Générer le certificat",
+                        "generating": "Génération..."
+                    },
+                    "downloaded": {
+                        "success": "Certificat téléchargé !",
+                        "instruction": "Votre certificat de chiffrement a été enregistré dans votre dossier de téléchargements. Gardez-le en sécurité !"
+                    },
+                    "checklist": {
+                        "title": "Avant de continuer, veuillez confirmer :",
+                        "saved": "J'ai enregistré mon certificat dans un endroit sécurisé (gestionnaire de mots de passe, stockage cloud chiffré, etc.)",
+                        "emailed": "Je comprends que je dois sauvegarder mon certificat (me l'envoyer par e-mail, le stocker sur un autre appareil, etc.)",
+                        "understood": "Je comprends que si je perds mon certificat, je perdrai définitivement l'accès à mes transcriptions chiffrées"
+                    }
+                },
+                "skip": {
+                    "title": "Ignorer le chiffrement",
+                    "description": "Vous pourrez configurer le chiffrement plus tard dans les paramètres de votre compte. Vos données seront stockées sur nos serveurs sans chiffrement de bout en bout.",
+                    "button": "Continuer sans chiffrement"
+                },
+                "actions": {
+                    "downloadAgain": "Télécharger à nouveau",
+                    "continue": "Continuer"
+                },
+                "trustDialog": {
+                    "title": "Faites-vous confiance à cet ordinateur ?",
+                    "description": "Si vous faites confiance à cet ordinateur, nous stockerons votre certificat de chiffrement en toute sécurité dans votre navigateur. Vous n'aurez pas besoin de le télécharger à nouveau lorsque vous vous connecterez (mais ce n'est pas une raison pour ne pas conserver une sauvegarde !).",
+                    "trusted": {
+                        "title": "Appareil de confiance",
+                        "description": "Votre certificat restera stocké après la déconnexion. N'utilisez cela que sur vos appareils personnels."
+                    },
+                    "untrusted": {
+                        "title": "Appareil non fiable",
+                        "description": "Votre certificat sera supprimé lorsque vous vous déconnecterez. Utilisez cela sur les ordinateurs partagés ou publics."
+                    },
+                    "dontTrust": "Ne pas faire confiance",
+                    "trust": "Faire confiance à cet ordinateur"
+                },
+                "errors": {
+                    "generate": "Échec de la génération du certificat. Veuillez réessayer.",
+                    "enable": "Échec de l'activation du chiffrement. Veuillez réessayer."
+                },
+                "success": {
+                    "generate": "Certificat généré et téléchargé ! Veuillez l'enregistrer en toute sécurité.",
+                    "deviceTrust": "L'appareil est maintenant de confiance",
+                    "deviceUntrust": "L'appareil n'est plus de confiance"
+                }
+            }
         },
-        "one_time": {
-          "name": "Achat Unique",
-          "price": "20€",
-          "features": [
-            "1200 minutes (20 heures)",
-            "Crédits à usage unique",
-            "Sans expiration"
-          ]
-        }
-      },
-      "subscribe": "S'abonner",
-      "purchase": "Acheter",
-      "one_time_hours_needed": "Nombre d'heures nécessaires",
-      "one_time_rounded_summary": "{packages} packs de 20h = {totalPrice}€",
-      "one_time_quantity": "Packs de 20 heures",
-      "one_time_summary": "Sélection",
-      "current": "Forfait Actuel",
-      "cancel_confirm_title": "Annuler l'Abonnement?",
-      "cancel_confirm_description": "Votre abonnement restera actif jusqu'à la fin de la période de facturation. Vous aurez toujours accès à vos crédits.",
-      "cancel_confirm": "Oui, Annuler",
-      "canceling": "Annulation...",
-      "loading": "Chargement...",
-      "active": "Actif",
-      "canceled": "Annulé",
-      "minutes": "minutes",
-      "no_renewal": "Aucun abonnement actif"
-    },
-    "security": {
-      "title": "Chiffrement",
-      "description": "Gérez le chiffrement de bout en bout et les paramètres de confiance des appareils",
-      "encryption_status": "Chiffrement de Bout en Bout",
-      "encryption_disabled_title": "Le chiffrement n'est pas activé",
-      "encryption_disabled_description": "Activez le chiffrement de bout en bout pour sécuriser vos données. Un certificat sera généré et vous devrez le stocker en lieu sûr.",
-      "encryption_enabled_title": "Le chiffrement de bout en bout est actif",
-      "encryption_enabled_description": "Vos données sont protégées par un chiffrement de bout en bout. Conservez votre certificat en lieu sûr.",
-      "enable_encryption": "Activer le Chiffrement",
-      "disable_encryption": "Désactiver le Chiffrement",
-      "generating": "Génération...",
-      "key_loaded": "Clé de chiffrement chargée sur cet appareil",
-      "key_loaded_description": "Vous pouvez accéder aux données chiffrées depuis cet appareil.",
-      "key_required": "Clé de chiffrement requise",
-      "key_required_description": "Veuillez télécharger votre certificat pour accéder aux données chiffrées sur cet appareil.",
-      "upload_certificate": "Télécharger le Certificat",
-      "uploading": "Téléchargement...",
-      "device_trust": "Confiance de l'Appareil",
-      "device_trusted_description": "Cet appareil est de confiance. Votre clé de chiffrement restera stockée même après déconnexion.",
-      "device_not_trusted_description": "Cet appareil n'est pas de confiance. Votre clé de chiffrement sera supprimée lors de la déconnexion.",
-      "trusted": "Appareil de Confiance",
-      "not_trusted": "Appareil Non Fiable",
-      "key_persists": "Clé conservée après déconnexion",
-      "key_removed_on_logout": "Clé supprimée à la déconnexion",
-      "trust_device": "Faire Confiance à cet Appareil",
-      "untrust_device": "Ne Plus Faire Confiance",
-      "remove_key_from_device": "Supprimer la Clé de l'Appareil",
-      "how_it_works": "Comment ça marche",
-      "step_1_title": "1. Génération du Certificat",
-      "step_1_description": "Un certificat contenant une paire de clés publique et privée est généré dans votre navigateur. La clé publique est stockée sur nos serveurs, tandis que la clé privée reste avec vous.",
-      "step_2_title": "2. Stockage Sécurisé",
-      "step_2_description": "La clé privée est chiffrée et stockée dans le stockage sécurisé de votre navigateur. Vous pouvez télécharger le certificat en tant que sauvegarde.",
-      "step_3_title": "3. Confiance de l'Appareil",
-      "step_3_description": "Choisissez si vous souhaitez conserver la clé de chiffrement sur cet appareil après déconnexion. Les appareils non fiables nécessiteront de télécharger à nouveau votre certificat.",
-      "tip_title": "Conseil : Gardez votre certificat en sécurité !",
-      "tip_description": "Envoyez votre certificat par email ou stockez-le dans un endroit sûr. Vous en aurez besoin pour accéder à vos données chiffrées depuis de nouveaux appareils."
-    },
-    "encryption": {
-      "cannotAccess": {
-        "title": "Impossible d'accéder à la transcription",
-        "noCertificate": {
-          "badge": "Certificat de chiffrement requis",
-          "description": "Cette transcription est chiffrée. Vous devez importer votre certificat de chiffrement pour y accéder.",
-          "steps": {
-            "title": "Ce que vous devez faire :",
-            "step1": "Localisez votre fichier de certificat de chiffrement (téléchargé lors de l'activation du chiffrement)",
-            "step2": "Cliquez sur le bouton ci-dessous pour l'importer",
-            "step3": "Vos transcriptions chiffrées seront alors accessibles"
-          },
-          "button": "Importer le certificat"
-        },
-        "certificateMismatch": {
-          "badge": "Certificat incompatible",
-          "description": "Cette transcription a été chiffrée avec un certificat différent. Le certificat chargé sur cet appareil ne peut pas la déchiffrer.",
-          "reasons": {
-            "title": "Raisons possibles :",
-            "reason1": "Cette transcription a été créée par un autre utilisateur",
-            "reason2": "Vous avez réinitialisé votre chiffrement et il s'agit d'une ancienne transcription",
-            "reason3": "Vous utilisez un certificat de chiffrement différent"
-          },
-          "note": "Si vous avez le certificat original utilisé pour chiffrer cette transcription, vous pouvez essayer de l'importer.",
-          "button": "Essayer un autre certificat"
-        }
-      },
-      "settings": {
-        "loading": "Chargement...",
-        "activeStatus": {
-          "title": "Chiffrement actif",
-          "description": "Vos transcriptions sont protégées par un chiffrement de bout en bout.",
-          "button": "Télécharger le certificat"
-        },
-        "deviceTrust": {
-          "title": "Confiance de l'appareil",
-          "description": "Lorsque vous faites confiance à un appareil, votre certificat de chiffrement reste stocké dans votre navigateur même après la déconnexion. Ne faites confiance qu'à vos appareils personnels.",
-          "label": "Faire confiance à cet appareil",
-          "enabled": "Cet appareil est de confiance",
-          "disabled": "Cet appareil n'est pas de confiance",
-          "removeButton": "Supprimer la clé de cet appareil"
-        },
-        "dangerZone": {
-          "title": "Zone dangereuse",
-          "description": "La désactivation du chiffrement supprimera toutes les clés de chiffrement et vous perdrez l'accès aux données précédemment chiffrées.",
-          "button": "Désactiver le chiffrement de bout en bout"
-        },
-        "disableDialog": {
-          "title": "Désactiver le chiffrement de bout en bout ?",
-          "description": "Cette action supprimera toutes les clés et paramètres de chiffrement.",
-          "warning": {
-            "title": "Attention : Cette action est irréversible",
-            "point1": "Toutes vos clés de chiffrement seront définitivement supprimées",
-            "point2": "Vous perdrez l'accès à toutes les transcriptions précédemment chiffrées",
-            "point3": "Cela ne peut pas être annulé"
-          },
-          "confirmation": "Êtes-vous absolument sûr de vouloir désactiver le chiffrement ?",
-          "cancel": "Annuler",
-          "confirm": "Oui, désactiver le chiffrement"
-        },
-        "removeKeyDialog": {
-          "title": "Supprimer la clé de chiffrement de cet appareil ?",
-          "description": "Votre certificat de chiffrement sera supprimé de ce navigateur.",
-          "warning": {
-            "title": "Avant de continuer :",
-            "point1": "Assurez-vous d'avoir votre certificat de chiffrement sauvegardé ailleurs",
-            "point2": "Vous devrez réimporter votre certificat pour accéder aux transcriptions chiffrées sur cet appareil",
-            "point3": "Cela n'affecte que cet appareil - vos paramètres de chiffrement restent actifs"
-          },
-          "cancel": "Annuler",
-          "confirm": "Supprimer la clé"
-        }
-      },
-      "import": {
-        "compact": {
-          "badge": "Certificat de chiffrement requis",
-          "description": "Téléchargez votre certificat pour accéder aux données chiffrées sur cet appareil.",
-          "button": "Télécharger le certificat",
-          "uploading": "Téléchargement en cours..."
-        },
-        "full": {
-          "title": "Importer le certificat de chiffrement",
-          "subtitle": "Accéder à vos transcriptions chiffrées",
-          "description": "Pour accéder à vos transcriptions chiffrées, veuillez importer votre certificat de chiffrement. Il s'agit du fichier que vous avez téléchargé lors de l'activation du chiffrement.",
-          "howToFind": {
-            "title": "Comment trouver votre certificat :",
-            "point1": "Recherchez dans votre dossier Téléchargements un fichier nommé comme encryption-certificate-*.json",
-            "point2": "Vérifiez l'emplacement de sauvegarde sécurisé où vous l'avez enregistré",
-            "point3": "Si vous utilisez plusieurs appareils, vous l'avez peut-être sur un autre ordinateur"
-          },
-          "button": "Choisir le fichier de certificat",
-          "uploading": "Téléchargement du certificat...",
-          "lostCertificate": {
-            "title": "Certificat perdu ?",
-            "description": "Si vous avez perdu votre certificat de chiffrement, vous ne pourrez pas accéder aux données précédemment chiffrées. Vous pouvez désactiver et réactiver le chiffrement pour recommencer, mais les anciennes données seront inaccessibles."
-          }
-        },
-        "trustDialog": {
-          "title": "Faites-vous confiance à cet ordinateur ?",
-          "description": "Devons-nous conserver votre certificat de chiffrement stocké sur cet appareil ?",
-          "trusted": {
-            "title": "Appareil de confiance",
-            "description": "Votre certificat restera stocké après la déconnexion. N'utilisez cela que sur vos appareils personnels."
-          },
-          "untrusted": {
-            "title": "Appareil non fiable",
-            "description": "Votre certificat sera supprimé lorsque vous vous déconnecterez. Utilisez cela sur les ordinateurs partagés ou publics."
-          },
-          "dontTrust": "Ne pas faire confiance",
-          "trust": "Faire confiance à cet ordinateur"
-        },
-        "success": "Certificat chargé avec succès !",
-        "error": "Échec du chargement du certificat. Veuillez vérifier le fichier et réessayer."
-      },
-      "setup": {
-        "title": "Protégez votre vie privée",
-        "subtitle": "Choisissez comment sécuriser vos transcriptions",
-        "enabled": {
-          "title": "Chiffrement de bout en bout",
-          "badge": "Recommandé",
-          "description": "Vos données sont chiffrées sur votre appareil avant d'être envoyées à nos serveurs. Vous seul pouvez déchiffrer vos données — même nous ne pouvons pas lire vos transcriptions.",
-          "generate": {
-            "intro": "Nous générerons un certificat de chiffrement unique pour vous. Vous aurez besoin de ce certificat pour :",
-            "point1": "Accéder à vos transcriptions chiffrées",
-            "point2": "Utiliser l'application sur d'autres appareils",
-            "point3": "Récupérer vos données en cas de perte d'accès à cet appareil",
-            "button": "Générer le certificat",
-            "generating": "Génération..."
-          },
-          "downloaded": {
-            "success": "Certificat téléchargé !",
-            "instruction": "Votre certificat de chiffrement a été enregistré dans votre dossier de téléchargements. Gardez-le en sécurité !"
-          },
-          "checklist": {
-            "title": "Avant de continuer, veuillez confirmer :",
-            "saved": "J'ai enregistré mon certificat dans un endroit sécurisé (gestionnaire de mots de passe, stockage cloud chiffré, etc.)",
-            "emailed": "Je comprends que je dois sauvegarder mon certificat (me l'envoyer par e-mail, le stocker sur un autre appareil, etc.)",
-            "understood": "Je comprends que si je perds mon certificat, je perdrai définitivement l'accès à mes transcriptions chiffrées"
-          }
-        },
-        "skip": {
-          "title": "Ignorer le chiffrement",
-          "description": "Vous pourrez configurer le chiffrement plus tard dans les paramètres de votre compte. Vos données seront stockées sur nos serveurs sans chiffrement de bout en bout.",
-          "button": "Continuer sans chiffrement"
-        },
-        "actions": {
-          "downloadAgain": "Télécharger à nouveau",
-          "continue": "Continuer"
-        },
-        "trustDialog": {
-          "title": "Faites-vous confiance à cet ordinateur ?",
-          "description": "Si vous faites confiance à cet ordinateur, nous stockerons votre certificat de chiffrement en toute sécurité dans votre navigateur. Vous n'aurez pas besoin de le télécharger à nouveau lorsque vous vous connecterez (mais ce n'est pas une raison pour ne pas conserver une sauvegarde !).",
-          "trusted": {
-            "title": "Appareil de confiance",
-            "description": "Votre certificat restera stocké après la déconnexion. N'utilisez cela que sur vos appareils personnels."
-          },
-          "untrusted": {
-            "title": "Appareil non fiable",
-            "description": "Votre certificat sera supprimé lorsque vous vous déconnecterez. Utilisez cela sur les ordinateurs partagés ou publics."
-          },
-          "dontTrust": "Ne pas faire confiance",
-          "trust": "Faire confiance à cet ordinateur"
-        },
-        "errors": {
-          "generate": "Échec de la génération du certificat. Veuillez réessayer.",
-          "enable": "Échec de l'activation du chiffrement. Veuillez réessayer."
-        },
-        "success": {
-          "generate": "Certificat généré et téléchargé ! Veuillez l'enregistrer en toute sécurité.",
-          "deviceTrust": "L'appareil est maintenant de confiance",
-          "deviceUntrust": "L'appareil n'est plus de confiance"
-        }
-      }
-    },
-    "referralCardTitle": "Parrainage",
-    "referralCardDescription": "Invitez des amis et gagnez des minutes de transcription gratuites",
-    "referralCardButton": "Ouvrir le parrainage"
-  }
+        "referralCardTitle": "Parrainage",
+        "referralCardDescription": "Invitez des amis et gagnez des minutes de transcription gratuites",
+        "referralCardButton": "Ouvrir le parrainage"
+    }
 }

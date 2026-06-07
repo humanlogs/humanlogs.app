@@ -40,12 +40,26 @@ export async function refillUserCredits() {
   );
 
   // Free users (no active subscription) with a referral bonus get that bonus
-  // added on top of their balance every month.
+  // added on top of their balance every month. We match an explicit null OR
+  // not-"active" because SQL three-valued logic would otherwise drop the many
+  // free users whose subscriptionStatus is NULL.
   const freeUsersWithReferralBonus = await prisma.user.findMany({
     where: {
       referralBonusCredits: { gt: 0 },
-      NOT: { subscriptionStatus: "active" },
-      OR: [{ lastCreditsRefill: { lt: thirtyDaysAgo } }, { lastCreditsRefill: null }],
+      AND: [
+        {
+          OR: [
+            { subscriptionStatus: null },
+            { subscriptionStatus: { not: "active" } },
+          ],
+        },
+        {
+          OR: [
+            { lastCreditsRefill: { lt: thirtyDaysAgo } },
+            { lastCreditsRefill: null },
+          ],
+        },
+      ],
     },
     select: {
       id: true,

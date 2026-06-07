@@ -103,10 +103,26 @@ export async function addReferralEmails(
   });
   const existingEmails = new Set(existing.map((r) => r.email));
 
+  // Skip addresses that already belong to a registered account — they can never
+  // convert into a "new sign-up" bonus, and we shouldn't spam existing users.
+  const existingUsers = await prisma.user.findMany({
+    where: { email: { in: normalized } },
+    select: { email: true },
+  });
+  const registeredEmails = new Set(
+    existingUsers.map((u) => u.email.toLowerCase()),
+  );
+
   const availableSlots = Math.max(0, MAX_REFERRALS - existing.length);
   const toAdd = normalized
-    .filter((email) => !existingEmails.has(email))
+    .filter((email) => !existingEmails.has(email) && !registeredEmails.has(email))
     .slice(0, availableSlots);
+
+  // Strip control characters from the display name to avoid email header /
+  // HTML injection when it is embedded in invitations sent to third parties.
+  const inviterName = (referrer.name || referrer.email)
+    .replace(/[\r\n]+/g, " ")
+    .trim();
 
   for (const email of toAdd) {
     await prisma.referral.create({
@@ -120,7 +136,7 @@ export async function addReferralEmails(
     // Send the invitation email (fail silently, mailer already no-ops when unconfigured)
     try {
       const template = getReferralInviteEmailTemplate({
-        inviterName: referrer.name || referrer.email,
+        inviterName,
         signupUrl: `${appUrl()}/app/login`,
       });
       await sendEmail({
