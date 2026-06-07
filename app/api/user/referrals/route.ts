@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
-import { addReferralEmails, getReferralSummary } from "@/lib/referral";
+import {
+  addReferralEmails,
+  getReferralSummary,
+  removeReferral,
+} from "@/lib/referral";
 import { NextResponse } from "next/server";
 
 export const GET = withAuthRateLimit(async (request, user) => {
@@ -55,3 +59,34 @@ export const POST = withAuthRateLimit(
   // Sending invitation emails is relatively expensive — tighter rate limit
   { maxRequests: 10, windowMs: 60 * 1000, keyPrefix: "referrals" },
 );
+
+export const DELETE = withAuthRateLimit(async (request, user) => {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "A referral 'id' is required" },
+        { status: 400 },
+      );
+    }
+
+    const summary = await removeReferral(user.id, id);
+
+    if (!summary) {
+      return NextResponse.json(
+        { error: "Referral not found or cannot be removed" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json(summary);
+  } catch (error) {
+    console.error("Error removing referral:", error);
+    return NextResponse.json(
+      { error: "Failed to remove referral" },
+      { status: 500 },
+    );
+  }
+});

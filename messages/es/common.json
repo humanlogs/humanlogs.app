@@ -245,6 +245,7 @@
         "invitedTitle": "Invitaciones",
         "statusInvited": "Invitado",
         "statusRegistered": "Registrado",
-        "earnedSummary": "{registered} amigo(s) unidos · {credits} minutos extra/mes"
+        "earnedSummary": "{registered} amigo(s) unidos · {credits} minutos extra/mes",
+        "removeError": "Error al quitar la invitación"
     }
 }

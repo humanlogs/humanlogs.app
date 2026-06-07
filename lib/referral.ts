@@ -1,6 +1,10 @@
 import { prisma } from "./prisma";
+import { Prisma } from "@prisma/client";
 import { sendEmail } from "./email/mailer";
 import { getReferralInviteEmailTemplate } from "./email/email-templates-account";
+
+/** Either the global client or a transaction client. */
+type PrismaClientLike = Prisma.TransactionClient | typeof prisma;
 
 /**
  * Referral program.
@@ -199,4 +203,76 @@ export async function processReferralOnSignup(newUser: {
   } catch (error) {
     console.error("[Referral] Failed to process referral on signup:", error);
   }
+}
+
+/**
+ * Recompute and persist a referrer's monthly bonus from their current number of
+ * registered referrals (capped at MAX_REFERRALS). Keeps referralBonusCredits
+ * authoritative regardless of how counts changed.
+ */
+export async function recomputeReferralBonus(
+  referrerId: string,
+  client: PrismaClientLike = prisma,
+): Promise<void> {
+  const registeredCount = await client.referral.count({
+    where: { referrerId, status: "REGISTERED" },
+  });
+  await client.user.update({
+    where: { id: referrerId },
+    data: {
+      referralBonusCredits:
+        Math.min(registeredCount, MAX_REFERRALS) * REFERRAL_BONUS_CREDITS,
+    },
+  });
+}
+
+/**
+ * When a user deletes their account, drop the referral rows that recorded them
+ * as a registered referral and recompute each affected referrer's monthly bonus
+ * so it no longer counts a user who no longer exists. Intended to run inside the
+ * account-deletion transaction.
+ */
+export async function reconcileReferralsForDeletedUser(
+  userId: string,
+  client: PrismaClientLike = prisma,
+): Promise<void> {
+  const affected = await client.referral.findMany({
+    where: { registeredUserId: userId },
+    select: { referrerId: true },
+  });
+  if (affected.length === 0) return;
+
+  const referrerIds = [...new Set(affected.map((r) => r.referrerId))];
+
+  await client.referral.deleteMany({ where: { registeredUserId: userId } });
+
+  for (const referrerId of referrerIds) {
+    await recomputeReferralBonus(referrerId, client);
+  }
+}
+
+/**
+ * Remove a pending (INVITED) invitation owned by the user, freeing a slot.
+ * Registered referrals cannot be removed (the bonus has already been earned).
+ * Returns the refreshed summary, or null if the referral was not found / not
+ * owned / already registered.
+ */
+export async function removeReferral(
+  referrerId: string,
+  referralId: string,
+): Promise<ReferralSummary | null> {
+  const referral = await prisma.referral.findUnique({
+    where: { id: referralId },
+  });
+
+  if (
+    !referral ||
+    referral.referrerId !== referrerId ||
+    referral.status !== "INVITED"
+  ) {
+    return null;
+  }
+
+  await prisma.referral.delete({ where: { id: referralId } });
+  return getReferralSummary(referrerId);
 }

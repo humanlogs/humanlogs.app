@@ -158,6 +158,31 @@ export function useAddReferrals() {
   });
 }
 
+// Remove a pending referral invitation
+export function useRemoveReferral() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (referralId: string) => {
+      const response = await fetchGateway(
+        `/api/user/referrals?id=${encodeURIComponent(referralId)}`,
+        { method: "DELETE" },
+      );
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.error || "Failed to remove referral");
+      }
+
+      return response.json() as Promise<ReferralSummary>;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(["referrals"], data);
+      queryClient.invalidateQueries({ queryKey: ["referrals"] });
+    },
+  });
+}
+
 // Admin stats types and hook
 export type AdminStats = {
   users: {

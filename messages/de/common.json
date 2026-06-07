@@ -245,6 +245,7 @@
         "invitedTitle": "Einladungen",
         "statusInvited": "Eingeladen",
         "statusRegistered": "Registriert",
-        "earnedSummary": "{registered} Freund(e) beigetreten · {credits} Bonusminuten/Monat"
+        "earnedSummary": "{registered} Freund(e) beigetreten · {credits} Bonusminuten/Monat",
+        "removeError": "Entfernen der Einladung fehlgeschlagen"
     }
 }

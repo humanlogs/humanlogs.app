@@ -245,6 +245,7 @@
         "invitedTitle": "Invitations",
         "statusInvited": "Invité",
         "statusRegistered": "Inscrit",
-        "earnedSummary": "{registered} ami(s) inscrit(s) · {credits} minutes bonus/mois"
+        "earnedSummary": "{registered} ami(s) inscrit(s) · {credits} minutes bonus/mois",
+        "removeError": "Échec de la suppression de l'invitation"
     }
 }

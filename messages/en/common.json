@@ -245,6 +245,7 @@
         "invitedTitle": "Invitations",
         "statusInvited": "Invited",
         "statusRegistered": "Registered",
-        "earnedSummary": "{registered} friend(s) joined · {credits} bonus minutes/month"
+        "earnedSummary": "{registered} friend(s) joined · {credits} bonus minutes/month",
+        "removeError": "Failed to remove the invitation"
     }
 }

@@ -4,8 +4,18 @@ import { useTranslations } from "@/components/locale-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAddReferrals, useReferrals } from "@/hooks/use-api";
-import { CheckCircle2Icon, GiftIcon, MailIcon, PlusIcon } from "lucide-react";
+import {
+  useAddReferrals,
+  useReferrals,
+  useRemoveReferral,
+} from "@/hooks/use-api";
+import {
+  CheckCircle2Icon,
+  GiftIcon,
+  MailIcon,
+  PlusIcon,
+  XIcon,
+} from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
@@ -19,6 +29,7 @@ export function ReferralEmails() {
   const t = useTranslations("referral");
   const { data: summary } = useReferrals();
   const addReferrals = useAddReferrals();
+  const removeReferral = useRemoveReferral();
 
   const [pending, setPending] = React.useState<string[]>([]);
   const [input, setInput] = React.useState("");
@@ -144,17 +155,41 @@ export function ReferralEmails() {
             {summary.referrals.map((r) => (
               <li
                 key={r.id}
-                className="flex items-center justify-between px-3 py-2 text-sm"
+                className="flex items-center justify-between gap-2 px-3 py-2 text-sm"
               >
                 <span className="truncate">{r.email}</span>
-                {r.status === "REGISTERED" ? (
-                  <Badge className="gap-1 bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400">
-                    <CheckCircle2Icon className="h-3 w-3" />
-                    {t("statusRegistered")}
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary">{t("statusInvited")}</Badge>
-                )}
+                <div className="flex shrink-0 items-center gap-1">
+                  {r.status === "REGISTERED" ? (
+                    <Badge className="gap-1 bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400">
+                      <CheckCircle2Icon className="h-3 w-3" />
+                      {t("statusRegistered")}
+                    </Badge>
+                  ) : (
+                    <>
+                      <Badge variant="secondary">{t("statusInvited")}</Badge>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-xs"
+                        title={t("removeTooltip")}
+                        disabled={removeReferral.isPending}
+                        onClick={async () => {
+                          try {
+                            await removeReferral.mutateAsync(r.id);
+                          } catch (error) {
+                            toast.error(
+                              error instanceof Error
+                                ? error.message
+                                : t("removeError"),
+                            );
+                          }
+                        }}
+                      >
+                        <XIcon className="h-3.5 w-3.5" />
+                      </Button>
+                    </>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
