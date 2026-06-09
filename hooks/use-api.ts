@@ -194,6 +194,10 @@ export type AdminStats = {
       last7d: number;
       last30d: number;
     };
+    byProfession: Record<string, number>;
+    byMonthlyUsage: Record<string, number>;
+    byDataResidency: Record<string, number>;
+    welcomeDoneCount: number;
   };
   transcriptions: {
     byStatus: Record<string, number>;

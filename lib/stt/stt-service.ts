@@ -22,8 +22,8 @@ class STTService {
   private provider: SttProvider;
 
   constructor(provider?: SttProvider) {
-    const config = getConfig();
-    this.provider = provider ?? config.stt.type;
+    const t = getConfig().stt.type;
+    this.provider = provider ?? (Array.isArray(t) ? t[0] : t);
   }
 
   /**
@@ -202,19 +202,12 @@ class STTService {
 const sttServices = new Map<SttProvider, STTService>();
 
 /**
- * Check whether a given provider is configured on this deployment.
+ * Normalise stt.type (string or string[]) to an ordered array of providers.
+ * The first element is the deployment default.
  */
-function isProviderConfigured(provider: SttProvider): boolean {
-  switch (provider) {
-    case "elevenlabs":
-      return isElevenLabsConfigured();
-    case "whisper":
-      return isWhisperConfigured();
-    case "gladia":
-      return isGladiaConfigured();
-    default:
-      return false;
-  }
+function getConfiguredProviders(): SttProvider[] {
+  const t = getConfig().stt.type;
+  return Array.isArray(t) ? t : [t];
 }
 
 /**
@@ -227,14 +220,14 @@ export function residencyToProvider(residency: SttResidency): SttProvider {
 
 /**
  * Resolve a requested provider/residency to a provider that is actually
- * configured on this deployment, falling back to the configured default.
+ * in the configured provider list, falling back to the deployment default
+ * (first entry in stt.type).
  *
  * Accepts a concrete provider name, a residency ("eu"/"us"), or undefined.
  */
-export function resolveSttProvider(
-  requested?: string | null,
-): SttProvider {
-  const fallback = getConfig().stt.type;
+export function resolveSttProvider(requested?: string | null): SttProvider {
+  const configured = getConfiguredProviders();
+  const fallback = configured[0];
 
   if (!requested) return fallback;
 
@@ -248,17 +241,16 @@ export function resolveSttProvider(
   ) {
     provider = requested;
   } else {
-    // Unknown value — use the configured default
     return fallback;
   }
 
-  // Only honour the request if that provider is configured, otherwise default
-  return isProviderConfigured(provider) ? provider : fallback;
+  return configured.includes(provider) ? provider : fallback;
 }
 
 /**
  * Report which providers are available so the UI can decide whether to show
- * the EU/US model selector.
+ * the EU/US model selector. Availability is derived from stt.type so operators
+ * control the list explicitly rather than relying on API key presence.
  */
 export function getAvailableSttProviders(): {
   eu: boolean;
@@ -266,20 +258,21 @@ export function getAvailableSttProviders(): {
   whisper: boolean;
   default: SttResidency;
 } {
-  const defaultProvider = getConfig().stt.type;
+  const configured = getConfiguredProviders();
+  const defaultProvider = configured[0];
   return {
-    eu: isGladiaConfigured(),
-    us: isElevenLabsConfigured(),
-    whisper: isWhisperConfigured(),
+    eu: configured.includes("gladia"),
+    us: configured.includes("elevenlabs"),
+    whisper: configured.includes("whisper"),
     default: defaultProvider === "elevenlabs" ? "us" : "eu",
   };
 }
 
 /**
- * Get the STT service for a given provider (defaults to the configured one).
+ * Get the STT service for a given provider (defaults to the deployment default).
  */
 export function getSTTService(provider?: SttProvider): STTService {
-  const resolved = provider ?? getConfig().stt.type;
+  const resolved = provider ?? getConfiguredProviders()[0];
   let service = sttServices.get(resolved);
   if (!service) {
     service = new STTService(resolved);
