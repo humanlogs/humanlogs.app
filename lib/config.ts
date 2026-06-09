@@ -107,6 +107,7 @@ const configSchema = z.object({
     .optional(),
   server: z.object({
     port: z.number(),
+    publicUrl: z.string().url().default("http://localhost:3000"),
   }),
 });
 

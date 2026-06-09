@@ -133,9 +133,7 @@ class GladiaClient {
       .sign(secret);
 
     // Generate the secure download URL
-    const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL ||
-      `http://localhost:${config.server.port}`;
+    const baseUrl = getConfig().server.publicUrl;
     return `${baseUrl}/api/webhook/downloader/${fileName}?token=${jwt}`;
   }
 
@@ -226,9 +224,7 @@ class GladiaClient {
           `Gladia API error ${response.status} ${response.statusText}:`,
           JSON.stringify(data),
         );
-        throw new Error(
-          `Transcription failed: ${response.statusText} - ${JSON.stringify(data)}`,
-        );
+        throw new Error(`Transcription failed: provider error (${response.status})`);
       }
 
       if (!data?.id) {
