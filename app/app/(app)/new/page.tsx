@@ -711,25 +711,6 @@ export default function NewTranscriptionPage() {
                 placeholder={t("language")}
                 searchPlaceholder={t("searchLanguages")}
               />
-              {showProviderChoice && (
-                <Select
-                  disabled={isSubmitting}
-                  size="sm"
-                  className="w-max inline-flex"
-                  options={[
-                    { label: t("providerEu"), value: "eu" },
-                    { label: t("providerUs"), value: "us" },
-                  ]}
-                  value={provider}
-                  onChange={(value) => {
-                    providerTouchedRef.current = true;
-                    const next = value === "us" ? "us" : "eu";
-                    setProvider(next);
-                    localStorage.setItem("transcription_stt_provider", next);
-                  }}
-                  placeholder={t("provider")}
-                />
-              )}
             </div>
 
             {/* Custom Vocabulary */}
@@ -772,6 +753,25 @@ export default function NewTranscriptionPage() {
               <div className="text-muted-foreground w-full text-right text-sm">
                 {estimatedCredits} credits
               </div>
+            )}
+            {showProviderChoice && (
+              <Select
+                disabled={isSubmitting}
+                size="sm"
+                className="w-max inline-flex"
+                options={[
+                  { label: t("providerEu"), value: "eu" },
+                  { label: t("providerUs"), value: "us" },
+                ]}
+                value={provider}
+                onChange={(value) => {
+                  providerTouchedRef.current = true;
+                  const next = value === "us" ? "us" : "eu";
+                  setProvider(next);
+                  localStorage.setItem("transcription_stt_provider", next);
+                }}
+                placeholder={t("provider")}
+              />
             )}
             <Button
               type="submit"
