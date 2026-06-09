@@ -12,28 +12,6 @@ export interface UserSession {
 }
 
 /**
- * Fetch an image from a URL and convert it to base64
- */
-async function fetchImageAsBase64(url: string): Promise<string | null> {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error(`Failed to fetch image: ${response.statusText}`);
-      return null;
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const contentType = response.headers.get("content-type") || "image/jpeg";
-
-    return `data:${contentType};base64,${buffer.toString("base64")}`;
-  } catch (error) {
-    console.error("Error fetching image:", error);
-    return null;
-  }
-}
-
-/**
  * Get the current authenticated user from the session
  * and ensure they exist in our database
  */
@@ -65,35 +43,53 @@ export async function getCurrentUser(): Promise<UserSession | null> {
   // Detect default language from Auth0 user locale or default to 'en'
   const defaultLanguage = auth0User.locale?.substring(0, 2) || "en";
 
-  // Fetch and convert profile picture to base64 if available
-  let pictureBase64: string | null = null;
-  if (auth0User.picture) {
-    pictureBase64 = await fetchImageAsBase64(auth0User.picture);
-  }
-
   // Detect whether this is a brand new user so we can process referrals
   const existingUser = await prisma.user.findUnique({
     where: { auth0Id: auth0User.sub },
     select: { id: true },
   });
 
-  // Ensure user exists in database (create or update)
-  const dbUser = await prisma.user.upsert({
-    where: { auth0Id: auth0User.sub },
-    update: {
-      email: auth0User.email,
-      name: auth0User.name,
-      ...(pictureBase64 && { picture: pictureBase64 }),
-      updatedAt: new Date(),
-    },
-    create: {
-      auth0Id: auth0User.sub,
-      email: auth0User.email!,
-      name: auth0User.name,
-      ...(pictureBase64 && { picture: pictureBase64 }),
-      language: defaultLanguage, // Set default language on signup
-    },
-  });
+  const profileUpdate = {
+    ...(auth0User.email && { email: auth0User.email }),
+    name: auth0User.name,
+    ...(auth0User.picture && { picture: auth0User.picture }),
+    updatedAt: new Date(),
+  };
+
+  // Some OAuth providers (e.g. LinkedIn) may not expose the user's email.
+  const emailForCreate = auth0User.email ?? `${auth0User.sub}@noemail.invalid`;
+
+  let dbUser: Awaited<ReturnType<typeof prisma.user.upsert>>;
+  try {
+    dbUser = await prisma.user.upsert({
+      where: { auth0Id: auth0User.sub },
+      update: profileUpdate,
+      create: {
+        auth0Id: auth0User.sub,
+        email: emailForCreate,
+        name: auth0User.name,
+        ...(auth0User.picture && { picture: auth0User.picture }),
+        language: defaultLanguage,
+      },
+    });
+  } catch (err) {
+    // P2002 = unique constraint violation. This happens when the same email already
+    // exists under a different auth0Id (e.g. user previously signed in via Google,
+    // now signing in via LinkedIn). Link the existing account to the new sub.
+    if (
+      err instanceof Error &&
+      "code" in err &&
+      (err as any).code === "P2002" &&
+      auth0User.email
+    ) {
+      dbUser = await prisma.user.update({
+        where: { email: auth0User.email },
+        data: { auth0Id: auth0User.sub, ...profileUpdate },
+      });
+    } else {
+      throw err;
+    }
+  }
 
   // Grant referral bonus to whoever invited this email (only on first login/signup)
   if (!existingUser && dbUser.email) {
