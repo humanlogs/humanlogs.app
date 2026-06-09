@@ -8,6 +8,15 @@ type Project = {
   name: string;
 };
 
+export type DataResidency = "eu" | "us";
+
+export type AvailableSttProviders = {
+  eu: boolean;
+  us: boolean;
+  whisper: boolean;
+  default: DataResidency;
+};
+
 export type UserProfile = {
   id: string;
   email: string;
@@ -20,6 +29,27 @@ export type UserProfile = {
   isWelcomeDone: boolean;
   isBillingEnabled: boolean;
   isAdmin: boolean;
+  profession?: string | null;
+  monthlyUsage?: string | null;
+  dataResidency: DataResidency;
+  referralBonusCredits: number;
+  availableSttProviders: AvailableSttProviders;
+};
+
+export type ReferralSummary = {
+  referrals: Array<{
+    id: string;
+    email: string;
+    status: "INVITED" | "REGISTERED";
+    createdAt: string;
+    registeredAt: string | null;
+  }>;
+  total: number;
+  registeredCount: number;
+  bonusCredits: number;
+  bonusPerReferral: number;
+  maxReferrals: number;
+  remainingSlots: number;
 };
 // Fetch projects
 export function useProjects() {
@@ -49,13 +79,22 @@ export function useUserProfile() {
   });
 }
 
-// Update user language
+// Update user profile (language, onboarding profile, data residency, ...)
 export function useUpdateUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (
-      updateData: Partial<Pick<UserProfile, "language" | "isWelcomeDone">>,
+      updateData: Partial<
+        Pick<
+          UserProfile,
+          | "language"
+          | "isWelcomeDone"
+          | "profession"
+          | "monthlyUsage"
+          | "dataResidency"
+        >
+      >,
     ) => {
       const response = await fetchGateway("/api/user", {
         method: "PATCH",
@@ -66,13 +105,80 @@ export function useUpdateUser() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update language");
+        throw new Error("Failed to update user profile");
       }
 
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+}
+
+// Fetch referral summary
+export function useReferrals() {
+  return useQuery({
+    queryKey: ["referrals"],
+    queryFn: async () => {
+      const response = await fetchGateway("/api/user/referrals");
+      if (!response.ok) {
+        throw new Error("Failed to fetch referrals");
+      }
+      return response.json() as Promise<ReferralSummary>;
+    },
+  });
+}
+
+// Add referral emails (sends invitations and updates the summary)
+export function useAddReferrals() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (emails: string[]) => {
+      const response = await fetchGateway("/api/user/referrals", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ emails }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.error || "Failed to add referrals");
+      }
+
+      return response.json() as Promise<ReferralSummary>;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(["referrals"], data);
+      queryClient.invalidateQueries({ queryKey: ["referrals"] });
+    },
+  });
+}
+
+// Remove a pending referral invitation
+export function useRemoveReferral() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (referralId: string) => {
+      const response = await fetchGateway(
+        `/api/user/referrals?id=${encodeURIComponent(referralId)}`,
+        { method: "DELETE" },
+      );
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.error || "Failed to remove referral");
+      }
+
+      return response.json() as Promise<ReferralSummary>;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(["referrals"], data);
+      queryClient.invalidateQueries({ queryKey: ["referrals"] });
     },
   });
 }

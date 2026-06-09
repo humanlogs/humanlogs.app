@@ -20,7 +20,8 @@
             "feedbackDirect": "Feedback und Bewertungen",
             "featureRequest": "Feature-Anfrage",
             "help": "Hilfe",
-            "logout": "Abmelden"
+            "logout": "Abmelden",
+            "referral": "Empfehlungen"
         },
         "languages": {
             "en": "English",
@@ -69,7 +70,10 @@
         "renameAudioFileDescription": "Geben Sie einen neuen Namen für Ihre Audiodatei ein.",
         "fileNamePlaceholder": "z.B. Interview-Aufnahme",
         "cancel": "Abbrechen",
-        "rename": "Umbenennen"
+        "rename": "Umbenennen",
+        "provider": "Modell",
+        "providerEu": "🇪🇺 EU Modell (95%)",
+        "providerUs": "🇺🇸 US Modell (99%)"
     },
     "feedback": {
         "title": "Feedback & Bewertungen",
@@ -171,7 +175,39 @@
         "learnFeatures": "Lernen Sie in wenigen Minuten alle wichtigen Funktionen kennen",
         "startTutorial": "Tutorial Starten",
         "starting": "Wird gestartet...",
-        "setupError": "Beim Einrichten Ihres Kontos ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
+        "setupError": "Beim Einrichten Ihres Kontos ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+        "profileTitle": "Erzählen Sie uns von sich",
+        "profileSubtitle": "Das hilft uns, HumanLogs an Ihre Bedürfnisse anzupassen.",
+        "professionLabel": "Was ist Ihr Beruf?",
+        "professionPlaceholder": "Beruf auswählen",
+        "profession": {
+            "researcher": "Forscher/in",
+            "phdStudent": "Doktorand/in",
+            "journalist": "Journalist/in",
+            "podcaster": "Podcaster/in",
+            "lawyer": "Anwalt/Anwältin",
+            "healthcare": "Mediziner/in",
+            "uxResearcher": "UX-Forscher/in",
+            "student": "Student/in",
+            "other": "Andere"
+        },
+        "monthlyUsageLabel": "Wie viel transkribieren Sie pro Monat?",
+        "monthlyUsagePlaceholder": "Nutzung auswählen",
+        "monthlyUsage": {
+            "lt1h": "0-1 Stunde",
+            "h1to5": "1–5 Stunden",
+            "h5to20": "5–20 Stunden",
+            "gt20h": "20+ Stunden"
+        },
+        "skip": "Überspringen",
+        "referralTitle": "Freunde einladen, Gratisminuten verdienen",
+        "referralSubtitle": "Verdienen Sie jeden Monat Gratis-Transkription für jeden Freund, der beitritt.",
+        "residencyTitle": "Wo soll Ihr Audio verarbeitet werden?",
+        "residencySubtitle": "Sie können dies jederzeit pro Transkription ändern.",
+        "residencyEuTitle": "100 % Europäisch",
+        "residencyEuDesc": "Nur auf EU-Servern verarbeitet, ohne Speicherung und Training.",
+        "residencyUsTitle": "US-autorisiert",
+        "residencyUsDesc": "Erlaubt ElevenLabs für höchste Genauigkeit, in den USA verarbeitet."
     },
     "tutorialWelcome": {
         "title": "Willkommen zum Tutorial!",
@@ -189,5 +225,27 @@
             "message": "Nehmen Sie sich Zeit und erkunden Sie jede Funktion. Sie können das Audio jederzeit durch Klicken auf die Wiedergabetaste erneut abspielen."
         },
         "getStarted": "Beginnen"
+    },
+    "referral": {
+        "pageTitle": "Empfehlungen",
+        "pageDescription": "Laden Sie Freunde ein und verdienen Sie jeden Monat Gratisminuten.",
+        "cardTitle": "Freunde einladen",
+        "cardDescription": "Verdienen Sie Gratisminuten für jeden Freund, der ein Konto erstellt.",
+        "explainer": "Verdienen Sie {minutes} Gratisminuten pro Monat für jeden Freund, der ein Konto erstellt (bis zu {max}).",
+        "emailPlaceholder": "freund@beispiel.com",
+        "invalidEmail": "Bitte geben Sie eine gültige E-Mail ein",
+        "maxReached": "Sie haben das Maximum von {max} Einladungen erreicht",
+        "alreadyAdded": "Diese E-Mail wurde bereits hinzugefügt",
+        "slotsRemaining": "{count} Einladungen übrig",
+        "removeTooltip": "Entfernen",
+        "inviteButton": "Einladen",
+        "sending": "Senden...",
+        "invitesSent": "Einladung gesendet!",
+        "sendError": "Senden der Einladungen fehlgeschlagen",
+        "invitedTitle": "Einladungen",
+        "statusInvited": "Eingeladen",
+        "statusRegistered": "Registriert",
+        "earnedSummary": "{registered} Freund(e) beigetreten · {credits} Bonusminuten/Monat",
+        "removeError": "Entfernen der Einladung fehlgeschlagen"
     }
 }

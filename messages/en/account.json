@@ -284,6 +284,9 @@
                     "deviceUntrust": "Device is no longer trusted"
                 }
             }
-        }
+        },
+        "referralCardTitle": "Referral",
+        "referralCardDescription": "Invite friends and earn free transcription minutes",
+        "referralCardButton": "Open Referrals"
     }
 }

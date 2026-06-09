@@ -284,6 +284,9 @@
                     "deviceUntrust": "El dispositivo ya no es de confianza"
                 }
             }
-        }
+        },
+        "referralCardTitle": "Referidos",
+        "referralCardDescription": "Invita a amigos y gana minutos de transcripción gratis",
+        "referralCardButton": "Abrir referidos"
     }
 }

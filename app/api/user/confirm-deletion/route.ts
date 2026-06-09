@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStorage } from "@/lib/storage";
+import { reconcileReferralsForDeletedUser } from "@/lib/referral";
 
 export async function POST(request: Request) {
   try {
@@ -62,25 +63,30 @@ export async function POST(request: Request) {
     }
 
     // Delete user data in transaction
-    await prisma.$transaction([
+    await prisma.$transaction(async (tx) => {
+      // Reconcile referral bonuses for anyone who referred this user, then drop
+      // the referral rows that recorded them (referrals where this user is the
+      // referrer cascade-delete with the user below).
+      await reconcileReferralsForDeletedUser(userId, tx);
+
       // Delete transcription history
-      prisma.transcriptionHistory.deleteMany({ where: { userId } }),
+      await tx.transcriptionHistory.deleteMany({ where: { userId } });
 
       // Delete transcriptions
-      prisma.transcription.deleteMany({ where: { userId } }),
+      await tx.transcription.deleteMany({ where: { userId } });
 
       // Delete projects
-      prisma.project.deleteMany({ where: { userId } }),
+      await tx.project.deleteMany({ where: { userId } });
 
       // Delete feedback
-      prisma.feedback.deleteMany({ where: { userId } }),
+      await tx.feedback.deleteMany({ where: { userId } });
 
       // Delete deletion tokens
-      prisma.deletionToken.deleteMany({ where: { userId } }),
+      await tx.deletionToken.deleteMany({ where: { userId } });
 
-      // Finally, delete the user
-      prisma.user.delete({ where: { id: userId } }),
-    ]);
+      // Finally, delete the user (cascade-deletes referrals they sent)
+      await tx.user.delete({ where: { id: userId } });
+    });
 
     return NextResponse.json({
       success: true,

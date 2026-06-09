@@ -7,7 +7,11 @@ import { isBillableVersion } from "@/lib/billing/stripe";
 import { prisma } from "@/lib/prisma";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 import { generateAudioKey, getStorage } from "@/lib/storage";
-import { getSTTService } from "@/lib/stt/stt-service";
+import {
+  getSTTService,
+  resolveSttProvider,
+  type SttProvider,
+} from "@/lib/stt/stt-service";
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { v4 } from "uuid";
@@ -71,6 +75,20 @@ export const POST = withAuthRateLimit(async (request, user) => {
       .split(",")
       .map((v) => v.trim())
       .filter(Boolean);
+
+    // Resolve the STT provider: explicit request ("eu"/"us" or a provider name)
+    // falls back to the user's saved data residency preference, then the
+    // configured default. resolveSttProvider also guarantees the result is a
+    // provider that is actually configured on this deployment.
+    const requestedProvider =
+      (formData.get("provider") as string | null) || null;
+    const userPref = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { dataResidency: true },
+    });
+    const provider: SttProvider = resolveSttProvider(
+      requestedProvider || userPref?.dataResidency || null,
+    );
 
     // Extract audio files
     const audioFiles: File[] = [];
@@ -203,6 +221,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
             language,
             speakerCount: speakerCount || 16,
             vocabulary: vocabularyArray,
+            sttProvider: provider,
             state: "PENDING",
           },
         });
@@ -229,6 +248,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
             vocabulary: vocabularyArray,
             tagAudioEvents,
             duration,
+            provider,
           },
         ).catch((error) => {
           console.error(
@@ -284,6 +304,7 @@ async function processAudioAndTranscription(
     vocabulary: string[];
     tagAudioEvents: boolean;
     duration: number;
+    provider: SttProvider;
   },
 ): Promise<void> {
   try {
@@ -399,11 +420,12 @@ async function processTranscription(
     vocabulary: string[];
     tagAudioEvents: boolean;
     duration: number;
+    provider: SttProvider;
   },
 ): Promise<void> {
   try {
     const storage = getStorage();
-    const stt = getSTTService();
+    const stt = getSTTService(options.provider);
 
     const isBuffer = Buffer.isBuffer(file);
 

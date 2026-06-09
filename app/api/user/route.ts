@@ -2,6 +2,7 @@ import { createSocketToken } from "@/lib/auth/utils";
 import { isStripeConfigured } from "@/lib/billing/stripe";
 import { prisma } from "@/lib/prisma";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
+import { getAvailableSttProviders } from "@/lib/stt/stt-service";
 import { NextResponse } from "next/server";
 
 const userSelectDefault = {
@@ -20,6 +21,10 @@ const userSelectDefault = {
   shortcuts: true,
   isWelcomeDone: true,
   isAdmin: true,
+  profession: true,
+  monthlyUsage: true,
+  dataResidency: true,
+  referralBonusCredits: true,
 };
 
 export const GET = withAuthRateLimit(async (request, user) => {
@@ -43,6 +48,7 @@ export const GET = withAuthRateLimit(async (request, user) => {
       ...dbUser,
       socketToken,
       isBillingEnabled: isStripeConfigured(),
+      availableSttProviders: getAvailableSttProviders(),
     });
   } catch (error) {
     console.error("Error fetching user:", error);
@@ -65,10 +71,26 @@ export const PATCH = withAuthRateLimit(async (request, user) => {
       );
     }
 
+    // Validate data residency if provided
+    if (
+      body.dataResidency &&
+      !["eu", "us"].includes(body.dataResidency)
+    ) {
+      return NextResponse.json(
+        { error: "Invalid data residency" },
+        { status: 400 },
+      );
+    }
+
     // Update allowed fields
     const updateData: Record<string, string | boolean> = {};
     if (body.language) updateData.language = body.language;
     if (body.isWelcomeDone) updateData.isWelcomeDone = true;
+    if (typeof body.profession === "string")
+      updateData.profession = body.profession;
+    if (typeof body.monthlyUsage === "string")
+      updateData.monthlyUsage = body.monthlyUsage;
+    if (body.dataResidency) updateData.dataResidency = body.dataResidency;
 
     const updatedUser = await prisma.user.update({
       where: {
@@ -81,6 +103,7 @@ export const PATCH = withAuthRateLimit(async (request, user) => {
     return NextResponse.json({
       ...updatedUser,
       isBillingEnabled: isStripeConfigured(),
+      availableSttProviders: getAvailableSttProviders(),
     });
   } catch (error) {
     console.error("Error updating user:", error);

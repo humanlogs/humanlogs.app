@@ -20,7 +20,8 @@
             "feedbackDirect": "Donnez votre avis",
             "featureRequest": "Demande de fonctionnalité",
             "help": "Aide",
-            "logout": "Déconnexion"
+            "logout": "Déconnexion",
+            "referral": "Parrainage"
         },
         "languages": {
             "en": "English",
@@ -69,7 +70,10 @@
         "renameAudioFileDescription": "Entrez un nouveau nom pour votre fichier audio.",
         "fileNamePlaceholder": "ex : Enregistrement d'entretien",
         "cancel": "Annuler",
-        "rename": "Renommer"
+        "rename": "Renommer",
+        "provider": "Modèle",
+        "providerEu": "🇪🇺 Modèles EU (95% précision)",
+        "providerUs": "🇺🇸 Modèles US (99% précision)"
     },
     "feedback": {
         "title": "Vous aimez notre application ?",
@@ -171,7 +175,39 @@
         "learnFeatures": "Apprenez à utiliser toutes les fonctionnalités clés en quelques minutes",
         "startTutorial": "Démarrer le Tutoriel",
         "starting": "Démarrage...",
-        "setupError": "Une erreur s'est produite lors de la configuration de votre compte. Veuillez réessayer."
+        "setupError": "Une erreur s'est produite lors de la configuration de votre compte. Veuillez réessayer.",
+        "profileTitle": "Parlez-nous de vous",
+        "profileSubtitle": "Cela nous aide à adapter HumanLogs à vos besoins.",
+        "professionLabel": "Quel est votre métier ?",
+        "professionPlaceholder": "Sélectionnez votre métier",
+        "profession": {
+            "researcher": "Chercheur·e",
+            "phdStudent": "Doctorant·e",
+            "journalist": "Journaliste",
+            "podcaster": "Podcasteur·euse",
+            "lawyer": "Avocat·e",
+            "healthcare": "Professionnel·le de santé",
+            "uxResearcher": "UX researcher",
+            "student": "Étudiant·e",
+            "other": "Autre"
+        },
+        "monthlyUsageLabel": "Combien transcrivez-vous par mois ?",
+        "monthlyUsagePlaceholder": "Sélectionnez votre usage",
+        "monthlyUsage": {
+            "lt1h": "0-1 heure",
+            "h1to5": "1 à 5 heures",
+            "h5to20": "5 à 20 heures",
+            "gt20h": "20+ heures"
+        },
+        "skip": "Passer",
+        "referralTitle": "Invitez des amis, gagnez des minutes gratuites",
+        "referralSubtitle": "Gagnez de la transcription gratuite chaque mois pour chaque ami qui s'inscrit.",
+        "residencyTitle": "Où vos fichiers doivent-ils être traités ?",
+        "residencySubtitle": "Vous pourrez le changer à tout moment pour chaque transcription.",
+        "residencyEuTitle": "100 % Européen",
+        "residencyEuDesc": "Traité uniquement sur des serveurs européens, sans rétention ni entraînement.",
+        "residencyUsTitle": "US (meilleur modèle)",
+        "residencyUsDesc": "Autorise ElevenLabs pour la meilleure précision, traité aux États-Unis."
     },
     "tutorialWelcome": {
         "title": "Bienvenue dans le Tutoriel !",
@@ -189,5 +225,27 @@
             "message": "Prenez votre temps et explorez chaque fonctionnalité. Vous pouvez réécouter l'audio à tout moment en cliquant sur le bouton lecture."
         },
         "getStarted": "Commencer"
+    },
+    "referral": {
+        "pageTitle": "Parrainage",
+        "pageDescription": "Invitez des amis et gagnez des minutes de transcription gratuites chaque mois.",
+        "cardTitle": "Invitez des amis",
+        "cardDescription": "Gagnez des minutes gratuites pour chaque ami qui crée un compte.",
+        "explainer": "Gagnez {minutes} minutes gratuites par mois pour chaque ami qui crée un compte (jusqu'à {max}).",
+        "emailPlaceholder": "ami@exemple.com",
+        "invalidEmail": "Veuillez saisir un email valide",
+        "maxReached": "Vous avez atteint le maximum de {max} invitations",
+        "alreadyAdded": "Cet email est déjà ajouté",
+        "slotsRemaining": "{count} invitations restantes",
+        "removeTooltip": "Retirer",
+        "inviteButton": "Inviter",
+        "sending": "Envoi...",
+        "invitesSent": "Invitation envoyée !",
+        "sendError": "Échec de l'envoi des invitations",
+        "invitedTitle": "Invitations",
+        "statusInvited": "Invité",
+        "statusRegistered": "Inscrit",
+        "earnedSummary": "{registered} ami(s) inscrit(s) · {credits} minutes bonus/mois",
+        "removeError": "Échec de la suppression de l'invitation"
     }
 }

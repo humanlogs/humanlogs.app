@@ -284,6 +284,9 @@
                     "deviceUntrust": "L'appareil n'est plus de confiance"
                 }
             }
-        }
+        },
+        "referralCardTitle": "Parrainage",
+        "referralCardDescription": "Invitez des amis et gagnez des minutes de transcription gratuites",
+        "referralCardButton": "Ouvrir le parrainage"
     }
 }

@@ -284,6 +284,9 @@
                     "deviceUntrust": "Gerät wird nicht mehr vertraut"
                 }
             }
-        }
+        },
+        "referralCardTitle": "Empfehlungen",
+        "referralCardDescription": "Laden Sie Freunde ein und verdienen Sie Gratisminuten",
+        "referralCardButton": "Empfehlungen öffnen"
     }
 }

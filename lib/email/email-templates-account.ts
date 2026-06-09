@@ -1,5 +1,61 @@
 import { EmailTemplate, getBaseTemplate } from "./email-templates-base";
 
+/** Escape a user-supplied string for safe embedding in HTML email bodies. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
+ * Create a referral invitation email template.
+ * NOTE: inviterName is user-supplied and sent to third parties, so it is
+ * HTML-escaped here and the caller strips control characters.
+ */
+export function getReferralInviteEmailTemplate(data: {
+  inviterName: string;
+  signupUrl: string;
+}): EmailTemplate {
+  const inviterName = escapeHtml(data.inviterName);
+  const content = `
+    <h2>${inviterName} invited you to HumanLogs</h2>
+    <p>Hi,</p>
+    <p><strong>${inviterName}</strong> is using HumanLogs to transcribe interviews and thinks you'd like it too.</p>
+    <p>HumanLogs offers fast, confidential transcription for research interviews — with end-to-end encryption so your data never leaves your computer unencrypted.</p>
+    <p style="text-align: center;"><a href="${data.signupUrl}" class="button">Create your free account</a></p>
+    <p>Best regards,<br>HumanLogs Team</p>
+  `;
+
+  const html = getBaseTemplate(content, {
+    title: "You've been invited to HumanLogs",
+    preheader: `${inviterName} invited you to HumanLogs`,
+  });
+
+  const text = `
+${data.inviterName} invited you to HumanLogs
+
+Hi,
+
+${data.inviterName} is using HumanLogs to transcribe interviews and thinks you'd like it too.
+
+HumanLogs offers fast, confidential transcription for research interviews — with end-to-end encryption so your data never leaves your computer unencrypted.
+
+Create your free account: ${data.signupUrl}
+
+Best regards,
+HumanLogs Team
+  `.trim();
+
+  return {
+    subject: `${data.inviterName} invited you to HumanLogs`,
+    html,
+    text,
+  };
+}
+
 /**
  * Create a welcome email template
  */

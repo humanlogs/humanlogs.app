@@ -20,7 +20,8 @@
             "feedbackDirect": "Ayúdanos a mejorar",
             "featureRequest": "Solicitud de función",
             "help": "Ayuda",
-            "logout": "Cerrar sesión"
+            "logout": "Cerrar sesión",
+            "referral": "Referidos"
         },
         "languages": {
             "en": "English",
@@ -69,7 +70,10 @@
         "renameAudioFileDescription": "Introduce un nuevo nombre para tu archivo de audio.",
         "fileNamePlaceholder": "ej: Grabación de entrevista",
         "cancel": "Cancelar",
-        "rename": "Renombrar"
+        "rename": "Renombrar",
+        "provider": "Modelo",
+        "providerEu": "🇪🇺 EU Modelo (95%)",
+        "providerUs": "🇺🇸 US Modelo (99%)"
     },
     "feedback": {
         "title": "Comentarios y Opiniones",
@@ -171,7 +175,39 @@
         "learnFeatures": "Aprende a usar todas las funciones clave en minutos",
         "startTutorial": "Iniciar Tutorial",
         "starting": "Iniciando...",
-        "setupError": "Ocurrió un error al configurar tu cuenta. Por favor, inténtalo de nuevo."
+        "setupError": "Ocurrió un error al configurar tu cuenta. Por favor, inténtalo de nuevo.",
+        "profileTitle": "Cuéntanos sobre ti",
+        "profileSubtitle": "Esto nos ayuda a adaptar HumanLogs a tus necesidades.",
+        "professionLabel": "¿Cuál es tu profesión?",
+        "professionPlaceholder": "Selecciona tu profesión",
+        "profession": {
+            "researcher": "Investigador/a",
+            "phdStudent": "Doctorando/a",
+            "journalist": "Periodista",
+            "podcaster": "Podcaster",
+            "lawyer": "Abogado/a",
+            "healthcare": "Profesional sanitario",
+            "uxResearcher": "Investigador/a UX",
+            "student": "Estudiante",
+            "other": "Otro"
+        },
+        "monthlyUsageLabel": "¿Cuánto transcribes al mes?",
+        "monthlyUsagePlaceholder": "Selecciona tu uso",
+        "monthlyUsage": {
+            "lt1h": "0-1 hora",
+            "h1to5": "1–5 horas",
+            "h5to20": "5–20 horas",
+            "gt20h": "20+ horas"
+        },
+        "skip": "Omitir",
+        "referralTitle": "Invita a amigos y gana minutos gratis",
+        "referralSubtitle": "Gana transcripción gratis cada mes por cada amigo que se une.",
+        "residencyTitle": "¿Dónde debe procesarse tu audio?",
+        "residencySubtitle": "Puedes cambiarlo en cualquier momento para cada transcripción.",
+        "residencyEuTitle": "100 % Europeo",
+        "residencyEuDesc": "Procesado solo en servidores de la UE, sin retención ni entrenamiento.",
+        "residencyUsTitle": "Autorizado en EE. UU.",
+        "residencyUsDesc": "Permite ElevenLabs para la máxima precisión, procesado en EE. UU."
     },
     "tutorialWelcome": {
         "title": "¡Bienvenido al Tutorial!",
@@ -189,5 +225,27 @@
             "message": "Tómate tu tiempo y explora cada función. Puedes reproducir el audio en cualquier momento haciendo clic en el botón de reproducción."
         },
         "getStarted": "Comenzar"
+    },
+    "referral": {
+        "pageTitle": "Referidos",
+        "pageDescription": "Invita a amigos y gana minutos de transcripción gratis cada mes.",
+        "cardTitle": "Invita a amigos",
+        "cardDescription": "Gana minutos gratis por cada amigo que crea una cuenta.",
+        "explainer": "Gana {minutes} minutos gratis al mes por cada amigo que crea una cuenta (hasta {max}).",
+        "emailPlaceholder": "amigo@ejemplo.com",
+        "invalidEmail": "Introduce un correo válido",
+        "maxReached": "Has alcanzado el máximo de {max} invitaciones",
+        "alreadyAdded": "Este correo ya está añadido",
+        "slotsRemaining": "{count} invitaciones restantes",
+        "removeTooltip": "Quitar",
+        "inviteButton": "Invitar",
+        "sending": "Enviando...",
+        "invitesSent": "¡Invitación enviada!",
+        "sendError": "Error al enviar las invitaciones",
+        "invitedTitle": "Invitaciones",
+        "statusInvited": "Invitado",
+        "statusRegistered": "Registrado",
+        "earnedSummary": "{registered} amigo(s) unidos · {credits} minutos extra/mes",
+        "removeError": "Error al quitar la invitación"
     }
 }

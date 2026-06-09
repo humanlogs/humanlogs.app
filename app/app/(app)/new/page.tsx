@@ -162,6 +162,12 @@ export default function NewTranscriptionPage() {
     );
   });
   const [speakers, setSpeakers] = React.useState<number>(2);
+  const [provider, setProvider] = React.useState<"eu" | "us">(() => {
+    if (typeof window === "undefined") return "eu";
+    const saved = localStorage.getItem("transcription_stt_provider");
+    return saved === "us" ? "us" : "eu";
+  });
+  const providerTouchedRef = React.useRef(false);
   const [vocabulary, setVocabulary] = React.useState<string>("Euh, Hmm, Bah");
   const [tagAudioEvents, setTagAudioEvents] = React.useState<boolean>(() => {
     const saved = localStorage.getItem("transcription_tag_audio_events");
@@ -219,6 +225,20 @@ export default function NewTranscriptionPage() {
       localStorage.removeItem("transcription_project");
     }
   }, [projectId]);
+
+  // Seed the model preference from the user's saved data residency, unless the
+  // user already has a remembered last choice in localStorage or changed it.
+  React.useEffect(() => {
+    if (providerTouchedRef.current) return;
+    const saved = localStorage.getItem("transcription_stt_provider");
+    if (!saved && (user?.dataResidency === "eu" || user?.dataResidency === "us")) {
+      setProvider(user.dataResidency);
+    }
+  }, [user?.dataResidency]);
+
+  // Whether to offer the EU/US choice (both providers configured on this deployment)
+  const showProviderChoice =
+    !!user?.availableSttProviders?.eu && !!user?.availableSttProviders?.us;
 
   // Calculate audio duration
   const loadAudioDuration = async (file: File): Promise<number> => {
@@ -476,6 +496,9 @@ export default function NewTranscriptionPage() {
       formData.append("speakerCount", speakers.toString());
       formData.append("vocabulary", vocabulary);
       formData.append("tagAudioEvents", tagAudioEvents.toString());
+      if (showProviderChoice) {
+        formData.append("provider", provider);
+      }
 
       // Add all audio files
       audioFiles.forEach((audioFile, index) => {
@@ -730,6 +753,25 @@ export default function NewTranscriptionPage() {
               <div className="text-muted-foreground w-full text-right text-sm">
                 {estimatedCredits} credits
               </div>
+            )}
+            {showProviderChoice && (
+              <Select
+                disabled={isSubmitting}
+                size="sm"
+                className="w-max inline-flex"
+                options={[
+                  { label: t("providerEu"), value: "eu" },
+                  { label: t("providerUs"), value: "us" },
+                ]}
+                value={provider}
+                onChange={(value) => {
+                  providerTouchedRef.current = true;
+                  const next = value === "us" ? "us" : "eu";
+                  setProvider(next);
+                  localStorage.setItem("transcription_stt_provider", next);
+                }}
+                placeholder={t("provider")}
+              />
             )}
             <Button
               type="submit"

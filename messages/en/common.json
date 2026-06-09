@@ -20,7 +20,8 @@
             "feedbackDirect": "Help us improve",
             "featureRequest": "Feature request",
             "help": "Help",
-            "logout": "Logout"
+            "logout": "Logout",
+            "referral": "Referral"
         },
         "languages": {
             "en": "English",
@@ -69,7 +70,10 @@
         "renameAudioFileDescription": "Enter a new name for your audio file.",
         "fileNamePlaceholder": "e.g., Interview Recording",
         "cancel": "Cancel",
-        "rename": "Rename"
+        "rename": "Rename",
+        "provider": "Model",
+        "providerEu": "🇪🇺 EU Models (95% accuracy)",
+        "providerUs": "🇺🇸 US Models (99% accuracy)"
     },
     "feedback": {
         "title": "Feedback & Reviews",
@@ -171,7 +175,39 @@
         "learnFeatures": "Learn how to use all the key features in minutes",
         "startTutorial": "Start Tutorial",
         "starting": "Starting...",
-        "setupError": "An error occurred while setting up your account. Please try again."
+        "setupError": "An error occurred while setting up your account. Please try again.",
+        "profileTitle": "Tell us about you",
+        "profileSubtitle": "This helps us tailor HumanLogs to your needs.",
+        "professionLabel": "What's your profession?",
+        "professionPlaceholder": "Select your profession",
+        "profession": {
+            "researcher": "Researcher",
+            "phdStudent": "PhD student",
+            "journalist": "Journalist",
+            "podcaster": "Podcaster",
+            "lawyer": "Lawyer",
+            "healthcare": "Healthcare professional",
+            "uxResearcher": "UX researcher",
+            "student": "Student",
+            "other": "Other"
+        },
+        "monthlyUsageLabel": "How much do you transcribe per month?",
+        "monthlyUsagePlaceholder": "Select your usage",
+        "monthlyUsage": {
+            "lt1h": "0-1 hour",
+            "h1to5": "1–5 hours",
+            "h5to20": "5–20 hours",
+            "gt20h": "20+ hours"
+        },
+        "skip": "Skip",
+        "referralTitle": "Invite friends, earn free minutes",
+        "referralSubtitle": "Earn extra free transcription every month for each friend who joins.",
+        "residencyTitle": "Where should your audio be processed?",
+        "residencySubtitle": "You can change this anytime for each transcription.",
+        "residencyEuTitle": "100% European",
+        "residencyEuDesc": "Processed on EU servers only, no-retention and no-training.",
+        "residencyUsTitle": "US (best model)",
+        "residencyUsDesc": "Allows ElevenLabs for the highest accuracy, processed in the US."
     },
     "tutorialWelcome": {
         "title": "Welcome to the Tutorial!",
@@ -189,5 +225,27 @@
             "message": "Take your time and explore each feature. You can replay the audio anytime by clicking the play button."
         },
         "getStarted": "Get Started"
+    },
+    "referral": {
+        "pageTitle": "Referral",
+        "pageDescription": "Invite friends and earn free transcription minutes every month.",
+        "cardTitle": "Invite friends",
+        "cardDescription": "Earn free minutes for every friend who creates an account.",
+        "explainer": "Earn {minutes} free minutes per month for each friend who creates an account (up to {max}).",
+        "emailPlaceholder": "friend@example.com",
+        "invalidEmail": "Please enter a valid email",
+        "maxReached": "You've reached the maximum of {max} invitations",
+        "alreadyAdded": "This email is already added",
+        "slotsRemaining": "{count} invitations remaining",
+        "removeTooltip": "Remove",
+        "inviteButton": "Invite",
+        "sending": "Sending...",
+        "invitesSent": "Invitation sent!",
+        "sendError": "Failed to send invitations",
+        "invitedTitle": "Invitations",
+        "statusInvited": "Invited",
+        "statusRegistered": "Registered",
+        "earnedSummary": "{registered} friend(s) joined · {credits} bonus minutes/month",
+        "removeError": "Failed to remove the invitation"
     }
 }

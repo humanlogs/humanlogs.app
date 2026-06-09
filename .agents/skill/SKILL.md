@@ -1,6 +1,6 @@
 ---
-name: transcription-app
-description: Audio HumanLogslication with ElevenLabs integration, project management, and multi-speaker support. Includes architecture, data models, and feature requirements for the transcription workflow.
+name: humanlogs
+description: Audio transcription application with multi-provider STT (Gladia, ElevenLabs, Whisper), project management, and multi-speaker support. Includes architecture, data models, and feature requirements for the transcription workflow.
 ---
 
 # HumanLogs
