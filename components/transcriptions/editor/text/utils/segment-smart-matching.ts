@@ -153,14 +153,15 @@ export const matchTimestampsToReplacement = (
     //   - Leading span: both bounds come from the first anchor's start
     //   - Trailing span: both bounds come from the last anchor's end
     //   - Normal span: tStart = prevAnchor.end, tEnd = nextAnchor.start
+    //   - No anchors at all: fall back to the context start/end passed via replacementSegment
     const tStart: number | undefined =
       prevBoundary === SENTINEL_START
-        ? assignedWords[nextBoundary]?.start
+        ? (assignedWords[nextBoundary]?.start ?? replacementSegment.start)
         : assignedWords[prevBoundary].end;
 
     const tEnd: number | undefined =
       nextBoundary === SENTINEL_END
-        ? assignedWords[prevBoundary]?.end
+        ? (assignedWords[prevBoundary]?.end ?? replacementSegment.end)
         : assignedWords[nextBoundary].start;
 
     if (tStart === undefined || tEnd === undefined) continue;
