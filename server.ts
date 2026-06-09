@@ -10,6 +10,12 @@ process.on("unhandledRejection", (reason, promise) => {
 });
 
 process.on("uncaughtException", (error) => {
+  // ERR_INVALID_STATE from a ReadableStream means a client disconnected
+  // mid-stream. It is not a server fault; do not crash the process.
+  if ((error as NodeJS.ErrnoException).code === "ERR_INVALID_STATE") {
+    console.warn("Ignored stream error (client disconnect):", error.message);
+    return;
+  }
   console.error("Uncaught Exception:", error);
   // Don't exit immediately, give time for logging
   setTimeout(() => {
