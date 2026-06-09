@@ -171,6 +171,14 @@ export const LandingFooter = () => {
             <ul className="space-y-3">
               <li>
                 <Link
+                  href="/blog"
+                  className="text-sm text-gray-400 hover:text-white"
+                >
+                  {t("product.blog")}
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/pricing"
                   className="text-sm text-gray-400 hover:text-white"
                 >
