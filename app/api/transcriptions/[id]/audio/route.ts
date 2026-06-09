@@ -7,6 +7,41 @@ import * as path from "path";
 import { Readable } from "stream";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 
+// Readable.toWeb() does not handle client disconnects gracefully — if the client
+// closes the connection the controller is already closed when the source stream
+// tries to enqueue the next chunk, throwing ERR_INVALID_STATE as an uncaught
+// exception. This wrapper catches those errors and destroys the source stream.
+function nodeToWebStream(nodeStream: Readable): ReadableStream<Uint8Array> {
+  return new ReadableStream({
+    start(controller) {
+      nodeStream.on("data", (chunk: Buffer) => {
+        try {
+          controller.enqueue(new Uint8Array(chunk));
+        } catch {
+          nodeStream.destroy();
+        }
+      });
+      nodeStream.on("end", () => {
+        try {
+          controller.close();
+        } catch {
+          // already closed
+        }
+      });
+      nodeStream.on("error", (err: Error) => {
+        try {
+          controller.error(err);
+        } catch {
+          // already closed
+        }
+      });
+    },
+    cancel() {
+      nodeStream.destroy();
+    },
+  });
+}
+
 type RouteParams = {
   params: Promise<{
     id: string;
@@ -77,7 +112,7 @@ export const GET = withAuthRateLimit(
         );
         const stats = await fsPromises.stat(audioPath);
         const nodeStream = fs.createReadStream(audioPath);
-        stream = Readable.toWeb(nodeStream) as ReadableStream<Uint8Array>;
+        stream = nodeToWebStream(nodeStream);
         contentLength = stats.size;
       } else {
         // Stream audio from storage (S3 or local)
@@ -85,9 +120,7 @@ export const GET = withAuthRateLimit(
         const nodeStream = await storage.getFileStream(
           transcription.audioFileKey,
         );
-        stream = Readable.toWeb(
-          nodeStream as Readable,
-        ) as ReadableStream<Uint8Array>;
+        stream = nodeToWebStream(nodeStream as Readable);
       }
 
       // Determine content type from file extension
