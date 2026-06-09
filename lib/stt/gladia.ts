@@ -222,7 +222,13 @@ class GladiaClient {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(`Transcription failed: ${response.statusText}`);
+        console.error(
+          `Gladia API error ${response.status} ${response.statusText}:`,
+          JSON.stringify(data),
+        );
+        throw new Error(
+          `Transcription failed: ${response.statusText} - ${JSON.stringify(data)}`,
+        );
       }
 
       if (!data?.id) {
