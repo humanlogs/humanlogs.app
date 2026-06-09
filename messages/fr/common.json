@@ -72,8 +72,8 @@
         "cancel": "Annuler",
         "rename": "Renommer",
         "provider": "Modèle",
-        "providerEu": "UE (Gladia)",
-        "providerUs": "US (ElevenLabs)"
+        "providerEu": "🇪🇺 Gladia · 95%",
+        "providerUs": "🇺🇸 ElevenLabs · 98%"
     },
     "feedback": {
         "title": "Vous aimez notre application ?",

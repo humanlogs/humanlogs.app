@@ -72,8 +72,8 @@
         "cancel": "Abbrechen",
         "rename": "Umbenennen",
         "provider": "Modell",
-        "providerEu": "EU (Gladia)",
-        "providerUs": "US (ElevenLabs)"
+        "providerEu": "🇪🇺 Gladia · 95%",
+        "providerUs": "🇺🇸 ElevenLabs · 98%"
     },
     "feedback": {
         "title": "Feedback & Bewertungen",

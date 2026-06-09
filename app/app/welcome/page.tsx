@@ -20,13 +20,7 @@ import { SecurityStep } from "../../../components/welcome/security-step";
 import { useUpdateUser, useUserProfile } from "../../../hooks/use-api";
 import { languagesNames, Locale, locales } from "../../../lib/utils/i18n";
 
-type Step =
-  | "select-language"
-  | "profile"
-  | "referral"
-  | "residency"
-  | "security"
-  | "ready";
+type Step = "profile" | "security" | "referral" | "ready";
 
 const PROFESSION_KEYS = [
   "researcher",
@@ -42,14 +36,45 @@ const PROFESSION_KEYS = [
 
 const MONTHLY_USAGE_KEYS = ["lt1h", "h1to5", "h5to20", "gt20h"];
 
-// Card wrapper shared by all steps for a consistent look
-function StepCard({ children }: { children: React.ReactNode }) {
+function StepCard({
+  children,
+  wide,
+}: {
+  children: React.ReactNode;
+  wide?: boolean;
+}) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-black p-4">
-      <div className="w-full max-w-md space-y-6 rounded-2xl bg-white p-8 shadow-xl dark:bg-zinc-950">
+      <div
+        className={`w-full space-y-6 rounded-2xl bg-white p-8 shadow-xl dark:bg-zinc-950 ${wide ? "max-w-lg" : "max-w-md"}`}
+      >
         {children}
       </div>
     </div>
+  );
+}
+
+function GridOption({
+  selected,
+  onClick,
+  children,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-lg border p-3 text-sm text-center transition-colors ${
+        selected
+          ? "border-primary bg-primary/5 font-medium"
+          : "border-border hover:border-primary/50"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -58,37 +83,123 @@ export default function WelcomePage() {
   const { data } = useUserProfile();
   const updateUser = useUpdateUser();
   const [loading, setLoading] = useState(false);
-  const [state, setState] = useState<Step>("select-language");
+  const [state, setState] = useState<Step>("profile");
   const { handleResetTutorial } = useResetTutorial();
   const { setLocale } = useLocale();
 
-  // Local working copies for the profile + residency steps
   const [profession, setProfession] = useState<string>("");
   const [monthlyUsage, setMonthlyUsage] = useState<string>("");
   const [residency, setResidency] = useState<"eu" | "us">("eu");
 
-  // Seed the residency choice from any already-saved preference
   useEffect(() => {
     if (data?.dataResidency === "eu" || data?.dataResidency === "us") {
       setResidency(data.dataResidency);
     }
   }, [data?.dataResidency]);
 
-  if (state === "select-language") {
+  if (state === "profile") {
     return (
-      <StepCard>
-        <div className="flex items-start gap-4">
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold tracking-tight">
-              {data?.name
-                ? t("title").replace("{name}", data.name)
-                : t("titleDefault")}
-            </h1>
-            <p className="text-muted-foreground mt-1">{t("subtitle")}</p>
-          </div>
+      <StepCard wide>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {data?.name
+              ? t("title").replace("{name}", data.name)
+              : t("titleDefault")}
+          </h1>
+          <p className="text-muted-foreground mt-1">{t("profileSubtitle")}</p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
+          {/* Profession */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">
+              {t("professionLabel")}
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {PROFESSION_KEYS.map((key) => (
+                <GridOption
+                  key={key}
+                  selected={profession === key}
+                  onClick={() => setProfession(key)}
+                >
+                  {t(`profession.${key}`)}
+                </GridOption>
+              ))}
+            </div>
+          </div>
+
+          {/* Monthly usage */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">
+              {t("monthlyUsageLabel")}
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {MONTHLY_USAGE_KEYS.map((key) => (
+                <GridOption
+                  key={key}
+                  selected={monthlyUsage === key}
+                  onClick={() => setMonthlyUsage(key)}
+                >
+                  {t(`monthlyUsage.${key}`)}
+                </GridOption>
+              ))}
+            </div>
+          </div>
+
+          {/* Server / data residency */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">
+              {t("residencyTitle")}
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setResidency("eu")}
+                className={`text-left rounded-xl border p-3 transition-colors ${
+                  residency === "eu"
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/50"
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <ShieldCheckIcon className="h-4 w-4 text-primary shrink-0" />
+                  <span className="font-medium text-sm">
+                    {t("residencyEuTitle")}
+                  </span>
+                  {residency === "eu" && (
+                    <CheckCircleIcon className="h-3.5 w-3.5 text-primary ml-auto" />
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("residencyEuDesc")}
+                </p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setResidency("us")}
+                className={`text-left rounded-xl border p-3 transition-colors ${
+                  residency === "us"
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/50"
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <GlobeIcon className="h-4 w-4 text-primary shrink-0" />
+                  <span className="font-medium text-sm">
+                    {t("residencyUsTitle")}
+                  </span>
+                  {residency === "us" && (
+                    <CheckCircleIcon className="h-3.5 w-3.5 text-primary ml-auto" />
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("residencyUsDesc")}
+                </p>
+              </button>
+            </div>
+          </div>
+
+          {/* Language */}
           <div>
             <label className="text-sm font-medium mb-2 block">
               {t("languageLabel")}
@@ -114,66 +225,12 @@ export default function WelcomePage() {
             />
           </div>
 
-          <Button
-            disabled={loading || !data?.language}
-            className="w-full"
-            size="lg"
-            onClick={() => setState("profile")}
-          >
-            {t("continue")}
-          </Button>
-        </div>
-      </StepCard>
-    );
-  }
-
-  if (state === "profile") {
-    return (
-      <StepCard>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {t("profileTitle")}
-          </h1>
-          <p className="text-muted-foreground mt-1">{t("profileSubtitle")}</p>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium mb-2 block">
-              {t("professionLabel")}
-            </label>
-            <Select
-              value={profession}
-              onChange={setProfession}
-              placeholder={t("professionPlaceholder")}
-              options={PROFESSION_KEYS.map((key) => ({
-                value: key,
-                label: t(`profession.${key}`),
-              }))}
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium mb-2 block">
-              {t("monthlyUsageLabel")}
-            </label>
-            <Select
-              value={monthlyUsage}
-              onChange={setMonthlyUsage}
-              placeholder={t("monthlyUsagePlaceholder")}
-              options={MONTHLY_USAGE_KEYS.map((key) => ({
-                value: key,
-                label: t(`monthlyUsage.${key}`),
-              }))}
-            />
-          </div>
-
-          <div className="flex gap-2">
+          <div className="flex gap-2 pt-1">
             <Button
               variant="outline"
               className="flex-1"
               size="lg"
-              onClick={() => setState("referral")}
+              onClick={() => setState("security")}
             >
               {t("skip")}
             </Button>
@@ -187,11 +244,12 @@ export default function WelcomePage() {
                   await updateUser.mutateAsync({
                     ...(profession && { profession }),
                     ...(monthlyUsage && { monthlyUsage }),
+                    dataResidency: residency,
                   });
-                  setState("referral");
+                  setState("security");
                 } catch (error) {
                   console.error("Error saving profile:", error);
-                  setState("referral");
+                  setState("security");
                 } finally {
                   setLoading(false);
                 }
@@ -202,6 +260,16 @@ export default function WelcomePage() {
           </div>
         </div>
       </StepCard>
+    );
+  }
+
+  if (state === "security") {
+    return (
+      <SecurityStep
+        userName={data?.name}
+        onContinue={() => setState("referral")}
+        onSkip={() => setState("referral")}
+      />
     );
   }
 
@@ -220,103 +288,11 @@ export default function WelcomePage() {
         <Button
           className="w-full"
           size="lg"
-          onClick={() => setState("residency")}
+          onClick={() => setState("ready")}
         >
           {t("continue")}
         </Button>
       </StepCard>
-    );
-  }
-
-  if (state === "residency") {
-    const ResidencyOption = ({
-      value,
-      icon,
-      title,
-      description,
-    }: {
-      value: "eu" | "us";
-      icon: React.ReactNode;
-      title: string;
-      description: string;
-    }) => (
-      <button
-        type="button"
-        onClick={() => setResidency(value)}
-        className={`w-full text-left rounded-xl border p-4 transition-colors ${
-          residency === value
-            ? "border-primary bg-primary/5"
-            : "border-border hover:border-primary/50"
-        }`}
-      >
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5">{icon}</div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <span className="font-medium">{title}</span>
-              {residency === value && (
-                <CheckCircleIcon className="h-4 w-4 text-primary" />
-              )}
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">{description}</p>
-          </div>
-        </div>
-      </button>
-    );
-
-    return (
-      <StepCard>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {t("residencyTitle")}
-          </h1>
-          <p className="text-muted-foreground mt-1">{t("residencySubtitle")}</p>
-        </div>
-
-        <div className="space-y-3">
-          <ResidencyOption
-            value="eu"
-            icon={<ShieldCheckIcon className="h-5 w-5 text-primary" />}
-            title={t("residencyEuTitle")}
-            description={t("residencyEuDesc")}
-          />
-          <ResidencyOption
-            value="us"
-            icon={<GlobeIcon className="h-5 w-5 text-primary" />}
-            title={t("residencyUsTitle")}
-            description={t("residencyUsDesc")}
-          />
-        </div>
-
-        <Button
-          disabled={loading}
-          className="w-full"
-          size="lg"
-          onClick={async () => {
-            setLoading(true);
-            try {
-              await updateUser.mutateAsync({ dataResidency: residency });
-            } catch (error) {
-              console.error("Error saving data residency:", error);
-            } finally {
-              setLoading(false);
-              setState("security");
-            }
-          }}
-        >
-          {t("continue")}
-        </Button>
-      </StepCard>
-    );
-  }
-
-  if (state === "security") {
-    return (
-      <SecurityStep
-        userName={data?.name}
-        onContinue={() => setState("ready")}
-        onSkip={() => setState("ready")}
-      />
     );
   }
 
