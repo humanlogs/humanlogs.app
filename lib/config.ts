@@ -48,7 +48,18 @@ const configSchema = z.object({
     }),
   }),
   stt: z.object({
-    type: z.enum(["elevenlabs", "whisper", "gladia"]),
+    type: z.preprocess(
+      (val) => {
+        if (typeof val === "string" && val.includes(",")) {
+          return val.split(",").map((s) => s.trim());
+        }
+        return val;
+      },
+      z.union([
+        z.enum(["elevenlabs", "whisper", "gladia"]),
+        z.array(z.enum(["elevenlabs", "whisper", "gladia"])),
+      ]),
+    ),
     elevenlabs: z.object({
       apiKey: z.string(),
       canDisableStorage: booleanSchema.optional(),
@@ -159,7 +170,12 @@ export const awsConfig = {
 };
 
 export const sttConfig = {
-  type: config.get<"elevenlabs" | "whisper" | "gladia">("stt.type"),
+  type: config.get<
+    | "elevenlabs"
+    | "whisper"
+    | "gladia"
+    | ("elevenlabs" | "whisper" | "gladia")[]
+  >("stt.type"),
   elevenlabs: {
     apiKey: config.get<string>("stt.elevenlabs.apiKey"),
     canDisableStorage:

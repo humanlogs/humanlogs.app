@@ -19,6 +19,7 @@ import {
   ActivityIcon,
   CreditCardIcon,
   GlobeIcon,
+  BriefcaseIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
@@ -107,6 +108,52 @@ export default function AdminPage() {
         value: count,
       }),
     );
+  }, [stats]);
+
+  const PROFESSION_LABELS: Record<string, string> = {
+    researcher: "Researcher",
+    phdStudent: "PhD Student",
+    journalist: "Journalist",
+    podcaster: "Podcaster",
+    lawyer: "Lawyer",
+    healthcare: "Healthcare",
+    uxResearcher: "UX Researcher",
+    student: "Student",
+    other: "Other",
+  };
+
+  const MONTHLY_USAGE_LABELS: Record<string, string> = {
+    lt1h: "< 1h / month",
+    h1to5: "1–5h / month",
+    h5to20: "5–20h / month",
+    gt20h: "> 20h / month",
+  };
+
+  const professionPieData = useMemo(() => {
+    if (!stats?.users.byProfession) return [];
+    return Object.entries(stats.users.byProfession).map(([key, count]) => ({
+      id: key,
+      label: PROFESSION_LABELS[key] ?? key,
+      value: count,
+    }));
+  }, [stats]);
+
+  const monthlyUsagePieData = useMemo(() => {
+    if (!stats?.users.byMonthlyUsage) return [];
+    return Object.entries(stats.users.byMonthlyUsage).map(([key, count]) => ({
+      id: key,
+      label: MONTHLY_USAGE_LABELS[key] ?? key,
+      value: count,
+    }));
+  }, [stats]);
+
+  const dataResidencyPieData = useMemo(() => {
+    if (!stats?.users.byDataResidency) return [];
+    return Object.entries(stats.users.byDataResidency).map(([key, count]) => ({
+      id: key,
+      label: key === "eu" ? "EU (Gladia)" : key === "us" ? "US (ElevenLabs)" : key,
+      value: count,
+    }));
   }, [stats]);
 
   // Filter feedback by type
@@ -300,6 +347,98 @@ export default function AdminPage() {
                   {stats.users.active.last30d}
                 </div>
                 <p className="text-xs text-muted-foreground">Last 30 days</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Customer Profiles */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BriefcaseIcon className="h-5 w-5" />
+              Customer Profiles
+            </CardTitle>
+            <CardDescription>
+              Onboarding data — profession, usage volume, and data residency
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              {/* Onboarding completion */}
+              <div className="flex flex-col gap-1">
+                <div className="text-sm font-medium text-muted-foreground">
+                  Onboarding complete
+                </div>
+                <div className="text-2xl font-bold">
+                  {stats.users.welcomeDoneCount}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {stats.users.total > 0
+                    ? `${Math.round((stats.users.welcomeDoneCount / stats.users.total) * 100)}% of users`
+                    : "—"}
+                </div>
+              </div>
+
+              {/* Data residency */}
+              <div className="flex flex-col gap-1">
+                <div className="text-sm font-medium text-muted-foreground">
+                  Data residency
+                </div>
+                {dataResidencyPieData.length > 0 ? (
+                  <div className="space-y-1">
+                    {dataResidencyPieData.map((d) => (
+                      <div key={d.id} className="flex items-center justify-between text-sm">
+                        <span>{d.label}</span>
+                        <span className="font-medium">{d.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">No data</p>
+                )}
+              </div>
+
+              {/* Profession breakdown */}
+              <div className="flex flex-col gap-1 lg:col-span-1">
+                <div className="text-sm font-medium text-muted-foreground">
+                  Profession
+                </div>
+                {professionPieData.length > 0 ? (
+                  <div className="space-y-1">
+                    {professionPieData
+                      .sort((a, b) => b.value - a.value)
+                      .map((d) => (
+                        <div key={d.id} className="flex items-center justify-between text-sm">
+                          <span className="truncate pr-2">{d.label}</span>
+                          <span className="font-medium shrink-0">{d.value}</span>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">No data</p>
+                )}
+              </div>
+
+              {/* Monthly usage */}
+              <div className="flex flex-col gap-1">
+                <div className="text-sm font-medium text-muted-foreground">
+                  Monthly usage
+                </div>
+                {monthlyUsagePieData.length > 0 ? (
+                  <div className="space-y-1">
+                    {monthlyUsagePieData
+                      .sort((a, b) => b.value - a.value)
+                      .map((d) => (
+                        <div key={d.id} className="flex items-center justify-between text-sm">
+                          <span className="truncate pr-2">{d.label}</span>
+                          <span className="font-medium shrink-0">{d.value}</span>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">No data</p>
+                )}
               </div>
             </div>
           </CardContent>
