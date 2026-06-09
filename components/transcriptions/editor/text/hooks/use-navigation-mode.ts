@@ -68,6 +68,9 @@ export function useNavigationMode(
               currentTime >= segment.start &&
               currentTime <= segment.end,
           );
+        // No matching segment (e.g. audio past last word, or on words without timestamps)
+        // — don't reset the scroll position
+        if (currentSegmentIndex === -1) return;
         setCurrentIndex(
           ensureWord(currentSegmentIndex, editorAPI.getSegments(), "r"),
         );
@@ -351,11 +354,12 @@ export function useNavigationMode(
         );
       }
 
-      audioControls?.seekTo(
-        editorAPI.getSegments()[
-          Math.max(0, Math.min(editorAPI.getSegments().length, selection))
-        ].start || 0,
-      );
+      const targetSegment = editorAPI.getSegments()[
+        Math.max(0, Math.min(editorAPI.getSegments().length - 1, selection))
+      ];
+      if (audioControls && targetSegment?.start !== undefined) {
+        audioControls.seekTo(targetSegment.start);
+      }
       setCurrentIndex(selection);
     },
     {},
