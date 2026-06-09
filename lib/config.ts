@@ -48,10 +48,18 @@ const configSchema = z.object({
     }),
   }),
   stt: z.object({
-    type: z.union([
-      z.enum(["elevenlabs", "whisper", "gladia"]),
-      z.array(z.enum(["elevenlabs", "whisper", "gladia"])),
-    ]),
+    type: z.preprocess(
+      (val) => {
+        if (typeof val === "string" && val.includes(",")) {
+          return val.split(",").map((s) => s.trim());
+        }
+        return val;
+      },
+      z.union([
+        z.enum(["elevenlabs", "whisper", "gladia"]),
+        z.array(z.enum(["elevenlabs", "whisper", "gladia"])),
+      ]),
+    ),
     elevenlabs: z.object({
       apiKey: z.string(),
       canDisableStorage: booleanSchema.optional(),
