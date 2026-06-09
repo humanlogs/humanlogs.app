@@ -19,6 +19,7 @@ import { Select } from "../../../components/ui/select";
 import { SecurityStep } from "../../../components/welcome/security-step";
 import { useUpdateUser, useUserProfile } from "../../../hooks/use-api";
 import { languagesNames, Locale, locales } from "../../../lib/utils/i18n";
+import { cn } from "@/lib/utils/utils";
 
 type Step = "profile" | "security" | "referral" | "ready";
 
@@ -58,20 +59,25 @@ function GridOption({
   selected,
   onClick,
   children,
+  className,
 }: {
   selected: boolean;
   onClick: () => void;
+  className?: string;
   children: React.ReactNode;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-lg border p-3 text-sm text-center transition-colors ${
-        selected
-          ? "border-primary bg-primary/5 font-medium"
-          : "border-border hover:border-primary/50"
-      }`}
+      className={cn(
+        `rounded-lg border p-3 text-sm text-center transition-colors ${
+          selected
+            ? "border-primary bg-primary/5 font-medium"
+            : "border-border hover:border-primary/50"
+        }`,
+        className,
+      )}
     >
       {children}
     </button>
@@ -110,40 +116,30 @@ export default function WelcomePage() {
         </div>
 
         <div className="space-y-5">
-          {/* Profession */}
+          {/* Language */}
           <div>
             <label className="text-sm font-medium mb-2 block">
-              {t("professionLabel")}
+              {t("languageLabel")}
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {PROFESSION_KEYS.map((key) => (
-                <GridOption
-                  key={key}
-                  selected={profession === key}
-                  onClick={() => setProfession(key)}
-                >
-                  {t(`profession.${key}`)}
-                </GridOption>
-              ))}
-            </div>
-          </div>
-
-          {/* Monthly usage */}
-          <div>
-            <label className="text-sm font-medium mb-2 block">
-              {t("monthlyUsageLabel")}
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {MONTHLY_USAGE_KEYS.map((key) => (
-                <GridOption
-                  key={key}
-                  selected={monthlyUsage === key}
-                  onClick={() => setMonthlyUsage(key)}
-                >
-                  {t(`monthlyUsage.${key}`)}
-                </GridOption>
-              ))}
-            </div>
+            <Select
+              value={data?.language as Locale}
+              onChange={async (value) => {
+                setLoading(true);
+                try {
+                  setLocale(value as Locale);
+                  await updateUser.mutateAsync({ language: value });
+                } catch (error) {
+                  console.error("Error saving language:", error);
+                  toast.error(t("errorSavingLanguage"));
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              options={locales.map((locale) => ({
+                value: locale,
+                label: (languagesNames as any)[locale],
+              }))}
+            />
           </div>
 
           {/* Server / data residency */}
@@ -199,30 +195,41 @@ export default function WelcomePage() {
             </div>
           </div>
 
-          {/* Language */}
+          {/* Profession */}
           <div>
             <label className="text-sm font-medium mb-2 block">
-              {t("languageLabel")}
+              {t("professionLabel")}
             </label>
-            <Select
-              value={data?.language as Locale}
-              onChange={async (value) => {
-                setLoading(true);
-                try {
-                  setLocale(value as Locale);
-                  await updateUser.mutateAsync({ language: value });
-                } catch (error) {
-                  console.error("Error saving language:", error);
-                  toast.error(t("errorSavingLanguage"));
-                } finally {
-                  setLoading(false);
-                }
-              }}
-              options={locales.map((locale) => ({
-                value: locale,
-                label: (languagesNames as any)[locale],
-              }))}
-            />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {PROFESSION_KEYS.map((key) => (
+                <GridOption
+                  key={key}
+                  selected={profession === key}
+                  onClick={() => setProfession(key)}
+                  className="capitalize min-h-16"
+                >
+                  {t(`profession.${key}`)}
+                </GridOption>
+              ))}
+            </div>
+          </div>
+
+          {/* Monthly usage */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">
+              {t("monthlyUsageLabel")}
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {MONTHLY_USAGE_KEYS.map((key) => (
+                <GridOption
+                  key={key}
+                  selected={monthlyUsage === key}
+                  onClick={() => setMonthlyUsage(key)}
+                >
+                  {t(`monthlyUsage.${key}`)}
+                </GridOption>
+              ))}
+            </div>
           </div>
 
           <div className="flex gap-2 pt-1">
@@ -285,11 +292,7 @@ export default function WelcomePage() {
 
         <ReferralEmails />
 
-        <Button
-          className="w-full"
-          size="lg"
-          onClick={() => setState("ready")}
-        >
+        <Button className="w-full" size="lg" onClick={() => setState("ready")}>
           {t("continue")}
         </Button>
       </StepCard>

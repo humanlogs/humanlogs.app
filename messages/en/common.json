@@ -72,8 +72,8 @@
         "cancel": "Cancel",
         "rename": "Rename",
         "provider": "Model",
-        "providerEu": "🇪🇺 Gladia · 95%",
-        "providerUs": "🇺🇸 ElevenLabs · 98%"
+        "providerEu": "🇪🇺 EU Models (95% accuracy)",
+        "providerUs": "🇺🇸 US Models (99% accuracy)"
     },
     "feedback": {
         "title": "Feedback & Reviews",
@@ -194,10 +194,10 @@
         "monthlyUsageLabel": "How much do you transcribe per month?",
         "monthlyUsagePlaceholder": "Select your usage",
         "monthlyUsage": {
-            "lt1h": "Less than 1 hour",
+            "lt1h": "0-1 hour",
             "h1to5": "1–5 hours",
             "h5to20": "5–20 hours",
-            "gt20h": "More than 20 hours"
+            "gt20h": "20+ hours"
         },
         "skip": "Skip",
         "referralTitle": "Invite friends, earn free minutes",
@@ -206,7 +206,7 @@
         "residencySubtitle": "You can change this anytime for each transcription.",
         "residencyEuTitle": "100% European",
         "residencyEuDesc": "Processed on EU servers only, no-retention and no-training.",
-        "residencyUsTitle": "US authorized (best model)",
+        "residencyUsTitle": "US (best model)",
         "residencyUsDesc": "Allows ElevenLabs for the highest accuracy, processed in the US."
     },
     "tutorialWelcome": {
