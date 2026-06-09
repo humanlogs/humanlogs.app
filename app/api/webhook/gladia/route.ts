@@ -34,10 +34,10 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
 
-    // Extract transcription ID
-    const gladiaTranscriptionId = payload.id;
+    // Extract transcription ID — Gladia sends it inside payload.payload.id
+    const gladiaTranscriptionId = payload.payload?.id ?? payload.id;
     if (!gladiaTranscriptionId) {
-      console.error("No id in webhook payload");
+      console.error("No id in webhook payload:", JSON.stringify(payload));
       return NextResponse.json({ error: "Missing id" }, { status: 400 });
     }
 
@@ -69,6 +69,11 @@ export async function POST(request: NextRequest) {
 
     // Check event and process accordingly
     const event = String(payload.event || "").toLowerCase();
+
+    // Intermediate lifecycle events — acknowledge and do nothing
+    if (event === "transcription.created" || event === "transcription.processing") {
+      return NextResponse.json({ received: true, status: event });
+    }
 
     if (event === "transcription.success" && payload.payload?.transcription) {
       // Transcription completed successfully
@@ -132,6 +137,7 @@ export async function POST(request: NextRequest) {
       console.warn(
         `Unexpected webhook event for transcription ${transcription.id}:`,
         event,
+        JSON.stringify(payload),
       );
       return NextResponse.json({
         received: true,
