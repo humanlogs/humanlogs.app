@@ -16,6 +16,7 @@
             "freeTools": "Herramientas gratuitas",
             "pricing": "Precios",
             "github": "Github",
+            "blog": "Blog",
             "contact": "Contacto",
             "login": "Iniciar sesión",
             "signUp": "Registrarse"
@@ -379,6 +380,7 @@
             "speakr": "vs Speakr"
         },
         "product": {
+            "blog": "Blog",
             "pricing": "Precios",
             "faq": "FAQ",
             "contactSales": "Contactar ventas",

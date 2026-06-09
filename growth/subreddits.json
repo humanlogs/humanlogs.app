@@ -1,0 +1,19 @@
+{
+  "queue": [
+    { "name": "PhD",                   "priority": "high",   "notes": "534k subs, fort signal GDPR+transcription" },
+    { "name": "AskAcademia",           "priority": "high",   "notes": "142k subs, questions outillage très fréquentes" },
+    { "name": "qualitativeresearch",   "priority": "high",   "notes": "8k subs, niche parfaite, règles souples" },
+    { "name": "GradSchool",            "priority": "medium", "notes": "300k subs, chevauchement avec r/PhD" },
+    { "name": "AcademicPhilosophy",    "priority": "low",    "notes": "à tester" },
+    { "name": "journalism",            "priority": "medium", "notes": "use case journalisme" },
+    { "name": "podcasting",            "priority": "medium", "notes": "use case podcast" },
+    { "name": "sociology",             "priority": "medium", "notes": "forte culture entretiens qualitatifs" },
+    { "name": "anthropology",          "priority": "medium", "notes": "ethnographie, terrain, entretiens" },
+    { "name": "linguistics",           "priority": "low",    "notes": "analyse de corpus, transcription précision" },
+    { "name": "UXResearch",            "priority": "medium", "notes": "interviews utilisateurs, forte demande outils" },
+    { "name": "userresearch",          "priority": "medium", "notes": "idem UXResearch" },
+    { "name": "marketresearch",        "priority": "low",    "notes": "contexte commercial, plus méfiant" }
+  ],
+  "processed": [],
+  "lastUpdated": "2026-06-09"
+}
