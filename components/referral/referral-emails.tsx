@@ -12,8 +12,7 @@ import {
 import {
   CheckCircle2Icon,
   GiftIcon,
-  MailIcon,
-  PlusIcon,
+  SendIcon,
   XIcon,
 } from "lucide-react";
 import * as React from "react";
@@ -21,25 +20,20 @@ import { toast } from "sonner";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/**
- * Shared referral UI: add invitation emails and view their status.
- * Used both in onboarding and in the dedicated referral tab.
- */
 export function ReferralEmails() {
   const t = useTranslations("referral");
   const { data: summary } = useReferrals();
   const addReferrals = useAddReferrals();
   const removeReferral = useRemoveReferral();
 
-  const [pending, setPending] = React.useState<string[]>([]);
   const [input, setInput] = React.useState("");
 
-  const usedSlots = (summary?.total || 0) + pending.length;
+  const usedSlots = summary?.total || 0;
   const maxReferrals = summary?.maxReferrals || 10;
   const remaining = Math.max(0, maxReferrals - usedSlots);
   const bonusPerReferral = summary?.bonusPerReferral || 15;
 
-  const addToPending = () => {
+  const handleInvite = async () => {
     const email = input.trim().toLowerCase();
     if (!email) return;
     if (!EMAIL_REGEX.test(email)) {
@@ -50,32 +44,17 @@ export function ReferralEmails() {
       toast.error(t("maxReached", { max: maxReferrals }));
       return;
     }
-    const known = new Set([
-      ...pending,
-      ...(summary?.referrals.map((r) => r.email) || []),
-    ]);
+    const known = new Set(summary?.referrals.map((r) => r.email) || []);
     if (known.has(email)) {
       toast.error(t("alreadyAdded"));
       return;
     }
-    setPending((prev) => [...prev, email]);
-    setInput("");
-  };
-
-  const removePending = (email: string) => {
-    setPending((prev) => prev.filter((e) => e !== email));
-  };
-
-  const handleSend = async () => {
-    if (pending.length === 0) return;
     try {
-      await addReferrals.mutateAsync(pending);
-      setPending([]);
+      await addReferrals.mutateAsync([email]);
+      setInput("");
       toast.success(t("invitesSent"));
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : t("sendError"),
-      );
+      toast.error(error instanceof Error ? error.message : t("sendError"));
     }
   };
 
@@ -88,7 +67,6 @@ export function ReferralEmails() {
         </p>
       </div>
 
-      {/* Add email input */}
       <div className="flex gap-2">
         <Input
           type="email"
@@ -98,18 +76,18 @@ export function ReferralEmails() {
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
-              addToPending();
+              handleInvite();
             }
           }}
-          disabled={remaining <= 0}
+          disabled={remaining <= 0 || addReferrals.isPending}
         />
         <Button
           type="button"
-          variant="outline"
-          onClick={addToPending}
-          disabled={remaining <= 0 || !input.trim()}
+          onClick={handleInvite}
+          disabled={remaining <= 0 || !input.trim() || addReferrals.isPending}
         >
-          <PlusIcon className="h-4 w-4" />
+          <SendIcon className="h-4 w-4" />
+          <span>{addReferrals.isPending ? t("sending") : t("inviteButton")}</span>
         </Button>
       </div>
 
@@ -117,37 +95,6 @@ export function ReferralEmails() {
         {t("slotsRemaining", { count: remaining })}
       </p>
 
-      {/* Pending (not yet sent) */}
-      {pending.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {pending.map((email) => (
-            <Badge
-              key={email}
-              variant="secondary"
-              className="cursor-pointer gap-1"
-              onClick={() => removePending(email)}
-              title={t("removeTooltip")}
-            >
-              {email} ✕
-            </Badge>
-          ))}
-        </div>
-      )}
-
-      {pending.length > 0 && (
-        <Button
-          type="button"
-          onClick={handleSend}
-          disabled={addReferrals.isPending}
-        >
-          <MailIcon className="mr-2 h-4 w-4" />
-          {addReferrals.isPending
-            ? t("sending")
-            : t("sendInvites", { count: pending.length })}
-        </Button>
-      )}
-
-      {/* Already invited list */}
       {summary && summary.referrals.length > 0 && (
         <div className="space-y-2">
           <p className="text-sm font-medium">{t("invitedTitle")}</p>
