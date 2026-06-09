@@ -221,7 +221,50 @@ export const GET = withAdminRateLimit(async (request, user) => {
       },
     });
 
-    // 10. Landing page visits
+    // 10. Customer profile breakdowns (onboarding data)
+    const professionGroups = await prisma.user.groupBy({
+      by: ["profession"],
+      _count: { id: true },
+      where: { profession: { not: null } },
+    });
+    const byProfession = professionGroups.reduce(
+      (acc, g) => {
+        if (g.profession) acc[g.profession] = g._count.id;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+    const monthlyUsageGroups = await prisma.user.groupBy({
+      by: ["monthlyUsage"],
+      _count: { id: true },
+      where: { monthlyUsage: { not: null } },
+    });
+    const byMonthlyUsage = monthlyUsageGroups.reduce(
+      (acc, g) => {
+        if (g.monthlyUsage) acc[g.monthlyUsage] = g._count.id;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+    const dataResidencyGroups = await prisma.user.groupBy({
+      by: ["dataResidency"],
+      _count: { id: true },
+    });
+    const byDataResidency = dataResidencyGroups.reduce(
+      (acc, g) => {
+        acc[g.dataResidency] = g._count.id;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+    const welcomeDoneCount = await prisma.user.count({
+      where: { isWelcomeDone: true },
+    });
+
+    // 11. Landing page visits
     const totalUniqueVisitors = await prisma.landingPageVisit.groupBy({
       by: ["ipHash"],
       _count: {
@@ -285,6 +328,10 @@ export const GET = withAdminRateLimit(async (request, user) => {
           last7d: activeUsersLast7d,
           last30d: activeUsersLast30d,
         },
+        byProfession,
+        byMonthlyUsage,
+        byDataResidency,
+        welcomeDoneCount,
       },
       transcriptions: {
         byStatus: transcriptsByStatus,

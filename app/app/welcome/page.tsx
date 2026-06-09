@@ -142,58 +142,60 @@ export default function WelcomePage() {
             />
           </div>
 
-          {/* Server / data residency */}
-          <div>
-            <label className="text-sm font-medium mb-2 block">
-              {t("residencyTitle")}
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setResidency("eu")}
-                className={`text-left rounded-xl border p-3 transition-colors ${
-                  residency === "eu"
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/50"
-                }`}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <ShieldCheckIcon className="h-4 w-4 text-primary shrink-0" />
-                  <span className="font-medium text-sm">
-                    {t("residencyEuTitle")}
-                  </span>
-                  {residency === "eu" && (
-                    <CheckCircleIcon className="h-3.5 w-3.5 text-primary ml-auto" />
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("residencyEuDesc")}
-                </p>
-              </button>
-              <button
-                type="button"
-                onClick={() => setResidency("us")}
-                className={`text-left rounded-xl border p-3 transition-colors ${
-                  residency === "us"
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/50"
-                }`}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <GlobeIcon className="h-4 w-4 text-primary shrink-0" />
-                  <span className="font-medium text-sm">
-                    {t("residencyUsTitle")}
-                  </span>
-                  {residency === "us" && (
-                    <CheckCircleIcon className="h-3.5 w-3.5 text-primary ml-auto" />
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("residencyUsDesc")}
-                </p>
-              </button>
+          {/* Server / data residency — only shown when both EU and US providers are configured */}
+          {!!data?.availableSttProviders?.eu && !!data?.availableSttProviders?.us && (
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                {t("residencyTitle")}
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setResidency("eu")}
+                  className={`text-left rounded-xl border p-3 transition-colors ${
+                    residency === "eu"
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <ShieldCheckIcon className="h-4 w-4 text-primary shrink-0" />
+                    <span className="font-medium text-sm">
+                      {t("residencyEuTitle")}
+                    </span>
+                    {residency === "eu" && (
+                      <CheckCircleIcon className="h-3.5 w-3.5 text-primary ml-auto" />
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {t("residencyEuDesc")}
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setResidency("us")}
+                  className={`text-left rounded-xl border p-3 transition-colors ${
+                    residency === "us"
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <GlobeIcon className="h-4 w-4 text-primary shrink-0" />
+                    <span className="font-medium text-sm">
+                      {t("residencyUsTitle")}
+                    </span>
+                    {residency === "us" && (
+                      <CheckCircleIcon className="h-3.5 w-3.5 text-primary ml-auto" />
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {t("residencyUsDesc")}
+                  </p>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Profession */}
           <div>
