@@ -40,10 +40,12 @@ Stopping to reach for the mouse breaks your flow. Before starting a correction s
 
 | Action | Default shortcut |
 |--------|-----------------|
-| Play / pause | `Space` |
-| Rewind 5 seconds | `←` |
-| Speed up playback | `Shift + ↑` |
-| Slow down playback | `Shift + ↓` |
+| Play / pause | `Alt + Space` |
+| Previous / next segment | `←` / `→` |
+| Previous / next sentence | `Shift + ←` / `Shift + →` |
+| Speed up playback (2×) | Hold `Ctrl` |
+| Slow down playback (0.5×) | Hold `Alt` |
+| Turbo playback (4×) | Hold `Alt + Ctrl` |
 
 In HumanLogs, all shortcuts are configurable from your account settings so you can match the layout you already know from Audacity, Adobe Premiere, or any other tool.
 
