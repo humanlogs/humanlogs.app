@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 const landingPaths = [
   "/",
   "/alternatives",
+  "/blog",
   "/contact",
   "/legal",
   "/pricing",
