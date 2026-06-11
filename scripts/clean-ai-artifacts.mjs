@@ -1,94 +1,123 @@
 /**
- * Removes common AI writing artifacts from blog markdown files.
- * Runs before deployment; rewrites files in-place and reports changes.
- * Does not modify YAML frontmatter.
+ * Remove AI writing artefacts from MDX/MD files before publishing.
+ *
+ *   npm run clean -- content/blog/my-article.mdx
+ *   npm run clean -- content/blog/*.mdx      # glob
+ *
+ * Code blocks (``` fences) are never modified.
+ * Prints a summary of every fix applied.
  */
+import { readFile, writeFile } from "node:fs/promises";
+import { glob } from "node:fs/promises";
 
-import { readdir, readFile, writeFile } from "fs/promises";
-import { join } from "path";
-
-const BLOG_DIR = "content/blog";
-
-// Each entry: [regex, replacement]
-// Ordered from most to least aggressive.
-const REPLACEMENTS = [
-  // Filler sentence openers — just delete them
-  [/\bIt(?:'s| is) worth noting that /gi, ""],
-  [/\bIt(?:'s| is) important to note that /gi, ""],
-  [/\bIt should be noted that /gi, ""],
-  [/\bNeedless to say,? /gi, ""],
-  [/\bAs (?:we|I) can see,? /gi, ""],
-  [/\bAs (?:previously|earlier) mentioned,? /gi, "As noted, "],
-  [/\bIn conclusion,? /gi, ""],
-  [/\bIn summary,? /gi, ""],
-  [/\bTo summarize,? /gi, ""],
-
-  // Buzzwords with clean substitutes
-  [/\butilize\b/gi, "use"],
-  [/\butilizes\b/gi, "uses"],
-  [/\butilized\b/gi, "used"],
-  [/\butilizing\b/gi, "using"],
-  [/\butili[sz]ation\b/gi, "use"],
-  [/\bdelve(?:s)? into\b/gi, "explore"],
-  [/\bdelving into\b/gi, "exploring"],
-
-  // Double-space cleanup after deletions
-  [/  +/g, " "],
-  // Leading space at start of line after deletion
-  [/^ /gm, ""],
-  // Empty lines introduced by deletions (3+ newlines → 2)
-  [/\n{3,}/g, "\n\n"],
+const FIXES = [
+  // Em dashes (spaced or unspaced) → comma separator
+  { pattern: /\s*—\s*/g, replacement: ", ", label: "em dash removed" },
+  // En dashes (spaced or unspaced) → simple hyphen
+  { pattern: /\s*–\s*/g, replacement: " - ", label: "en dash removed" },
+  // Curly/smart double quotes → straight (MDX safe)
+  { pattern: /[""]/g, replacement: '"', label: "smart double quotes" },
+  // Smart apostrophes between word characters only
+  {
+    pattern: /(\w)[''](\w)/g,
+    replacement: "$1'$2",
+    label: "smart apostrophes",
+  },
+  // Ellipsis character → three dots
+  { pattern: /…/g, replacement: "...", label: "ellipsis character" },
+  // Double hyphens → single hyphen (negative lookaround protects --- YAML fences)
+  { pattern: /(?<!-)--(?!-)/g, replacement: "-", label: "double hyphens" },
+  // Double spaces (not at line start — preserves indentation)
+  { pattern: /([^\n ]) {2,}/g, replacement: "$1 ", label: "double spaces" },
+  // Trailing whitespace
+  { pattern: /[ \t]+$/gm, replacement: "", label: "trailing whitespace" },
+  // Filler opener phrases at start of paragraph
+  {
+    pattern:
+      /^(It'?s worth noting that|It is worth noting that|As we can see,?|In conclusion,?|In today'?s world,?),?\s*/gim,
+    replacement: "",
+    label: "filler opener",
+  },
 ];
 
-function splitFrontmatter(content) {
-  // Only process the body — leave YAML frontmatter untouched
-  const match = content.match(/^(---\n[\s\S]*?\n---\n)([\s\S]*)$/);
-  if (match) return { frontmatter: match[1], body: match[2] };
-  return { frontmatter: "", body: content };
+/**
+ * Split content into alternating [prose, code, prose, code, ...] segments.
+ * Code fences (``` or ~~~) are returned as-is; prose segments get fixes applied.
+ */
+function splitSegments(content) {
+  const segments = [];
+  const fenceRe = /^(`{3,}|~{3,})[^\n]*\n[\s\S]*?\n\1[ \t]*$/gm;
+  let last = 0;
+  let match;
+
+  while ((match = fenceRe.exec(content)) !== null) {
+    if (match.index > last) {
+      segments.push({ text: content.slice(last, match.index), isCode: false });
+    }
+    segments.push({ text: match[0], isCode: true });
+    last = match.index + match[0].length;
+  }
+  if (last < content.length) {
+    segments.push({ text: content.slice(last), isCode: false });
+  }
+  return segments;
 }
 
 async function cleanFile(filePath) {
-  const raw = await readFile(filePath, "utf-8");
-  const { frontmatter, body } = splitFrontmatter(raw);
+  const original = await readFile(filePath, "utf8");
+  const segments = splitSegments(original);
+  const applied = new Set();
 
-  let cleaned = body;
-  for (const [pattern, replacement] of REPLACEMENTS) {
-    cleaned = cleaned.replace(pattern, replacement);
+  const cleaned = segments.map((seg) => {
+    if (seg.isCode) return seg.text;
+    let text = seg.text;
+    for (const fix of FIXES) {
+      const before = text;
+      text = text.replace(fix.pattern, fix.replacement);
+      if (text !== before) applied.add(fix.label);
+    }
+    return text;
+  });
+
+  const result = cleaned.join("");
+
+  if (result === original) {
+    console.log(`  ✓ ${filePath} — no changes`);
+    return;
   }
 
-  const result = frontmatter + cleaned;
-  if (result === raw) return false;
-
-  await writeFile(filePath, result, "utf-8");
-  return true;
+  await writeFile(filePath, result, "utf8");
+  console.log(`  ✎ ${filePath}`);
+  for (const label of applied) console.log(`      fixed: ${label}`);
 }
 
 async function main() {
-  let files;
-  try {
-    files = (await readdir(BLOG_DIR)).filter((f) => f.endsWith(".md"));
-  } catch {
-    console.error(`Directory not found: ${BLOG_DIR}`);
+  const args = process.argv.slice(2);
+  if (!args.length) {
+    console.error("Usage: npm run clean -- <file.mdx> [file2.mdx ...]");
     process.exit(1);
   }
 
-  let changed = 0;
-  for (const file of files) {
-    const wasChanged = await cleanFile(join(BLOG_DIR, file));
-    if (wasChanged) {
-      console.log(`  cleaned: ${file}`);
-      changed++;
+  const files = [];
+  for (const arg of args) {
+    if (arg.includes("*")) {
+      for await (const f of glob(arg)) files.push(f);
+    } else {
+      files.push(arg);
     }
   }
 
-  if (changed === 0) {
-    console.log("No AI artifacts found in blog content.");
-  } else {
-    console.log(`\n${changed} file(s) updated.`);
+  if (!files.length) {
+    console.log("No files matched.");
+    return;
   }
+
+  console.log(`\nCleaning ${files.length} file(s)...\n`);
+  for (const f of files) await cleanFile(f);
+  console.log("\nDone.");
 }
 
 main().catch((e) => {
-  console.error(e.message);
+  console.error(e);
   process.exit(1);
 });

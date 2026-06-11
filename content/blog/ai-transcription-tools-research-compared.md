@@ -2,12 +2,12 @@
 title: "AI Transcription Tools for Research Compared: Otter.ai, Whisper, Gladia, and More (2026)"
 date: "2026-06-11"
 slug: "ai-transcription-tools-research-compared"
-description: "A practical comparison of Otter.ai, Whisper, Gladia, Rev, and HumanLogs for PhD students and qualitative researchers — accuracy on real interview audio, GDPR compliance, pricing, and QDA software compatibility."
+description: "A practical comparison of Otter.ai, Whisper, Gladia, Rev, and HumanLogs for PhD students and qualitative researchers, accuracy on real interview audio, GDPR compliance, pricing, and QDA software compatibility."
 author: "HumanLogs Team"
 tags: [transcription, qualitative-research, research, GDPR, productivity]
 ---
 
-Every few months a thread appears on r/PhD asking which transcription tool people actually use — and every time, it gets hundreds of responses. Some people swear by Otter.ai. Others insist on running Whisper locally. A few mention tools that most readers have never heard of.
+Every few months a thread appears on r/PhD asking which transcription tool people actually use, and every time, it gets hundreds of responses. Some people swear by Otter.ai. Others insist on running Whisper locally. A few mention tools that most readers have never heard of.
 
 The reason these threads keep happening is that most comparison articles are written for business use cases (meetings, note-taking) and miss the specific requirements of interview research: accuracy on conversational audio with non-native speakers, compliance with IRB and GDPR requirements, and output formats that work with NVivo, Atlas.ti, or MAXQDA.
 
@@ -17,9 +17,9 @@ This is that comparison, written specifically for researchers.
 
 Before the tools: here's what makes interview research different from transcribing a meeting.
 
-**Accuracy on difficult audio.** Research interviews happen in imperfect conditions — participants speak with accents, hesitate, trail off, talk over each other. "95% word error rate" benchmarks are typically measured on clean, standard-accent studio audio. The tools vary enormously when you test them on a real 45-minute interview recorded on a laptop microphone in a participant's kitchen.
+**Accuracy on difficult audio.** Research interviews happen in imperfect conditions, participants speak with accents, hesitate, trail off, talk over each other. "95% word error rate" benchmarks are typically measured on clean, standard-accent studio audio. The tools vary enormously when you test them on a real 45-minute interview recorded on a laptop microphone in a participant's kitchen.
 
-**Speaker diarization you can trust.** Speaker misattribution — the system assigning a quote to the wrong participant — is not just an annoyance. In qualitative analysis, attributing a quote to the wrong person can distort coding and invalidate findings. Good diarization matters.
+**Speaker diarization you can trust.** Speaker misattribution, the system assigning a quote to the wrong participant, is not just an annoyance. In qualitative analysis, attributing a quote to the wrong person can distort coding and invalidate findings. Good diarization matters.
 
 **Compliance documentation.** Your IRB or ethics committee cares where the audio goes, who can access it, and whether the provider trains models on your data. "We use industry-standard security" is not a sufficient answer.
 
@@ -35,7 +35,7 @@ The most widely-known name in AI transcription, and the one that comes up most o
 
 **Accuracy:** Strong on clear English, noticeably worse on accented speech and technical vocabulary. In informal testing on interview audio with non-native English speakers, accuracy drops to the low-to-mid eighties. Diarization is generally good when speakers have distinct voices and microphone channels.
 
-**Privacy and compliance:** This is where researchers need to pause. Otter.ai is a US company with servers in the US. Audio uploaded by EU researchers is processed under US jurisdiction — including the CLOUD Act, which allows US law enforcement to request data from US companies regardless of where the data subject is located. Otter.ai does not offer a Data Processing Agreement (DPA) on standard or Pro plans. In August 2025, a class-action lawsuit (*Brewer v. Otter.ai*) alleged the company used uploaded audio to train machine learning models without user consent. The case is ongoing. Multiple US universities, including Ohio State, issued advisories recommending researchers stop using Otter.ai for IRB-approved studies.
+**Privacy and compliance:** This is where researchers need to pause. Otter.ai is a US company with servers in the US. Audio uploaded by EU researchers is processed under US jurisdiction, including the CLOUD Act, which allows US law enforcement to request data from US companies regardless of where the data subject is located. Otter.ai does not offer a Data Processing Agreement (DPA) on standard or Pro plans. In August 2025, a class-action lawsuit (*Brewer v. Otter.ai*) alleged the company used uploaded audio to train machine learning models without user consent. The case is ongoing. Multiple US universities, including Ohio State, issued advisories recommending researchers stop using Otter.ai for IRB-approved studies.
 
 **Pricing:** Free tier (600 minutes/month), Pro at $16.99/month (1,200 minutes), Business at $30/month.
 
@@ -51,9 +51,9 @@ OpenAI released Whisper as open-source in 2022 and it remains the standard compa
 
 **Accuracy:** Excellent, particularly on accented speech and non-English languages. For many researchers working with minority languages or thick regional accents, Whisper is the only option with acceptable accuracy. The large-v3 model is the current best version.
 
-**Privacy:** Because you run it locally, nothing leaves your machine. This is the strongest possible privacy posture — no third party sees your audio.
+**Privacy:** Because you run it locally, nothing leaves your machine. This is the strongest possible privacy posture, no third party sees your audio.
 
-**Practical limitations:** Running Whisper meaningfully fast requires a GPU with at least 8GB VRAM. On a MacBook Air M2, transcribing one hour of audio takes approximately 20–25 minutes (tolerable). On a CPU-only Windows laptop, the same job can take 2–3 hours. Speaker diarization requires a separate library (pyannote.audio) with its own setup and licensing requirements.
+**Practical limitations:** Running Whisper meaningfully fast requires a GPU with at least 8GB VRAM. On a MacBook Air M2, transcribing one hour of audio takes approximately 20 - 25 minutes (tolerable). On a CPU-only Windows laptop, the same job can take 2 - 3 hours. Speaker diarization requires a separate library (pyannote.audio) with its own setup and licensing requirements.
 
 **Pricing:** Free (compute costs only).
 
@@ -71,7 +71,7 @@ Gladia is a French AI company offering a transcription API built on Whisper-clas
 
 **Privacy and compliance:** Servers in the EU. No audio retention after processing. DPA available. The company explicitly targets research and medical use cases in their documentation.
 
-**Pricing:** API access billed per hour of audio, approximately $0.54/hour. No monthly subscription — you pay for what you use.
+**Pricing:** API access billed per hour of audio, approximately $0.54/hour. No monthly subscription, you pay for what you use.
 
 **QDA export:** JSON and SRT formats with speaker labels and timestamps. Not a direct NVivo importer but structured enough to convert with minimal effort.
 
@@ -83,7 +83,7 @@ Gladia is a French AI company offering a transcription API built on Whisper-clas
 
 ### Rev
 
-Rev is the professional transcription service — both human and AI options — that has been around the longest.
+Rev is the professional transcription service, both human and AI options, that has been around the longest.
 
 **Accuracy:** The AI product is competitive. The human transcription option consistently outperforms all AI options on difficult audio (strong accents, technical jargon, multiple overlapping speakers). Human transcription is the only option some IRBs will accept for sensitive studies.
 
@@ -117,13 +117,13 @@ Good Tape is a Danish company that built a transcription tool specifically for j
 
 Full disclosure: this is our own tool. We've included it because researchers keep asking us how it compares.
 
-**Accuracy:** Uses Gladia (EU-based) and ElevenLabs Scribe as backends, selectable per study based on data residency requirements. Accuracy is equivalent to those underlying models — 95–98% on clean audio, slightly lower on difficult conditions.
+**Accuracy:** Uses Gladia (EU-based) and ElevenLabs Scribe as backends, selectable per study based on data residency requirements. Accuracy is equivalent to those underlying models, 95 - 98% on clean audio, slightly lower on difficult conditions.
 
 **Privacy:** EU servers, zero audio retention, DPA available, open-source code auditable on GitHub (AGPL v3). Optional end-to-end encryption: audio is encrypted on your device before upload using AES-GCM with RSA-OAEP key wrapping, so the server processes an encrypted blob it cannot read. This means even a server breach or legal subpoena cannot expose your participants' audio.
 
 **Pricing:** Credit-based system (1 credit = 1 minute of audio). Free tier available; paid credits can be purchased or earned via referrals.
 
-**QDA export:** Transcript editor with clickable timestamps synced to audio. Text export preserves speaker labels and timestamps. Not yet a direct import format for NVivo/MAXQDA — plain text with speaker labels that requires minor reformatting.
+**QDA export:** Transcript editor with clickable timestamps synced to audio. Text export preserves speaker labels and timestamps. Not yet a direct import format for NVivo/MAXQDA, plain text with speaker labels that requires minor reformatting.
 
 **Verdict:** Best fit for EU-based research or any study where privacy documentation matters (sensitive populations, clinical research, trauma studies). The E2E encryption option is, as far as we know, unique in this category of tools.
 
@@ -157,7 +157,7 @@ The differences between tools become much clearer on the passages that matter fo
 
 ## What about cost at scale?
 
-A typical PhD dissertation with 20 interviews of 60 minutes each — a common design — means 20 hours of audio. Here's what that costs across tools:
+A typical PhD dissertation with 20 interviews of 60 minutes each, a common design, means 20 hours of audio. Here's what that costs across tools:
 
 | Tool | 20 hours | 60 hours |
 |------|----------|----------|
@@ -165,7 +165,7 @@ A typical PhD dissertation with 20 interviews of 60 minutes each — a common de
 | Whisper (local) | $0 | $0 |
 | Gladia | ~$10.80 | ~$32.40 |
 | Rev (AI) | $300 | $900 |
-| Good Tape | ~$20/month | ~$20–40/month |
+| Good Tape | ~$20/month | ~$20 - 40/month |
 | HumanLogs | Free tier / low credits | Moderate credits |
 
 The cost gap between self-hosted/EU-compliant options and professional human transcription is enormous. For most PhD students, the decision is between "free but complex" (Whisper), "low cost and EU-compliant" (Gladia/HumanLogs), and "familiar but risky" (Otter.ai).

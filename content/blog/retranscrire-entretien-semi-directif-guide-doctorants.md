@@ -7,13 +7,13 @@ author: "HumanLogs Team"
 tags: [recherche-qualitative, entretien-semi-directif, doctorat, transcription, RGPD]
 ---
 
-La retranscription d'entretiens représente l'une des tâches les plus chronophages de la recherche qualitative. Comptez traditionnellement **4 à 6 heures de travail pour chaque heure d'enregistrement** — soit deux semaines de travail pour vingt entretiens d'une heure. Pourtant, la plupart des mémoires de master et des thèses de doctorat en sciences humaines et sociales passent par là.
+La retranscription d'entretiens représente l'une des tâches les plus chronophages de la recherche qualitative. Comptez traditionnellement **4 à 6 heures de travail pour chaque heure d'enregistrement**, soit deux semaines de travail pour vingt entretiens d'une heure. Pourtant, la plupart des mémoires de master et des thèses de doctorat en sciences humaines et sociales passent par là.
 
 Ce guide vous donne la méthode complète : qu'est-ce qu'une retranscription verbatim, comment la structurer, quelles conventions utiliser, et comment les outils d'IA actuels permettent de réduire ce temps de 70 à 80 % sans sacrifier la rigueur scientifique.
 
 ## Pourquoi la retranscription est-elle indispensable ?
 
-L'entretien semi-directif — ni entièrement libre, ni rigidement structuré — est la méthode de collecte de données qualitatives la plus utilisée en sciences sociales, en psychologie, en éducation et en anthropologie. Contrairement au questionnaire quantitatif, il produit un discours riche, nuancé, ancré dans le vécu du participant.
+L'entretien semi-directif, ni entièrement libre, ni rigidement structuré, est la méthode de collecte de données qualitatives la plus utilisée en sciences sociales, en psychologie, en éducation et en anthropologie. Contrairement au questionnaire quantitatif, il produit un discours riche, nuancé, ancré dans le vécu du participant.
 
 Mais ce discours n'est analysable que mis à l'écrit. La retranscription :
 
@@ -33,7 +33,7 @@ C'est la norme en sciences humaines rigoureuses. Vous transcrivez **tout ce qui 
 - Les rires, pleurs, silences longs
 - Les chevauchements de parole en entretien collectif
 
-Le verbatim intégral est indispensable quand votre analyse porte sur *comment* les choses sont dites — en analyse du discours, en sociologie interactionniste, ou quand vous codez des processus affectifs.
+Le verbatim intégral est indispensable quand votre analyse porte sur *comment* les choses sont dites, en analyse du discours, en sociologie interactionniste, ou quand vous codez des processus affectifs.
 
 ### Verbatim normalisé (ou épuré)
 
@@ -79,7 +79,7 @@ Utilisez un **tableau de correspondance** (nom réel → pseudonyme) conservé s
 4. Anonymiser
 5. Formater et intégrer au corpus
 
-**Temps estimé : 4 à 6 heures par heure d'enregistrement.** Multiplié par 15 entretiens d'une heure, c'est entre 60 et 90 heures de travail mécanique — soit 2 à 3 semaines à plein temps, pendant lesquelles vous n'analysez pas.
+**Temps estimé : 4 à 6 heures par heure d'enregistrement.** Multiplié par 15 entretiens d'une heure, c'est entre 60 et 90 heures de travail mécanique, soit 2 à 3 semaines à plein temps, pendant lesquelles vous n'analysez pas.
 
 ### Workflow avec transcription automatique
 
@@ -89,7 +89,7 @@ Utilisez un **tableau de correspondance** (nom réel → pseudonyme) conservé s
 4. Anonymiser
 5. Exporter vers NVivo / MAXQDA / Atlas.ti
 
-**Temps estimé : 30 à 60 minutes par heure d'enregistrement**, selon la qualité audio et le niveau de verbatim souhaité. Les mêmes 15 entretiens passent de 75 heures à environ 10-15 heures — une semaine rendue.
+**Temps estimé : 30 à 60 minutes par heure d'enregistrement**, selon la qualité audio et le niveau de verbatim souhaité. Les mêmes 15 entretiens passent de 75 heures à environ 10-15 heures, une semaine rendue.
 
 La clé est l'étape 3 : la correction est radicalement plus rapide avec un **éditeur audio-lié**, où cliquer sur un mot dans le texte fait sauter l'audio à ce moment précis. Sans cela, corriger un brouillon automatique revient au même effort que la transcription manuelle.
 
@@ -131,7 +131,7 @@ Pour la correction d'un brouillon IA, vous *vérifiez*, vous ne dictez pas. Éco
 
 ### Corrigez par blocs de 45 minutes
 
-La précision de correction chute nettement après 45-60 minutes de travail continu. Mieux vaut trois séances de 45 minutes qu'une session de 3 heures — vous obtiendrez un texte plus propre.
+La précision de correction chute nettement après 45-60 minutes de travail continu. Mieux vaut trois séances de 45 minutes qu'une session de 3 heures, vous obtiendrez un texte plus propre.
 
 ### Traitez les passages inaudibles en un seul passage
 
@@ -149,6 +149,6 @@ HumanLogs exporte dans ces formats avec les labels de locuteurs (Enquêteur / In
 
 ---
 
-La retranscription n'est pas une corvée à subir : c'est une première immersion dans vos données. La faire rapidement et proprement — avec les bons outils — vous libère du temps pour ce qui compte vraiment dans une thèse : l'analyse, l'interprétation, l'écriture.
+La retranscription n'est pas une corvée à subir : c'est une première immersion dans vos données. La faire rapidement et proprement, avec les bons outils, vous libère du temps pour ce qui compte vraiment dans une thèse : l'analyse, l'interprétation, l'écriture.
 
 *Des questions sur la retranscription pour votre projet de recherche spécifique ? [Contactez-nous](/contact) ou consultez notre [guide sur la protection des données en recherche qualitative](/use-cases/research).*

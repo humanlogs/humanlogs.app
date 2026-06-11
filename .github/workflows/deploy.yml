@@ -50,7 +50,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Clean AI artifacts from blog content
-        run: node scripts/clean-ai-artifacts.mjs
+        run: node scripts/clean-ai-artifacts.mjs content/blog/*
 
       - name: Build and Tag Docker Image
         run: |
