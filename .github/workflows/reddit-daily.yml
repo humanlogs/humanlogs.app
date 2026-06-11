@@ -65,7 +65,7 @@ jobs:
           echo "## Reddit Scout — r/${{ env.SUBREDDIT }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```json' >> $GITHUB_STEP_SUMMARY
-          cat posts/scouted/${{ env.SUBREDDIT },,}.json | python3 -c "
+          cat posts/scouted/${SUBREDDIT,,}.json | python3 -c "
           import sys, json
           d = json.load(sys.stdin)
           print(json.dumps({k: d[k] for k in ['subreddit','about','selfPromoPolicy','hot','topMonth']}, indent=2))
