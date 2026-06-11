@@ -194,8 +194,6 @@ function mapGladiaToTranscriptionResult(payload: any): TranscriptionResult {
 
       if (utterance.words && Array.isArray(utterance.words)) {
         for (const word of utterance.words) {
-          // Filter out low-confidence words (below 90%)
-          if (word.confidence !== undefined && word.confidence < 0.9) continue;
           words.push({
             text: word.word || "",
             start: word.start || 0,
