@@ -1,0 +1,22 @@
+{
+  "name": "growth",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "keywords": "tsx keywords.ts",
+    "topic": "tsx select-topic.ts",
+    "morning": "tsx morning-report.ts",
+    "reddit": "tsx reddit-cli.ts",
+    "clean": "tsx clean-md.ts",
+    "report": "tsx analyze-properties.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "@types/node": "^22.9.0"
+  }
+}
