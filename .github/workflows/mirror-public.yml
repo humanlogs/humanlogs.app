@@ -25,11 +25,14 @@ jobs:
         run: |
           PRIVATE_PATHS=(
             "app/(landing)"
+            "app/sitemap.ts"
             "public/landing"
             ".github/workflows"
             "content/blog"
             "growth"
             "pipeline"
+            ".claude"
+            ".vscode"
           )
 
           CHANGED=false
