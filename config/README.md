@@ -94,3 +94,7 @@ See `config/default.json` for the full configuration structure:
 - `aws` - AWS S3 settings for file storage
 - `elevenlabs` - ElevenLabs API key for transcription
 - `server` - Server configuration
+- `stats` - Stats export endpoint (`stats.apiToken` / `STATS_API_TOKEN`).
+  Set a token to enable the token-protected `GET /api/stats` JSON export used
+  by the marketing pipeline (`pipeline/stats-report.ts`). Leave it empty and
+  the endpoint stays disabled (404).

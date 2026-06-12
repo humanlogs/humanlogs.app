@@ -9,7 +9,8 @@
     "morning": "tsx morning-report.ts",
     "reddit": "tsx reddit-cli.ts",
     "clean": "tsx clean-md.ts",
-    "report": "tsx analyze-properties.ts"
+    "report": "tsx analyze-properties.ts",
+    "stats": "tsx stats-report.ts"
   },
   "dependencies": {
     "dotenv": "^16.4.5"
