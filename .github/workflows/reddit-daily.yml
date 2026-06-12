@@ -1,9 +1,6 @@
 name: Reddit Daily Scout + Draft
 
 on:
-  schedule:
-    # Tous les jours à 8h UTC
-    - cron: "0 8 * * *"
   workflow_dispatch:
     inputs:
       subreddit:
