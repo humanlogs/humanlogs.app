@@ -51,7 +51,18 @@ export async function GET(request: NextRequest) {
 
   try {
     const stats = await getAppStats();
-    return NextResponse.json(stats);
+
+    // Strip PII: the export must not carry user emails/names. Feedback
+    // content (type, rating, message) is kept, but the attached user is not.
+    const sanitized = {
+      ...stats,
+      feedback: {
+        ...stats.feedback,
+        recent: stats.feedback.recent.map(({ user: _user, ...rest }) => rest),
+      },
+    };
+
+    return NextResponse.json(sanitized);
   } catch (error) {
     console.error("Error fetching stats export:", error);
     return NextResponse.json(
