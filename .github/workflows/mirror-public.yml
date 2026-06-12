@@ -29,6 +29,7 @@ jobs:
             ".github/workflows"
             "content/blog"
             "growth"
+            "pipeline"
           )
 
           CHANGED=false
