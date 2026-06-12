@@ -78,5 +78,8 @@
     "server": {
         "publicUrl": "NEXT_PUBLIC_APP_URL",
         "port": "SERVER_PORT"
+    },
+    "stats": {
+        "apiToken": "STATS_API_TOKEN"
     }
 }

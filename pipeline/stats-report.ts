@@ -1,7 +1,11 @@
 /**
  * Fetch stats export and generate an HTML report.
  *
- *   STATS_API_URL=https://... tsx stats-report.ts
+ *   STATS_API_URL=https://humanlogs.app/api/stats tsx stats-report.ts
+ *
+ * The endpoint is token-protected. Provide the token either by embedding it in
+ * the URL (STATS_API_URL=https://humanlogs.app/api/stats?token=...) or via the
+ * STATS_API_TOKEN env var, which is sent as an `Authorization: Bearer` header.
  *
  * Writes pipeline/out/stats-report.html and a plain-text summary to stdout
  * (used as GitHub Step Summary via >> $GITHUB_STEP_SUMMARY).
@@ -25,7 +29,11 @@ if (!STATS_API_URL) {
 // ---------------------------------------------------------------------------
 
 async function fetchStats(): Promise<unknown> {
-  const res = await fetch(STATS_API_URL!);
+  const token = process.env.STATS_API_TOKEN;
+  const headers: Record<string, string> = token
+    ? { Authorization: `Bearer ${token}` }
+    : {};
+  const res = await fetch(STATS_API_URL!, { headers });
   if (!res.ok) throw new Error(`API returned ${res.status} ${res.statusText}`);
   return res.json();
 }
