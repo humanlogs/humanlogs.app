@@ -70,7 +70,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add pipeline/data
+          git add pipeline/data || true
           if git diff --cached --quiet; then
             echo "No research data changes to persist."
             exit 0
