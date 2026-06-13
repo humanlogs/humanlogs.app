@@ -23,6 +23,21 @@ jobs:
         with:
           node-version: 22
 
+      # Cross-run memory for the credit-costing DataForSEO results.
+      # Restored BEFORE the pipeline runs and immune to git push failures
+      # (branch protection, push races, rebase conflicts), so pipeline/data
+      # survives even when the persist push doesn't and the next run reuses
+      # it instead of re-paying DataForSEO. The unique key never pre-exists,
+      # so the cache is always re-saved at the end; restore-keys pulls the
+      # most recent previous cache.
+      - name: Restore SEO data cache (candidates + SERP cache)
+        uses: actions/cache@v4
+        with:
+          path: pipeline/data
+          key: seo-data-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            seo-data-
+
       - name: Install pipeline dependencies
         run: cd pipeline && npm install
 
@@ -60,7 +75,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: seo-research-out
-          path: pipeline/out/
+          path: |
+            pipeline/out/
+            pipeline/data/
 
       # pipeline/data/ holds everything that costs DataForSEO credits
       # (candidates.json, serp-cache). Commit it back so the next run —
@@ -76,5 +93,5 @@ jobs:
             exit 0
           fi
           git commit -m "chore(seo): refresh research data [skip ci]"
-          git pull --rebase origin "$GITHUB_REF_NAME"
+          git pull --rebase --autostash origin "$GITHUB_REF_NAME"
           git push origin "HEAD:$GITHUB_REF_NAME"
