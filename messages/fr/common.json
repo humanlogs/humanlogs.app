@@ -73,7 +73,10 @@
         "rename": "Renommer",
         "provider": "Modèle",
         "providerEu": "🇪🇺 Modèles EU (90% précision)",
-        "providerUs": "🇺🇸 Modèles US (99% précision)"
+        "providerUs": "🇺🇸 Modèles US (99% précision)",
+        "euDurationLimitTitle": "Audio trop long pour les modèles EU",
+        "euDurationLimitDescription": "Les modèles EU acceptent les fichiers jusqu'à {minutes} minutes. Veuillez retirer ou découper le(s) fichier(s) suivant(s), ou basculer sur les modèles US : {files}",
+        "euDurationLimitError": "Les modèles EU acceptent les fichiers jusqu'à {minutes} minutes. Veuillez retirer ou découper le fichier, ou basculer sur les modèles US."
     },
     "feedback": {
         "title": "Vous aimez notre application ?",
