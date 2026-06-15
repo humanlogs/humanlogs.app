@@ -44,6 +44,9 @@ type AudioFile = {
   size: number;
 };
 
+// EU (Gladia) servers reject audio longer than this per file.
+const EU_MAX_DURATION_SECONDS = 8100;
+
 const supportedLanguages = {
   bel: "Belarusian",
   bos: "Bosnian",
@@ -239,6 +242,22 @@ export default function NewTranscriptionPage() {
   // Whether to offer the EU/US choice (both providers configured on this deployment)
   const showProviderChoice =
     !!user?.availableSttProviders?.eu && !!user?.availableSttProviders?.us;
+
+  // The provider that will actually be used for this transcription. When the
+  // user can choose, it follows their selection; otherwise it's whichever
+  // provider is configured on this deployment.
+  const effectiveProvider: "eu" | "us" = showProviderChoice
+    ? provider
+    : user?.availableSttProviders?.us && !user?.availableSttProviders?.eu
+      ? "us"
+      : "eu";
+
+  // Files that exceed the EU per-file duration limit (only relevant on EU).
+  const oversizedEuFiles =
+    effectiveProvider === "eu"
+      ? audioFiles.filter((f) => (f.duration || 0) > EU_MAX_DURATION_SECONDS)
+      : [];
+  const hasOversizedEuFiles = oversizedEuFiles.length > 0;
 
   // Calculate audio duration
   const loadAudioDuration = async (file: File): Promise<number> => {
@@ -481,6 +500,15 @@ export default function NewTranscriptionPage() {
 
     if (!hasEnoughCredits) {
       toast.error(t("insufficientCredits"));
+      return;
+    }
+
+    if (hasOversizedEuFiles) {
+      toast.error(
+        t("euDurationLimitError", {
+          minutes: Math.floor(EU_MAX_DURATION_SECONDS / 60),
+        }),
+      );
       return;
     }
 
@@ -747,6 +775,20 @@ export default function NewTranscriptionPage() {
             </div>
           </div>
 
+          {/* EU duration limit warning */}
+          {hasOversizedEuFiles && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>{t("euDurationLimitTitle")}</AlertTitle>
+              <AlertDescription>
+                {t("euDurationLimitDescription", {
+                  minutes: Math.floor(EU_MAX_DURATION_SECONDS / 60),
+                  files: oversizedEuFiles.map((f) => f.name).join(", "),
+                })}
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Submit Button */}
           <div className="flex justify-end items-center gap-2 flex-wrap">
             {estimatedCredits > 0 && (
@@ -778,7 +820,10 @@ export default function NewTranscriptionPage() {
               size="lg"
               variant={"primary"}
               disabled={
-                audioFiles.length === 0 || !hasEnoughCredits || isSubmitting
+                audioFiles.length === 0 ||
+                !hasEnoughCredits ||
+                hasOversizedEuFiles ||
+                isSubmitting
               }
             >
               {isSubmitting ? t("processing") : t("startTranscription")}

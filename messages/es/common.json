@@ -73,7 +73,10 @@
         "rename": "Renombrar",
         "provider": "Modelo",
         "providerEu": "🇪🇺 EU Modelo (90%)",
-        "providerUs": "🇺🇸 US Modelo (99%)"
+        "providerUs": "🇺🇸 US Modelo (99%)",
+        "euDurationLimitTitle": "Audio demasiado largo para los modelos UE",
+        "euDurationLimitDescription": "Los modelos UE aceptan archivos de hasta {minutes} minutos. Elimina o divide el/los siguiente(s) archivo(s), o cambia a los modelos US: {files}",
+        "euDurationLimitError": "Los modelos UE aceptan archivos de hasta {minutes} minutos. Elimina o divide el archivo, o cambia a los modelos US."
     },
     "feedback": {
         "title": "Comentarios y Opiniones",

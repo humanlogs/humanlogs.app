@@ -73,7 +73,10 @@
         "rename": "Umbenennen",
         "provider": "Modell",
         "providerEu": "🇪🇺 EU Modell (90%)",
-        "providerUs": "🇺🇸 US Modell (99%)"
+        "providerUs": "🇺🇸 US Modell (99%)",
+        "euDurationLimitTitle": "Audio zu lang für EU-Modelle",
+        "euDurationLimitDescription": "EU-Modelle akzeptieren Dateien mit einer Länge von bis zu {minutes} Minuten. Bitte entferne oder teile die folgende(n) Datei(en) oder wechsle zu den US-Modellen: {files}",
+        "euDurationLimitError": "EU-Modelle akzeptieren Dateien mit einer Länge von bis zu {minutes} Minuten. Bitte entferne oder teile die Datei oder wechsle zu den US-Modellen."
     },
     "feedback": {
         "title": "Feedback & Bewertungen",
