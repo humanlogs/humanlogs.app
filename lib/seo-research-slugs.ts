@@ -125,6 +125,18 @@ export const EN_SEO_SLUGS: SeoSlugConfig[] = [
     },
   },
 
+  {
+    slug: "transcription-tool-ux-research-user-interviews",
+    tier: 1,
+    keywords: {
+      primary: "transcription tool for UX research user interviews",
+      secondary: [
+        "UX research transcription software",
+        "user interview transcription encrypted",
+      ],
+    },
+  },
+
   // TIER 3
   {
     slug: "best-free-transcription-software-researchers",
@@ -199,6 +211,18 @@ export const FR_SEO_SLUGS: SeoSlugConfig[] = [
       secondary: [
         "transcription chiffrée bout en bout",
         "transcription cryptée entretiens",
+      ],
+    },
+  },
+
+  {
+    slug: "transcription-psychologie-clinique-confidentielle",
+    tier: 1,
+    keywords: {
+      primary: "logiciel transcription psychologie clinique confidentielle",
+      secondary: [
+        "transcription entretiens psychologie RGPD",
+        "logiciel transcription psychologue chiffré",
       ],
     },
   },

@@ -136,6 +136,13 @@ export const LandingHeader = () => {
           </div>
 
           <Link
+            href="/blog"
+            className="text-sm font-medium text-black transition-colors hover:text-black"
+          >
+            {t("nav.blog")}
+          </Link>
+
+          <Link
             href="/contact"
             className="text-sm font-medium text-black transition-colors hover:text-black"
           >

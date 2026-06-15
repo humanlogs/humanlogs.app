@@ -1,0 +1,94 @@
+{
+  "pillars": [
+    {
+      "name": "transcription",
+      "productFit": 1.0,
+      "seeds": [
+        "transcription entretien",
+        "retranscrire audio",
+        "logiciel de transcription",
+        "transcription automatique",
+        "transcription vocale",
+        "transcription audio en texte",
+        "retranscription entretien",
+        "outil transcription"
+      ]
+    },
+    {
+      "name": "recherche-qualitative",
+      "productFit": 0.9,
+      "seeds": [
+        "recherche qualitative",
+        "entretien semi-directif",
+        "analyse qualitative",
+        "methode qualitative",
+        "codification entretien",
+        "analyse verbatim",
+        "logiciel analyse qualitative"
+      ]
+    },
+    {
+      "name": "these-master",
+      "productFit": 0.85,
+      "seeds": [
+        "transcription these",
+        "doctorant entretien",
+        "master recherche these",
+        "memoire entretien semi-directif",
+        "methodologie these qualitative",
+        "doctorat sciences sociales"
+      ]
+    },
+    {
+      "name": "confidentialite-recherche",
+      "productFit": 0.95,
+      "seeds": [
+        "RGPD transcription",
+        "protection donnees recherche",
+        "transcription confidentielle",
+        "confidentialite entretien recherche",
+        "donnees qualitatives RGPD",
+        "hebergement donnees France recherche"
+      ]
+    },
+    {
+      "name": "productivite-recherche",
+      "productFit": 0.8,
+      "seeds": [
+        "gagner du temps these",
+        "outils doctorant",
+        "productivite chercheur",
+        "automatiser transcription",
+        "intelligence artificielle recherche",
+        "IA transcription recherche"
+      ]
+    },
+    {
+      "name": "entretien-terrain",
+      "productFit": 0.75,
+      "seeds": [
+        "entretien qualitatif",
+        "guide entretien recherche",
+        "entretien focus groupe",
+        "interview recherche qualitative",
+        "recueil donnees qualitatives",
+        "saturation theorique entretien"
+      ]
+    }
+  ],
+  "subreddits": [
+    "PhD",
+    "GradSchool",
+    "AskAcademia",
+    "qualitativeresearch",
+    "sociology",
+    "SocialScience",
+    "gradadmissions",
+    "france"
+  ],
+  "brandTerms": [
+    "humanlogs",
+    "human logs",
+    "humanlogsapp"
+  ]
+}

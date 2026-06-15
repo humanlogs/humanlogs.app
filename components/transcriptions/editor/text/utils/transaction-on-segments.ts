@@ -121,6 +121,27 @@ const applyReplaceStep = (
   const startSegment = segments[segmentStartIndex];
   const endSegment = segments[segmentEndIndex];
 
+  // Resolve a start timestamp: prefer the replaced slice's own start, then scan
+  // backwards for the nearest preceding timed segment (handles inserted words that
+  // themselves have no timestamps yet).
+  let contextStart: number | undefined = startSegment?.start;
+  if (contextStart === undefined) {
+    for (let i = segmentStartIndex - 1; i >= 0; i--) {
+      const t = segments[i].end ?? segments[i].start;
+      if (t !== undefined) { contextStart = t; break; }
+    }
+  }
+
+  // Resolve an end timestamp: prefer the replaced slice's own end, then scan
+  // forwards for the nearest following timed segment.
+  let contextEnd: number | undefined = endSegment?.end ?? endSegment?.start;
+  if (contextEnd === undefined) {
+    for (let i = segmentEndIndex + 1; i < segments.length; i++) {
+      const t = segments[i].start ?? segments[i].end;
+      if (t !== undefined) { contextEnd = t; break; }
+    }
+  }
+
   if (replacement.length === 0) {
     segments.splice(segmentStartIndex, segmentEndIndex - segmentStartIndex + 1);
   } else {
@@ -130,8 +151,8 @@ const applyReplaceStep = (
       ...matchTimestampsToReplacement(replacedSlice, {
         type: "word",
         text: replacement,
-        start: startSegment?.start ?? 0,
-        end: endSegment?.end ?? startSegment?.end ?? 0,
+        start: contextStart,
+        end: contextEnd,
         speakerId:
           startSegment?.speakerId ?? endSegment?.speakerId ?? "unknown",
       }),

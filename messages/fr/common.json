@@ -72,7 +72,7 @@
         "cancel": "Annuler",
         "rename": "Renommer",
         "provider": "Modèle",
-        "providerEu": "🇪🇺 Modèles EU (95% précision)",
+        "providerEu": "🇪🇺 Modèles EU (90% précision)",
         "providerUs": "🇺🇸 Modèles US (99% précision)"
     },
     "feedback": {

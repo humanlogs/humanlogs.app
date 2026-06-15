@@ -72,7 +72,7 @@
         "cancel": "Cancel",
         "rename": "Rename",
         "provider": "Model",
-        "providerEu": "🇪🇺 EU Models (95% accuracy)",
+        "providerEu": "🇪🇺 EU Models (90% accuracy)",
         "providerUs": "🇺🇸 US Models (99% accuracy)"
     },
     "feedback": {

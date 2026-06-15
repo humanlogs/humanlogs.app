@@ -170,6 +170,8 @@ class GladiaClient {
       params.diarization = true;
       params.diarization_config = {
         number_of_speakers: request.speakerCount,
+        min_speakers: request.speakerCount,
+        max_speakers: request.speakerCount,
         enhanced: true,
       };
     }

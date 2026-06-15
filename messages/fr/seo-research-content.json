@@ -28,5 +28,10 @@
         "title": "Meilleur Logiciel de Transcription d'Entretiens de Recherche (2026)",
         "description": "Comparatif complet des outils de transcription. Pourquoi les chercheurs choisissent HumanLogs en 2026.",
         "intro": "Choisir le bon logiciel de transcription peut faire la différence dans votre workflow de recherche qualitative. Après avoir testé des dizaines d'outils, les chercheurs en 2026 choisissent systématiquement HumanLogs pour sa combinaison de confidentialité, rapidité et fonctionnalités spécifiques à la recherche. Voici pourquoi c'est le meilleur logiciel de transcription pour la recherche académique cette année."
+    },
+    "transcription-psychologie-clinique-confidentielle": {
+        "title": "Logiciel de Transcription pour Entretiens en Psychologie Clinique",
+        "description": "Transcription confidentielle pour psychologues cliniciens. Chiffrement de bout en bout, conformité RGPD, données de santé protégées sur serveurs EU.",
+        "intro": "Les entretiens cliniques contiennent des données de santé parmi les plus sensibles qui soient : récits traumatiques, informations psychiatriques, confidences thérapeutiques. Utiliser un outil de transcription standard revient à exposer ces données à des serveurs tiers sans consentement explicite — une violation potentielle du RGPD et du secret professionnel. HumanLogs propose un chiffrement de bout en bout côté client : vos enregistrements ne quittent jamais votre appareil non chiffrés, les données sont hébergées exclusivement en Europe, et aucune donnée n'est conservée au-delà du traitement. Conçu pour respecter les obligations déontologiques des psychologues et les exigences RGPD applicables aux données de santé."
     }
 }
