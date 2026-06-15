@@ -190,6 +190,15 @@ class GladiaClient {
       };
     }
 
+    // V3 only supports fr/en/de/es/it
+    if (
+      ["eng", "fra", "deu", "ita", "spa"].includes(request.language || "eng")
+    ) {
+      params.model = "solaria-3";
+    } else {
+      params.model = "solaria-1";
+    }
+
     return params;
   }
 
@@ -226,7 +235,9 @@ class GladiaClient {
           `Gladia API error ${response.status} ${response.statusText}:`,
           JSON.stringify(data),
         );
-        throw new Error(`Transcription failed: provider error (${response.status})`);
+        throw new Error(
+          `Transcription failed: provider error (${response.status})`,
+        );
       }
 
       if (!data?.id) {
