@@ -10,17 +10,17 @@
             "model": "Model used: {model}.",
             "button": "View transcription",
             "feedbackErrors": "A quick heads-up: transcription quality can vary depending on the model used, and a few mistakes may remain. HumanLogs is still a young tool, and we're improving it week after week.",
-            "feedbackInvite": "That's exactly why your feedback means so much to us. If something looks off, if you have an idea, a frustration, or simply a question, just reply to this email — we read and personally answer every single message.",
+            "feedbackInvite": "That's exactly why your feedback means so much to us. If something looks off, if you have an idea, a frustration, or simply a question, just reply to this email, we read and personally answer every single message.",
             "signOff": "Looking forward to hearing from you,",
             "signName": "The HumanLogs team"
         },
         "failed": {
             "subject": "There was a problem with your transcription",
             "title": "Transcription failed",
-            "body": "Something went wrong while processing your transcription. You can try again by uploading your file once more — sometimes it's just a hiccup.",
+            "body": "Something went wrong while processing your transcription. You can try again by uploading your file once more, sometimes it's just a hiccup.",
             "model": "Model used: {model}.",
             "button": "View details",
-            "feedbackInvite": "These things can happen depending on the model or the file, and HumanLogs is still a young tool we're improving every week. If it keeps failing — or even if you're just unsure what went wrong — reply directly to this email. We read every message personally and we'll help you get it working.",
+            "feedbackInvite": "These things can happen depending on the model or the file, and HumanLogs is still a young tool we're improving every week. If it keeps failing, or even if you're just unsure what went wrong, reply directly to this email. We read every message personally and we'll help you get it working.",
             "signOff": "Sorry for the hiccup, and talk soon,",
             "signName": "The HumanLogs team"
         }

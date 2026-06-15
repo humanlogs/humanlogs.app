@@ -17,7 +17,7 @@
         "failed": {
             "subject": "Es gab ein Problem mit Ihrer Transkription",
             "title": "Transkription fehlgeschlagen",
-            "body": "Beim Verarbeiten Ihrer Transkription ist etwas schiefgelaufen. Sie können es erneut versuchen, indem Sie Ihre Datei noch einmal hochladen — manchmal ist es nur eine kurze Störung.",
+            "body": "Beim Verarbeiten Ihrer Transkription ist etwas schiefgelaufen. Sie können es erneut versuchen, indem Sie Ihre Datei noch einmal hochladen, manchmal ist es nur eine kurze Störung.",
             "model": "Verwendetes Modell: {model}.",
             "button": "Details ansehen",
             "feedbackInvite": "So etwas kann je nach Modell oder Datei passieren, und HumanLogs ist noch ein junges Tool, das wir jede Woche verbessern. Wenn der Fehler weiterhin auftritt – oder wenn Sie einfach nicht sicher sind, was schiefgelaufen ist – antworten Sie direkt auf diese E-Mail. Wir lesen jede Nachricht persönlich und helfen Ihnen, es zum Laufen zu bringen.",

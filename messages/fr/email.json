@@ -17,10 +17,10 @@
         "failed": {
             "subject": "Un problème avec votre transcription",
             "title": "Échec de la transcription",
-            "body": "Une erreur s'est produite lors du traitement de votre transcription. Vous pouvez réessayer en téléchargeant à nouveau votre fichier — il s'agit parfois d'un simple incident passager.",
+            "body": "Une erreur s'est produite lors du traitement de votre transcription. Vous pouvez réessayer en téléchargeant à nouveau votre fichier, il s'agit parfois d'un simple incident passager.",
             "model": "Modèle utilisé : {model}.",
             "button": "Voir les détails",
-            "feedbackInvite": "Cela peut arriver selon le modèle ou le fichier, et HumanLogs est encore un outil jeune que nous améliorons chaque semaine. Si l'erreur persiste — ou même si vous n'êtes pas sûr de ce qui s'est passé — répondez directement à cet e-mail. Nous lisons chaque message personnellement et nous vous aiderons à le faire fonctionner.",
+            "feedbackInvite": "Cela peut arriver selon le modèle ou le fichier, et HumanLogs est encore un outil jeune que nous améliorons chaque semaine. Si l'erreur persiste, ou même si vous n'êtes pas sûr de ce qui s'est passé, répondez directement à cet e-mail. Nous lisons chaque message personnellement et nous vous aiderons à le faire fonctionner.",
             "signOff": "Au plaisir d'échanger avec vous,",
             "signName": "L'équipe HumanLogs"
         }

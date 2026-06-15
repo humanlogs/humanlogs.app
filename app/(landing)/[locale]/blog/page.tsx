@@ -41,8 +41,8 @@ export default async function BlogPage({
           <div className="text-center py-24 text-muted-foreground">
             <p className="text-lg">
               {locale === "fr"
-                ? "Aucun article pour l'instant — revenez bientôt."
-                : "No posts yet — check back soon."}
+                ? "Aucun article pour l'instant, revenez bientôt."
+                : "No posts yet, check back soon."}
             </p>
           </div>
         ) : (
@@ -52,7 +52,10 @@ export default async function BlogPage({
                 key={post.slug}
                 className="border rounded-xl p-6 hover:border-gray-400 transition-colors"
               >
-                <Link href={`/${locale}/blog/${post.slug}`} className="block group">
+                <Link
+                  href={`/${locale}/blog/${post.slug}`}
+                  className="block group"
+                >
                   <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3.5 w-3.5" />

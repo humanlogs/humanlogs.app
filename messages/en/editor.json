@@ -47,7 +47,7 @@
                 "aboutOneMinute": "About 1 minute remaining",
                 "aboutMinutes": "About {minutes} minutes remaining",
                 "aboutHours": "About {hours}h {minutes}m remaining",
-                "emailNotice": "We'll email you when it's ready — you can safely close this page."
+                "emailNotice": "We'll email you when it's ready, you can safely close this page."
             }
         },
         "content": {

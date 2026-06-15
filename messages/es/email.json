@@ -17,10 +17,10 @@
         "failed": {
             "subject": "Hubo un problema con tu transcripción",
             "title": "La transcripción falló",
-            "body": "Algo salió mal al procesar tu transcripción. Puedes volver a intentarlo subiendo el archivo de nuevo — a veces es solo un contratiempo puntual.",
+            "body": "Algo salió mal al procesar tu transcripción. Puedes volver a intentarlo subiendo el archivo de nuevo, a veces es solo un contratiempo puntual.",
             "model": "Modelo utilizado: {model}.",
             "button": "Ver detalles",
-            "feedbackInvite": "Esto puede ocurrir según el modelo o el archivo, y HumanLogs es todavía una herramienta joven que mejoramos cada semana. Si el error persiste — o incluso si no estás seguro de qué pasó — responde directamente a este correo. Leemos cada mensaje personalmente y te ayudaremos a que funcione.",
+            "feedbackInvite": "Esto puede ocurrir según el modelo o el archivo, y HumanLogs es todavía una herramienta joven que mejoramos cada semana. Si el error persiste, o incluso si no estás seguro de qué pasó, responde directamente a este correo. Leemos cada mensaje personalmente y te ayudaremos a que funcione.",
             "signOff": "Perdona las molestias, y hablamos pronto,",
             "signName": "El equipo de HumanLogs"
         }

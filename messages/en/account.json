@@ -231,7 +231,7 @@
                 "enabled": {
                     "title": "End-to-End Encryption",
                     "badge": "Recommended",
-                    "description": "Your data is encrypted on your device before being sent to our servers. Only you can decrypt your data — not even we can read your transcriptions.",
+                    "description": "Your data is encrypted on your device before being sent to our servers. Only you can decrypt your data, not even we can read your transcriptions.",
                     "generate": {
                         "intro": "We'll generate a unique encryption certificate for you. You'll need this certificate to:",
                         "point1": "Access your encrypted transcriptions",
