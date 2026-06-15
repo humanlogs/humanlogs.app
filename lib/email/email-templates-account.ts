@@ -1,4 +1,26 @@
+import { createTranslator } from "next-intl";
 import { EmailTemplate, getBaseTemplate } from "./email-templates-base";
+
+type EmailLocale = "en" | "fr" | "es" | "de";
+
+/** Normalize a user language (e.g. "fr", "en-US") to a supported email locale. */
+function normalizeEmailLocale(locale?: string): EmailLocale {
+  const l = (locale || "en").toLowerCase();
+  if (l.startsWith("fr")) return "fr";
+  if (l.startsWith("es")) return "es";
+  if (l.startsWith("de")) return "de";
+  return "en";
+}
+
+/**
+ * Build a next-intl translator for the "email" namespace in the user's locale.
+ * Emails are rendered outside the React/request context, so we load the
+ * messages directly and use the framework-agnostic `createTranslator`.
+ */
+async function getEmailTranslator(locale: EmailLocale) {
+  const messages = (await import(`../../messages/${locale}/email.json`)).default;
+  return createTranslator({ locale, messages, namespace: "email" });
+}
 
 /** Escape a user-supplied string for safe embedding in HTML email bodies. */
 function escapeHtml(value: string): string {
@@ -155,50 +177,113 @@ HumanLogs Team
 }
 
 /**
- * Create a transcription completed email template
+ * Create a transcription completed email template.
+ *
+ * Intentionally minimal: it does not reveal the file name or any transcript
+ * content — only the audio length and which model region processed it.
  */
-export function getTranscriptionCompletedEmailTemplate(data: {
-  userName: string;
-  fileName: string;
+export async function getTranscriptionCompletedEmailTemplate(data: {
   transcriptionUrl: string;
-  duration?: string;
-}): EmailTemplate {
+  durationMinutes?: number;
+  modelRegion: "eu" | "us";
+  locale?: string;
+}): Promise<EmailTemplate> {
+  const locale = normalizeEmailLocale(data.locale);
+  const t = await getEmailTranslator(locale);
+  const model = t(data.modelRegion === "eu" ? "modelEu" : "modelUs");
+
+  const subject = t("completed.subject");
+  const title = t("completed.title");
+  const ready = data.durationMinutes
+    ? t("completed.ready", { minutes: data.durationMinutes })
+    : t("completed.readyNoDuration");
+  const modelLine = t("completed.model", { model });
+  const button = t("completed.button");
+  const feedbackErrors = t("completed.feedbackErrors");
+  const feedbackInvite = t("completed.feedbackInvite");
+  const signOff = t("completed.signOff");
+  const signName = t("completed.signName");
+
   const content = `
-    <h2>Your Transcription is Ready!</h2>
-    <p>Hi ${data.userName},</p>
-    <p>Good news! Your transcription for <strong>${data.fileName}</strong> has been completed successfully.</p>
-    ${data.duration ? `<p>Total duration: ${data.duration}</p>` : ""}
+    <h2>${title}</h2>
+    <p>${ready}</p>
+    <p>${modelLine}</p>
     <p style="text-align: center;">
-      <a href="${data.transcriptionUrl}" class="button">View Transcription</a>
+      <a href="${data.transcriptionUrl}" class="button">${button}</a>
     </p>
-    <p>Best regards,<br>HumanLogs Team</p>
+    <p>${feedbackErrors}</p>
+    <p>${feedbackInvite}</p>
+    <p>${signOff}<br>${signName}</p>
   `;
 
-  const html = getBaseTemplate(content, {
-    title: "Transcription Complete",
-    preheader: `Your transcription for ${data.fileName} is ready`,
-  });
+  const html = getBaseTemplate(content, { title: subject, preheader: ready });
 
-  const text = `
-Your Transcription is Ready!
+  const text = `${title}
 
-Hi ${data.userName},
+${ready}
+${modelLine}
 
-Good news! Your transcription for "${data.fileName}" has been completed successfully.
+${data.transcriptionUrl}
 
-${data.duration ? `Total duration: ${data.duration}` : ""}
+${feedbackErrors}
 
-View your transcription: ${data.transcriptionUrl}
+${feedbackInvite}
 
-Best regards,
-HumanLogs Team
-  `.trim();
+${signOff}
+${signName}`.trim();
 
-  return {
-    subject: `Transcription Complete: ${data.fileName}`,
-    html,
-    text,
-  };
+  return { subject, html, text };
+}
+
+/**
+ * Create a transcription failed email template. Warm and reassuring, and
+ * actively invites a reply since failures are exactly when feedback helps most.
+ */
+export async function getTranscriptionFailedEmailTemplate(data: {
+  transcriptionUrl: string;
+  durationMinutes?: number;
+  modelRegion: "eu" | "us";
+  locale?: string;
+}): Promise<EmailTemplate> {
+  const locale = normalizeEmailLocale(data.locale);
+  const t = await getEmailTranslator(locale);
+  const model = t(data.modelRegion === "eu" ? "modelEu" : "modelUs");
+
+  const subject = t("failed.subject");
+  const title = t("failed.title");
+  const body = t("failed.body");
+  const modelLine = t("failed.model", { model });
+  const button = t("failed.button");
+  const feedbackInvite = t("failed.feedbackInvite");
+  const signOff = t("failed.signOff");
+  const signName = t("failed.signName");
+
+  const content = `
+    <h2>${title}</h2>
+    <p>${body}</p>
+    <p>${modelLine}</p>
+    <p style="text-align: center;">
+      <a href="${data.transcriptionUrl}" class="button">${button}</a>
+    </p>
+    <p>${feedbackInvite}</p>
+    <p>${signOff}<br>${signName}</p>
+  `;
+
+  const html = getBaseTemplate(content, { title: subject, preheader: body });
+
+  const text = `${title}
+
+${body}
+${modelLine}
+
+${data.transcriptionUrl}
+
+${feedbackInvite}
+
+${signOff}
+${signName}`.trim();
+
+  return { subject, html, text };
 }
 
 /**

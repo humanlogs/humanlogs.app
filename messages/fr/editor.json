@@ -46,7 +46,8 @@
                 "lessThanMinute": "Moins d'une minute...",
                 "aboutOneMinute": "Environ 1 minute restante",
                 "aboutMinutes": "Environ {minutes} minutes restantes",
-                "aboutHours": "Environ {hours}h {minutes}m restantes"
+                "aboutHours": "Environ {hours}h {minutes}m restantes",
+                "emailNotice": "Nous vous enverrons un e-mail dès que ce sera prêt — vous pouvez fermer cette page en toute tranquillité."
             }
         },
         "content": {

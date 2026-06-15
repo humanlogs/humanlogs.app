@@ -59,6 +59,7 @@
         "startTranscription": "Démarrer la Transcription",
         "processing": "Traitement en cours...",
         "uploading": "Téléchargement des fichiers...",
+        "uploadingNote": "Nous vous enverrons un e-mail dès que votre transcription sera prête, mais veuillez laisser cette page ouverte jusqu'à la fin du téléchargement.",
         "lowCredits": "Crédits Faibles",
         "lowCreditsDescription": "Il vous reste {credits} crédits. Pensez à ajouter plus de crédits pour continuer à transcrire.",
         "viewBillingOptions": "Voir les options de facturation",

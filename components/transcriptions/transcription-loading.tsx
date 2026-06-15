@@ -88,6 +88,9 @@ export function TranscriptionLoading({
               </p>
             </div>
           )}
+          <p className="text-sm text-muted-foreground pt-2">
+            {t("status.loading.emailNotice")}
+          </p>
         </div>
       </div>
     </div>
