@@ -208,8 +208,12 @@ export function getTranscriptionCompletedEmailTemplate(data: {
         : "Your file is ready.",
       model: `Model used: ${model}.`,
       button: "View transcription",
-      contact:
-        "Any questions or a problem? Just reply to this email and I'll help.",
+      feedbackErrors:
+        "A quick heads-up: transcription quality can vary depending on the model used, and a few mistakes may remain. HumanLogs is still a young tool, and I'm improving it week after week.",
+      feedbackInvite:
+        "That's exactly why your feedback means so much to me. If something looks off, if you have an idea, a frustration, or simply a question, just reply to this email — I read and personally answer every single message.",
+      signOff: "Looking forward to hearing from you,",
+      signName: "Romaric — founder of HumanLogs",
     },
     fr: {
       subject: "Votre transcription est prête",
@@ -219,8 +223,12 @@ export function getTranscriptionCompletedEmailTemplate(data: {
         : "Votre fichier est prêt.",
       model: `Modèle utilisé : ${model}.`,
       button: "Voir la transcription",
-      contact:
-        "Une question ou un souci ? Répondez simplement à cet e-mail et je vous aiderai.",
+      feedbackErrors:
+        "Une petite précision : la qualité de la transcription peut varier selon le modèle utilisé, et il peut rester quelques erreurs. HumanLogs est encore un outil jeune, que j'améliore semaine après semaine.",
+      feedbackInvite:
+        "C'est justement pour cela que votre avis compte énormément pour moi. Si quelque chose vous semble étrange, si vous avez une idée, une frustration, ou simplement une question, répondez directement à cet e-mail : je lis et je réponds personnellement à chaque message.",
+      signOff: "Au plaisir d'échanger,",
+      signName: "Romaric — fondateur de HumanLogs",
     },
     es: {
       subject: "Tu transcripción está lista",
@@ -230,8 +238,12 @@ export function getTranscriptionCompletedEmailTemplate(data: {
         : "Tu archivo está listo.",
       model: `Modelo utilizado: ${model}.`,
       button: "Ver transcripción",
-      contact:
-        "¿Preguntas o algún problema? Responde a este correo y te ayudaré.",
+      feedbackErrors:
+        "Un apunte: la calidad de la transcripción puede variar según el modelo utilizado, y pueden quedar algunos errores. HumanLogs es todavía una herramienta joven, que mejoro semana tras semana.",
+      feedbackInvite:
+        "Precisamente por eso tu opinión significa muchísimo para mí. Si algo te parece raro, si tienes una idea, una frustración o simplemente una pregunta, responde directamente a este correo: leo y contesto personalmente cada mensaje.",
+      signOff: "Un saludo y espero tu mensaje,",
+      signName: "Romaric — fundador de HumanLogs",
     },
     de: {
       subject: "Ihre Transkription ist fertig",
@@ -241,8 +253,12 @@ export function getTranscriptionCompletedEmailTemplate(data: {
         : "Ihre Datei ist fertig.",
       model: `Verwendetes Modell: ${model}.`,
       button: "Transkription ansehen",
-      contact:
-        "Fragen oder ein Problem? Antworten Sie einfach auf diese E-Mail und ich helfe Ihnen.",
+      feedbackErrors:
+        "Ein kurzer Hinweis: Die Qualität der Transkription kann je nach verwendetem Modell variieren, und es können einige Fehler verbleiben. HumanLogs ist noch ein junges Tool, das ich Woche für Woche verbessere.",
+      feedbackInvite:
+        "Genau deshalb ist mir Ihre Meinung so wichtig. Wenn Ihnen etwas seltsam vorkommt, wenn Sie eine Idee, einen Kritikpunkt oder einfach eine Frage haben, antworten Sie direkt auf diese E-Mail – ich lese und beantworte jede Nachricht persönlich.",
+      signOff: "Ich freue mich auf Ihre Nachricht,",
+      signName: "Romaric — Gründer von HumanLogs",
     },
   }[locale];
 
@@ -253,7 +269,9 @@ export function getTranscriptionCompletedEmailTemplate(data: {
     <p style="text-align: center;">
       <a href="${data.transcriptionUrl}" class="button">${strings.button}</a>
     </p>
-    <p>${strings.contact}</p>
+    <p>${strings.feedbackErrors}</p>
+    <p>${strings.feedbackInvite}</p>
+    <p>${strings.signOff}<br>${strings.signName}</p>
   `;
 
   const html = getBaseTemplate(content, {
@@ -268,13 +286,19 @@ ${strings.model}
 
 ${data.transcriptionUrl}
 
-${strings.contact}`.trim();
+${strings.feedbackErrors}
+
+${strings.feedbackInvite}
+
+${strings.signOff}
+${strings.signName}`.trim();
 
   return { subject: strings.subject, html, text };
 }
 
 /**
- * Create a transcription failed email template. Minimal, invites a reply.
+ * Create a transcription failed email template. Warm and reassuring, and
+ * actively invites a reply since failures are exactly when feedback helps most.
  */
 export function getTranscriptionFailedEmailTemplate(data: {
   transcriptionUrl: string;
@@ -289,38 +313,46 @@ export function getTranscriptionFailedEmailTemplate(data: {
     en: {
       subject: "There was a problem with your transcription",
       title: "Transcription failed",
-      body: "Something went wrong while processing your transcription. You can try again by uploading your file once more.",
+      body: "Something went wrong while processing your transcription. You can try again by uploading your file once more — sometimes it's just a hiccup.",
       model: `Model used: ${model}.`,
       button: "View details",
-      contact:
-        "If the problem persists, just reply to this email and I'll look into it.",
+      feedbackInvite:
+        "These things can happen depending on the model or the file, and HumanLogs is still a young tool I'm improving every week. If it keeps failing — or even if you're just unsure what went wrong — reply directly to this email. I read every message personally and I'll help you get it working.",
+      signOff: "Sorry for the hiccup, and talk soon,",
+      signName: "Romaric — founder of HumanLogs",
     },
     fr: {
       subject: "Un problème avec votre transcription",
       title: "Échec de la transcription",
-      body: "Une erreur s'est produite lors du traitement de votre transcription. Vous pouvez réessayer en téléchargeant à nouveau votre fichier.",
+      body: "Une erreur s'est produite lors du traitement de votre transcription. Vous pouvez réessayer en téléchargeant à nouveau votre fichier — il s'agit parfois d'un simple incident passager.",
       model: `Modèle utilisé : ${model}.`,
       button: "Voir les détails",
-      contact:
-        "Si le problème persiste, répondez simplement à cet e-mail et je m'en occuperai.",
+      feedbackInvite:
+        "Cela peut arriver selon le modèle ou le fichier, et HumanLogs est encore un outil jeune que j'améliore chaque semaine. Si l'erreur persiste — ou même si vous n'êtes pas sûr de ce qui s'est passé — répondez directement à cet e-mail. Je lis chaque message personnellement et je vous aiderai à le faire fonctionner.",
+      signOff: "Désolé pour la gêne, et à très vite,",
+      signName: "Romaric — fondateur de HumanLogs",
     },
     es: {
       subject: "Hubo un problema con tu transcripción",
       title: "La transcripción falló",
-      body: "Algo salió mal al procesar tu transcripción. Puedes volver a intentarlo subiendo el archivo de nuevo.",
+      body: "Algo salió mal al procesar tu transcripción. Puedes volver a intentarlo subiendo el archivo de nuevo — a veces es solo un contratiempo puntual.",
       model: `Modelo utilizado: ${model}.`,
       button: "Ver detalles",
-      contact:
-        "Si el problema persiste, responde a este correo y lo revisaré.",
+      feedbackInvite:
+        "Esto puede ocurrir según el modelo o el archivo, y HumanLogs es todavía una herramienta joven que mejoro cada semana. Si el error persiste — o incluso si no estás seguro de qué pasó — responde directamente a este correo. Leo cada mensaje personalmente y te ayudaré a que funcione.",
+      signOff: "Perdona las molestias, y hablamos pronto,",
+      signName: "Romaric — fundador de HumanLogs",
     },
     de: {
       subject: "Es gab ein Problem mit Ihrer Transkription",
       title: "Transkription fehlgeschlagen",
-      body: "Beim Verarbeiten Ihrer Transkription ist etwas schiefgelaufen. Sie können es erneut versuchen, indem Sie Ihre Datei noch einmal hochladen.",
+      body: "Beim Verarbeiten Ihrer Transkription ist etwas schiefgelaufen. Sie können es erneut versuchen, indem Sie Ihre Datei noch einmal hochladen — manchmal ist es nur eine kurze Störung.",
       model: `Verwendetes Modell: ${model}.`,
       button: "Details ansehen",
-      contact:
-        "Falls das Problem weiterhin besteht, antworten Sie einfach auf diese E-Mail und ich kümmere mich darum.",
+      feedbackInvite:
+        "So etwas kann je nach Modell oder Datei passieren, und HumanLogs ist noch ein junges Tool, das ich jede Woche verbessere. Wenn der Fehler weiterhin auftritt – oder wenn Sie einfach nicht sicher sind, was schiefgelaufen ist – antworten Sie direkt auf diese E-Mail. Ich lese jede Nachricht persönlich und helfe Ihnen, es zum Laufen zu bringen.",
+      signOff: "Entschuldigen Sie die Unannehmlichkeiten, bis bald,",
+      signName: "Romaric — Gründer von HumanLogs",
     },
   }[locale];
 
@@ -331,7 +363,8 @@ export function getTranscriptionFailedEmailTemplate(data: {
     <p style="text-align: center;">
       <a href="${data.transcriptionUrl}" class="button">${strings.button}</a>
     </p>
-    <p>${strings.contact}</p>
+    <p>${strings.feedbackInvite}</p>
+    <p>${strings.signOff}<br>${strings.signName}</p>
   `;
 
   const html = getBaseTemplate(content, {
@@ -346,7 +379,10 @@ ${strings.model}
 
 ${data.transcriptionUrl}
 
-${strings.contact}`.trim();
+${strings.feedbackInvite}
+
+${strings.signOff}
+${strings.signName}`.trim();
 
   return { subject: strings.subject, html, text };
 }
