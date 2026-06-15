@@ -59,7 +59,7 @@ async function sendTranscriptionCompletedEmail(
     }
 
     const baseUrl = getConfig().server.publicUrl.replace(/\/$/, "");
-    const template = getTranscriptionCompletedEmailTemplate({
+    const template = await getTranscriptionCompletedEmailTemplate({
       transcriptionUrl: `${baseUrl}/app/transcription/${transcription.id}`,
       durationMinutes: durationMinutesFromResult(result),
       modelRegion: modelRegionForProvider(transcription.sttProvider),
@@ -99,7 +99,7 @@ async function sendTranscriptionFailedEmail(
     }
 
     const baseUrl = getConfig().server.publicUrl.replace(/\/$/, "");
-    const template = getTranscriptionFailedEmailTemplate({
+    const template = await getTranscriptionFailedEmailTemplate({
       transcriptionUrl: `${baseUrl}/app/transcription/${transcription.id}`,
       modelRegion: modelRegionForProvider(transcription.sttProvider),
       locale: user.language,

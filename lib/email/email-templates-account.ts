@@ -1,3 +1,4 @@
+import { createTranslator } from "next-intl";
 import { EmailTemplate, getBaseTemplate } from "./email-templates-base";
 
 type EmailLocale = "en" | "fr" | "es" | "de";
@@ -11,23 +12,14 @@ function normalizeEmailLocale(locale?: string): EmailLocale {
   return "en";
 }
 
-/** Human label for the model region (EU = Gladia/Whisper, US = ElevenLabs). */
-function modelRegionLabel(region: "eu" | "us", locale: EmailLocale): string {
-  const labels = {
-    eu: {
-      en: "🇪🇺 EU model",
-      fr: "🇪🇺 modèle UE",
-      es: "🇪🇺 modelo UE",
-      de: "🇪🇺 EU-Modell",
-    },
-    us: {
-      en: "🇺🇸 US model",
-      fr: "🇺🇸 modèle US",
-      es: "🇺🇸 modelo EE. UU.",
-      de: "🇺🇸 US-Modell",
-    },
-  };
-  return labels[region][locale];
+/**
+ * Build a next-intl translator for the "email" namespace in the user's locale.
+ * Emails are rendered outside the React/request context, so we load the
+ * messages directly and use the framework-agnostic `createTranslator`.
+ */
+async function getEmailTranslator(locale: EmailLocale) {
+  const messages = (await import(`../../messages/${locale}/email.json`)).default;
+  return createTranslator({ locale, messages, namespace: "email" });
 }
 
 /** Escape a user-supplied string for safe embedding in HTML email bodies. */
@@ -190,201 +182,108 @@ HumanLogs Team
  * Intentionally minimal: it does not reveal the file name or any transcript
  * content — only the audio length and which model region processed it.
  */
-export function getTranscriptionCompletedEmailTemplate(data: {
+export async function getTranscriptionCompletedEmailTemplate(data: {
   transcriptionUrl: string;
   durationMinutes?: number;
   modelRegion: "eu" | "us";
   locale?: string;
-}): EmailTemplate {
+}): Promise<EmailTemplate> {
   const locale = normalizeEmailLocale(data.locale);
-  const model = modelRegionLabel(data.modelRegion, locale);
+  const t = await getEmailTranslator(locale);
+  const model = t(data.modelRegion === "eu" ? "modelEu" : "modelUs");
 
-  const strings = {
-    en: {
-      subject: "Your transcription is ready",
-      title: "Transcription ready",
-      ready: data.durationMinutes
-        ? `Your ${data.durationMinutes}-minute file is ready.`
-        : "Your file is ready.",
-      model: `Model used: ${model}.`,
-      button: "View transcription",
-      feedbackErrors:
-        "A quick heads-up: transcription quality can vary depending on the model used, and a few mistakes may remain. HumanLogs is still a young tool, and I'm improving it week after week.",
-      feedbackInvite:
-        "That's exactly why your feedback means so much to me. If something looks off, if you have an idea, a frustration, or simply a question, just reply to this email — I read and personally answer every single message.",
-      signOff: "Looking forward to hearing from you,",
-      signName: "Romaric — founder of HumanLogs",
-    },
-    fr: {
-      subject: "Votre transcription est prête",
-      title: "Transcription prête",
-      ready: data.durationMinutes
-        ? `Votre fichier de ${data.durationMinutes} minute${data.durationMinutes > 1 ? "s" : ""} est prêt.`
-        : "Votre fichier est prêt.",
-      model: `Modèle utilisé : ${model}.`,
-      button: "Voir la transcription",
-      feedbackErrors:
-        "Une petite précision : la qualité de la transcription peut varier selon le modèle utilisé, et il peut rester quelques erreurs. HumanLogs est encore un outil jeune, que j'améliore semaine après semaine.",
-      feedbackInvite:
-        "C'est justement pour cela que votre avis compte énormément pour moi. Si quelque chose vous semble étrange, si vous avez une idée, une frustration, ou simplement une question, répondez directement à cet e-mail : je lis et je réponds personnellement à chaque message.",
-      signOff: "Au plaisir d'échanger,",
-      signName: "Romaric — fondateur de HumanLogs",
-    },
-    es: {
-      subject: "Tu transcripción está lista",
-      title: "Transcripción lista",
-      ready: data.durationMinutes
-        ? `Tu archivo de ${data.durationMinutes} minuto${data.durationMinutes > 1 ? "s" : ""} está listo.`
-        : "Tu archivo está listo.",
-      model: `Modelo utilizado: ${model}.`,
-      button: "Ver transcripción",
-      feedbackErrors:
-        "Un apunte: la calidad de la transcripción puede variar según el modelo utilizado, y pueden quedar algunos errores. HumanLogs es todavía una herramienta joven, que mejoro semana tras semana.",
-      feedbackInvite:
-        "Precisamente por eso tu opinión significa muchísimo para mí. Si algo te parece raro, si tienes una idea, una frustración o simplemente una pregunta, responde directamente a este correo: leo y contesto personalmente cada mensaje.",
-      signOff: "Un saludo y espero tu mensaje,",
-      signName: "Romaric — fundador de HumanLogs",
-    },
-    de: {
-      subject: "Ihre Transkription ist fertig",
-      title: "Transkription fertig",
-      ready: data.durationMinutes
-        ? `Ihre Datei mit ${data.durationMinutes} Minute${data.durationMinutes > 1 ? "n" : ""} ist fertig.`
-        : "Ihre Datei ist fertig.",
-      model: `Verwendetes Modell: ${model}.`,
-      button: "Transkription ansehen",
-      feedbackErrors:
-        "Ein kurzer Hinweis: Die Qualität der Transkription kann je nach verwendetem Modell variieren, und es können einige Fehler verbleiben. HumanLogs ist noch ein junges Tool, das ich Woche für Woche verbessere.",
-      feedbackInvite:
-        "Genau deshalb ist mir Ihre Meinung so wichtig. Wenn Ihnen etwas seltsam vorkommt, wenn Sie eine Idee, einen Kritikpunkt oder einfach eine Frage haben, antworten Sie direkt auf diese E-Mail – ich lese und beantworte jede Nachricht persönlich.",
-      signOff: "Ich freue mich auf Ihre Nachricht,",
-      signName: "Romaric — Gründer von HumanLogs",
-    },
-  }[locale];
+  const subject = t("completed.subject");
+  const title = t("completed.title");
+  const ready = data.durationMinutes
+    ? t("completed.ready", { minutes: data.durationMinutes })
+    : t("completed.readyNoDuration");
+  const modelLine = t("completed.model", { model });
+  const button = t("completed.button");
+  const feedbackErrors = t("completed.feedbackErrors");
+  const feedbackInvite = t("completed.feedbackInvite");
+  const signOff = t("completed.signOff");
+  const signName = t("completed.signName");
 
   const content = `
-    <h2>${strings.title}</h2>
-    <p>${strings.ready}</p>
-    <p>${strings.model}</p>
+    <h2>${title}</h2>
+    <p>${ready}</p>
+    <p>${modelLine}</p>
     <p style="text-align: center;">
-      <a href="${data.transcriptionUrl}" class="button">${strings.button}</a>
+      <a href="${data.transcriptionUrl}" class="button">${button}</a>
     </p>
-    <p>${strings.feedbackErrors}</p>
-    <p>${strings.feedbackInvite}</p>
-    <p>${strings.signOff}<br>${strings.signName}</p>
+    <p>${feedbackErrors}</p>
+    <p>${feedbackInvite}</p>
+    <p>${signOff}<br>${signName}</p>
   `;
 
-  const html = getBaseTemplate(content, {
-    title: strings.subject,
-    preheader: strings.ready,
-  });
+  const html = getBaseTemplate(content, { title: subject, preheader: ready });
 
-  const text = `${strings.title}
+  const text = `${title}
 
-${strings.ready}
-${strings.model}
+${ready}
+${modelLine}
 
 ${data.transcriptionUrl}
 
-${strings.feedbackErrors}
+${feedbackErrors}
 
-${strings.feedbackInvite}
+${feedbackInvite}
 
-${strings.signOff}
-${strings.signName}`.trim();
+${signOff}
+${signName}`.trim();
 
-  return { subject: strings.subject, html, text };
+  return { subject, html, text };
 }
 
 /**
  * Create a transcription failed email template. Warm and reassuring, and
  * actively invites a reply since failures are exactly when feedback helps most.
  */
-export function getTranscriptionFailedEmailTemplate(data: {
+export async function getTranscriptionFailedEmailTemplate(data: {
   transcriptionUrl: string;
   durationMinutes?: number;
   modelRegion: "eu" | "us";
   locale?: string;
-}): EmailTemplate {
+}): Promise<EmailTemplate> {
   const locale = normalizeEmailLocale(data.locale);
-  const model = modelRegionLabel(data.modelRegion, locale);
+  const t = await getEmailTranslator(locale);
+  const model = t(data.modelRegion === "eu" ? "modelEu" : "modelUs");
 
-  const strings = {
-    en: {
-      subject: "There was a problem with your transcription",
-      title: "Transcription failed",
-      body: "Something went wrong while processing your transcription. You can try again by uploading your file once more — sometimes it's just a hiccup.",
-      model: `Model used: ${model}.`,
-      button: "View details",
-      feedbackInvite:
-        "These things can happen depending on the model or the file, and HumanLogs is still a young tool I'm improving every week. If it keeps failing — or even if you're just unsure what went wrong — reply directly to this email. I read every message personally and I'll help you get it working.",
-      signOff: "Sorry for the hiccup, and talk soon,",
-      signName: "Romaric — founder of HumanLogs",
-    },
-    fr: {
-      subject: "Un problème avec votre transcription",
-      title: "Échec de la transcription",
-      body: "Une erreur s'est produite lors du traitement de votre transcription. Vous pouvez réessayer en téléchargeant à nouveau votre fichier — il s'agit parfois d'un simple incident passager.",
-      model: `Modèle utilisé : ${model}.`,
-      button: "Voir les détails",
-      feedbackInvite:
-        "Cela peut arriver selon le modèle ou le fichier, et HumanLogs est encore un outil jeune que j'améliore chaque semaine. Si l'erreur persiste — ou même si vous n'êtes pas sûr de ce qui s'est passé — répondez directement à cet e-mail. Je lis chaque message personnellement et je vous aiderai à le faire fonctionner.",
-      signOff: "Désolé pour la gêne, et à très vite,",
-      signName: "Romaric — fondateur de HumanLogs",
-    },
-    es: {
-      subject: "Hubo un problema con tu transcripción",
-      title: "La transcripción falló",
-      body: "Algo salió mal al procesar tu transcripción. Puedes volver a intentarlo subiendo el archivo de nuevo — a veces es solo un contratiempo puntual.",
-      model: `Modelo utilizado: ${model}.`,
-      button: "Ver detalles",
-      feedbackInvite:
-        "Esto puede ocurrir según el modelo o el archivo, y HumanLogs es todavía una herramienta joven que mejoro cada semana. Si el error persiste — o incluso si no estás seguro de qué pasó — responde directamente a este correo. Leo cada mensaje personalmente y te ayudaré a que funcione.",
-      signOff: "Perdona las molestias, y hablamos pronto,",
-      signName: "Romaric — fundador de HumanLogs",
-    },
-    de: {
-      subject: "Es gab ein Problem mit Ihrer Transkription",
-      title: "Transkription fehlgeschlagen",
-      body: "Beim Verarbeiten Ihrer Transkription ist etwas schiefgelaufen. Sie können es erneut versuchen, indem Sie Ihre Datei noch einmal hochladen — manchmal ist es nur eine kurze Störung.",
-      model: `Verwendetes Modell: ${model}.`,
-      button: "Details ansehen",
-      feedbackInvite:
-        "So etwas kann je nach Modell oder Datei passieren, und HumanLogs ist noch ein junges Tool, das ich jede Woche verbessere. Wenn der Fehler weiterhin auftritt – oder wenn Sie einfach nicht sicher sind, was schiefgelaufen ist – antworten Sie direkt auf diese E-Mail. Ich lese jede Nachricht persönlich und helfe Ihnen, es zum Laufen zu bringen.",
-      signOff: "Entschuldigen Sie die Unannehmlichkeiten, bis bald,",
-      signName: "Romaric — Gründer von HumanLogs",
-    },
-  }[locale];
+  const subject = t("failed.subject");
+  const title = t("failed.title");
+  const body = t("failed.body");
+  const modelLine = t("failed.model", { model });
+  const button = t("failed.button");
+  const feedbackInvite = t("failed.feedbackInvite");
+  const signOff = t("failed.signOff");
+  const signName = t("failed.signName");
 
   const content = `
-    <h2>${strings.title}</h2>
-    <p>${strings.body}</p>
-    <p>${strings.model}</p>
+    <h2>${title}</h2>
+    <p>${body}</p>
+    <p>${modelLine}</p>
     <p style="text-align: center;">
-      <a href="${data.transcriptionUrl}" class="button">${strings.button}</a>
+      <a href="${data.transcriptionUrl}" class="button">${button}</a>
     </p>
-    <p>${strings.feedbackInvite}</p>
-    <p>${strings.signOff}<br>${strings.signName}</p>
+    <p>${feedbackInvite}</p>
+    <p>${signOff}<br>${signName}</p>
   `;
 
-  const html = getBaseTemplate(content, {
-    title: strings.subject,
-    preheader: strings.body,
-  });
+  const html = getBaseTemplate(content, { title: subject, preheader: body });
 
-  const text = `${strings.title}
+  const text = `${title}
 
-${strings.body}
-${strings.model}
+${body}
+${modelLine}
 
 ${data.transcriptionUrl}
 
-${strings.feedbackInvite}
+${feedbackInvite}
 
-${strings.signOff}
-${strings.signName}`.trim();
+${signOff}
+${signName}`.trim();
 
-  return { subject: strings.subject, html, text };
+  return { subject, html, text };
 }
 
 /**
