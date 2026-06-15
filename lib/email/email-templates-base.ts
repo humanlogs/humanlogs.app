@@ -43,8 +43,6 @@ export function getBaseTemplate(
       line-height: 1.6;
     }
     .email-content {
-      max-width: 600px;
-      margin: 0 auto;
       padding: 24px;
     }
     p {

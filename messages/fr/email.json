@@ -2,6 +2,7 @@
     "email": {
         "modelEu": "🇪🇺 modèle UE",
         "modelUs": "🇺🇸 modèle US",
+        "greeting": "Bonjour,",
         "completed": {
             "subject": "Votre transcription est prête",
             "title": "Transcription prête",
@@ -12,7 +13,7 @@
             "feedbackErrors": "Une petite précision : la qualité de la transcription peut varier selon le modèle utilisé, et il peut rester quelques erreurs. HumanLogs est encore un outil jeune, que nous améliorons semaine après semaine.",
             "feedbackInvite": "C'est justement pour cela que votre avis compte énormément pour nous. Si quelque chose vous semble étrange, si vous avez une idée, une frustration, ou simplement une question, répondez directement à cet e-mail : nous lisons et répondons personnellement à chaque message.",
             "signOff": "Au plaisir d'échanger avec vous,",
-            "signName": "L'équipe HumanLogs"
+            "signName": "Romaric, de l'équipe HumanLogs"
         },
         "failed": {
             "subject": "Un problème avec votre transcription",
@@ -22,7 +23,7 @@
             "button": "Voir les détails",
             "feedbackInvite": "Cela peut arriver selon le modèle ou le fichier, et HumanLogs est encore un outil jeune que nous améliorons chaque semaine. Si l'erreur persiste, ou même si vous n'êtes pas sûr de ce qui s'est passé, répondez directement à cet e-mail. Nous lisons chaque message personnellement et nous vous aiderons à le faire fonctionner.",
             "signOff": "Au plaisir d'échanger avec vous,",
-            "signName": "L'équipe HumanLogs"
+            "signName": "Romaric, de l'équipe HumanLogs"
         }
     }
 }

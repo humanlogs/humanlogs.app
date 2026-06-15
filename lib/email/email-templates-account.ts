@@ -189,6 +189,7 @@ export async function getTranscriptionCompletedEmailTemplate(data: {
 
   const subject = t("completed.subject");
   const title = t("completed.title");
+  const greeting = t("greeting");
   const ready = data.durationMinutes
     ? t("completed.ready", { minutes: data.durationMinutes })
     : t("completed.readyNoDuration");
@@ -200,6 +201,7 @@ export async function getTranscriptionCompletedEmailTemplate(data: {
   const signName = t("completed.signName");
 
   const content = `
+    <p>${greeting}</p>
     <p>${ready}</p>
     <p>${modelLine}</p>
     <p><a href="${data.transcriptionUrl}">${button}</a></p>
@@ -211,6 +213,8 @@ export async function getTranscriptionCompletedEmailTemplate(data: {
   const html = getBaseTemplate(content, { title: subject, preheader: ready });
 
   const text = `${title}
+
+${greeting}
 
 ${ready}
 ${modelLine}
@@ -243,6 +247,7 @@ export async function getTranscriptionFailedEmailTemplate(data: {
 
   const subject = t("failed.subject");
   const title = t("failed.title");
+  const greeting = t("greeting");
   const body = t("failed.body");
   const modelLine = t("failed.model", { model });
   const button = t("failed.button");
@@ -251,6 +256,7 @@ export async function getTranscriptionFailedEmailTemplate(data: {
   const signName = t("failed.signName");
 
   const content = `
+    <p>${greeting}</p>
     <p>${body}</p>
     <p>${modelLine}</p>
     <p><a href="${data.transcriptionUrl}">${button}</a></p>
@@ -261,6 +267,8 @@ export async function getTranscriptionFailedEmailTemplate(data: {
   const html = getBaseTemplate(content, { title: subject, preheader: body });
 
   const text = `${title}
+
+${greeting}
 
 ${body}
 ${modelLine}

@@ -2,6 +2,7 @@
     "email": {
         "modelEu": "🇪🇺 modelo UE",
         "modelUs": "🇺🇸 modelo EE. UU.",
+        "greeting": "Hola,",
         "completed": {
             "subject": "Tu transcripción está lista",
             "title": "Transcripción lista",
@@ -12,7 +13,7 @@
             "feedbackErrors": "Un apunte: la calidad de la transcripción puede variar según el modelo utilizado, y pueden quedar algunos errores. HumanLogs es todavía una herramienta joven, que mejoramos semana tras semana.",
             "feedbackInvite": "Precisamente por eso tu opinión significa muchísimo para nosotros. Si algo te parece raro, si tienes una idea, una frustración o simplemente una pregunta, responde directamente a este correo: leemos y contestamos personalmente cada mensaje.",
             "signOff": "Un saludo y esperamos tu mensaje,",
-            "signName": "El equipo de HumanLogs"
+            "signName": "Romaric, del equipo de HumanLogs"
         },
         "failed": {
             "subject": "Hubo un problema con tu transcripción",
@@ -22,7 +23,7 @@
             "button": "Ver detalles",
             "feedbackInvite": "Esto puede ocurrir según el modelo o el archivo, y HumanLogs es todavía una herramienta joven que mejoramos cada semana. Si el error persiste, o incluso si no estás seguro de qué pasó, responde directamente a este correo. Leemos cada mensaje personalmente y te ayudaremos a que funcione.",
             "signOff": "Perdona las molestias, y hablamos pronto,",
-            "signName": "El equipo de HumanLogs"
+            "signName": "Romaric, del equipo de HumanLogs"
         }
     }
 }
