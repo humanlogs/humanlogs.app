@@ -33,7 +33,6 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
 import { useUserProfile } from "../../../../hooks/use-api";
-import { fetchGateway } from "@/hooks/fetch";
 import { useQueryClient } from "@tanstack/react-query";
 
 type AudioFile = {
@@ -46,6 +45,37 @@ type AudioFile = {
 
 // EU (Gladia) servers reject audio longer than this per file.
 const EU_MAX_DURATION_SECONDS = 8100;
+
+type UploadResult = { ok: boolean; status: number; body: string };
+
+/**
+ * Upload a FormData payload via XMLHttpRequest so we can report upload
+ * progress (the fetch API does not expose upload progress events).
+ */
+function uploadWithProgress(
+  url: string,
+  formData: FormData,
+  onProgress: (percent: number) => void,
+): Promise<UploadResult> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url);
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        onProgress(Math.round((event.loaded / event.total) * 100));
+      }
+    };
+
+    xhr.onload = () => {
+      resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, body: xhr.responseText });
+    };
+    xhr.onerror = () => reject(new Error("Network error during upload"));
+    xhr.onabort = () => reject(new Error("Upload aborted"));
+
+    xhr.send(formData);
+  });
+}
 
 const supportedLanguages = {
   bel: "Belarusian",
@@ -179,6 +209,10 @@ export default function NewTranscriptionPage() {
   });
   const [isDragging, setIsDragging] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  // Upload progress (0-100). Null while not uploading.
+  const [uploadProgress, setUploadProgress] = React.useState<number | null>(
+    null,
+  );
   const [playingAudioId, setPlayingAudioId] = React.useState<string | null>(
     null,
   );
@@ -513,6 +547,7 @@ export default function NewTranscriptionPage() {
     }
 
     setIsSubmitting(true);
+    setUploadProgress(0);
 
     try {
       // Prepare form data
@@ -538,18 +573,33 @@ export default function NewTranscriptionPage() {
         );
       });
 
-      // Submit to API
-      const response = await fetchGateway("/api/transcriptions/create", {
-        method: "POST",
-        body: formData,
-      });
+      // Submit to API via XHR so we can show real upload progress.
+      const response = await uploadWithProgress(
+        "/api/transcriptions/create",
+        formData,
+        setUploadProgress,
+      );
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to create transcription");
+      if (response.status === 429) {
+        document.location.href = "/app/overload";
+        return;
+      }
+      if (response.status === 401) {
+        document.location.href = "/app/login";
+        return;
       }
 
-      const result = await response.json();
+      if (!response.ok) {
+        let message = "Failed to create transcription";
+        try {
+          message = JSON.parse(response.body).error || message;
+        } catch {
+          // non-JSON error body, keep default message
+        }
+        throw new Error(message);
+      }
+
+      const result = JSON.parse(response.body);
 
       toast.success("Transcription started successfully!");
 
@@ -572,6 +622,7 @@ export default function NewTranscriptionPage() {
       );
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(null);
     }
   };
 
@@ -789,6 +840,25 @@ export default function NewTranscriptionPage() {
             </Alert>
           )}
 
+          {/* Upload progress */}
+          {isSubmitting && uploadProgress !== null && (
+            <div className="space-y-2 rounded-lg border bg-muted/30 p-4">
+              <div className="flex items-center justify-between text-sm font-medium">
+                <span>{t("uploading")}</span>
+                <span className="text-muted-foreground">{uploadProgress}%</span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-200"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("uploadingNote")}
+              </p>
+            </div>
+          )}
+
           {/* Submit Button */}
           <div className="flex justify-end items-center gap-2 flex-wrap">
             {estimatedCredits > 0 && (
@@ -826,7 +896,11 @@ export default function NewTranscriptionPage() {
                 isSubmitting
               }
             >
-              {isSubmitting ? t("processing") : t("startTranscription")}
+              {isSubmitting
+                ? uploadProgress !== null && uploadProgress < 100
+                  ? `${t("uploading")} ${uploadProgress}%`
+                  : t("processing")
+                : t("startTranscription")}
             </Button>
           </div>
         </form>

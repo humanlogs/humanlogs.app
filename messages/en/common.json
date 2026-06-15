@@ -59,6 +59,7 @@
         "startTranscription": "Start Transcription",
         "processing": "Processing...",
         "uploading": "Uploading files...",
+        "uploadingNote": "We'll email you once your transcription is ready, but please keep this page open until the upload finishes.",
         "lowCredits": "Low Credits",
         "lowCreditsDescription": "You have {credits} credits remaining. Consider adding more credits to continue transcribing.",
         "viewBillingOptions": "View billing options",

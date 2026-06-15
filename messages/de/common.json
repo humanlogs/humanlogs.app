@@ -59,6 +59,7 @@
         "startTranscription": "Transkription Starten",
         "processing": "Verarbeitung...",
         "uploading": "Dateien werden hochgeladen...",
+        "uploadingNote": "Wir senden Ihnen eine E-Mail, sobald Ihre Transkription fertig ist. Bitte lassen Sie diese Seite geöffnet, bis der Upload abgeschlossen ist.",
         "lowCredits": "Wenige Credits",
         "lowCreditsDescription": "Sie haben noch {credits} Credits übrig. Erwägen Sie, mehr Credits hinzuzufügen, um weiter zu transkribieren.",
         "viewBillingOptions": "Abrechnungsoptionen anzeigen",
