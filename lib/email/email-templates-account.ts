@@ -1,5 +1,35 @@
 import { EmailTemplate, getBaseTemplate } from "./email-templates-base";
 
+type EmailLocale = "en" | "fr" | "es" | "de";
+
+/** Normalize a user language (e.g. "fr", "en-US") to a supported email locale. */
+function normalizeEmailLocale(locale?: string): EmailLocale {
+  const l = (locale || "en").toLowerCase();
+  if (l.startsWith("fr")) return "fr";
+  if (l.startsWith("es")) return "es";
+  if (l.startsWith("de")) return "de";
+  return "en";
+}
+
+/** Human label for the model region (EU = Gladia/Whisper, US = ElevenLabs). */
+function modelRegionLabel(region: "eu" | "us", locale: EmailLocale): string {
+  const labels = {
+    eu: {
+      en: "🇪🇺 EU model",
+      fr: "🇪🇺 modèle UE",
+      es: "🇪🇺 modelo UE",
+      de: "🇪🇺 EU-Modell",
+    },
+    us: {
+      en: "🇺🇸 US model",
+      fr: "🇺🇸 modèle US",
+      es: "🇺🇸 modelo EE. UU.",
+      de: "🇺🇸 US-Modell",
+    },
+  };
+  return labels[region][locale];
+}
+
 /** Escape a user-supplied string for safe embedding in HTML email bodies. */
 function escapeHtml(value: string): string {
   return value
@@ -155,50 +185,170 @@ HumanLogs Team
 }
 
 /**
- * Create a transcription completed email template
+ * Create a transcription completed email template.
+ *
+ * Intentionally minimal: it does not reveal the file name or any transcript
+ * content — only the audio length and which model region processed it.
  */
 export function getTranscriptionCompletedEmailTemplate(data: {
-  userName: string;
-  fileName: string;
   transcriptionUrl: string;
-  duration?: string;
+  durationMinutes?: number;
+  modelRegion: "eu" | "us";
+  locale?: string;
 }): EmailTemplate {
+  const locale = normalizeEmailLocale(data.locale);
+  const model = modelRegionLabel(data.modelRegion, locale);
+
+  const strings = {
+    en: {
+      subject: "Your transcription is ready",
+      title: "Transcription ready",
+      ready: data.durationMinutes
+        ? `Your ${data.durationMinutes}-minute file is ready.`
+        : "Your file is ready.",
+      model: `Model used: ${model}.`,
+      button: "View transcription",
+      contact:
+        "Any questions or a problem? Just reply to this email and I'll help.",
+    },
+    fr: {
+      subject: "Votre transcription est prête",
+      title: "Transcription prête",
+      ready: data.durationMinutes
+        ? `Votre fichier de ${data.durationMinutes} minute${data.durationMinutes > 1 ? "s" : ""} est prêt.`
+        : "Votre fichier est prêt.",
+      model: `Modèle utilisé : ${model}.`,
+      button: "Voir la transcription",
+      contact:
+        "Une question ou un souci ? Répondez simplement à cet e-mail et je vous aiderai.",
+    },
+    es: {
+      subject: "Tu transcripción está lista",
+      title: "Transcripción lista",
+      ready: data.durationMinutes
+        ? `Tu archivo de ${data.durationMinutes} minuto${data.durationMinutes > 1 ? "s" : ""} está listo.`
+        : "Tu archivo está listo.",
+      model: `Modelo utilizado: ${model}.`,
+      button: "Ver transcripción",
+      contact:
+        "¿Preguntas o algún problema? Responde a este correo y te ayudaré.",
+    },
+    de: {
+      subject: "Ihre Transkription ist fertig",
+      title: "Transkription fertig",
+      ready: data.durationMinutes
+        ? `Ihre Datei mit ${data.durationMinutes} Minute${data.durationMinutes > 1 ? "n" : ""} ist fertig.`
+        : "Ihre Datei ist fertig.",
+      model: `Verwendetes Modell: ${model}.`,
+      button: "Transkription ansehen",
+      contact:
+        "Fragen oder ein Problem? Antworten Sie einfach auf diese E-Mail und ich helfe Ihnen.",
+    },
+  }[locale];
+
   const content = `
-    <h2>Your Transcription is Ready!</h2>
-    <p>Hi ${data.userName},</p>
-    <p>Good news! Your transcription for <strong>${data.fileName}</strong> has been completed successfully.</p>
-    ${data.duration ? `<p>Total duration: ${data.duration}</p>` : ""}
+    <h2>${strings.title}</h2>
+    <p>${strings.ready}</p>
+    <p>${strings.model}</p>
     <p style="text-align: center;">
-      <a href="${data.transcriptionUrl}" class="button">View Transcription</a>
+      <a href="${data.transcriptionUrl}" class="button">${strings.button}</a>
     </p>
-    <p>Best regards,<br>HumanLogs Team</p>
+    <p>${strings.contact}</p>
   `;
 
   const html = getBaseTemplate(content, {
-    title: "Transcription Complete",
-    preheader: `Your transcription for ${data.fileName} is ready`,
+    title: strings.subject,
+    preheader: strings.ready,
   });
 
-  const text = `
-Your Transcription is Ready!
+  const text = `${strings.title}
 
-Hi ${data.userName},
+${strings.ready}
+${strings.model}
 
-Good news! Your transcription for "${data.fileName}" has been completed successfully.
+${data.transcriptionUrl}
 
-${data.duration ? `Total duration: ${data.duration}` : ""}
+${strings.contact}`.trim();
 
-View your transcription: ${data.transcriptionUrl}
+  return { subject: strings.subject, html, text };
+}
 
-Best regards,
-HumanLogs Team
-  `.trim();
+/**
+ * Create a transcription failed email template. Minimal, invites a reply.
+ */
+export function getTranscriptionFailedEmailTemplate(data: {
+  transcriptionUrl: string;
+  durationMinutes?: number;
+  modelRegion: "eu" | "us";
+  locale?: string;
+}): EmailTemplate {
+  const locale = normalizeEmailLocale(data.locale);
+  const model = modelRegionLabel(data.modelRegion, locale);
 
-  return {
-    subject: `Transcription Complete: ${data.fileName}`,
-    html,
-    text,
-  };
+  const strings = {
+    en: {
+      subject: "There was a problem with your transcription",
+      title: "Transcription failed",
+      body: "Something went wrong while processing your transcription. You can try again by uploading your file once more.",
+      model: `Model used: ${model}.`,
+      button: "View details",
+      contact:
+        "If the problem persists, just reply to this email and I'll look into it.",
+    },
+    fr: {
+      subject: "Un problème avec votre transcription",
+      title: "Échec de la transcription",
+      body: "Une erreur s'est produite lors du traitement de votre transcription. Vous pouvez réessayer en téléchargeant à nouveau votre fichier.",
+      model: `Modèle utilisé : ${model}.`,
+      button: "Voir les détails",
+      contact:
+        "Si le problème persiste, répondez simplement à cet e-mail et je m'en occuperai.",
+    },
+    es: {
+      subject: "Hubo un problema con tu transcripción",
+      title: "La transcripción falló",
+      body: "Algo salió mal al procesar tu transcripción. Puedes volver a intentarlo subiendo el archivo de nuevo.",
+      model: `Modelo utilizado: ${model}.`,
+      button: "Ver detalles",
+      contact:
+        "Si el problema persiste, responde a este correo y lo revisaré.",
+    },
+    de: {
+      subject: "Es gab ein Problem mit Ihrer Transkription",
+      title: "Transkription fehlgeschlagen",
+      body: "Beim Verarbeiten Ihrer Transkription ist etwas schiefgelaufen. Sie können es erneut versuchen, indem Sie Ihre Datei noch einmal hochladen.",
+      model: `Verwendetes Modell: ${model}.`,
+      button: "Details ansehen",
+      contact:
+        "Falls das Problem weiterhin besteht, antworten Sie einfach auf diese E-Mail und ich kümmere mich darum.",
+    },
+  }[locale];
+
+  const content = `
+    <h2>${strings.title}</h2>
+    <p>${strings.body}</p>
+    <p>${strings.model}</p>
+    <p style="text-align: center;">
+      <a href="${data.transcriptionUrl}" class="button">${strings.button}</a>
+    </p>
+    <p>${strings.contact}</p>
+  `;
+
+  const html = getBaseTemplate(content, {
+    title: strings.subject,
+    preheader: strings.body,
+  });
+
+  const text = `${strings.title}
+
+${strings.body}
+${strings.model}
+
+${data.transcriptionUrl}
+
+${strings.contact}`.trim();
+
+  return { subject: strings.subject, html, text };
 }
 
 /**
