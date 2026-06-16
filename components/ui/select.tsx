@@ -10,6 +10,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -21,6 +22,8 @@ export interface SelectOption {
   label: string;
   value: string;
   separator?: boolean;
+  /** Extra terms to match against when searching (defaults to the label). */
+  keywords?: string[];
 }
 
 export interface SelectProps {
@@ -81,10 +84,7 @@ export function Select({
             <CommandGroup>
               {options.map((option) =>
                 option.separator ? (
-                  <div
-                    key={option.value}
-                    className="mx-2 my-1 border-t border-border"
-                  />
+                  <CommandSeparator key={option.value} className="my-1" />
                 ) : (
                   <CommandItem
                     key={option.value}
@@ -93,7 +93,7 @@ export function Select({
                       onChange?.(currentValue === value ? "" : currentValue);
                       setOpen(false);
                     }}
-                    keywords={[option.label]}
+                    keywords={option.keywords ?? [option.label]}
                   >
                     <Check
                       className={cn(

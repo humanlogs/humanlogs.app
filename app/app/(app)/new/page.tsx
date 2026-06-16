@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
+import { Select, type SelectOption } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import _ from "lodash";
@@ -172,6 +172,67 @@ const supportedLanguages = {
   yor: "Yoruba",
   // zul: "Zulu", // Not supported by Gladia
 };
+
+// The most commonly used languages, surfaced at the top of the selector
+// (followed by a separator) before the alphabetical list of the rest.
+const TOP_LANGUAGES = ["eng", "fra", "spa", "deu", "ita"];
+
+// Cache the computed option list per locale: deriving names via Intl is cheap
+// but there's no reason to redo it on every render.
+const languageOptionsCache = new Map<string, SelectOption[]>();
+
+/**
+ * Build the language selector options for a given UI locale. Each option's
+ * label shows the language name translated into the current locale alongside
+ * its name in its own dialect (e.g. "German (Deutsch)"), and both names — plus
+ * the ISO code — are searchable.
+ */
+function getLanguageOptions(locale: string): SelectOption[] {
+  const cached = languageOptionsCache.get(locale);
+  if (cached) return cached;
+
+  const translatedNames = new Intl.DisplayNames([locale], { type: "language" });
+
+  const buildOption = (code: string): SelectOption => {
+    let translated: string;
+    try {
+      translated = translatedNames.of(code) ?? (supportedLanguages as any)[code];
+    } catch {
+      translated = (supportedLanguages as any)[code];
+    }
+
+    let native = translated;
+    try {
+      native =
+        new Intl.DisplayNames([code], { type: "language" }).of(code) ??
+        translated;
+    } catch {
+      native = translated;
+    }
+
+    const sameName = native.toLowerCase() === translated.toLowerCase();
+    return {
+      value: code,
+      label: sameName ? translated : `${translated} (${native})`,
+      keywords: sameName ? [translated, code] : [translated, native, code],
+    };
+  };
+
+  const allCodes = Object.keys(supportedLanguages);
+  const topCodes = TOP_LANGUAGES.filter((code) => allCodes.includes(code));
+  const restCodes = allCodes.filter((code) => !topCodes.includes(code));
+
+  const options: SelectOption[] = [
+    ...topCodes.map(buildOption),
+    { value: "__separator__", label: "", separator: true },
+    ..._.sortBy(restCodes.map(buildOption), (option) =>
+      option.label.toLowerCase(),
+    ),
+  ];
+
+  languageOptionsCache.set(locale, options);
+  return options;
+}
 
 export default function NewTranscriptionPage() {
   const t = useTranslations("newTranscription");
@@ -760,13 +821,7 @@ export default function NewTranscriptionPage() {
                 disabled={isSubmitting}
                 size="sm"
                 className="w-max inline-flex"
-                options={_.sortBy(
-                  Object.keys(supportedLanguages),
-                  (a) => (supportedLanguages as any)[a],
-                ).map((lang) => ({
-                  label: (supportedLanguages as any)[lang],
-                  value: lang,
-                }))}
+                options={getLanguageOptions(locale)}
                 value={language}
                 onChange={setLanguage}
                 placeholder={t("language")}
