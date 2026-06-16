@@ -62,7 +62,7 @@ export async function getAppStats() {
     {} as Record<string, number>,
   );
 
-  // 4. Transcripts created per day in the last 30 days
+  // 4. Transcripts created per day in the last 30 days (broken down by status)
   const transcriptsCreatedLast30Days = await prisma.transcription.findMany({
     where: {
       createdAt: {
@@ -71,16 +71,34 @@ export async function getAppStats() {
     },
     select: {
       createdAt: true,
+      state: true,
     },
     orderBy: {
       createdAt: "asc",
     },
   });
 
+  // Total per day (kept for backward compatibility with the stats export)
   const transcriptsByDay: Record<string, number> = {};
+  // Per-status breakdown per day, used by the stacked bar chart on the admin
+  // dashboard (green = completed, red = error, orange = pending).
+  const transcriptsByDayByStatus: Record<
+    string,
+    { completed: number; error: number; pending: number }
+  > = {};
   transcriptsCreatedLast30Days.forEach((transcript) => {
     const day = transcript.createdAt.toISOString().split("T")[0];
     transcriptsByDay[day] = (transcriptsByDay[day] || 0) + 1;
+    if (!transcriptsByDayByStatus[day]) {
+      transcriptsByDayByStatus[day] = { completed: 0, error: 0, pending: 0 };
+    }
+    if (transcript.state === "COMPLETED") {
+      transcriptsByDayByStatus[day].completed += 1;
+    } else if (transcript.state === "ERROR") {
+      transcriptsByDayByStatus[day].error += 1;
+    } else {
+      transcriptsByDayByStatus[day].pending += 1;
+    }
   });
 
   // 5. Number of users connected in the last 24h, 48h, 7d, 30d
@@ -270,6 +288,67 @@ export async function getAppStats() {
     where: { isWelcomeDone: true },
   });
 
+  // 10b. Ten most recently registered users with their usage (transcriptions,
+  // editor revisions) and onboarding profile, to gauge new-user engagement.
+  const latestUsers = await prisma.user.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 10,
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      createdAt: true,
+      isWelcomeDone: true,
+      profession: true,
+      monthlyUsage: true,
+      dataResidency: true,
+      plan: true,
+    },
+  });
+  const latestUserIds = latestUsers.map((u) => u.id);
+
+  // Transcription counts per recent user
+  const transcriptionCountsByUser = await prisma.transcription.groupBy({
+    by: ["userId"],
+    where: { userId: { in: latestUserIds } },
+    _count: { id: true },
+  });
+  const transcriptionCountMap = transcriptionCountsByUser.reduce(
+    (acc, g) => {
+      acc[g.userId] = g._count.id;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
+
+  // Revision counts per recent user (each TranscriptionHistory row = one saved revision)
+  const revisionCountsByUser = await prisma.transcriptionHistory.groupBy({
+    by: ["userId"],
+    where: { userId: { in: latestUserIds } },
+    _count: { id: true },
+  });
+  const revisionCountMap = revisionCountsByUser.reduce(
+    (acc, g) => {
+      acc[g.userId] = g._count.id;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
+
+  const recentUsers = latestUsers.map((u) => ({
+    id: u.id,
+    email: u.email,
+    name: u.name,
+    createdAt: u.createdAt,
+    plan: u.plan,
+    isWelcomeDone: u.isWelcomeDone,
+    profession: u.profession,
+    monthlyUsage: u.monthlyUsage,
+    dataResidency: u.dataResidency,
+    transcriptionCount: transcriptionCountMap[u.id] || 0,
+    revisionCount: revisionCountMap[u.id] || 0,
+  }));
+
   // 11. Landing page visits
   const totalUniqueVisitors = await prisma.landingPageVisit.groupBy({
     by: ["ipHash"],
@@ -338,10 +417,12 @@ export async function getAppStats() {
       byMonthlyUsage,
       byDataResidency,
       welcomeDoneCount,
+      recent: recentUsers,
     },
     transcriptions: {
       byStatus: transcriptsByStatus,
       byDay: transcriptsByDay,
+      byDayByStatus: transcriptsByDayByStatus,
     },
     credits: {
       totalInStock: totalCreditsInStock,

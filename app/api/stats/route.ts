@@ -54,8 +54,12 @@ export async function GET(request: NextRequest) {
 
     // Strip PII: the export must not carry user emails/names. Feedback
     // content (type, rating, message) is kept, but the attached user is not.
+    // The recent-users list (emails + onboarding profile) is admin-only, so
+    // drop it entirely from the token export.
+    const { recent: _recentUsers, ...usersWithoutRecent } = stats.users;
     const sanitized = {
       ...stats,
+      users: usersWithoutRecent,
       feedback: {
         ...stats.feedback,
         recent: stats.feedback.recent.map(({ user: _user, ...rest }) => rest),

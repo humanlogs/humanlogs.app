@@ -64,15 +64,24 @@ export default function AdminPage() {
   }, [stats]);
 
   const transcriptionBarData = useMemo(() => {
-    if (!stats?.transcriptions.byDay) return [];
+    if (!stats?.transcriptions.byDayByStatus) return [];
     const allDays = generateLast30Days();
-    return allDays.map((date) => ({
-      date: new Date(date).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      }),
-      count: stats.transcriptions.byDay[date] || 0,
-    }));
+    return allDays.map((date) => {
+      const breakdown = stats.transcriptions.byDayByStatus[date] || {
+        completed: 0,
+        error: 0,
+        pending: 0,
+      };
+      return {
+        date: new Date(date).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        }),
+        completed: breakdown.completed,
+        error: breakdown.error,
+        pending: breakdown.pending,
+      };
+    });
   }, [stats]);
 
   const creditsBarData = useMemo(() => {
@@ -444,6 +453,101 @@ export default function AdminPage() {
           </CardContent>
         </Card>
 
+        {/* Recent Users */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <UsersIcon className="h-5 w-5" />
+              Latest Registered Users
+            </CardTitle>
+            <CardDescription>
+              The 10 most recently registered users — their transcription and
+              revision activity plus onboarding profile
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {stats.users.recent && stats.users.recent.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left text-muted-foreground">
+                      <th className="py-2 pr-4 font-medium">Email</th>
+                      <th className="py-2 pr-4 font-medium">Registered</th>
+                      <th className="py-2 pr-4 font-medium text-right">
+                        Transcriptions
+                      </th>
+                      <th className="py-2 pr-4 font-medium text-right">
+                        Revisions
+                      </th>
+                      <th className="py-2 pr-4 font-medium">Onboarding</th>
+                      <th className="py-2 pr-4 font-medium">Profession</th>
+                      <th className="py-2 pr-4 font-medium">Usage</th>
+                      <th className="py-2 font-medium">Residency</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.users.recent.map((u) => (
+                      <tr
+                        key={u.id}
+                        className="border-b last:border-b-0 hover:bg-muted/30 transition-colors"
+                      >
+                        <td className="py-2 pr-4">
+                          <div className="font-medium">{u.email}</div>
+                          {u.name && (
+                            <div className="text-xs text-muted-foreground">
+                              {u.name}
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-2 pr-4 whitespace-nowrap text-muted-foreground">
+                          {new Date(u.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="py-2 pr-4 text-right font-medium">
+                          {u.transcriptionCount}
+                        </td>
+                        <td className="py-2 pr-4 text-right font-medium">
+                          {u.revisionCount}
+                        </td>
+                        <td className="py-2 pr-4">
+                          {u.isWelcomeDone ? (
+                            <span className="text-green-600">Done</span>
+                          ) : (
+                            <span className="text-muted-foreground">
+                              Pending
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-2 pr-4">
+                          {u.profession
+                            ? (PROFESSION_LABELS[u.profession] ?? u.profession)
+                            : "—"}
+                        </td>
+                        <td className="py-2 pr-4 whitespace-nowrap">
+                          {u.monthlyUsage
+                            ? (MONTHLY_USAGE_LABELS[u.monthlyUsage] ??
+                              u.monthlyUsage)
+                            : "—"}
+                        </td>
+                        <td className="py-2 whitespace-nowrap">
+                          {u.dataResidency === "eu"
+                            ? "EU (Gladia)"
+                            : u.dataResidency === "us"
+                              ? "US (ElevenLabs)"
+                              : (u.dataResidency ?? "—")}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-center py-4">
+                No users yet
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Users by Day Chart */}
         <Card>
           <CardHeader>
@@ -695,7 +799,8 @@ export default function AdminPage() {
               Transcriptions Created Per Day (Last 30 Days)
             </CardTitle>
             <CardDescription>
-              Number of transcriptions created daily
+              Number of transcriptions created daily — green: completed, red:
+              failed, orange: pending
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -703,13 +808,19 @@ export default function AdminPage() {
               {transcriptionBarData.length > 0 ? (
                 <ResponsiveBar
                   data={transcriptionBarData}
-                  keys={["count"]}
+                  keys={["completed", "error", "pending"]}
                   indexBy="date"
                   margin={{ top: 20, right: 30, bottom: 60, left: 60 }}
                   padding={0.3}
                   valueScale={{ type: "linear" }}
                   indexScale={{ type: "band", round: true }}
-                  colors={{ scheme: "category10" }}
+                  colors={({ id }) =>
+                    id === "completed"
+                      ? "#22c55e"
+                      : id === "error"
+                        ? "#ef4444"
+                        : "#f97316"
+                  }
                   axisTop={null}
                   axisRight={null}
                   axisBottom={{
