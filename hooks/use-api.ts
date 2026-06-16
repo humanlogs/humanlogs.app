@@ -260,6 +260,15 @@ export type AdminStats = {
       uniqueVisitors: number;
     }>;
   };
+  retention: {
+    weeks: number;
+    maxOffset: number;
+    cohorts: Array<{
+      weekStart: string;
+      size: number;
+      retention: number[];
+    }>;
+  };
 };
 
 // Fetch admin statistics
