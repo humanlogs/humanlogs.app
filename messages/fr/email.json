@@ -10,8 +10,8 @@
             "readyNoDuration": "Votre fichier est prêt.",
             "model": "Modèle utilisé : {model}.",
             "button": "Voir la transcription",
-            "feedbackErrors": "Une petite précision : la qualité de la transcription peut varier selon le modèle utilisé, et il peut rester quelques erreurs. HumanLogs est encore un outil jeune, que nous améliorons semaine après semaine.",
-            "feedbackInvite": "C'est justement pour cela que votre avis compte énormément pour nous. Si quelque chose vous semble étrange, si vous avez une idée, une frustration, ou simplement une question, répondez directement à cet e-mail : nous lisons et répondons personnellement à chaque message.",
+            "feedbackErrors": "Merci d'utiliser HumanLogs ! Nous espérons que vous êtes satisfait de la transcription. Si vous remarquez des erreurs, ou si vous avez des suggestions pour améliorer le service, répondez directement à cet e-mail : nous lisons et répondons personnellement à chaque message.",
+            "feedbackInvite": "",
             "signOff": "Au plaisir d'échanger avec vous,",
             "signName": "Romaric, de l'équipe HumanLogs"
         },
