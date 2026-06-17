@@ -1,0 +1,45 @@
+name: kan.bn sync
+
+# Copies the git-versioned SEO report and social posts onto the kan.bn board.
+#
+# Why a separate workflow: kan.bn is the source-of-truth's *mirror*, not its
+# home. Claude (and humans) edit pipeline/reports/humanlogs.app.md and
+# pipeline/social/*.md in git. This job is the only thing that talks to the
+# kan.bn API — the Claude Code remote environment can't reach kan.bn (it's not
+# in that environment's network egress allowlist), but a GitHub runner can.
+#
+# Idempotent and stateless: the report card is upserted, and social cards are
+# created only when a card with the same title doesn't already exist.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "pipeline/reports/**"
+      - "pipeline/social/**"
+      - "pipeline/kanbn-sync.ts"
+      - "pipeline/kanbn.ts"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pipeline dependencies
+        run: cd pipeline && npm install
+
+      - name: Sync report + social posts to kan.bn
+        env:
+          KAN_API_TOKEN: ${{ secrets.KAN_API_TOKEN }}
+          # The kan.bn list (in both Reports and Social boards) to sync into.
+          KAN_PAGE: humanlogs.app
+        run: cd pipeline && npm run kanbn:sync
