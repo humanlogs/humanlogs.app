@@ -51,8 +51,10 @@ jobs:
           REDDIT_USER_AGENT: growth/0.1 (seo-research workflow)
           # Google Search Console — optional, service-account JSON
           GOOGLE_JSON: ${{ secrets.GOOGLE_JSON }}
-          GSC_SITE_URL: ${{ secrets.GSC_SITE_URL }}
-          DOMAIN: ${{ secrets.DOMAIN }}
+          # Accept the value whether it's stored as a GitHub Actions secret or
+          # as a repository/org variable (secret wins if both are set).
+          GSC_SITE_URL: ${{ secrets.GSC_SITE_URL || vars.GSC_SITE_URL }}
+          DOMAIN: ${{ secrets.DOMAIN || vars.DOMAIN }}
         run: cd pipeline && npm run morning
 
       # Print the outputs in the logs so they can be read through the API
