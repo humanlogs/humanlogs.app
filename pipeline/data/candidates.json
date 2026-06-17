@@ -1,0 +1,1435 @@
+{
+  "generatedAt": "2026-06-17T15:02:15.006Z",
+  "candidates": [
+    {
+      "keyword": "analyse qualitative",
+      "searchVolume": 2400,
+      "difficulty": 0,
+      "cpc": 3.53,
+      "competition": 0.01,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 216
+    },
+    {
+      "keyword": "analyse qualitative data",
+      "searchVolume": 1000,
+      "difficulty": 6,
+      "cpc": 22.31,
+      "competition": 0.16,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 56.25
+    },
+    {
+      "keyword": "transcribe audio to text free online",
+      "searchVolume": 1900,
+      "difficulty": 35,
+      "cpc": 3.18,
+      "competition": 0.67,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 42.22
+    },
+    {
+      "keyword": "how to analyse qualitative data",
+      "searchVolume": 320,
+      "difficulty": 0,
+      "cpc": 23.58,
+      "competition": 0.19,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 28.8
+    },
+    {
+      "keyword": "how analyse qualitative data",
+      "searchVolume": 320,
+      "difficulty": 0,
+      "cpc": 23.58,
+      "competition": 0.19,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 28.8
+    },
+    {
+      "keyword": "how do you analyse qualitative data",
+      "searchVolume": 320,
+      "difficulty": 5,
+      "cpc": 5.68,
+      "competition": 0.14,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 19.2
+    },
+    {
+      "keyword": "how do we analyse qualitative data",
+      "searchVolume": 320,
+      "difficulty": 9,
+      "cpc": 23.58,
+      "competition": 0.19,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 15.16
+    },
+    {
+      "keyword": "mp3 audio to text converter online free",
+      "searchVolume": 260,
+      "difficulty": 22,
+      "cpc": 2.79,
+      "competition": 0.47,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 8.13
+    },
+    {
+      "keyword": "how do i analyse qualitative data",
+      "searchVolume": 320,
+      "difficulty": 26,
+      "cpc": 23.58,
+      "competition": 0.19,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 8
+    },
+    {
+      "keyword": "which of these is not a transcription skill",
+      "searchVolume": 70,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "these-master",
+      "score": 5.95
+    },
+    {
+      "keyword": "data analysis in qualitative research example",
+      "searchVolume": 140,
+      "difficulty": 14,
+      "cpc": 0,
+      "competition": 0.03,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 5.25
+    },
+    {
+      "keyword": "transcription of these",
+      "searchVolume": 40,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "these-master",
+      "score": 3.4
+    },
+    {
+      "keyword": "how to analyse qualitative interview data",
+      "searchVolume": 50,
+      "difficulty": 6,
+      "cpc": 0,
+      "competition": 0.3,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 2.81
+    },
+    {
+      "keyword": "transcribe audio to text free online google",
+      "searchVolume": 170,
+      "difficulty": 52,
+      "cpc": 3.18,
+      "competition": 0.57,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 2.74
+    },
+    {
+      "keyword": "how to analyse qualitative data from an interview",
+      "searchVolume": 50,
+      "difficulty": 7,
+      "cpc": 0,
+      "competition": 0.3,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 2.65
+    },
+    {
+      "keyword": "ways to analyse qualitative data",
+      "searchVolume": 40,
+      "difficulty": 5,
+      "cpc": 0,
+      "competition": 0.19,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 2.4
+    },
+    {
+      "keyword": "transcription audio en texte",
+      "searchVolume": 140,
+      "difficulty": 60,
+      "cpc": 3.68,
+      "competition": 0.65,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 2
+    },
+    {
+      "keyword": "how to analyse qualitative data from interviews",
+      "searchVolume": 70,
+      "difficulty": 30,
+      "cpc": 14.14,
+      "competition": 0.25,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 1.57
+    },
+    {
+      "keyword": "logiciel pour retranscrire un enregistrement audio",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0.57,
+      "intent": "transactional",
+      "pillar": "transcription",
+      "score": 1.5
+    },
+    {
+      "keyword": "logiciel de transcription",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "transactional",
+      "pillar": "transcription",
+      "score": 1.5
+    },
+    {
+      "keyword": "logiciel de transcription audio en texte gratuit",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "transactional",
+      "pillar": "transcription",
+      "score": 1.5
+    },
+    {
+      "keyword": "logiciel de transcription video en texte",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "transactional",
+      "pillar": "transcription",
+      "score": 1.5
+    },
+    {
+      "keyword": "logiciel de transcription audio en texte",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 4.59,
+      "competition": 0.86,
+      "intent": "transactional",
+      "pillar": "transcription",
+      "score": 1.5
+    },
+    {
+      "keyword": "application transcription vocale",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0.71,
+      "intent": "transactional",
+      "pillar": "transcription",
+      "score": 1.5
+    },
+    {
+      "keyword": "transcription audio en texte gratuit word",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "transactional",
+      "pillar": "transcription",
+      "score": 1.5
+    },
+    {
+      "keyword": "transcription audio en texte gratuit sans inscription",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0.71,
+      "intent": "transactional",
+      "pillar": "transcription",
+      "score": 1.5
+    },
+    {
+      "keyword": "app transcription audio en texte",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "transactional",
+      "pillar": "transcription",
+      "score": 1.5
+    },
+    {
+      "keyword": "transcription audio en texte mac",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "transactional",
+      "pillar": "transcription",
+      "score": 1.5
+    },
+    {
+      "keyword": "outil transcription audio texte gratuit",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "transactional",
+      "pillar": "transcription",
+      "score": 1.5
+    },
+    {
+      "keyword": "meilleur logiciel de transcription audio en texte",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "commercial",
+      "pillar": "transcription",
+      "score": 1.4
+    },
+    {
+      "keyword": "meilleur logiciel transcription audio en texte",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "commercial",
+      "pillar": "transcription",
+      "score": 1.4
+    },
+    {
+      "keyword": "service de transcription audio en texte",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "commercial",
+      "pillar": "transcription",
+      "score": 1.4
+    },
+    {
+      "keyword": "transcription audio en texte gratuit illimité",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "commercial",
+      "pillar": "transcription",
+      "score": 1.4
+    },
+    {
+      "keyword": "transcription audio en texte gratuit",
+      "searchVolume": 30,
+      "difficulty": 12,
+      "cpc": 2.59,
+      "competition": 0.75,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1.36
+    },
+    {
+      "keyword": "how to analyse data in qualitative research",
+      "searchVolume": 20,
+      "difficulty": 4,
+      "cpc": 0,
+      "competition": 0.11,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 1.29
+    },
+    {
+      "keyword": "best software to analyse qualitative data",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "commercial",
+      "pillar": "recherche-qualitative",
+      "score": 1.26
+    },
+    {
+      "keyword": "software used to analyse qualitative data",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0.86,
+      "intent": "commercial",
+      "pillar": "recherche-qualitative",
+      "score": 1.26
+    },
+    {
+      "keyword": "transcription d'un entretien",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "transcription automatique audio en texte",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "ai transcription audio en texte",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "transcription audio en texte francais",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "transcription audio en texte job",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "ai pour transcription audio en texte",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "transcription audio en texte gratuit google",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "transcription audio en texte gratuit en ligne",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 2.82,
+      "competition": 0.83,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "google docs transcription audio en texte",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "youtube transcription audio en texte",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0.86,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "transcription audio en texte français",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "transcription audio en texte en direct",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 5.31,
+      "competition": 0.86,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "transcription audio en texte youtube",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "transcription audio en texte iphone",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0.43,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "transcription audio en texte en ligne gratuit",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0.57,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "transcription audio en texte word",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "transcription audio en texte word gratuit",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "transcription audio en texte google",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "google transcription audio en texte",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "transcription audio en texte windows 10",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "transcription audio en texte français gratuit",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 2.91,
+      "competition": 0.79,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "transcription audio en texte en ligne",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 3.7,
+      "competition": 0.86,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "retranscription entretien",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0.03,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "retranscription d'un entretien",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 1
+    },
+    {
+      "keyword": "how to analyse data for qualitative research",
+      "searchVolume": 20,
+      "difficulty": 9,
+      "cpc": 0,
+      "competition": 0.11,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.95
+    },
+    {
+      "keyword": "recherche qualitative et quantitative",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "recherche qualitative",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0.07,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "méthodes de recherche qualitative",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "recherche qualitative définition",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "exemple de recherche qualitative",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "introduction à la recherche qualitative",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "méthodologie de recherche qualitative",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "méthodologie de la recherche qualitative pdf",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "méthode de recherche qualitative",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "la recherche qualitative",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0.14,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "recherche qualitative guide pratique",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "types d'échantillonnage en recherche qualitative",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "entretien semi directif",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "entretien semi-directif définition",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "analyse thématique entretien semi directif",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "entretien semi directif définition",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "entretien semi-directif",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "analyse qualitative exemple",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "free software to analyse qualitative data",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0.86,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "analyse qualitative des risques",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "how to use nvivo to analyse qualitative data",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "analyse qualitative et quantitative",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "analyse quantitative et qualitative",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "analyse de contenu qualitative",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "how to analyse qualitative data in different ways",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "how to analyse qualitative data in excel",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0.2,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "best way to analyse qualitative data",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0.43,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "analyse qualitative data in excel",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0.6,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "how to analyse qualitative interviews",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0.18,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "how to analyse qualitative and quantitative data",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0.14,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "using ai to analyse qualitative data",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 5.69,
+      "competition": 0.81,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "how to analyse qualitative data from an interview example",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 4.81,
+      "competition": 0.43,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "analyse qualitative en sciences humaines et sociales",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "how to analyse qualitative data using atlas ti",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "how do you analyse qualitative data from an interview",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "can spss be used to analyse qualitative data",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "how to analyse and interpret qualitative data",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "methods used to analyse qualitative data",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0.01,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "how to analyse qualitative data using spss",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "can spss analyse qualitative data",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "how to analyse qualitative data pdf",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "how to analyse qualitative data for dissertation",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "how to analyse qualitative data using content analysis",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "how to analyse qualitative data in spss",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "how long does it take to analyse qualitative data",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "why is qualitative data difficult to analyse",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "how to analyse qualitative data from an interview pdf",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "how to analyse qualitative data using thematic analysis",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "how do you analyse qualitative data from a questionnaire",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "analyse qualitative def",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "tools used to analyse qualitative data",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "qualitative analyse chemie",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "qualitative anorganische analyse",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "analyse verbatim excel",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "analyse verbatim",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
+      "keyword": "convert audio to text online",
+      "searchVolume": 40,
+      "difficulty": 37,
+      "cpc": 3.89,
+      "competition": 0.75,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 0.85
+    },
+    {
+      "keyword": "these transcription",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "these-master",
+      "score": 0.85
+    },
+    {
+      "keyword": "which of these occurs during transcription",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "these-master",
+      "score": 0.85
+    },
+    {
+      "keyword": "these phonetic transcription",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "these-master",
+      "score": 0.85
+    },
+    {
+      "keyword": "moteur de recherche intelligence artificielle",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "productivite-recherche",
+      "score": 0.8
+    },
+    {
+      "keyword": "intelligence artificielle exemple",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "productivite-recherche",
+      "score": 0.8
+    },
+    {
+      "keyword": "intelligence artificielle avantages et inconvénients",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "productivite-recherche",
+      "score": 0.8
+    },
+    {
+      "keyword": "l'intelligence artificielle pdf",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "productivite-recherche",
+      "score": 0.8
+    },
+    {
+      "keyword": "article sur l'intelligence artificielle pdf",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "productivite-recherche",
+      "score": 0.8
+    },
+    {
+      "keyword": "entretien qualitatif",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "entretien-terrain",
+      "score": 0.75
+    },
+    {
+      "keyword": "software to analyse qualitative data",
+      "searchVolume": 20,
+      "difficulty": 24,
+      "cpc": 21.96,
+      "competition": 0.68,
+      "intent": "commercial",
+      "pillar": "recherche-qualitative",
+      "score": 0.74
+    },
+    {
+      "keyword": "method to analyse qualitative data",
+      "searchVolume": 10,
+      "difficulty": 3,
+      "cpc": 0,
+      "competition": 0.13,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.69
+    },
+    {
+      "keyword": "how to analyse qualitative survey data",
+      "searchVolume": 10,
+      "difficulty": 4,
+      "cpc": 0,
+      "competition": 0.34,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.64
+    },
+    {
+      "keyword": "how to analyse qualitative data in research",
+      "searchVolume": 10,
+      "difficulty": 4,
+      "cpc": 0,
+      "competition": 0.14,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.64
+    },
+    {
+      "keyword": "phonetic transcription of these",
+      "searchVolume": 10,
+      "difficulty": 4,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "these-master",
+      "score": 0.61
+    },
+    {
+      "keyword": "intelligence artificielle recherche",
+      "searchVolume": 10,
+      "difficulty": 6,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "productivite-recherche",
+      "score": 0.5
+    },
+    {
+      "keyword": "transcription gratuite audio en texte",
+      "searchVolume": 10,
+      "difficulty": 12,
+      "cpc": 0,
+      "competition": 0.86,
+      "intent": "informational",
+      "pillar": "transcription",
+      "score": 0.45
+    },
+    {
+      "keyword": "intelligence artificielle exposé",
+      "searchVolume": 10,
+      "difficulty": 24,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "productivite-recherche",
+      "score": 0.24
+    },
+    {
+      "keyword": "how to analyse interview data qualitative",
+      "searchVolume": 10,
+      "difficulty": 30,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.23
+    },
+    {
+      "keyword": "how to analyse qualitative questionnaire data",
+      "searchVolume": 10,
+      "difficulty": 47,
+      "cpc": 0,
+      "competition": 0.86,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.16
+    },
+    {
+      "keyword": "how to analyse questionnaire data qualitative",
+      "searchVolume": 10,
+      "difficulty": 47,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.16
+    },
+    {
+      "keyword": "how to analyse qualitative data from a survey",
+      "searchVolume": 10,
+      "difficulty": 48,
+      "cpc": 0,
+      "competition": 0.13,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.16
+    },
+    {
+      "keyword": "steps to analyse qualitative data",
+      "searchVolume": 10,
+      "difficulty": 48,
+      "cpc": 0,
+      "competition": 0.14,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.16
+    },
+    {
+      "keyword": "how to analyse qualitative data from a questionnaire",
+      "searchVolume": 10,
+      "difficulty": 47,
+      "cpc": 0,
+      "competition": 0.86,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.16
+    },
+    {
+      "keyword": "these ipa transcription",
+      "searchVolume": 10,
+      "difficulty": 87,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "these-master",
+      "score": 0.09
+    },
+    {
+      "keyword": "intelligence artificielle site",
+      "searchVolume": 10,
+      "difficulty": 39,
+      "cpc": 1.03,
+      "competition": 0.36,
+      "intent": "navigational",
+      "pillar": "productivite-recherche",
+      "score": 0.07
+    }
+  ]
+}
