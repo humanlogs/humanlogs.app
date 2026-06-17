@@ -10,7 +10,8 @@
     "reddit": "tsx reddit-cli.ts",
     "clean": "tsx clean-md.ts",
     "report": "tsx analyze-properties.ts",
-    "stats": "tsx stats-report.ts"
+    "stats": "tsx stats-report.ts",
+    "kanbn:sync": "tsx kanbn-sync.ts"
   },
   "dependencies": {
     "dotenv": "^16.4.5"
