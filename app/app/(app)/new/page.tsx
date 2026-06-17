@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
+import { Select, type SelectOption } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import _ from "lodash";
@@ -33,7 +33,6 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
 import { useUserProfile } from "../../../../hooks/use-api";
-import { fetchGateway } from "@/hooks/fetch";
 import { useQueryClient } from "@tanstack/react-query";
 
 type AudioFile = {
@@ -43,6 +42,40 @@ type AudioFile = {
   duration: number | null;
   size: number;
 };
+
+// EU (Gladia) servers reject audio longer than this per file.
+const EU_MAX_DURATION_SECONDS = 8100;
+
+type UploadResult = { ok: boolean; status: number; body: string };
+
+/**
+ * Upload a FormData payload via XMLHttpRequest so we can report upload
+ * progress (the fetch API does not expose upload progress events).
+ */
+function uploadWithProgress(
+  url: string,
+  formData: FormData,
+  onProgress: (percent: number) => void,
+): Promise<UploadResult> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url);
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        onProgress(Math.round((event.loaded / event.total) * 100));
+      }
+    };
+
+    xhr.onload = () => {
+      resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, body: xhr.responseText });
+    };
+    xhr.onerror = () => reject(new Error("Network error during upload"));
+    xhr.onabort = () => reject(new Error("Upload aborted"));
+
+    xhr.send(formData);
+  });
+}
 
 const supportedLanguages = {
   bel: "Belarusian",
@@ -140,6 +173,67 @@ const supportedLanguages = {
   // zul: "Zulu", // Not supported by Gladia
 };
 
+// The most commonly used languages, surfaced at the top of the selector
+// (followed by a separator) before the alphabetical list of the rest.
+const TOP_LANGUAGES = ["eng", "fra", "spa", "deu", "ita"];
+
+// Cache the computed option list per locale: deriving names via Intl is cheap
+// but there's no reason to redo it on every render.
+const languageOptionsCache = new Map<string, SelectOption[]>();
+
+/**
+ * Build the language selector options for a given UI locale. Each option's
+ * label shows the language name translated into the current locale alongside
+ * its name in its own dialect (e.g. "German (Deutsch)"), and both names — plus
+ * the ISO code — are searchable.
+ */
+function getLanguageOptions(locale: string): SelectOption[] {
+  const cached = languageOptionsCache.get(locale);
+  if (cached) return cached;
+
+  const translatedNames = new Intl.DisplayNames([locale], { type: "language" });
+
+  const buildOption = (code: string): SelectOption => {
+    let translated: string;
+    try {
+      translated = translatedNames.of(code) ?? (supportedLanguages as any)[code];
+    } catch {
+      translated = (supportedLanguages as any)[code];
+    }
+
+    let native = translated;
+    try {
+      native =
+        new Intl.DisplayNames([code], { type: "language" }).of(code) ??
+        translated;
+    } catch {
+      native = translated;
+    }
+
+    const sameName = native.toLowerCase() === translated.toLowerCase();
+    return {
+      value: code,
+      label: sameName ? translated : `${translated} (${native})`,
+      keywords: sameName ? [translated, code] : [translated, native, code],
+    };
+  };
+
+  const allCodes = Object.keys(supportedLanguages);
+  const topCodes = TOP_LANGUAGES.filter((code) => allCodes.includes(code));
+  const restCodes = allCodes.filter((code) => !topCodes.includes(code));
+
+  const options: SelectOption[] = [
+    ...topCodes.map(buildOption),
+    { value: "__separator__", label: "", separator: true },
+    ..._.sortBy(restCodes.map(buildOption), (option) =>
+      option.label.toLowerCase(),
+    ),
+  ];
+
+  languageOptionsCache.set(locale, options);
+  return options;
+}
+
 export default function NewTranscriptionPage() {
   const t = useTranslations("newTranscription");
   const { locale } = useLocale();
@@ -176,6 +270,10 @@ export default function NewTranscriptionPage() {
   });
   const [isDragging, setIsDragging] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  // Upload progress (0-100). Null while not uploading.
+  const [uploadProgress, setUploadProgress] = React.useState<number | null>(
+    null,
+  );
   const [playingAudioId, setPlayingAudioId] = React.useState<string | null>(
     null,
   );
@@ -239,6 +337,22 @@ export default function NewTranscriptionPage() {
   // Whether to offer the EU/US choice (both providers configured on this deployment)
   const showProviderChoice =
     !!user?.availableSttProviders?.eu && !!user?.availableSttProviders?.us;
+
+  // The provider that will actually be used for this transcription. When the
+  // user can choose, it follows their selection; otherwise it's whichever
+  // provider is configured on this deployment.
+  const effectiveProvider: "eu" | "us" = showProviderChoice
+    ? provider
+    : user?.availableSttProviders?.us && !user?.availableSttProviders?.eu
+      ? "us"
+      : "eu";
+
+  // Files that exceed the EU per-file duration limit (only relevant on EU).
+  const oversizedEuFiles =
+    effectiveProvider === "eu"
+      ? audioFiles.filter((f) => (f.duration || 0) > EU_MAX_DURATION_SECONDS)
+      : [];
+  const hasOversizedEuFiles = oversizedEuFiles.length > 0;
 
   // Calculate audio duration
   const loadAudioDuration = async (file: File): Promise<number> => {
@@ -484,7 +598,17 @@ export default function NewTranscriptionPage() {
       return;
     }
 
+    if (hasOversizedEuFiles) {
+      toast.error(
+        t("euDurationLimitError", {
+          minutes: Math.floor(EU_MAX_DURATION_SECONDS / 60),
+        }),
+      );
+      return;
+    }
+
     setIsSubmitting(true);
+    setUploadProgress(0);
 
     try {
       // Prepare form data
@@ -510,18 +634,33 @@ export default function NewTranscriptionPage() {
         );
       });
 
-      // Submit to API
-      const response = await fetchGateway("/api/transcriptions/create", {
-        method: "POST",
-        body: formData,
-      });
+      // Submit to API via XHR so we can show real upload progress.
+      const response = await uploadWithProgress(
+        "/api/transcriptions/create",
+        formData,
+        setUploadProgress,
+      );
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to create transcription");
+      if (response.status === 429) {
+        document.location.href = "/app/overload";
+        return;
+      }
+      if (response.status === 401) {
+        document.location.href = "/app/login";
+        return;
       }
 
-      const result = await response.json();
+      if (!response.ok) {
+        let message = "Failed to create transcription";
+        try {
+          message = JSON.parse(response.body).error || message;
+        } catch {
+          // non-JSON error body, keep default message
+        }
+        throw new Error(message);
+      }
+
+      const result = JSON.parse(response.body);
 
       toast.success("Transcription started successfully!");
 
@@ -544,6 +683,7 @@ export default function NewTranscriptionPage() {
       );
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(null);
     }
   };
 
@@ -681,13 +821,7 @@ export default function NewTranscriptionPage() {
                 disabled={isSubmitting}
                 size="sm"
                 className="w-max inline-flex"
-                options={_.sortBy(
-                  Object.keys(supportedLanguages),
-                  (a) => (supportedLanguages as any)[a],
-                ).map((lang) => ({
-                  label: (supportedLanguages as any)[lang],
-                  value: lang,
-                }))}
+                options={getLanguageOptions(locale)}
                 value={language}
                 onChange={setLanguage}
                 placeholder={t("language")}
@@ -747,6 +881,39 @@ export default function NewTranscriptionPage() {
             </div>
           </div>
 
+          {/* EU duration limit warning */}
+          {hasOversizedEuFiles && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>{t("euDurationLimitTitle")}</AlertTitle>
+              <AlertDescription>
+                {t("euDurationLimitDescription", {
+                  minutes: Math.floor(EU_MAX_DURATION_SECONDS / 60),
+                  files: oversizedEuFiles.map((f) => f.name).join(", "),
+                })}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Upload progress */}
+          {isSubmitting && uploadProgress !== null && (
+            <div className="space-y-2 rounded-lg border bg-muted/30 p-4">
+              <div className="flex items-center justify-between text-sm font-medium">
+                <span>{t("uploading")}</span>
+                <span className="text-muted-foreground">{uploadProgress}%</span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-200"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("uploadingNote")}
+              </p>
+            </div>
+          )}
+
           {/* Submit Button */}
           <div className="flex justify-end items-center gap-2 flex-wrap">
             {estimatedCredits > 0 && (
@@ -778,10 +945,17 @@ export default function NewTranscriptionPage() {
               size="lg"
               variant={"primary"}
               disabled={
-                audioFiles.length === 0 || !hasEnoughCredits || isSubmitting
+                audioFiles.length === 0 ||
+                !hasEnoughCredits ||
+                hasOversizedEuFiles ||
+                isSubmitting
               }
             >
-              {isSubmitting ? t("processing") : t("startTranscription")}
+              {isSubmitting
+                ? uploadProgress !== null && uploadProgress < 100
+                  ? `${t("uploading")} ${uploadProgress}%`
+                  : t("processing")
+                : t("startTranscription")}
             </Button>
           </div>
         </form>

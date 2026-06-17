@@ -1,0 +1,59 @@
+name: Mirror to Public Repo
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.email "github-actions@github.com"
+          git config user.name "GitHub Actions"
+
+      - name: Remove private content
+        run: |
+          PRIVATE_PATHS=(
+            "app/(landing)"
+            "app/sitemap.ts"
+            "public/landing"
+            ".github/workflows"
+            "content/blog"
+            "growth"
+            "pipeline"
+            ".claude"
+            ".vscode"
+          )
+
+          CHANGED=false
+          for path in "${PRIVATE_PATHS[@]}"; do
+            if [ -e "$path" ]; then
+              git rm -rf --cached "$path"
+              rm -rf "$path"
+              CHANGED=true
+            fi
+          done
+
+          if [ "$CHANGED" = true ]; then
+            git commit -m "chore: strip private content for public mirror"
+          fi
+
+      - name: Push to public repo
+        env:
+          PUBLIC_REPO_PAT: ${{ secrets.PUBLIC_REPO_PAT }}
+        run: |
+          # actions/checkout injects a GITHUB_TOKEN extraheader that overrides
+          # any credentials in the URL — unset it so the PAT takes effect.
+          git config --unset-all http.https://github.com/.extraheader || true
+          git remote add public https://x-access-token:${PUBLIC_REPO_PAT}@github.com/humanlogs/humanlogs.app.git
+          git push public HEAD:main --force

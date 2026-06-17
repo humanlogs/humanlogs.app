@@ -59,6 +59,7 @@
         "startTranscription": "Start Transcription",
         "processing": "Processing...",
         "uploading": "Uploading files...",
+        "uploadingNote": "We'll email you once your transcription is ready, but please keep this page open until the upload finishes.",
         "lowCredits": "Low Credits",
         "lowCreditsDescription": "You have {credits} credits remaining. Consider adding more credits to continue transcribing.",
         "viewBillingOptions": "View billing options",
@@ -72,8 +73,11 @@
         "cancel": "Cancel",
         "rename": "Rename",
         "provider": "Model",
-        "providerEu": "🇪🇺 EU Models (95% accuracy)",
-        "providerUs": "🇺🇸 US Models (99% accuracy)"
+        "providerEu": "🇪🇺 EU Models (90% accuracy)",
+        "providerUs": "🇺🇸 US Models (99% accuracy)",
+        "euDurationLimitTitle": "Audio too long for EU models",
+        "euDurationLimitDescription": "EU models accept files up to {minutes} minutes long. Please remove or split the following file(s), or switch to US models: {files}",
+        "euDurationLimitError": "EU models accept files up to {minutes} minutes long. Please remove or split the file, or switch to US models."
     },
     "feedback": {
         "title": "Feedback & Reviews",

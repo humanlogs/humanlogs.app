@@ -231,7 +231,7 @@
                 "enabled": {
                     "title": "Chiffrement de bout en bout",
                     "badge": "Recommandé",
-                    "description": "Vos données sont chiffrées sur votre appareil avant d'être envoyées à nos serveurs. Vous seul pouvez déchiffrer vos données — même nous ne pouvons pas lire vos transcriptions.",
+                    "description": "Vos données sont chiffrées sur votre appareil avant d'être envoyées à nos serveurs. Vous seul pouvez déchiffrer vos données, même nous ne pouvons pas lire vos transcriptions.",
                     "generate": {
                         "intro": "Nous générerons un certificat de chiffrement unique pour vous. Vous aurez besoin de ce certificat pour :",
                         "point1": "Accéder à vos transcriptions chiffrées",

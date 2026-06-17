@@ -198,10 +198,27 @@ export type AdminStats = {
     byMonthlyUsage: Record<string, number>;
     byDataResidency: Record<string, number>;
     welcomeDoneCount: number;
+    recent: Array<{
+      id: string;
+      email: string;
+      name: string | null;
+      createdAt: string;
+      plan: string;
+      isWelcomeDone: boolean;
+      profession: string | null;
+      monthlyUsage: string | null;
+      dataResidency: string | null;
+      transcriptionCount: number;
+      revisionCount: number;
+    }>;
   };
   transcriptions: {
     byStatus: Record<string, number>;
     byDay: Record<string, number>;
+    byDayByStatus: Record<
+      string,
+      { completed: number; error: number; pending: number }
+    >;
   };
   credits: {
     totalInStock: number;
@@ -241,6 +258,15 @@ export type AdminStats = {
     byPage: Array<{
       page: string;
       uniqueVisitors: number;
+    }>;
+  };
+  retention: {
+    weeks: number;
+    maxOffset: number;
+    cohorts: Array<{
+      weekStart: string;
+      size: number;
+      retention: number[];
     }>;
   };
 };

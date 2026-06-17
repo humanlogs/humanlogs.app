@@ -109,6 +109,12 @@ const configSchema = z.object({
     port: z.number(),
     publicUrl: z.string().url().default("http://localhost:3000"),
   }),
+  stats: z
+    .object({
+      // Bearer token protecting the /api/stats export. Empty disables the endpoint.
+      apiToken: z.string().optional(),
+    })
+    .optional(),
 });
 
 export type AppConfig = z.infer<typeof configSchema>;
@@ -159,6 +165,12 @@ export const ldapConfig = {
 
 export const databaseConfig = {
   url: config.get<string>("database.url"),
+};
+
+export const statsConfig = {
+  apiToken: config.has("stats.apiToken")
+    ? config.get<string>("stats.apiToken")
+    : "",
 };
 
 export const awsConfig = {

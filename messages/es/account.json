@@ -231,7 +231,7 @@
                 "enabled": {
                     "title": "Cifrado de extremo a extremo",
                     "badge": "Recomendado",
-                    "description": "Sus datos se cifran en su dispositivo antes de ser enviados a nuestros servidores. Solo usted puede descifrar sus datos — ni siquiera nosotros podemos leer sus transcripciones.",
+                    "description": "Sus datos se cifran en su dispositivo antes de ser enviados a nuestros servidores. Solo usted puede descifrar sus datos, ni siquiera nosotros podemos leer sus transcripciones.",
                     "generate": {
                         "intro": "Generaremos un certificado de cifrado único para usted. Necesitará este certificado para:",
                         "point1": "Acceder a sus transcripciones cifradas",

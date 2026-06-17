@@ -1,0 +1,29 @@
+{
+    "email": {
+        "modelEu": "🇪🇺 modelo UE",
+        "modelUs": "🇺🇸 modelo EE. UU.",
+        "greeting": "Hola,",
+        "completed": {
+            "subject": "Tu transcripción está lista",
+            "title": "Transcripción lista",
+            "ready": "Tu archivo de {minutes, plural, one {# minuto} other {# minutos}} está listo.",
+            "readyNoDuration": "Tu archivo está listo.",
+            "model": "Modelo utilizado: {model}.",
+            "button": "Ver transcripción",
+            "feedbackErrors": "Un apunte: la calidad de la transcripción puede variar según el modelo utilizado, y pueden quedar algunos errores. HumanLogs es todavía una herramienta joven, que mejoramos semana tras semana.",
+            "feedbackInvite": "Precisamente por eso tu opinión significa muchísimo para nosotros. Si algo te parece raro, si tienes una idea, una frustración o simplemente una pregunta, responde directamente a este correo: leemos y contestamos personalmente cada mensaje.",
+            "signOff": "Un saludo y esperamos tu mensaje,",
+            "signName": "Romaric, del equipo de HumanLogs"
+        },
+        "failed": {
+            "subject": "Hubo un problema con tu transcripción",
+            "title": "La transcripción falló",
+            "body": "Algo salió mal al procesar tu transcripción. Puedes volver a intentarlo subiendo el archivo de nuevo, a veces es solo un contratiempo puntual.",
+            "model": "Modelo utilizado: {model}.",
+            "button": "Ver detalles",
+            "feedbackInvite": "Esto puede ocurrir según el modelo o el archivo, y HumanLogs es todavía una herramienta joven que mejoramos cada semana. Si el error persiste, o incluso si no estás seguro de qué pasó, responde directamente a este correo. Leemos cada mensaje personalmente y te ayudaremos a que funcione.",
+            "signOff": "Perdona las molestias, y hablamos pronto,",
+            "signName": "Romaric, del equipo de HumanLogs"
+        }
+    }
+}

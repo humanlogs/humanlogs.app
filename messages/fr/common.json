@@ -59,6 +59,7 @@
         "startTranscription": "Démarrer la Transcription",
         "processing": "Traitement en cours...",
         "uploading": "Téléchargement des fichiers...",
+        "uploadingNote": "Nous vous enverrons un e-mail dès que votre transcription sera prête, mais veuillez laisser cette page ouverte jusqu'à la fin du téléchargement.",
         "lowCredits": "Crédits Faibles",
         "lowCreditsDescription": "Il vous reste {credits} crédits. Pensez à ajouter plus de crédits pour continuer à transcrire.",
         "viewBillingOptions": "Voir les options de facturation",
@@ -72,8 +73,11 @@
         "cancel": "Annuler",
         "rename": "Renommer",
         "provider": "Modèle",
-        "providerEu": "🇪🇺 Modèles EU (95% précision)",
-        "providerUs": "🇺🇸 Modèles US (99% précision)"
+        "providerEu": "🇪🇺 Modèles EU (90% précision)",
+        "providerUs": "🇺🇸 Modèles US (99% précision)",
+        "euDurationLimitTitle": "Audio trop long pour les modèles EU",
+        "euDurationLimitDescription": "Les modèles EU acceptent les fichiers jusqu'à {minutes} minutes. Veuillez retirer ou découper le(s) fichier(s) suivant(s), ou basculer sur les modèles US : {files}",
+        "euDurationLimitError": "Les modèles EU acceptent les fichiers jusqu'à {minutes} minutes. Veuillez retirer ou découper le fichier, ou basculer sur les modèles US."
     },
     "feedback": {
         "title": "Vous aimez notre application ?",

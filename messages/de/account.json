@@ -231,7 +231,7 @@
                 "enabled": {
                     "title": "Ende-zu-Ende-Verschlüsselung",
                     "badge": "Empfohlen",
-                    "description": "Ihre Daten werden auf Ihrem Gerät verschlüsselt, bevor sie an unsere Server gesendet werden. Nur Sie können Ihre Daten entschlüsseln — nicht einmal wir können Ihre Transkriptionen lesen.",
+                    "description": "Ihre Daten werden auf Ihrem Gerät verschlüsselt, bevor sie an unsere Server gesendet werden. Nur Sie können Ihre Daten entschlüsseln, nicht einmal wir können Ihre Transkriptionen lesen.",
                     "generate": {
                         "intro": "Wir generieren ein einzigartiges Verschlüsselungszertifikat für Sie. Sie benötigen dieses Zertifikat, um:",
                         "point1": "Auf Ihre verschlüsselten Transkriptionen zuzugreifen",

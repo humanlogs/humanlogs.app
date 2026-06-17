@@ -1,0 +1,29 @@
+{
+    "email": {
+        "modelEu": "🇪🇺 EU-Modell",
+        "modelUs": "🇺🇸 US-Modell",
+        "greeting": "Hallo,",
+        "completed": {
+            "subject": "Ihre Transkription ist fertig",
+            "title": "Transkription fertig",
+            "ready": "Ihre Datei mit {minutes, plural, one {# Minute} other {# Minuten}} ist fertig.",
+            "readyNoDuration": "Ihre Datei ist fertig.",
+            "model": "Verwendetes Modell: {model}.",
+            "button": "Transkription ansehen",
+            "feedbackErrors": "Ein kurzer Hinweis: Die Qualität der Transkription kann je nach verwendetem Modell variieren, und es können einige Fehler verbleiben. HumanLogs ist noch ein junges Tool, das wir Woche für Woche verbessern.",
+            "feedbackInvite": "Genau deshalb ist uns Ihre Meinung so wichtig. Wenn Ihnen etwas seltsam vorkommt, wenn Sie eine Idee, einen Kritikpunkt oder einfach eine Frage haben, antworten Sie direkt auf diese E-Mail – wir lesen und beantworten jede Nachricht persönlich.",
+            "signOff": "Wir freuen uns auf Ihre Nachricht,",
+            "signName": "Romaric vom HumanLogs-Team"
+        },
+        "failed": {
+            "subject": "Es gab ein Problem mit Ihrer Transkription",
+            "title": "Transkription fehlgeschlagen",
+            "body": "Beim Verarbeiten Ihrer Transkription ist etwas schiefgelaufen. Sie können es erneut versuchen, indem Sie Ihre Datei noch einmal hochladen, manchmal ist es nur eine kurze Störung.",
+            "model": "Verwendetes Modell: {model}.",
+            "button": "Details ansehen",
+            "feedbackInvite": "So etwas kann je nach Modell oder Datei passieren, und HumanLogs ist noch ein junges Tool, das wir jede Woche verbessern. Wenn der Fehler weiterhin auftritt – oder wenn Sie einfach nicht sicher sind, was schiefgelaufen ist – antworten Sie direkt auf diese E-Mail. Wir lesen jede Nachricht persönlich und helfen Ihnen, es zum Laufen zu bringen.",
+            "signOff": "Entschuldigen Sie die Unannehmlichkeiten, bis bald,",
+            "signName": "Romaric vom HumanLogs-Team"
+        }
+    }
+}

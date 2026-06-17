@@ -399,21 +399,17 @@ export function getWelcomeMarketingEmailTemplate(data: {
   const t = translations.welcome[supportedLang];
 
   const content = `
-    <h2>${t.title}</h2>
     <p>${t.greeting} ${data.userName},</p>
     <p>${t.intro}</p>
-    
     <p>${t.description}</p>
-    
-    <h3 style="margin-top: 30px; margin-bottom: 15px;">${t.quickStart}</h3>
-    <ol style="line-height: 2;">
+    <p><strong>${t.quickStart}</strong></p>
+    <ol>
       <li>${t.step1}</li>
       <li>${t.step2}</li>
       <li>${t.step3}</li>
     </ol>
-    
-    <h3 style="margin-top: 30px; margin-bottom: 15px;">${t.whatAwaits}</h3>
-    <ul style="line-height: 2;">
+    <p><strong>${t.whatAwaits}</strong></p>
+    <ul>
       <li>${t.feature1}</li>
       <li>${t.feature2}</li>
       <li>${t.feature3}</li>
@@ -422,15 +418,8 @@ export function getWelcomeMarketingEmailTemplate(data: {
       <li>${t.feature6}</li>
       <li>${t.feature7}</li>
     </ul>
-    
-    <p style="text-align: center; margin-top: 30px;">
-      <a href="${data.loginUrl}" class="button">${t.button}</a>
-    </p>
-    
-    <p style="margin-top: 30px; padding: 20px; background-color: #f9fafb; border-left: 4px solid #000000; border-radius: 4px;">
-      ${t.feedback}
-    </p>
-    
+    <p><a href="${data.loginUrl}">${t.button}</a></p>
+    <p>${t.feedback}</p>
     <p>${t.closing}</p>
     <p>${t.signature}</p>
   `;
@@ -495,31 +484,15 @@ export function getFollowUpEmailTemplate(data: {
   const t = translations.followUp[supportedLang];
 
   const content = `
-    <h2>${t.greeting} ${data.userName}?</h2>
+    <p>${t.greeting} ${data.userName}?</p>
     <p>${t.intro}</p>
-    
     <p>${t.explorePrompt}</p>
-    
-    <h3 style="margin-top: 30px; margin-bottom: 15px;">${t.privacy}</h3>
-    <p>${t.privacyDesc}</p>
-    
-    <h3 style="margin-top: 25px; margin-bottom: 15px;">${t.editing}</h3>
-    <p>${t.editingDesc}</p>
-    
-    <h3 style="margin-top: 25px; margin-bottom: 15px;">${t.researchers}</h3>
-    <p>${t.researchersDesc}</p>
-    
-    <h3 style="margin-top: 25px; margin-bottom: 15px;">${t.global}</h3>
-    <p>${t.globalDesc}</p>
-    
-    <p style="text-align: center; margin-top: 30px;">
-      <a href="${data.loginUrl}" class="button">${t.button}</a>
-    </p>
-    
-    <p style="margin-top: 30px; padding: 20px; background-color: #f9fafb; border-left: 4px solid #000000; border-radius: 4px;">
-      ${t.help}
-    </p>
-    
+    <p><strong>${t.privacy}</strong><br>${t.privacyDesc}</p>
+    <p><strong>${t.editing}</strong><br>${t.editingDesc}</p>
+    <p><strong>${t.researchers}</strong><br>${t.researchersDesc}</p>
+    <p><strong>${t.global}</strong><br>${t.globalDesc}</p>
+    <p><a href="${data.loginUrl}">${t.button}</a></p>
+    <p>${t.help}</p>
     <p>${t.closing}</p>
     <p>${t.signature}</p>
   `;
@@ -580,42 +553,23 @@ export function getDiscountEmailTemplate(data: {
   const t = translations.discount[supportedLang];
 
   const content = `
-    <h2>${t.intro.split(",")[0]} 🎁</h2>
     <p>${t.greeting} ${data.userName},</p>
-    
     <p>${t.intro}</p>
-    
     <p>${t.offer}</p>
-    
-    <div style="text-align: center; margin: 30px 0; padding: 30px; background: linear-gradient(135deg, #000000 0%, #764ba2 100%); border-radius: 12px;">
-      <p style="color: white; font-size: 18px; margin: 0 0 10px 0; font-weight: 600;">${t.codeTitle}</p>
-      <p style="color: white; font-size: 32px; font-weight: bold; letter-spacing: 3px; margin: 10px 0; font-family: monospace;">${t.code}</p>
-      <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 10px 0 0 0;">${t.validity}</p>
-    </div>
-    
-    <h3 style="margin-top: 30px; margin-bottom: 15px;">${t.whyUpgrade}</h3>
-    <ul style="line-height: 2;">
+    <p>${t.codeTitle}: <strong>${t.code}</strong> (${t.validity})</p>
+    <p><strong>${t.whyUpgrade}</strong></p>
+    <ul>
       <li>${t.benefit1}</li>
       <li>${t.benefit2}</li>
       <li>${t.benefit3}</li>
       <li>${t.benefit4}</li>
       <li>${t.benefit5}</li>
     </ul>
-    
-    <p style="text-align: center; margin-top: 30px;">
-      <a href="${data.loginUrl}" class="button">${t.button}</a>
-    </p>
-    
-    <p style="margin-top: 30px; padding: 20px; background-color: #f9fafb; border-left: 4px solid #000000; border-radius: 4px;">
-      ${t.help}
-    </p>
-    
+    <p><a href="${data.loginUrl}">${t.button}</a></p>
+    <p>${t.help}</p>
     <p>${t.closing}</p>
     <p>${t.signature}</p>
-    
-    <p style="font-size: 12px; color: #6b7280; margin-top: 30px;">
-      ${t.ps}
-    </p>
+    <p>${t.ps}</p>
   `;
 
   const html = getBaseTemplate(content, {

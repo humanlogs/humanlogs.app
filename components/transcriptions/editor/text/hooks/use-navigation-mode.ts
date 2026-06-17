@@ -68,9 +68,13 @@ export function useNavigationMode(
               currentTime >= segment.start &&
               currentTime <= segment.end,
           );
-        setCurrentIndex(
-          ensureWord(currentSegmentIndex, editorAPI.getSegments(), "r"),
-        );
+        // Only update if a matching segment was found — avoids scrolling to
+        // position 0 when audio is past all timestamps or on words with no timing
+        if (currentSegmentIndex !== -1) {
+          setCurrentIndex(
+            ensureWord(currentSegmentIndex, editorAPI.getSegments(), "r"),
+          );
+        }
       });
   }, [audioControls, state]);
 

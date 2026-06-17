@@ -170,6 +170,8 @@ class GladiaClient {
       params.diarization = true;
       params.diarization_config = {
         number_of_speakers: request.speakerCount,
+        min_speakers: request.speakerCount,
+        max_speakers: request.speakerCount,
         enhanced: true,
       };
     }
@@ -186,6 +188,15 @@ class GladiaClient {
           language: languageMap[request.language || "eng"] || "en",
         })),
       };
+    }
+
+    // V3 only supports fr/en/de/es/it
+    if (
+      ["eng", "fra", "deu", "ita", "spa"].includes(request.language || "eng")
+    ) {
+      params.model = "solaria-3";
+    } else {
+      params.model = "solaria-1";
     }
 
     return params;
@@ -224,7 +235,9 @@ class GladiaClient {
           `Gladia API error ${response.status} ${response.statusText}:`,
           JSON.stringify(data),
         );
-        throw new Error(`Transcription failed: provider error (${response.status})`);
+        throw new Error(
+          `Transcription failed: provider error (${response.status})`,
+        );
       }
 
       if (!data?.id) {

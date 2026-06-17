@@ -68,5 +68,10 @@
         "title": "Transcription Software for Qualitative Data Analysis (NVivo, MAXQDA)",
         "description": "Seamless export to NVivo, MAXQDA, Atlas.ti with speaker labels and timestamps preserved.",
         "intro": "Qualitative researchers using NVivo, MAXQDA, or Atlas.ti need transcription software that exports cleanly with speaker labels and timestamps preserved. HumanLogs is the only transcription tool built specifically to integrate with qualitative data analysis software, saving hours of reformatting and ensuring data integrity."
+    },
+    "transcription-tool-ux-research-user-interviews": {
+        "title": "Privacy-First Transcription Tool for UX Research and User Interviews",
+        "description": "Protect participant data in UX research with end-to-end encrypted transcription. GDPR compliant, EU data residency, audio-linked editor for fast insight extraction.",
+        "intro": "UX researchers and product teams conduct hundreds of user interviews containing sensitive opinions, behavioral data, and personal context. Standard transcription tools upload this data to third-party servers, a privacy risk for participants and a GDPR liability for teams working with EU users. HumanLogs provides end-to-end encrypted transcription built for UX research: every interview stays private by default, the audio-linked editor lets you navigate to any moment instantly, and EU data residency means you can interview European users without compliance headaches."
     }
 }

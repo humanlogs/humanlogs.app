@@ -46,7 +46,8 @@
                 "lessThanMinute": "Weniger als eine Minute...",
                 "aboutOneMinute": "Etwa 1 Minute verbleibend",
                 "aboutMinutes": "Etwa {minutes} Minuten verbleibend",
-                "aboutHours": "Etwa {hours}h {minutes}m verbleibend"
+                "aboutHours": "Etwa {hours}h {minutes}m verbleibend",
+                "emailNotice": "Wir senden Ihnen eine E-Mail, sobald sie fertig ist, Sie können diese Seite bedenkenlos schließen."
             }
         },
         "content": {

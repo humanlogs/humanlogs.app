@@ -59,8 +59,8 @@
     "email": {
         "provider": "smtp",
         "from": {
-            "name": "",
-            "address": "hello@humanlogs.app"
+            "name": "HumanLogs",
+            "address": "romaric@humanlogs.app"
         },
         "smtp": {
             "host": "",
@@ -78,5 +78,8 @@
     "server": {
         "publicUrl": "http://localhost:3000",
         "port": 3000
+    },
+    "stats": {
+        "apiToken": ""
     }
 }

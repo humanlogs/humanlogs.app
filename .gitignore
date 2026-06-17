@@ -44,3 +44,7 @@ next-env.d.ts
 
 /lib/generated/prisma
 yarn.lock
+
+# pipeline
+pipeline/node_modules/
+pipeline/out/
