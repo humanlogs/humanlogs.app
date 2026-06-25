@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-06-17T15:02:15.006Z",
+  "generatedAt": "2026-06-25T07:05:49.055Z",
   "candidates": [
     {
       "keyword": "analyse qualitative",
       "searchVolume": 2400,
       "difficulty": 0,
-      "cpc": 3.53,
-      "competition": 0.01,
+      "cpc": 15.98,
+      "competition": 0.02,
       "intent": "informational",
       "pillar": "recherche-qualitative",
       "score": 216
@@ -25,8 +25,8 @@
       "keyword": "transcribe audio to text free online",
       "searchVolume": 1900,
       "difficulty": 35,
-      "cpc": 3.18,
-      "competition": 0.67,
+      "cpc": 3.34,
+      "competition": 0.7,
       "intent": "informational",
       "pillar": "transcription",
       "score": 42.22
@@ -55,8 +55,8 @@
       "keyword": "how do you analyse qualitative data",
       "searchVolume": 320,
       "difficulty": 5,
-      "cpc": 5.68,
-      "competition": 0.14,
+      "cpc": 23.58,
+      "competition": 0.19,
       "intent": "informational",
       "pillar": "recherche-qualitative",
       "score": 19.2
@@ -172,16 +172,6 @@
       "score": 2
     },
     {
-      "keyword": "how to analyse qualitative data from interviews",
-      "searchVolume": 70,
-      "difficulty": 30,
-      "cpc": 14.14,
-      "competition": 0.25,
-      "intent": "informational",
-      "pillar": "recherche-qualitative",
-      "score": 1.57
-    },
-    {
       "keyword": "logiciel pour retranscrire un enregistrement audio",
       "searchVolume": 10,
       "difficulty": 0,
@@ -236,7 +226,7 @@
       "searchVolume": 10,
       "difficulty": 0,
       "cpc": 0,
-      "competition": 0.71,
+      "competition": 0,
       "intent": "transactional",
       "pillar": "transcription",
       "score": 1.5
@@ -370,6 +360,16 @@
       "intent": "commercial",
       "pillar": "recherche-qualitative",
       "score": 1.26
+    },
+    {
+      "keyword": "how to analyse qualitative data from interviews",
+      "searchVolume": 50,
+      "difficulty": 30,
+      "cpc": 0,
+      "competition": 0.3,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 1.13
     },
     {
       "keyword": "transcription d'un entretien",
@@ -506,7 +506,7 @@
       "searchVolume": 10,
       "difficulty": 0,
       "cpc": 0,
-      "competition": 0.43,
+      "competition": 0,
       "intent": "informational",
       "pillar": "transcription",
       "score": 1
@@ -585,8 +585,8 @@
       "keyword": "transcription audio en texte en ligne",
       "searchVolume": 10,
       "difficulty": 0,
-      "cpc": 3.7,
-      "competition": 0.86,
+      "cpc": 0,
+      "competition": 0,
       "intent": "informational",
       "pillar": "transcription",
       "score": 1
@@ -826,7 +826,7 @@
       "searchVolume": 10,
       "difficulty": 0,
       "cpc": 0,
-      "competition": 0,
+      "competition": 0.19,
       "intent": "informational",
       "pillar": "recherche-qualitative",
       "score": 0.9
@@ -952,16 +952,6 @@
       "score": 0.9
     },
     {
-      "keyword": "how to analyse qualitative data using atlas ti",
-      "searchVolume": 10,
-      "difficulty": 0,
-      "cpc": 0,
-      "competition": 0,
-      "intent": "informational",
-      "pillar": "recherche-qualitative",
-      "score": 0.9
-    },
-    {
       "keyword": "how do you analyse qualitative data from an interview",
       "searchVolume": 10,
       "difficulty": 0,
@@ -997,16 +987,6 @@
       "difficulty": 0,
       "cpc": 0,
       "competition": 0.01,
-      "intent": "informational",
-      "pillar": "recherche-qualitative",
-      "score": 0.9
-    },
-    {
-      "keyword": "how to analyse qualitative data using spss",
-      "searchVolume": 10,
-      "difficulty": 0,
-      "cpc": 0,
-      "competition": 0,
       "intent": "informational",
       "pillar": "recherche-qualitative",
       "score": 0.9
@@ -1367,16 +1347,6 @@
       "difficulty": 47,
       "cpc": 0,
       "competition": 0.86,
-      "intent": "informational",
-      "pillar": "recherche-qualitative",
-      "score": 0.16
-    },
-    {
-      "keyword": "how to analyse questionnaire data qualitative",
-      "searchVolume": 10,
-      "difficulty": 47,
-      "cpc": 0,
-      "competition": 0,
       "intent": "informational",
       "pillar": "recherche-qualitative",
       "score": 0.16
