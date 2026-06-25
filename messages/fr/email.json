@@ -31,7 +31,7 @@
             "body": "Bonne nouvelle : votre compte vient d'être rechargé de {credits, plural, one {# crédit} other {# crédits}} pour le mois, prêts à être utilisés quand vous en avez besoin.",
             "usage": "Pour rappel, 1 crédit équivaut à 1 minute de transcription.",
             "button": "Commencer une transcription",
-            "feedbackInvite": "Si vous avez une question, une idée, ou quelque chose qui vous chiffonne, répondez simplement à cet e-mail : je lis et réponds personnellement à chaque message.",
+            "feedbackInvite": "Si vous avez une question, une idée, ou quelque chose qui vous chiffonne, répondez simplement à cet e-mail : nous répondons personnellement à chaque message.",
             "signOff": "À très vite,",
             "signName": "Romaric, de l'équipe HumanLogs"
         }

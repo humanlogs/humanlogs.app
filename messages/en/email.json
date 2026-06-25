@@ -31,7 +31,7 @@
             "body": "Good news: your account has just been topped up with {credits, plural, one {# credit} other {# credits}} for the month, ready to use whenever you need them.",
             "usage": "As a reminder, 1 credit equals 1 minute of transcription.",
             "button": "Start transcribing",
-            "feedbackInvite": "If you have a question, an idea, or something that's been bugging you, just reply to this email, I read and answer every single message personally.",
+            "feedbackInvite": "If you have a question, an idea, or something that's been bugging you, just reply to this email, we read and answer every single message personally.",
             "signOff": "Talk soon,",
             "signName": "Romaric, from the HumanLogs team"
         }

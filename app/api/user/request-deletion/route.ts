@@ -30,7 +30,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
     });
 
     // Create confirmation URL
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://humanlogs.app";
     const confirmationUrl = `${baseUrl}/app/account/confirm-deletion?token=${token}`;
 
     // Send email
