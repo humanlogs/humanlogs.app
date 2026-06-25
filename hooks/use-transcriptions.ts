@@ -17,7 +17,9 @@ import {
 type Transcription = {
   id: string;
   title: string;
+  createdAt: string;
   updatedAt: string;
+  isTutorial?: boolean;
   projectId?: string;
   state: "PENDING" | "COMPLETED" | "ERROR";
   errorMessage?: string | null;

@@ -1,4 +1,5 @@
 import { AppSidebar } from "@/components/app-sidebar";
+import { FeedbackAutoPrompt } from "@/components/feedback/feedback-auto-prompt";
 import { FeedbackDialog } from "@/components/dialogs/feedback-dialog";
 import { HelpDialog } from "@/components/dialogs/help-dialog";
 import { ProjectCreateModal } from "@/components/dialogs/project-create-modal";
@@ -60,6 +61,7 @@ export default async function AppLayout({
       <PauseConfigurationDialog />
       <ShortcutsDialog />
       <FeedbackDialog />
+      <FeedbackAutoPrompt />
       <HelpDialog />
     </SidebarProvider>
   );

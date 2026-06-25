@@ -284,6 +284,58 @@ ${signName}`.trim();
 }
 
 /**
+ * Create a monthly credits refill email template.
+ *
+ * Sent once a month when the credits refill cron tops up a user's balance.
+ * Stays in the plain, personal spirit of the other emails (prose + one link).
+ */
+export async function getCreditsRefillEmailTemplate(data: {
+  credits: number;
+  loginUrl: string;
+  locale?: string;
+}): Promise<EmailTemplate> {
+  const locale = normalizeEmailLocale(data.locale);
+  const t = await getEmailTranslator(locale);
+
+  const subject = t("creditsRefill.subject");
+  const title = t("creditsRefill.title");
+  const greeting = t("greeting");
+  const body = t("creditsRefill.body", { credits: data.credits });
+  const usage = t("creditsRefill.usage");
+  const button = t("creditsRefill.button");
+  const feedbackInvite = t("creditsRefill.feedbackInvite");
+  const signOff = t("creditsRefill.signOff");
+  const signName = t("creditsRefill.signName");
+
+  const content = `
+    <p>${greeting}</p>
+    <p>${body}</p>
+    <p>${usage}</p>
+    <p><a href="${data.loginUrl}">${button}</a></p>
+    <p>${feedbackInvite}</p>
+    <p>${signOff}<br>${signName}</p>
+  `;
+
+  const html = getBaseTemplate(content, { title: subject, preheader: body });
+
+  const text = `${title}
+
+${greeting}
+
+${body}
+${usage}
+
+${data.loginUrl}
+
+${feedbackInvite}
+
+${signOff}
+${signName}`.trim();
+
+  return { subject, html, text };
+}
+
+/**
  * Create a generic notification email template
  */
 export function getNotificationEmailTemplate(data: {

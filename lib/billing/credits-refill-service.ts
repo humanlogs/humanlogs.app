@@ -1,6 +1,40 @@
 import { prisma } from "../prisma";
+import { sendEmail } from "../email/mailer";
+import { getCreditsRefillEmailTemplate } from "../email/email-templates-account";
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || "https://humanlogs.app";
+
+/**
+ * Notify a user that their monthly credits have been refilled.
+ * Best-effort: a failure here must never roll back the credit top-up.
+ */
+async function sendCreditsRefillEmail(user: {
+  email: string;
+  language: string;
+  credits: number;
+}) {
+  try {
+    const template = await getCreditsRefillEmailTemplate({
+      credits: user.credits,
+      loginUrl: `${APP_URL}/app/login`,
+      locale: user.language,
+    });
+    await sendEmail({
+      to: user.email,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+  } catch (error) {
+    console.error(
+      `[Credits Refill] Failed to send refill email to ${user.email}:`,
+      error,
+    );
+  }
+}
 
 export async function refillUserCredits() {
   const now = new Date();
@@ -78,6 +112,12 @@ export async function refillUserCredits() {
       }),
     ),
   );
+
+  // Let users know their balance was topped up. Done after the DB writes and
+  // sequentially so a slow/erroring mailer can't hold up the refill itself.
+  for (const user of [...subscriberUpdates, ...freeUpdates]) {
+    await sendCreditsRefillEmail(user);
+  }
 
   const refilled = subscriberUpdates.length + freeUpdates.length;
   return {
