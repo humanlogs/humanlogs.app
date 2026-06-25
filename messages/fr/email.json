@@ -24,6 +24,16 @@
             "feedbackInvite": "Cela peut arriver selon le modèle ou le fichier, et HumanLogs est encore un outil jeune que nous améliorons chaque semaine. Si l'erreur persiste, ou même si vous n'êtes pas sûr de ce qui s'est passé, répondez directement à cet e-mail. Nous lisons chaque message personnellement et nous vous aiderons à le faire fonctionner.",
             "signOff": "Au plaisir d'échanger avec vous,",
             "signName": "Romaric, de l'équipe HumanLogs"
+        },
+        "creditsRefill": {
+            "subject": "Vos crédits mensuels ont été rechargés",
+            "title": "Crédits rechargés",
+            "body": "Bonne nouvelle : votre compte vient d'être rechargé de {credits, plural, one {# crédit} other {# crédits}} pour le mois, prêts à être utilisés quand vous en avez besoin.",
+            "usage": "Pour rappel, 1 crédit équivaut à 1 minute de transcription.",
+            "button": "Commencer une transcription",
+            "feedbackInvite": "Si vous avez une question, une idée, ou quelque chose qui vous chiffonne, répondez simplement à cet e-mail : nous répondons personnellement à chaque message.",
+            "signOff": "À très vite,",
+            "signName": "Romaric, de l'équipe HumanLogs"
         }
     }
 }
