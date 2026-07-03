@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-25T07:05:49.055Z",
+  "generatedAt": "2026-07-03T07:06:59.396Z",
   "candidates": [
     {
       "keyword": "analyse qualitative",
@@ -24,12 +24,12 @@
     {
       "keyword": "transcribe audio to text free online",
       "searchVolume": 1900,
-      "difficulty": 35,
+      "difficulty": 53,
       "cpc": 3.34,
       "competition": 0.7,
       "intent": "informational",
       "pillar": "transcription",
-      "score": 42.22
+      "score": 30.16
     },
     {
       "keyword": "how to analyse qualitative data",
@@ -1192,66 +1192,6 @@
       "score": 0.85
     },
     {
-      "keyword": "moteur de recherche intelligence artificielle",
-      "searchVolume": 10,
-      "difficulty": 0,
-      "cpc": 0,
-      "competition": 0,
-      "intent": "informational",
-      "pillar": "productivite-recherche",
-      "score": 0.8
-    },
-    {
-      "keyword": "intelligence artificielle exemple",
-      "searchVolume": 10,
-      "difficulty": 0,
-      "cpc": 0,
-      "competition": 0,
-      "intent": "informational",
-      "pillar": "productivite-recherche",
-      "score": 0.8
-    },
-    {
-      "keyword": "intelligence artificielle avantages et inconvénients",
-      "searchVolume": 10,
-      "difficulty": 0,
-      "cpc": 0,
-      "competition": 0,
-      "intent": "informational",
-      "pillar": "productivite-recherche",
-      "score": 0.8
-    },
-    {
-      "keyword": "l'intelligence artificielle pdf",
-      "searchVolume": 10,
-      "difficulty": 0,
-      "cpc": 0,
-      "competition": 0,
-      "intent": "informational",
-      "pillar": "productivite-recherche",
-      "score": 0.8
-    },
-    {
-      "keyword": "article sur l'intelligence artificielle pdf",
-      "searchVolume": 10,
-      "difficulty": 0,
-      "cpc": 0,
-      "competition": 0,
-      "intent": "informational",
-      "pillar": "productivite-recherche",
-      "score": 0.8
-    },
-    {
-      "keyword": "entretien qualitatif",
-      "searchVolume": 10,
-      "difficulty": 0,
-      "cpc": 0,
-      "competition": 0,
-      "intent": "informational",
-      "pillar": "entretien-terrain",
-      "score": 0.75
-    },
-    {
       "keyword": "software to analyse qualitative data",
       "searchVolume": 20,
       "difficulty": 24,
@@ -1302,16 +1242,6 @@
       "score": 0.61
     },
     {
-      "keyword": "intelligence artificielle recherche",
-      "searchVolume": 10,
-      "difficulty": 6,
-      "cpc": 0,
-      "competition": 0,
-      "intent": "informational",
-      "pillar": "productivite-recherche",
-      "score": 0.5
-    },
-    {
       "keyword": "transcription gratuite audio en texte",
       "searchVolume": 10,
       "difficulty": 12,
@@ -1320,16 +1250,6 @@
       "intent": "informational",
       "pillar": "transcription",
       "score": 0.45
-    },
-    {
-      "keyword": "intelligence artificielle exposé",
-      "searchVolume": 10,
-      "difficulty": 24,
-      "cpc": 0,
-      "competition": 0,
-      "intent": "informational",
-      "pillar": "productivite-recherche",
-      "score": 0.24
     },
     {
       "keyword": "how to analyse interview data qualitative",
@@ -1390,16 +1310,6 @@
       "intent": "informational",
       "pillar": "these-master",
       "score": 0.09
-    },
-    {
-      "keyword": "intelligence artificielle site",
-      "searchVolume": 10,
-      "difficulty": 39,
-      "cpc": 1.03,
-      "competition": 0.36,
-      "intent": "navigational",
-      "pillar": "productivite-recherche",
-      "score": 0.07
     }
   ]
 }
