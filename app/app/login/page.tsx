@@ -7,7 +7,6 @@ import { useTranslations } from "@/components/locale-provider";
 import { useState } from "react";
 import { GoogleLoginButton } from "react-social-login-buttons";
 import { MicrosoftLoginButton } from "react-social-login-buttons";
-import { LinkedInLoginButton } from "react-social-login-buttons";
 import { FacebookLoginButton } from "react-social-login-buttons";
 import { toast } from "sonner";
 import { AnimatedWave } from "@/app/(landing)/[locale]/components/sections/animated-wave";
@@ -20,7 +19,6 @@ type AuthProvider =
   | "facebook"
   | "windowslive"
   | "github"
-  | "linkedin"
   | "apple"
   | "orcid"
   | "Username-Password-Authentication";
@@ -274,19 +272,6 @@ export default function LoginPage() {
                         borderRadius: "8px",
                         boxShadow: "none",
                         border: "1px solid #444",
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <LinkedInLoginButton
-                      onClick={() => handleSocialLogin("linkedin")}
-                      text="Continue with LinkedIn"
-                      style={{
-                        fontSize: "14px",
-                        height: "44px",
-                        borderRadius: "8px",
-                        boxShadow: "none",
                       }}
                     />
                   </div>
