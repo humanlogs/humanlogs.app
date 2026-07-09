@@ -303,6 +303,7 @@ export async function getAppStats() {
       monthlyUsage: true,
       dataResidency: true,
       plan: true,
+      creditsUsed: true,
     },
   });
   const latestUserIds = latestUsers.map((u) => u.id);
@@ -347,7 +348,124 @@ export async function getAppStats() {
     dataResidency: u.dataResidency,
     transcriptionCount: transcriptionCountMap[u.id] || 0,
     revisionCount: revisionCountMap[u.id] || 0,
+    // 1 credit = 1 minute of transcription, so creditsUsed is the total
+    // minutes this user has consumed.
+    minutesUsed: u.creditsUsed,
   }));
+
+  // 10c. Latest paying customers. "Paying" mirrors the counters above:
+  // subscribers (plan != "free") plus one-time buyers (free plan but topped up
+  // beyond their refill allowance). We pre-narrow to users who at least started
+  // a Stripe checkout, then keep only those who actually paid, and order by the
+  // most recent payment (falling back to updatedAt for payments made before
+  // lastPaymentAt was tracked).
+  const payingCandidates = await prisma.user.findMany({
+    where: {
+      OR: [{ plan: { not: "free" } }, { stripeCustomerId: { not: null } }],
+    },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      createdAt: true,
+      updatedAt: true,
+      plan: true,
+      credits: true,
+      creditsUsed: true,
+      creditsRefill: true,
+      subscriptionStatus: true,
+      lastPaymentAt: true,
+    },
+  });
+
+  const recentPayingCustomers = payingCandidates
+    .filter((u) => u.plan !== "free" || u.credits > u.creditsRefill)
+    .map((u) => ({
+      id: u.id,
+      email: u.email,
+      name: u.name,
+      plan: u.plan,
+      type: u.plan !== "free" ? "subscription" : "one-time",
+      subscriptionStatus: u.subscriptionStatus,
+      credits: u.credits,
+      minutesUsed: u.creditsUsed,
+      createdAt: u.createdAt,
+      // Best-known payment date: the tracked payment timestamp, else the last
+      // activity date as a proxy for older payers.
+      paidAt: u.lastPaymentAt ?? u.updatedAt,
+      hasPaymentDate: u.lastPaymentAt !== null,
+    }))
+    .sort((a, b) => b.paidAt.getTime() - a.paidAt.getTime())
+    .slice(0, 10);
+
+  // 10d. Referral program overview.
+  const totalInvites = await prisma.referral.count();
+  const totalRegistered = await prisma.referral.count({
+    where: { status: "REGISTERED" },
+  });
+  const referralBonusAgg = await prisma.user.aggregate({
+    _sum: { referralBonusCredits: true },
+  });
+
+  // Per-referrer breakdown (invited vs. registered) to surface the top
+  // advocates.
+  const referralGroups = await prisma.referral.groupBy({
+    by: ["referrerId", "status"],
+    _count: { id: true },
+  });
+  const referrerTotals: Record<
+    string,
+    { invited: number; registered: number }
+  > = {};
+  referralGroups.forEach((g) => {
+    if (!referrerTotals[g.referrerId]) {
+      referrerTotals[g.referrerId] = { invited: 0, registered: 0 };
+    }
+    if (g.status === "REGISTERED") {
+      referrerTotals[g.referrerId].registered += g._count.id;
+    } else {
+      referrerTotals[g.referrerId].invited += g._count.id;
+    }
+  });
+
+  const topReferrerIds = Object.entries(referrerTotals)
+    .sort((a, b) => {
+      // Most conversions first, then most invitations sent.
+      if (b[1].registered !== a[1].registered) {
+        return b[1].registered - a[1].registered;
+      }
+      return b[1].invited - a[1].invited;
+    })
+    .slice(0, 10)
+    .map(([id]) => id);
+
+  const topReferrerUsers = await prisma.user.findMany({
+    where: { id: { in: topReferrerIds } },
+    select: { id: true, email: true, name: true, referralBonusCredits: true },
+  });
+  const topReferrerUserMap = topReferrerUsers.reduce(
+    (acc, u) => {
+      acc[u.id] = u;
+      return acc;
+    },
+    {} as Record<string, (typeof topReferrerUsers)[number]>,
+  );
+
+  const topReferrers = topReferrerIds
+    .map((id) => {
+      const user = topReferrerUserMap[id];
+      if (!user) return null;
+      const totals = referrerTotals[id];
+      return {
+        id,
+        email: user.email,
+        name: user.name,
+        invited: totals.invited + totals.registered,
+        registered: totals.registered,
+        bonusCredits: user.referralBonusCredits,
+      };
+    })
+    .filter((r): r is NonNullable<typeof r> => r !== null);
 
   // 11. Landing page visits
   const totalUniqueVisitors = await prisma.landingPageVisit.groupBy({
@@ -439,6 +557,15 @@ export async function getAppStats() {
       oneTime: oneTimePurchaseCustomers,
       subscribed: subscribedCustomers,
       total: oneTimePurchaseCustomers + subscribedCustomers,
+      recent: recentPayingCustomers,
+    },
+    referrals: {
+      totalInvites,
+      totalRegistered,
+      conversionRate:
+        totalInvites > 0 ? totalRegistered / totalInvites : 0,
+      totalBonusCredits: referralBonusAgg._sum.referralBonusCredits || 0,
+      topReferrers,
     },
     landing: {
       totalUniqueVisitors: totalUniqueVisitors.length,

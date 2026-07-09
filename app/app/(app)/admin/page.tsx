@@ -26,6 +26,7 @@ import {
   GlobeIcon,
   BriefcaseIcon,
   RepeatIcon,
+  GiftIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
@@ -330,6 +331,10 @@ export default function AdminPage() {
             <GlobeIcon className="h-4 w-4" />
             Landing
           </TabsTrigger>
+          <TabsTrigger value="referrals">
+            <GiftIcon className="h-4 w-4" />
+            Referrals
+          </TabsTrigger>
           <TabsTrigger value="feedback">
             <MessageSquareIcon className="h-4 w-4" />
             Feedback
@@ -618,6 +623,9 @@ export default function AdminPage() {
                         <th className="py-2 pr-4 font-medium text-right">
                           Revisions
                         </th>
+                        <th className="py-2 pr-4 font-medium text-right">
+                          Minutes used
+                        </th>
                         <th className="py-2 pr-4 font-medium">Onboarding</th>
                         <th className="py-2 pr-4 font-medium">Profession</th>
                         <th className="py-2 pr-4 font-medium">Usage</th>
@@ -646,6 +654,9 @@ export default function AdminPage() {
                           </td>
                           <td className="py-2 pr-4 text-right font-medium">
                             {u.revisionCount}
+                          </td>
+                          <td className="py-2 pr-4 text-right font-medium tabular-nums">
+                            {u.minutesUsed.toLocaleString()}
                           </td>
                           <td className="py-2 pr-4">
                             {u.isWelcomeDone ? (
@@ -683,6 +694,105 @@ export default function AdminPage() {
               ) : (
                 <p className="text-muted-foreground text-center py-4">
                   No users yet
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Latest Paying Customers */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCardIcon className="h-5 w-5" />
+                Latest Paying Customers
+              </CardTitle>
+              <CardDescription>
+                The 10 most recent paying customers — subscribers and one-time
+                credit buyers — ordered by their latest payment
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {stats.paying.recent && stats.paying.recent.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-left text-muted-foreground">
+                        <th className="py-2 pr-4 font-medium">Email</th>
+                        <th className="py-2 pr-4 font-medium">Type</th>
+                        <th className="py-2 pr-4 font-medium">Status</th>
+                        <th className="py-2 pr-4 font-medium text-right">
+                          Credits left
+                        </th>
+                        <th className="py-2 pr-4 font-medium text-right">
+                          Minutes used
+                        </th>
+                        <th className="py-2 font-medium">Last payment</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stats.paying.recent.map((c) => (
+                        <tr
+                          key={c.id}
+                          className="border-b last:border-b-0 hover:bg-muted/30 transition-colors"
+                        >
+                          <td className="py-2 pr-4">
+                            <div className="font-medium">{c.email}</div>
+                            {c.name && (
+                              <div className="text-xs text-muted-foreground">
+                                {c.name}
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-2 pr-4 whitespace-nowrap">
+                            {c.type === "subscription" ? (
+                              <span className="capitalize">
+                                {c.plan} subscription
+                              </span>
+                            ) : (
+                              "One-time"
+                            )}
+                          </td>
+                          <td className="py-2 pr-4 whitespace-nowrap">
+                            {c.subscriptionStatus ? (
+                              <span
+                                className={
+                                  c.subscriptionStatus === "active" ||
+                                  c.subscriptionStatus === "trialing"
+                                    ? "text-green-600"
+                                    : "text-amber-600"
+                                }
+                              >
+                                {c.subscriptionStatus}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </td>
+                          <td className="py-2 pr-4 text-right font-medium tabular-nums">
+                            {c.credits.toLocaleString()}
+                          </td>
+                          <td className="py-2 pr-4 text-right font-medium tabular-nums">
+                            {c.minutesUsed.toLocaleString()}
+                          </td>
+                          <td className="py-2 whitespace-nowrap text-muted-foreground">
+                            {new Date(c.paidAt).toLocaleDateString()}
+                            {!c.hasPaymentDate && (
+                              <span
+                                className="ml-1 text-xs text-muted-foreground/60"
+                                title="No tracked payment date — showing last activity as an approximation"
+                              >
+                                (approx.)
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-center py-4">
+                  No paying customers yet
                 </p>
               )}
             </CardContent>
@@ -1166,6 +1276,150 @@ export default function AdminPage() {
               ) : (
                 <p className="text-muted-foreground text-center py-4">
                   No page visit data available
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ---------- Referrals ---------- */}
+        <TabsContent value="referrals" className="space-y-6">
+          {/* Referral overview cards */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Invitations Sent
+                </CardTitle>
+                <GiftIcon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {stats.referrals.totalInvites}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Total referral invites
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Registered
+                </CardTitle>
+                <UsersIcon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {stats.referrals.totalRegistered}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Invited users who signed up
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Conversion Rate
+                </CardTitle>
+                <RepeatIcon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {Math.round(stats.referrals.conversionRate * 100)}%
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Registered / invited
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Bonus Credits Granted
+                </CardTitle>
+                <CoinsIcon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {stats.referrals.totalBonusCredits.toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Monthly referral bonus across all users
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Top referrers */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <GiftIcon className="h-5 w-5" />
+                Top Referrers
+              </CardTitle>
+              <CardDescription>
+                Users who invited the most people, ranked by successful sign-ups
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {stats.referrals.topReferrers &&
+              stats.referrals.topReferrers.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-left text-muted-foreground">
+                        <th className="py-2 pr-4 font-medium w-6">#</th>
+                        <th className="py-2 pr-4 font-medium">Referrer</th>
+                        <th className="py-2 pr-4 font-medium text-right">
+                          Invited
+                        </th>
+                        <th className="py-2 pr-4 font-medium text-right">
+                          Registered
+                        </th>
+                        <th className="py-2 font-medium text-right">
+                          Bonus credits / mo
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stats.referrals.topReferrers.map((r, index) => (
+                        <tr
+                          key={r.id}
+                          className="border-b last:border-b-0 hover:bg-muted/30 transition-colors"
+                        >
+                          <td className="py-2 pr-4 text-muted-foreground">
+                            {index + 1}
+                          </td>
+                          <td className="py-2 pr-4">
+                            <div className="font-medium">{r.email}</div>
+                            {r.name && (
+                              <div className="text-xs text-muted-foreground">
+                                {r.name}
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-2 pr-4 text-right font-medium tabular-nums">
+                            {r.invited}
+                          </td>
+                          <td className="py-2 pr-4 text-right font-medium tabular-nums text-green-600">
+                            {r.registered}
+                          </td>
+                          <td className="py-2 text-right font-medium tabular-nums">
+                            {r.bonusCredits.toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-center py-4">
+                  No referrals yet
                 </p>
               )}
             </CardContent>
