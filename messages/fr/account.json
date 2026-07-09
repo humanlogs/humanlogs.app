@@ -223,7 +223,13 @@
                     "trust": "Faire confiance à cet ordinateur"
                 },
                 "success": "Certificat chargé avec succès !",
-                "error": "Échec du chargement du certificat. Veuillez vérifier le fichier et réessayer."
+                "error": "Échec du chargement du certificat. Veuillez vérifier le fichier et réessayer.",
+                "disable": {
+                    "button": "Clé perdue ? Désactiver le chiffrement",
+                    "lostKeyHint": "Impossible d'accéder à votre certificat sur un appareil ?",
+                    "success": "Le chiffrement a été désactivé",
+                    "error": "Échec de la désactivation du chiffrement. Veuillez réessayer."
+                }
             },
             "setup": {
                 "title": "Protégez votre vie privée",
@@ -282,6 +288,13 @@
                     "generate": "Certificat généré et téléchargé ! Veuillez l'enregistrer en toute sécurité.",
                     "deviceTrust": "L'appareil est maintenant de confiance",
                     "deviceUntrust": "L'appareil n'est plus de confiance"
+                },
+                "import": {
+                    "divider": "ou",
+                    "button": "J'ai déjà un certificat",
+                    "importing": "Importation...",
+                    "hint": "Importez un certificat existant pour conserver l'accès aux transcriptions chiffrées avec celui-ci.",
+                    "error": "Échec de l'importation du certificat. Vérifiez le fichier et réessayez."
                 }
             }
         },
