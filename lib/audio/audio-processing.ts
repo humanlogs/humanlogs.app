@@ -4,7 +4,7 @@
 
 import { exec } from "child_process";
 import { promisify } from "util";
-import { writeFile, unlink, readFile } from "fs/promises";
+import { unlink, stat } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
 import crypto from "crypto";
@@ -14,26 +14,23 @@ const execAsync = promisify(exec);
 const MAX_COMPRESSED_SIZE = 50 * 1024 * 1024; // 50MB
 
 /**
- * Compress audio file using ffmpeg with opus codec
- * Target: Max 50MB for a 2h file (~30MB)
+ * Compress an audio/video file (already on disk) to opus using ffmpeg.
+ *
+ * Reads the input straight from disk and writes the compressed opus to a new
+ * temp file, so the large source is never held in RAM. Returns the path to the
+ * compressed file; the caller owns both `inputPath` and the returned path and
+ * is responsible for deleting them.
+ *
+ * Target: Max 50MB for a 2h file (~30MB).
  */
-export async function compressAudio(
-  inputBuffer: Buffer,
-  originalFileName: string,
-): Promise<Buffer> {
+export async function compressAudioFile(inputPath: string): Promise<string> {
   const tmpDir = tmpdir();
   const randomId = crypto.randomBytes(16).toString("hex");
-  const inputPath = join(tmpDir, `input-${randomId}-${originalFileName}`);
   const outputPath = join(tmpDir, `output-${randomId}.opus`);
 
-  console.log(
-    `Starting ffmpeg compression for ${originalFileName} (${inputBuffer.length} bytes)`,
-  );
+  console.log(`Starting ffmpeg compression for ${inputPath}`);
 
   try {
-    // Write input file to temp location
-    await writeFile(inputPath, inputBuffer);
-
     // Compress using ffmpeg with opus codec at 32k bitrate
     // -i: input file
     // -c:a libopus: use opus audio codec
@@ -50,15 +47,13 @@ export async function compressAudio(
       timeout: 600000, // 10 minute timeout for very large files
     });
 
-    // Read compressed file
-    const compressedBuffer = await readFile(outputPath);
-
-    console.log(`Compression complete: ${compressedBuffer.length} bytes`);
+    let { size } = await stat(outputPath);
+    console.log(`Compression complete: ${size} bytes`);
 
     // Verify size is within limits
-    if (compressedBuffer.length > MAX_COMPRESSED_SIZE) {
+    if (size > MAX_COMPRESSED_SIZE) {
       console.warn(
-        `Compressed file (${compressedBuffer.length} bytes) exceeds 50MB limit. Adjusting bitrate...`,
+        `Compressed file (${size} bytes) exceeds 50MB limit. Adjusting bitrate...`,
       );
 
       // Try with lower bitrate
@@ -68,27 +63,16 @@ export async function compressAudio(
         timeout: 600000,
       });
 
-      const recompressedBuffer = await readFile(outputPath);
-      console.log(`Recompression complete: ${recompressedBuffer.length} bytes`);
-      return recompressedBuffer;
+      ({ size } = await stat(outputPath));
+      console.log(`Recompression complete: ${size} bytes`);
     }
 
-    return compressedBuffer;
+    return outputPath;
   } catch (error) {
-    console.error(`FFmpeg compression failed for ${originalFileName}:`, error);
+    console.error(`FFmpeg compression failed for ${inputPath}:`, error);
+    // Best-effort cleanup of a partial output; the input is owned by the caller.
+    await unlink(outputPath).catch(() => {});
     throw error;
-  } finally {
-    // Clean up temp files
-    try {
-      await unlink(inputPath);
-    } catch {
-      // Ignore errors
-    }
-    try {
-      await unlink(outputPath);
-    } catch {
-      // Ignore errors
-    }
   }
 }
 

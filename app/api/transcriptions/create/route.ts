@@ -1,8 +1,12 @@
 import {
   checkFfmpegAvailable,
-  compressAudio,
+  compressAudioFile,
   encryptAudioBuffer,
 } from "@/lib/audio/audio-processing";
+import {
+  parseMultipartToDisk,
+  type StreamedFile,
+} from "@/lib/audio/multipart-upload";
 import { isBillableVersion } from "@/lib/billing/stripe";
 import { prisma } from "@/lib/prisma";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
@@ -13,6 +17,7 @@ import {
   type SttProvider,
 } from "@/lib/stt/stt-service";
 import crypto from "crypto";
+import { readFile, unlink } from "fs/promises";
 import { NextResponse } from "next/server";
 import { v4 } from "uuid";
 import { EncryptionUtils } from "../../../../lib/encryption/encryption-entities";
@@ -53,24 +58,29 @@ const SUPPORTED_FORMATS = [
 ];
 
 export const POST = withAuthRateLimit(async (request, user) => {
+  // Parsed upload is streamed to temp files; keep a handle so we can clean up
+  // any file that is not handed off to a background job.
+  let parsed: Awaited<ReturnType<typeof parseMultipartToDisk>> | null = null;
+  const handedOff = new Set<string>();
+
   try {
-    // Parse multipart form data
-    const formData = await request.formData();
+    // Parse multipart form data, streaming file parts straight to disk so the
+    // (potentially very large) audio/video bytes are never held in memory.
+    parsed = await parseMultipartToDisk(request, { maxFileSize: MAX_FILE_SIZE });
+    const fields = parsed.fields;
 
     // Extract form fields
-    const language = (formData.get("language") as string) || "en";
-    const projectId = (formData.get("projectId") as string) || "";
-    const speakerCountRaw = formData.get("speakerCount");
-    const speakerCount = speakerCountRaw
-      ? parseInt(speakerCountRaw as string, 10)
-      : 2;
-    const tagAudioEventsRaw = formData.get("tagAudioEvents");
+    const language = fields.language || "en";
+    const projectId = fields.projectId || "";
+    const speakerCountRaw = fields.speakerCount;
+    const speakerCount = speakerCountRaw ? parseInt(speakerCountRaw, 10) : 2;
+    const tagAudioEventsRaw = fields.tagAudioEvents;
     const tagAudioEvents =
       typeof tagAudioEventsRaw === "string"
         ? tagAudioEventsRaw.toLowerCase() !== "false"
         : true;
 
-    const vocabulary = (formData.get("vocabulary") as string) || "";
+    const vocabulary = fields.vocabulary || "";
     const vocabularyArray = vocabulary
       .split(",")
       .map((v) => v.trim())
@@ -80,8 +90,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
     // falls back to the user's saved data residency preference, then the
     // configured default. resolveSttProvider also guarantees the result is a
     // provider that is actually configured on this deployment.
-    const requestedProvider =
-      (formData.get("provider") as string | null) || null;
+    const requestedProvider = fields.provider || null;
     const userPref = await prisma.user.findUnique({
       where: { id: user.id },
       select: { dataResidency: true },
@@ -90,27 +99,25 @@ export const POST = withAuthRateLimit(async (request, user) => {
       requestedProvider || userPref?.dataResidency || null,
     );
 
-    // Extract audio files
-    const audioFiles: File[] = [];
+    // Extract audio files (already streamed to disk), matched by field name.
+    const audioFiles: StreamedFile[] = [];
     const fileNames: string[] = [];
     const fileDurations: number[] = [];
 
     let index = 0;
     while (true) {
-      const file = formData.get(`file_${index}`) as File;
-      const fileName = formData.get(`fileName_${index}`) as string;
-      const duration = formData.get(`duration_${index}`) as string;
-
+      const file = parsed.files.find((f) => f.fieldName === `file_${index}`);
       if (!file) break;
 
       audioFiles.push(file);
-      fileNames.push(fileName || file.name);
-      fileDurations.push(parseFloat(duration || "0"));
+      fileNames.push(fields[`fileName_${index}`] || file.filename);
+      fileDurations.push(parseFloat(fields[`duration_${index}`] || "0"));
       index++;
     }
 
     // Validation
     if (audioFiles.length === 0) {
+      await parsed.cleanup();
       return NextResponse.json(
         { error: "At least one audio file is required" },
         { status: 400 },
@@ -119,21 +126,23 @@ export const POST = withAuthRateLimit(async (request, user) => {
 
     // Validate file sizes and types
     for (const file of audioFiles) {
-      if (file.size > MAX_FILE_SIZE) {
+      if (file.truncated || file.size > MAX_FILE_SIZE) {
+        await parsed.cleanup();
         return NextResponse.json(
-          { error: `File ${file.name} exceeds maximum size of 1GB` },
+          { error: `File ${file.filename} exceeds maximum size of 1GB` },
           { status: 400 },
         );
       }
 
       if (
-        !SUPPORTED_FORMATS.includes(file.type) &&
-        !file.name.match(
+        !SUPPORTED_FORMATS.includes(file.mimeType) &&
+        !file.filename.match(
           /\.(mp3|wav|m4a|flac|aac|ogg|opus|wma|aiff|mp4|mov|avi|mkv|webm|flv|wmv|mpeg|mpg|3gp)$/i,
         )
       ) {
+        await parsed.cleanup();
         return NextResponse.json(
-          { error: `File ${file.name} has unsupported format` },
+          { error: `File ${file.filename} has unsupported format` },
           { status: 400 },
         );
       }
@@ -159,11 +168,13 @@ export const POST = withAuthRateLimit(async (request, user) => {
       });
 
       if (!userProfile) {
+        await parsed.cleanup();
         return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
 
       const availableCredits = userProfile.credits;
       if (availableCredits < creditsNeeded) {
+        await parsed.cleanup();
         return NextResponse.json(
           {
             error: "Insufficient credits",
@@ -229,17 +240,17 @@ export const POST = withAuthRateLimit(async (request, user) => {
         createdTranscriptions.push(transcription.id);
         console.log(`Transcription record created: ${transcription.id}`);
 
-        // Get file buffer and immediately start processing (don't accumulate in memory)
-        console.log(`Loading file buffer for ${fileName}...`);
-        const originalBuffer = Buffer.from(await file.arrayBuffer());
+        // The uploaded bytes already live in a temp file on disk. Hand the path
+        // to the background job, which reads/compresses from disk (never loading
+        // the raw source into memory) and deletes the temp file when done.
         console.log(
-          `File buffer loaded, starting async processing for ${transcription.id}`,
+          `Starting async processing for ${transcription.id} from ${file.tmpPath}`,
         );
 
         // Start async processing immediately - don't await
         processAudioAndTranscription(
           transcription.id,
-          originalBuffer,
+          file.tmpPath,
           fileName,
           user.id,
           {
@@ -257,9 +268,10 @@ export const POST = withAuthRateLimit(async (request, user) => {
           );
         });
 
-        console.log(
-          `Async processing started for ${transcription.id}, buffer can be garbage collected`,
-        );
+        // The job now owns this temp file; do not clean it up on the request path.
+        handedOff.add(file.tmpPath);
+
+        console.log(`Async processing started for ${transcription.id}`);
       }
 
       // Return immediately - processing happens in background
@@ -282,6 +294,14 @@ export const POST = withAuthRateLimit(async (request, user) => {
     }
   } catch (error) {
     console.error("Error creating transcription:", error);
+    // Clean up any temp files that were not handed off to a background job.
+    if (parsed) {
+      await Promise.all(
+        parsed.files
+          .filter((f) => !handedOff.has(f.tmpPath))
+          .map((f) => unlink(f.tmpPath).catch(() => {})),
+      );
+    }
     return NextResponse.json(
       { error: "Failed to create transcription" },
       { status: 500 },
@@ -295,7 +315,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
  */
 async function processAudioAndTranscription(
   transcriptionId: string,
-  originalBuffer: Buffer,
+  inputPath: string,
   fileName: string,
   userId: string,
   options: {
@@ -307,31 +327,34 @@ async function processAudioAndTranscription(
     provider: SttProvider;
   },
 ): Promise<void> {
+  let compressedPath: string | null = null;
   try {
     const storage = getStorage();
 
-    // Compress audio file using ffmpeg
-    let unencryptedFile: Buffer;
+    // Compress audio file using ffmpeg. Compression reads the source and writes
+    // the opus output on disk, so the large raw file never enters the heap.
+    let audioPath: string; // File to store & transcribe (opus, or raw on fallback)
     try {
       const ffmpegAvailable = await checkFfmpegAvailable();
       if (ffmpegAvailable) {
-        console.log(
-          `Compressing audio file (${originalBuffer.length} bytes)...`,
-        );
-        unencryptedFile = await compressAudio(originalBuffer, fileName);
-        console.log(
-          `Compressed to ${unencryptedFile.length} bytes (${Math.round((unencryptedFile.length / originalBuffer.length) * 100)}% of original)`,
-        );
+        console.log(`Compressing audio file ${inputPath}...`);
+        compressedPath = await compressAudioFile(inputPath);
+        audioPath = compressedPath;
       } else {
         console.warn(
           "ffmpeg not available, skipping compression. Install ffmpeg for optimal storage.",
         );
-        unencryptedFile = originalBuffer;
+        audioPath = inputPath;
       }
     } catch (error) {
       console.error("Error compressing audio, using original:", error);
-      unencryptedFile = originalBuffer;
+      audioPath = inputPath;
     }
+
+    // Load the file to store/transcribe into memory. When compressed this is
+    // small (<= 50MB, bounded by compressAudioFile); only the no-ffmpeg
+    // fallback reads the full raw source.
+    const unencryptedFile: Buffer = await readFile(audioPath);
 
     // Get user's public key for encryption
     const userProfile = await prisma.user.findUnique({
@@ -404,6 +427,12 @@ async function processAudioAndTranscription(
             : "Failed to process audio file",
       },
     });
+  } finally {
+    // Remove the temp files this job owns (uploaded source + compressed output).
+    await unlink(inputPath).catch(() => {});
+    if (compressedPath) {
+      await unlink(compressedPath).catch(() => {});
+    }
   }
 }
 
