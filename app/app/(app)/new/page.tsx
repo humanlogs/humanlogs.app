@@ -34,6 +34,10 @@ import * as React from "react";
 import { toast } from "sonner";
 import { useUserProfile } from "../../../../hooks/use-api";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  canConvertToOpusInBrowser,
+  convertFileToOpus,
+} from "@/lib/audio/client-opus-conversion.browser";
 
 type AudioFile = {
   id: string;
@@ -274,6 +278,12 @@ export default function NewTranscriptionPage() {
   const [uploadProgress, setUploadProgress] = React.useState<number | null>(
     null,
   );
+  // Client-side opus conversion progress. Null while not converting.
+  const [conversionState, setConversionState] = React.useState<{
+    current: number;
+    total: number;
+    ratio: number;
+  } | null>(null);
   const [playingAudioId, setPlayingAudioId] = React.useState<string | null>(
     null,
   );
@@ -608,10 +618,63 @@ export default function NewTranscriptionPage() {
     }
 
     setIsSubmitting(true);
-    setUploadProgress(0);
+    setUploadProgress(null);
+    setConversionState(null);
 
     try {
-      // Prepare form data
+      // Phase 1: convert each file to standardized opus in the browser when the
+      // device supports it. This offloads compression (and its RAM cost) from
+      // the server and shrinks the upload. Any failure falls back to uploading
+      // the raw file, which the server then converts.
+      const prepared: {
+        file: File;
+        name: string;
+        duration: number;
+        converted: boolean;
+      }[] = [];
+
+      for (let i = 0; i < audioFiles.length; i++) {
+        const audioFile = audioFiles[i];
+        let file = audioFile.file;
+        let converted = false;
+
+        if (canConvertToOpusInBrowser(file).ok) {
+          try {
+            setConversionState({
+              current: i + 1,
+              total: audioFiles.length,
+              ratio: 0,
+            });
+            file = await convertFileToOpus(file, (ratio) =>
+              setConversionState({
+                current: i + 1,
+                total: audioFiles.length,
+                ratio,
+              }),
+            );
+            converted = true;
+          } catch (error) {
+            console.error(
+              "Client-side opus conversion failed; uploading raw file instead:",
+              error,
+            );
+            file = audioFile.file;
+            converted = false;
+          }
+        }
+
+        prepared.push({
+          file,
+          name: audioFile.name,
+          duration: audioFile.duration || 0,
+          converted,
+        });
+      }
+
+      setConversionState(null);
+      setUploadProgress(0);
+
+      // Phase 2: build and upload the form data.
       const formData = new FormData();
       if (projectId) {
         formData.append("projectId", projectId);
@@ -624,14 +687,16 @@ export default function NewTranscriptionPage() {
         formData.append("provider", provider);
       }
 
-      // Add all audio files
-      audioFiles.forEach((audioFile, index) => {
-        formData.append(`file_${index}`, audioFile.file);
-        formData.append(`fileName_${index}`, audioFile.name);
-        formData.append(
-          `duration_${index}`,
-          (audioFile.duration || 0).toString(),
-        );
+      // Add all (possibly browser-converted) audio files.
+      prepared.forEach((item, index) => {
+        formData.append(`file_${index}`, item.file);
+        formData.append(`fileName_${index}`, item.name);
+        formData.append(`duration_${index}`, item.duration.toString());
+        if (item.converted) {
+          // Signal that this is already standardized opus so the server skips
+          // its own ffmpeg re-encoding step.
+          formData.append(`converted_${index}`, "opus");
+        }
       });
 
       // Submit to API via XHR so we can show real upload progress.
@@ -684,6 +749,7 @@ export default function NewTranscriptionPage() {
     } finally {
       setIsSubmitting(false);
       setUploadProgress(null);
+      setConversionState(null);
     }
   };
 
@@ -895,6 +961,34 @@ export default function NewTranscriptionPage() {
             </Alert>
           )}
 
+          {/* Conversion progress (client-side opus, before upload) */}
+          {isSubmitting && conversionState !== null && (
+            <div className="space-y-2 rounded-lg border bg-muted/30 p-4">
+              <div className="flex items-center justify-between text-sm font-medium">
+                <span>
+                  {t("converting")}
+                  {conversionState.total > 1
+                    ? ` (${conversionState.current}/${conversionState.total})`
+                    : ""}
+                </span>
+                <span className="text-muted-foreground">
+                  {Math.round(conversionState.ratio * 100)}%
+                </span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-200"
+                  style={{
+                    width: `${Math.round(conversionState.ratio * 100)}%`,
+                  }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("convertingNote")}
+              </p>
+            </div>
+          )}
+
           {/* Upload progress */}
           {isSubmitting && uploadProgress !== null && (
             <div className="space-y-2 rounded-lg border bg-muted/30 p-4">
@@ -952,9 +1046,11 @@ export default function NewTranscriptionPage() {
               }
             >
               {isSubmitting
-                ? uploadProgress !== null && uploadProgress < 100
-                  ? `${t("uploading")} ${uploadProgress}%`
-                  : t("processing")
+                ? conversionState !== null
+                  ? `${t("converting")} ${Math.round(conversionState.ratio * 100)}%`
+                  : uploadProgress !== null && uploadProgress < 100
+                    ? `${t("uploading")} ${uploadProgress}%`
+                    : t("processing")
                 : t("startTranscription")}
             </Button>
           </div>

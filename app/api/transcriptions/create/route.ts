@@ -211,6 +211,9 @@ export const POST = withAuthRateLimit(async (request, user) => {
         const title = fileNames[i];
         const fileName = v4();
         const duration = fileDurations[i];
+        // The client converts to standardized opus when the device can handle
+        // it; when flagged, the server skips its own ffmpeg re-encoding.
+        const preConverted = fields[`converted_${i}`] === "opus";
 
         console.log(
           `Creating transcription for file ${i + 1}/${audioFiles.length}: (${file.size} bytes)`,
@@ -260,6 +263,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
             tagAudioEvents,
             duration,
             provider,
+            preConverted,
           },
         ).catch((error) => {
           console.error(
@@ -325,6 +329,7 @@ async function processAudioAndTranscription(
     tagAudioEvents: boolean;
     duration: number;
     provider: SttProvider;
+    preConverted: boolean;
   },
 ): Promise<void> {
   let compressedPath: string | null = null;
@@ -334,21 +339,28 @@ async function processAudioAndTranscription(
     // Compress audio file using ffmpeg. Compression reads the source and writes
     // the opus output on disk, so the large raw file never enters the heap.
     let audioPath: string; // File to store & transcribe (opus, or raw on fallback)
-    try {
-      const ffmpegAvailable = await checkFfmpegAvailable();
-      if (ffmpegAvailable) {
-        console.log(`Compressing audio file ${inputPath}...`);
-        compressedPath = await compressAudioFile(inputPath);
-        audioPath = compressedPath;
-      } else {
-        console.warn(
-          "ffmpeg not available, skipping compression. Install ffmpeg for optimal storage.",
-        );
+    if (options.preConverted) {
+      // The client already produced standardized opus with the same parameters,
+      // so re-encoding server-side would only waste CPU. Use it as-is.
+      console.log(`Using client-converted opus for ${inputPath}, skipping ffmpeg`);
+      audioPath = inputPath;
+    } else {
+      try {
+        const ffmpegAvailable = await checkFfmpegAvailable();
+        if (ffmpegAvailable) {
+          console.log(`Compressing audio file ${inputPath}...`);
+          compressedPath = await compressAudioFile(inputPath);
+          audioPath = compressedPath;
+        } else {
+          console.warn(
+            "ffmpeg not available, skipping compression. Install ffmpeg for optimal storage.",
+          );
+          audioPath = inputPath;
+        }
+      } catch (error) {
+        console.error("Error compressing audio, using original:", error);
         audioPath = inputPath;
       }
-    } catch (error) {
-      console.error("Error compressing audio, using original:", error);
-      audioPath = inputPath;
     }
 
     // Load the file to store/transcribe into memory. When compressed this is

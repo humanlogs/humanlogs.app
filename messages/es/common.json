@@ -59,6 +59,8 @@
         "startTranscription": "Iniciar Transcripción",
         "processing": "Procesando...",
         "uploading": "Subiendo archivos...",
+        "converting": "Optimizando audio...",
+        "convertingNote": "Comprimimos tus archivos en tu navegador antes de subirlos para ahorrar tiempo y datos.",
         "uploadingNote": "Te enviaremos un correo cuando tu transcripción esté lista, pero mantén esta página abierta hasta que termine la subida.",
         "lowCredits": "Pocos Créditos",
         "lowCreditsDescription": "Te quedan {credits} créditos. Considera agregar más créditos para continuar transcribiendo.",

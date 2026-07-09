@@ -11,9 +11,11 @@ let ffmpegLoadPromise: Promise<FFmpeg> | null = null;
 
 /**
  * Lazy load ffmpeg.wasm (20MB) only when needed
- * Uses singleton pattern to load once and reuse
+ * Uses singleton pattern to load once and reuse.
+ * Exported so other browser modules (e.g. upload-time opus conversion) can
+ * share the single loaded instance instead of pulling the WASM twice.
  */
-async function loadFFmpeg(): Promise<FFmpeg> {
+export async function loadFFmpeg(): Promise<FFmpeg> {
   // Return existing instance if already loaded
   if (ffmpegInstance) {
     return ffmpegInstance;
