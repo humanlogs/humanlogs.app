@@ -288,6 +288,13 @@
                     "generate": "Certificate generated and downloaded! Please save it securely.",
                     "deviceTrust": "Device is now trusted",
                     "deviceUntrust": "Device is no longer trusted"
+                },
+                "import": {
+                    "divider": "or",
+                    "button": "I already have a certificate",
+                    "importing": "Importing...",
+                    "hint": "Import an existing certificate to keep access to transcriptions encrypted with it.",
+                    "error": "Failed to import certificate. Please check the file and try again."
                 }
             }
         },

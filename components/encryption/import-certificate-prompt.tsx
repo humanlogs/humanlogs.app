@@ -105,7 +105,7 @@ export function ImportCertificatePrompt({
           <DialogTitle>{tDisable("title")}</DialogTitle>
           <DialogDescription>{tDisable("description")}</DialogDescription>
         </DialogHeader>
-        <div className="py-4">
+        <div className="py-4 px-6">
           <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 space-y-2">
             <p className="text-sm font-medium text-destructive flex items-center gap-2">
               <AlertCircleIcon className="w-4 h-4" />

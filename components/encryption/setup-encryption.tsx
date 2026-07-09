@@ -2,11 +2,13 @@
 
 import {
   useEnableEncryption,
-  useEncryptionStatus,
   useGenerateCertificate,
-  useToggleDeviceTrust,
 } from "@/hooks/use-encryption";
-import { CheckCircleIcon, KeyIcon } from "lucide-react";
+import {
+  generateDeviceSecret,
+  parseCertificate,
+} from "@/lib/encryption/encryption";
+import { CheckCircleIcon, KeyIcon, UploadIcon } from "lucide-react";
 import { useTranslations } from "@/components/locale-provider";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -19,21 +21,26 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
 interface SetupEncryptionProps {
   onComplete: () => void;
   onSkip?: () => void;
   hideSkipOption?: boolean;
+  /** Render without the standalone card chrome (for embedding inside an existing Card). */
+  embedded?: boolean;
 }
 
 export function SetupEncryption({
   onComplete,
   onSkip,
   hideSkipOption = false,
+  embedded = false,
 }: SetupEncryptionProps) {
   const t = useTranslations("account.encryption.setup");
   const [certificateDownloaded, setCertificateDownloaded] = useState(false);
+  const [importingFile, setImportingFile] = useState(false);
   const [showTrustDialog, setShowTrustDialog] = useState(false);
   const [certificateData, setCertificateData] = useState<{
     publicKey: string;
@@ -48,8 +55,6 @@ export function SetupEncryption({
 
   const generateCertificate = useGenerateCertificate();
   const enableEncryption = useEnableEncryption();
-  const status = useEncryptionStatus();
-  const toggleDeviceTrust = useToggleDeviceTrust();
 
   const allChecked =
     checklist.saved && checklist.emailed && checklist.understood;
@@ -68,6 +73,36 @@ export function SetupEncryption({
     } catch (error) {
       console.error("Failed to generate certificate:", error);
       toast.error(t("errors.generate"));
+    }
+  }
+
+  async function handleImportCertificate(
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setImportingFile(true);
+      const content = await file.text();
+      const certificate = parseCertificate(content);
+      const deviceSecret = await generateDeviceSecret();
+
+      setCertificateData({
+        publicKey: certificate.publicKey,
+        privateKey: certificate.privateKey,
+        deviceSecret,
+      });
+
+      // Skip the "save your certificate" checklist since the user already
+      // has it, and go straight to the device-trust decision + enable flow.
+      setShowTrustDialog(true);
+    } catch (error) {
+      console.error("Failed to import certificate:", error);
+      toast.error(t("import.error"));
+    } finally {
+      setImportingFile(false);
+      event.target.value = ""; // Reset input
     }
   }
 
@@ -104,13 +139,23 @@ export function SetupEncryption({
 
   return (
     <>
-      <div className="w-full max-w-2xl space-y-6 rounded-2xl bg-white p-8 shadow-xl dark:bg-zinc-950">
-        <div className="flex items-start gap-4">
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
-            <p className="text-muted-foreground mt-1">{t("subtitle")}</p>
+      <div
+        className={
+          embedded
+            ? "w-full space-y-6"
+            : "w-full max-w-2xl space-y-6 rounded-2xl bg-white p-8 shadow-xl dark:bg-zinc-950"
+        }
+      >
+        {!embedded && (
+          <div className="flex items-start gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold tracking-tight">
+                {t("title")}
+              </h1>
+              <p className="text-muted-foreground mt-1">{t("subtitle")}</p>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="space-y-4">
           {/* Encryption Option (Recommended) */}
@@ -142,7 +187,7 @@ export function SetupEncryption({
                 </ul>
                 <Button
                   onClick={handleGenerateCertificate}
-                  disabled={generateCertificate.isPending}
+                  disabled={generateCertificate.isPending || importingFile}
                   className="w-full"
                   size="lg"
                 >
@@ -151,6 +196,38 @@ export function SetupEncryption({
                     ? t("enabled.generate.generating")
                     : t("enabled.generate.button")}
                 </Button>
+
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-xs text-muted-foreground">
+                    {t("import.divider")}
+                  </span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+
+                <div>
+                  <Label htmlFor="setup-certificate-import" className="sr-only">
+                    {t("import.button")}
+                  </Label>
+                  <label
+                    htmlFor="setup-certificate-import"
+                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+                  >
+                    <UploadIcon className="h-4 w-4" />
+                    {importingFile ? t("import.importing") : t("import.button")}
+                  </label>
+                  <Input
+                    id="setup-certificate-import"
+                    type="file"
+                    accept=".json"
+                    onChange={handleImportCertificate}
+                    disabled={importingFile || generateCertificate.isPending}
+                    className="hidden"
+                  />
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {t("import.hint")}
+                  </p>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">

@@ -288,6 +288,13 @@
                     "generate": "Zertifikat generiert und heruntergeladen! Bitte speichern Sie es sicher.",
                     "deviceTrust": "Gerät wird jetzt vertraut",
                     "deviceUntrust": "Gerät wird nicht mehr vertraut"
+                },
+                "import": {
+                    "divider": "oder",
+                    "button": "Ich habe bereits ein Zertifikat",
+                    "importing": "Importieren...",
+                    "hint": "Importieren Sie ein vorhandenes Zertifikat, um den Zugriff auf damit verschlüsselte Transkriptionen zu behalten.",
+                    "error": "Zertifikat konnte nicht importiert werden. Bitte überprüfen Sie die Datei und versuchen Sie es erneut."
                 }
             }
         },

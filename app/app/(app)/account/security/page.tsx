@@ -38,11 +38,10 @@ export default function SecurityPage() {
         <Card>
           <CardContent className="pt-6">
             <SetupEncryption
+              embedded
+              hideSkipOption
               onComplete={() => {
                 // Encryption enabled, page will re-render with new state
-              }}
-              onSkip={() => {
-                // User chose to skip encryption setup
               }}
             />
           </CardContent>

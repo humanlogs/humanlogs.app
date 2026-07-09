@@ -288,6 +288,13 @@
                     "generate": "Certificat généré et téléchargé ! Veuillez l'enregistrer en toute sécurité.",
                     "deviceTrust": "L'appareil est maintenant de confiance",
                     "deviceUntrust": "L'appareil n'est plus de confiance"
+                },
+                "import": {
+                    "divider": "ou",
+                    "button": "J'ai déjà un certificat",
+                    "importing": "Importation...",
+                    "hint": "Importez un certificat existant pour conserver l'accès aux transcriptions chiffrées avec celui-ci.",
+                    "error": "Échec de l'importation du certificat. Vérifiez le fichier et réessayez."
                 }
             }
         },
