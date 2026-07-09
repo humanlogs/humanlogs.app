@@ -60,7 +60,7 @@
         "processing": "Traitement en cours...",
         "uploading": "Téléchargement des fichiers...",
         "converting": "Optimisation de l'audio...",
-        "convertingNote": "Nous compressons vos fichiers dans votre navigateur avant l'envoi pour gagner du temps et de la bande passante.",
+        "convertingNote": "Nous compressons vos fichiers...",
         "uploadingNote": "Nous vous enverrons un e-mail dès que votre transcription sera prête, mais veuillez laisser cette page ouverte jusqu'à la fin du téléchargement.",
         "lowCredits": "Crédits Faibles",
         "lowCreditsDescription": "Il vous reste {credits} crédits. Pensez à ajouter plus de crédits pour continuer à transcrire.",

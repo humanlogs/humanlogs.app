@@ -349,7 +349,7 @@ export function EncryptionSettings({
               {t("disableDialog.description")}
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="space-y-6 px-6 pb-2">
             <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 space-y-2">
               <p className="text-sm font-medium text-destructive flex items-center gap-2">
                 <AlertCircleIcon className="w-4 h-4" />

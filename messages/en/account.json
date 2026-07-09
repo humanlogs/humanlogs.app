@@ -223,7 +223,13 @@
                     "trust": "Trust This Computer"
                 },
                 "success": "Certificate loaded successfully!",
-                "error": "Failed to load certificate. Please check the file and try again."
+                "error": "Failed to load certificate. Please check the file and try again.",
+                "disable": {
+                    "button": "Lost your key? Disable encryption",
+                    "lostKeyHint": "Can't access your certificate on any device?",
+                    "success": "Encryption has been disabled",
+                    "error": "Failed to disable encryption. Please try again."
+                }
             },
             "setup": {
                 "title": "Protect Your Privacy",

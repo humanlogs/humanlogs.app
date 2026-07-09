@@ -223,7 +223,13 @@
                     "trust": "Confiar en esta computadora"
                 },
                 "success": "¡Certificado cargado exitosamente!",
-                "error": "Error al cargar el certificado. Verifique el archivo e intente nuevamente."
+                "error": "Error al cargar el certificado. Verifique el archivo e intente nuevamente.",
+                "disable": {
+                    "button": "¿Perdiste tu clave? Deshabilitar el cifrado",
+                    "lostKeyHint": "¿No puede acceder a su certificado en ningún dispositivo?",
+                    "success": "El cifrado ha sido deshabilitado",
+                    "error": "Error al deshabilitar el cifrado. Inténtelo de nuevo."
+                }
             },
             "setup": {
                 "title": "Proteja su privacidad",

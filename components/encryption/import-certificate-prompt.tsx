@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useDisableEncryption,
   useEncryptionStatus,
   useToggleDeviceTrust,
   useUploadCertificate,
@@ -31,11 +32,14 @@ export function ImportCertificatePrompt({
   compact = false,
 }: ImportCertificatePromptProps) {
   const t = useTranslations("account.encryption.import");
+  const tDisable = useTranslations("account.encryption.settings.disableDialog");
   const { data: encryptionState } = useEncryptionStatus();
   const uploadCertificate = useUploadCertificate();
   const toggleDeviceTrust = useToggleDeviceTrust();
+  const disableEncryption = useDisableEncryption();
   const [uploadingFile, setUploadingFile] = useState(false);
   const [showTrustDialog, setShowTrustDialog] = useState(false);
+  const [showDisableDialog, setShowDisableDialog] = useState(false);
 
   async function handleUploadCertificate(
     event: React.ChangeEvent<HTMLInputElement>,
@@ -82,6 +86,57 @@ export function ImportCertificatePrompt({
     }
   }
 
+  async function handleDisableEncryption() {
+    try {
+      await disableEncryption.mutateAsync();
+      setShowDisableDialog(false);
+      toast.success(t("disable.success"));
+      onSuccess?.();
+    } catch (error) {
+      console.error("Failed to disable encryption:", error);
+      toast.error(t("disable.error"));
+    }
+  }
+
+  const disableDialog = (
+    <Dialog open={showDisableDialog} onOpenChange={setShowDisableDialog}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{tDisable("title")}</DialogTitle>
+          <DialogDescription>{tDisable("description")}</DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 space-y-2">
+            <p className="text-sm font-medium text-destructive flex items-center gap-2">
+              <AlertCircleIcon className="w-4 h-4" />
+              {tDisable("warning.title")}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {tDisable("confirmation")}
+            </p>
+          </div>
+          <ul className="mt-4 text-sm text-muted-foreground space-y-1 ml-4 list-disc">
+            <li>{tDisable("warning.point1")}</li>
+            <li>{tDisable("warning.point2")}</li>
+            <li>{tDisable("warning.point3")}</li>
+          </ul>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setShowDisableDialog(false)}>
+            {tDisable("cancel")}
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDisableEncryption}
+            disabled={disableEncryption.isPending}
+          >
+            {tDisable("confirm")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
   if (compact) {
     return (
       <>
@@ -114,6 +169,19 @@ export function ImportCertificatePrompt({
               disabled={uploadingFile}
               className="hidden"
             />
+          </div>
+          <div className="border-t border-orange-200 dark:border-orange-900 pt-3">
+            <p className="text-xs text-muted-foreground mb-2">
+              {t("disable.lostKeyHint")}
+            </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowDisableDialog(true)}
+              className="w-full text-destructive hover:text-destructive"
+            >
+              {t("disable.button")}
+            </Button>
           </div>
         </div>
 
@@ -161,6 +229,8 @@ export function ImportCertificatePrompt({
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {disableDialog}
       </>
     );
   }
@@ -226,6 +296,14 @@ export function ImportCertificatePrompt({
             <p className="text-sm text-muted-foreground mt-1">
               {t("full.lostCertificate.description")}
             </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDisableDialog(true)}
+              className="mt-3 w-full text-destructive hover:text-destructive"
+            >
+              {t("disable.button")}
+            </Button>
           </div>
         </div>
       </div>
@@ -274,6 +352,8 @@ export function ImportCertificatePrompt({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {disableDialog}
     </>
   );
 }
