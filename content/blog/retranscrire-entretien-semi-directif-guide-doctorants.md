@@ -3,6 +3,7 @@ title: "Retranscrire un entretien semi-directif : guide complet pour doctorants 
 date: "2026-06-10"
 slug: "retranscrire-entretien-semi-directif-guide-doctorants"
 description: "Guide méthodologique complet pour retranscrire vos entretiens semi-directifs : verbatim, conventions de notation, outils IA conformes RGPD, et conseils pour gagner 70 % du temps de transcription."
+locale: "fr"
 author: "HumanLogs Team"
 tags: [recherche-qualitative, entretien-semi-directif, doctorat, transcription, RGPD]
 ---

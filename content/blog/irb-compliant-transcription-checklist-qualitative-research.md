@@ -3,6 +3,7 @@ title: "Is Your Transcription Tool Breaking Your IRB Protocol? The 2026 Complian
 date: "2026-06-10"
 slug: "irb-compliant-transcription-checklist-qualitative-research"
 description: "After the Otter.ai class-action lawsuit and new EU AI Act obligations, IRBs are scrutinizing AI transcription tools. A 12-question checklist to verify your tool is actually compliant, and what to do if it isn't."
+locale: "en"
 author: "HumanLogs Team"
 tags: [IRB, GDPR, qualitative-research, compliance, privacy]
 ---
