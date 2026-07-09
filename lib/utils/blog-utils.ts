@@ -9,6 +9,7 @@ export interface BlogPost {
   author: string;
   tags: string[];
   coverImage?: string;
+  locale: string;
   content: string;
 }
 
@@ -62,6 +63,7 @@ export function getAllBlogPosts(): BlogPostMeta[] {
           author: data.author ?? "HumanLogs Team",
           tags: parseTags(data.tags),
           coverImage: data.coverImage,
+          locale: data.locale ?? "en",
         } satisfies BlogPostMeta;
       })
       .filter((p) => p.date);
@@ -92,6 +94,7 @@ export function getBlogPost(slug: string): BlogPost | null {
           author: data.author ?? "HumanLogs Team",
           tags: parseTags(data.tags),
           coverImage: data.coverImage,
+          locale: data.locale ?? "en",
           content,
         };
       }

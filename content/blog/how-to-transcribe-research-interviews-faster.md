@@ -3,6 +3,7 @@ title: "How to Transcribe Research Interviews 4x Faster (Without Losing Accuracy
 date: "2026-05-20"
 slug: "how-to-transcribe-research-interviews-faster"
 description: "A practical guide for PhD students and qualitative researchers on cutting transcription time while maintaining the accuracy your methodology demands."
+locale: "en"
 author: "HumanLogs Team"
 tags: [research, transcription, productivity, qualitative-research]
 ---

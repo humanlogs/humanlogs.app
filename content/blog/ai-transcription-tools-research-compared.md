@@ -3,6 +3,7 @@ title: "AI Transcription Tools for Research Compared: Otter.ai, Whisper, Gladia,
 date: "2026-06-11"
 slug: "ai-transcription-tools-research-compared"
 description: "A practical comparison of Otter.ai, Whisper, Gladia, Rev, and HumanLogs for PhD students and qualitative researchers, accuracy on real interview audio, GDPR compliance, pricing, and QDA software compatibility."
+locale: "en"
 author: "HumanLogs Team"
 tags: [transcription, qualitative-research, research, GDPR, productivity]
 ---

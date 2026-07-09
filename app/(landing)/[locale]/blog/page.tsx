@@ -23,7 +23,16 @@ export default async function BlogPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const posts = getAllBlogPosts();
+  const allPosts = getAllBlogPosts();
+
+  // Show articles in the current language first (by date), then complete with
+  // English articles (by date). getAllBlogPosts() already sorts by date desc,
+  // so each group preserves that ordering. When the current language is
+  // English, we only show the English group to avoid duplicates.
+  const currentLocalePosts = allPosts.filter((p) => p.locale === locale);
+  const englishPosts =
+    locale === "en" ? [] : allPosts.filter((p) => p.locale === "en");
+  const posts = [...currentLocalePosts, ...englishPosts];
 
   return (
     <>
