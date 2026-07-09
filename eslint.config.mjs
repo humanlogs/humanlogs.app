@@ -21,6 +21,10 @@ const eslintConfig = defineConfig([
         "error",
         {
           argsIgnorePattern: "^_.*",
+          // Unused vars intentionally prefixed with "_" are allowed (e.g. keys
+          // destructured only to strip them from an object rest spread).
+          varsIgnorePattern: "^_.*",
+          ignoreRestSiblings: true,
         },
       ],
     },

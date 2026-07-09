@@ -210,6 +210,7 @@ export type AdminStats = {
       dataResidency: string | null;
       transcriptionCount: number;
       revisionCount: number;
+      minutesUsed: number;
     }>;
   };
   transcriptions: {
@@ -251,6 +252,33 @@ export type AdminStats = {
     oneTime: number;
     subscribed: number;
     total: number;
+    recent: Array<{
+      id: string;
+      email: string;
+      name: string | null;
+      plan: string;
+      type: "subscription" | "one-time";
+      subscriptionStatus: string | null;
+      credits: number;
+      minutesUsed: number;
+      createdAt: string;
+      paidAt: string;
+      hasPaymentDate: boolean;
+    }>;
+  };
+  referrals: {
+    totalInvites: number;
+    totalRegistered: number;
+    conversionRate: number;
+    totalBonusCredits: number;
+    topReferrers: Array<{
+      id: string;
+      email: string;
+      name: string | null;
+      invited: number;
+      registered: number;
+      bonusCredits: number;
+    }>;
   };
   landing: {
     totalUniqueVisitors: number;

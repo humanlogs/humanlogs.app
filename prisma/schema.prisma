@@ -8,43 +8,47 @@ datasource db {
 }
 
 model User {
-  id                     String          @id @default(uuid())
-  auth0Id                String          @unique
-  email                  String          @unique
-  name                   String?
-  picture                String?
-  passwordHash           String?
-  createdAt              DateTime        @default(now())
-  updatedAt              DateTime        @updatedAt
-  credits                Int             @default(100)
-  language               String          @default("en")
-  plan                   String          @default("free")
-  creditsRefill          Int             @default(100)
-  creditsUsed            Int             @default(0)
-  publicKey              String?
-  trustedDeviceSecret    String?
-  stripeCustomerId       String?         @unique
-  stripeSubscriptionId   String?         @unique
-  subscriptionPeriodEnd  DateTime?
-  subscriptionStatus     String?
-  lastCreditsRefill      DateTime?
-  shortcuts              Json?
-  isAdmin                Boolean         @default(false)
-  marketingEmailStep     Int             @default(0)
-  lastMarketingEmailAt   DateTime?
-  projects               Project[]
-  transcriptions         Transcription[]
-  feedbacks              Feedback[]
-  deletionTokens         DeletionToken[]
-  isWelcomeDone          Boolean         @default(false)
+  id                    String          @id @default(uuid())
+  auth0Id               String          @unique
+  email                 String          @unique
+  name                  String?
+  picture               String?
+  passwordHash          String?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  credits               Int             @default(100)
+  language              String          @default("en")
+  plan                  String          @default("free")
+  creditsRefill         Int             @default(100)
+  creditsUsed           Int             @default(0)
+  publicKey             String?
+  trustedDeviceSecret   String?
+  stripeCustomerId      String?         @unique
+  stripeSubscriptionId  String?         @unique
+  subscriptionPeriodEnd DateTime?
+  subscriptionStatus    String?
+  lastCreditsRefill     DateTime?
+  // Last time this user completed a payment (one-time purchase or subscription
+  // invoice). Null for users who have never paid. Used to order the admin
+  // "latest paying customers" list.
+  lastPaymentAt         DateTime?
+  shortcuts             Json?
+  isAdmin               Boolean         @default(false)
+  marketingEmailStep    Int             @default(0)
+  lastMarketingEmailAt  DateTime?
+  projects              Project[]
+  transcriptions        Transcription[]
+  feedbacks             Feedback[]
+  deletionTokens        DeletionToken[]
+  isWelcomeDone         Boolean         @default(false)
   // Onboarding profile
-  profession             String?
-  monthlyUsage           String?
+  profession            String?
+  monthlyUsage          String?
   // Speech-to-text data residency preference: "eu" (Gladia) or "us" (ElevenLabs)
-  dataResidency          String          @default("eu")
+  dataResidency         String          @default("eu")
   // Referral program: extra monthly credits earned from referred users who registered
-  referralBonusCredits   Int             @default(0)
-  referralsSent          Referral[]
+  referralBonusCredits  Int             @default(0)
+  referralsSent         Referral[]
 }
 
 enum ReferralStatus {
@@ -80,31 +84,31 @@ model Project {
 }
 
 model Transcription {
-  id                        String                        @id @default(uuid())
+  id                        String             @id @default(uuid())
   userId                    String
   projectId                 String?
-  title                     String                        @default("")
+  title                     String             @default("")
   audioFileKey              String
   audioFileEncryption       Json?
   audioFileName             String
   audioFileSize             Int
   transcription             Json?
-  isTutorial                Boolean                       @default(false)
+  isTutorial                Boolean            @default(false)
   language                  String
   vocabulary                String[]
-  speakerCount              Int                           @default(1)
-  state                     TranscriptionState            @default(PENDING)
+  speakerCount              Int                @default(1)
+  state                     TranscriptionState @default(PENDING)
   errorMessage              String?
   // STT provider used for this transcription: "gladia" | "elevenlabs" | "whisper"
   sttProvider               String?
   elevenLabsTranscriptionId String?
   shared                    Json?
-  createdAt                 DateTime                      @default(now())
-  updatedAt                 DateTime                      @updatedAt
-  updatedBy                 String                        @default("system")
+  createdAt                 DateTime           @default(now())
+  updatedAt                 DateTime           @updatedAt
+  updatedBy                 String             @default("system")
   completedAt               DateTime?
-  user                      User                          @relation(fields: [userId], references: [id])
-  project                   Project?                      @relation(fields: [projectId], references: [id])
+  user                      User               @relation(fields: [userId], references: [id])
+  project                   Project?           @relation(fields: [projectId], references: [id])
 
   @@index([id])
   @@index([userId, id])
@@ -181,7 +185,7 @@ model LandingPageVisit {
   id        String   @id @default(uuid())
   ipHash    String
   page      String   @default("/") // Page path visited (e.g., "/", "/pricing", "/use-cases/research")
-  visitDate String   // Store as YYYY-MM-DD for easy grouping
+  visitDate String // Store as YYYY-MM-DD for easy grouping
   createdAt DateTime @default(now())
 
   @@unique([ipHash, page, visitDate])

@@ -127,6 +127,7 @@ async function handleCheckoutSessionCompleted(
       where: { id: user.id },
       data: {
         credits: newCredits,
+        lastPaymentAt: new Date(),
       },
     });
     console.log(`[WEBHOOK] Credits updated successfully`);
@@ -186,6 +187,11 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       subscriptionPeriodEnd: currentPeriodEnd,
       plan,
       creditsRefill,
+      // A subscription only reaches an active/trialing state once payment has
+      // gone through, so treat this as the user's latest payment moment.
+      ...(subscription.status === "active" || subscription.status === "trialing"
+        ? { lastPaymentAt: new Date() }
+        : {}),
     },
   });
 
@@ -266,6 +272,10 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
     );
   }
 
+  // A successful invoice always marks a payment, even when credits are already
+  // topped up and don't need refilling.
+  const now = new Date();
+
   // Refill credits on successful subscription payment
   // Only refill if credits are below the refill amount
   if (user.credits < creditsRefill) {
@@ -276,7 +286,8 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
       where: { id: user.id },
       data: {
         credits: creditsRefill,
-        lastCreditsRefill: new Date(),
+        lastCreditsRefill: now,
+        lastPaymentAt: now,
       },
     });
     console.log(`[WEBHOOK] Credits refilled successfully`);
@@ -284,5 +295,9 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
     console.log(
       `[WEBHOOK] Credits not refilled - user already has ${user.credits} credits (refill amount: ${creditsRefill})`,
     );
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastPaymentAt: now },
+    });
   }
 }
