@@ -50,6 +50,12 @@ type AudioFile = {
 // EU (Gladia) servers reject audio longer than this per file.
 const EU_MAX_DURATION_SECONDS = 8100;
 
+// Hard limit for a raw upload that the server has to receive as-is.
+const SERVER_MAX_FILE_SIZE = 300 * 1024 * 1024; // 300MB
+// Files we can convert to opus in the browser may be far larger, because only
+// the small opus result is uploaded (a 2GB WAV becomes ~50MB of opus).
+const CLIENT_CONVERT_MAX_FILE_SIZE = 4 * 1024 * 1024 * 1024; // 4GB
+
 type UploadResult = { ok: boolean; status: number; body: string };
 
 /**
@@ -431,9 +437,19 @@ export default function NewTranscriptionPage() {
         continue;
       }
 
-      // Check file size (300MB max)
-      if (file.size > 300 * 1024 * 1024) {
-        toast.error(`File "${file.name}" is too large (max 1GB)`);
+      // Size limit depends on the path: files we can convert to opus in the
+      // browser are allowed to be much larger (only the small opus is uploaded);
+      // everything else must fit the server's raw-upload limit.
+      const canConvert = canConvertToOpusInBrowser(file).ok;
+      const maxSize = canConvert
+        ? CLIENT_CONVERT_MAX_FILE_SIZE
+        : SERVER_MAX_FILE_SIZE;
+      if (file.size > maxSize) {
+        toast.error(
+          canConvert
+            ? `File "${file.name}" is too large (max 4GB)`
+            : `File "${file.name}" is too large (max 300MB on this device)`,
+        );
         continue;
       }
 
