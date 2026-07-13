@@ -1,11 +1,13 @@
-_Dernière compilation : 2026-07-03 · 15 articles publiés · DataForSEO **configuré et actif** (candidats scorés dans `pipeline/data/candidates.json`) · GSC **toujours non connecté** → pas de données de performance (impressions/clics/positions)._
+_Dernière compilation : 2026-07-13 · 16 articles publiés · DataForSEO **quota journalier dépassé au run du 13/07** (fallback sur seed sans données) · GSC **client OAuth supprimé** → toujours pas de données de performance (impressions/clics/positions)._
 
 ## Résumé des chiffres et analyse
 
 **Production de contenu**
-- **15 articles publiés** entre le 2026-05-20 et le 2026-07-03 (6 en FR, 7 en EN, 1 en ES, 1 en DE).
-- Cadence stable depuis la dernière compilation : **8 nouveaux articles entre le 17 juin et le 3 juillet** (~1 tous les 2 jours).
-- **DataForSEO est maintenant actif** (`DATAFORSEO_BASE64` configuré) : les runs récents renvoient des volumes/KD/scores réels, l'expansion de keywords tourne (`pipeline/data/candidates.json`, 140 candidats en cache) et n'est plus à l'aveugle. Les articles publiés **avant** cette bascule (7 premiers, jusqu'au 17 juin) restent sans données historiques — DataForSEO ne rescore pas rétroactivement, donc leurs colonnes Vol/KD/Score restent à `—` sauf pour `logiciel de transcription` retrouvé dans le cache actuel.
+- **16 articles publiés** entre le 2026-05-20 et le 2026-07-13 (7 en FR, 7 en EN, 1 en ES, 1 en DE).
+- Cadence stable depuis la dernière compilation : **1 nouvel article entre le 3 et le 13 juillet** (ralentissement, cf. incident DataForSEO ci-dessous).
+- ⚠️ **Incident run du 13/07** : `DataForSEO task error 40203: The money limit per day has been exceeded: 2.01024 >= 2` sur les 42 seeds — expansion à 0 candidat, aucune donnée de volume/KD/PAA/SERP. Le pipeline est retombé sur le fallback seed `transcription automatique` (pillar `transcription`, productFit 1.0, non couvert) sans aucune métrique chiffrée. L'article a quand même été rédigé car le mot-clé est pertinent et non cannibalisant, mais **sans validation par la donnée** — à retraiter avec de vraies métriques dès que le quota DataForSEO est relevé.
+- **GSC cassé** : `GSC token error 401 — "error": "deleted_client", "error_description": "The OAuth client was deleted."` — le service account/OAuth client configuré a été supprimé côté Google Cloud, il faut le recréer (voir « À faire »).
+- Les articles publiés **avant** la bascule DataForSEO (7 premiers, jusqu'au 17 juin) restent sans données historiques — DataForSEO ne rescore pas rétroactivement, donc leurs colonnes Vol/KD/Score restent à `—` sauf pour `logiciel de transcription` retrouvé dans le cache actuel.
 
 | Date | Keyword | Vol/mo | KD | Score | Pillar | Article |
 |---|---|---|---|---|---|---|
@@ -24,10 +26,11 @@ _Dernière compilation : 2026-07-03 · 15 articles publiés · DataForSEO **conf
 | 2026-06-27 | how to analyse qualitative data | 320 | 0 | 28.8 | recherche-qualitative | [comment-analyser-donnees-qualitatives](/fr/blog/comment-analyser-donnees-qualitatives) |
 | 2026-07-01 | mp3 audio to text converter online free | 260 | 22 | 8.13 | transcription | [mp3-audio-to-text-converter-online-free](/en/blog/mp3-audio-to-text-converter-online-free) |
 | 2026-07-03 | data analysis in qualitative research example | 140 | 14 | 5.25 | recherche-qualitative | [data-analysis-in-qualitative-research-example](/en/blog/data-analysis-in-qualitative-research-example) |
+| 2026-07-13 | transcription automatique | — (quota DataForSEO dépassé) | — | — | transcription | [transcription-automatique](/fr/blog/transcription-automatique) |
 
 **Couverture par pillar** (6 pillars définis dans `pipeline/seeds/fr.json`)
 - `recherche-qualitative` (productFit 0.9) : **6 articles** — devenu le pillar le plus couvert depuis la dernière compilation (FR + EN + ES + DE sur l'angle « analyser des données qualitatives », plus un nouvel angle « exemple concret d'analyse » le 03/07). Tête de cluster à haut volume (`analyse qualitative` : 2400/mo, score 216) déjà traitée.
-- `transcription` (productFit 1.0) : **6 articles** — toujours bien couvert (`logiciel de transcription`, `transcription entretien`, `retranscrire audio`, comparatif outils IA, `transcribe audio to text free online`, `mp3 audio to text converter online free`).
+- `transcription` (productFit 1.0) : **7 articles** — toujours bien couvert (`logiciel de transcription`, `transcription entretien`, `retranscrire audio`, comparatif outils IA, `transcribe audio to text free online`, `mp3 audio to text converter online free`, et désormais `transcription automatique` sur l'angle « comment ça marche / précision »).
 - `confidentialite-recherche` (0.95) : **1 article** (checklist IRB/RGPD) — **toujours sous-exploité malgré le productFit le plus élevé après `transcription`.**
 - `these-master` (0.85) : **1 article** (entretien semi-directif doctorants) — voir alerte qualité des données ci-dessous.
 - `productivite-recherche` (0.8) : **1 article** (transcrire plus vite).
@@ -38,9 +41,9 @@ _Dernière compilation : 2026-07-03 · 15 articles publiés · DataForSEO **conf
 - `confidentialite-recherche` (productFit 0.95, 2ᵉ plus haut après `transcription`) reste à **1 seul article** : c'est le gisement le plus clair pour la prochaine vague.
 - `entretien-terrain` reste à **0 article** malgré un productFit correct (0.75).
 - ⚠️ **Alerte qualité des données — pillar `these-master`** : le run du 2026-07-03 a scoré des candidats pour ce pillar (`which of these is not a transcription skill`, `these phonetic transcription`, `these ipa transcription`…) qui sont en réalité des requêtes anglophones sur le mot « these » (démonstratif) et la transcription phonétique IPA, sans rapport avec la « thèse » (mémoire académique) visée par le pillar. Le seed `transcription these` semble mal interprété par l'expansion DataForSEO côté anglophone. **Ne pas utiliser ces candidats tels quels** — à corriger dans `pipeline/seeds/fr.json` (seed plus explicite, ex. `transcription de thèse doctorat`) avant la prochaine expansion.
-- **DataForSEO actif** depuis un run antérieur au 25/06 (cache `candidates.json` généré le 2026-06-25, 140 candidats). Les scores ci-dessus pour les articles publiés après cette date sont donc fiables ; ceux d'avant restent non rétro-scorés.
-- **Reddit insights à 0** sur le run du 03/07 (« 0 posts trouvés sur 8 subreddits ») — à surveiller sur les prochains runs : si ça persiste, vérifier si `REDDIT_CLIENT_ID`/`REDDIT_CLIENT_SECRET` sont bien configurés (sans eux, le pipeline tombe en mode public très rate-limité et peut manquer des résultats).
-- **GSC toujours non connecté** : aucune section GSC dans les derniers `morning-report.md`, donc toujours aucune donnée d'impressions/clics/positions.
+- **DataForSEO actif** depuis un run antérieur au 25/06 (cache `candidates.json` généré le 2026-06-25, 140 candidats), mais **en échec total sur le run du 13/07** (plafond de coût quotidien de $2 atteint dès la première requête, 0 candidat sur les 42 seeds). Les scores pour les articles publiés entre le 25/06 et le 03/07 restent fiables ; l'article du 13/07 (`transcription automatique`) n'a aucune donnée derrière — voir « À faire ».
+- **GSC en échec** sur le run du 13/07 : `"error": "deleted_client"` — le client OAuth a été supprimé côté Google Cloud, à recréer.
+- **Reddit insights à 0** sur les runs du 03/07 et du 13/07 (« 0 posts trouvés sur 8 subreddits ») — persiste sur deux runs consécutifs, ce qui renforce l'hypothèse d'un mode public non authentifié plutôt qu'une absence réelle de résultats : vérifier `REDDIT_CLIENT_ID`/`REDDIT_CLIENT_SECRET`.
 
 ## Dernières stratégies
 
@@ -83,20 +86,23 @@ Pistes complémentaires :
 
 ## À faire par Romaric
 
-- [x] ~~Configurer DataForSEO~~ — **fait** : le secret `DATAFORSEO_BASE64` est actif, les runs récents renvoient volumes/KD/scores réels.
-- [ ] **Connecter Google Search Console** (débloque impressions/clics/positions) — toujours pas fait :
+- [x] ~~Configurer DataForSEO~~ — **fait** : le secret `DATAFORSEO_BASE64` est actif.
+- [ ] ⚠️ **Relever le plafond de coût quotidien DataForSEO** (nouveau, run du 13/07) : le compte a un plafond de **$2/jour** dans le panneau DataForSEO (`app.dataforseo.com/api-settings`), atteint dès les premières requêtes du run (`money limit per day has been exceeded: 2.01024 >= 2`). Toute l'expansion de mots-clés du 13/07 a échoué, l'article publié ce jour-là (`transcription automatique`) n'a **aucune donnée de volume/KD/PAA/SERP** derrière — augmenter le plafond avant le prochain run pour retrouver des picks fiables.
+- [ ] ⚠️ **Recréer le client OAuth Google Search Console** (nouveau, run du 13/07) : le token renvoie `"error": "deleted_client", "error_description": "The OAuth client was deleted."` — le client OAuth associé au service account a été supprimé côté Google Cloud Console. Il faut regénérer des identifiants (nouveau service account ou nouveau client OAuth) et remplacer le secret `GOOGLE_JSON`.
   1. Créer/récupérer un **service account Google** (scope `webmasters.readonly`) et l'ajouter comme utilisateur en lecture sur la propriété GSC du domaine.
   2. Ajouter les secrets GitHub `GOOGLE_JSON` (clé JSON du service account) et `GSC_SITE_URL` (URL exacte de la propriété, ex. `https://humanlogs.app/` ou `sc-domain:humanlogs.app`).
   3. Relancer **SEO research** : l'étape GSC ne renverra plus d'erreur et les données de perf remonteront.
-- [ ] **Vérifier les identifiants Reddit** (`REDDIT_CLIENT_ID`/`REDDIT_CLIENT_SECRET`) : le run du 03/07 a renvoyé 0 posts sur 8 subreddits, ce qui peut être normal (aucun match) ou un signe que le pipeline tourne en mode public non authentifié.
+- [ ] **Vérifier les identifiants Reddit** (`REDDIT_CLIENT_ID`/`REDDIT_CLIENT_SECRET`) : 0 posts trouvés sur les runs du 03/07 et du 13/07, ce qui peut être normal (aucun match) ou un signe que le pipeline tourne en mode public non authentifié.
 - [ ] Valider l'**ordre de priorité** des prochains pillars (proposé : `confidentialite-recherche` puis `entretien-terrain`, en ralentissant sur `recherche-qualitative`).
 - [ ] Trancher si un article **comparatif logiciels QDA** (NVivo/Atlas.ti/MAXQDA/Taguette, intent commercial) a sa place dans la ligne éditoriale — HumanLogs n'est pas un logiciel QDA mais alimente ces outils en transcripts.
 - [ ] Corriger le seed `transcription these` → `transcription de thèse doctorat` dans `pipeline/seeds/fr.json` (voir alerte qualité des données ci-dessus) avant de rouvrir le pillar `these-master`.
+- [ ] Une fois le quota DataForSEO relevé, envisager de **rescorer `transcription automatique`** a posteriori pour confirmer que le pick du 13/07 était pertinent (probable vu productFit 1.0 et volume de recherche généralement élevé sur ce terme, mais non vérifié faute de données ce run-ci).
 
 ## Historique des runs
 
 | Date | Keyword sélectionné | Score | Publié ? |
 |---|---|---|---|
+| 2026-07-13 | transcription automatique | — (run en échec : quota DataForSEO dépassé, fallback seed) | Oui |
 | 2026-07-03 | data analysis in qualitative research example | 5.25 | Oui |
 | 2026-07-01 | mp3 audio to text converter online free | 8.13 | Oui |
 | 2026-06-27 | how to analyse qualitative data | 28.8 | Oui |
