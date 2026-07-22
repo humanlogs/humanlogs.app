@@ -13,13 +13,13 @@ import {
 } from "@/lib/encryption/encryption";
 import { useTranslations } from "@/components/locale-provider";
 import {
-  CheckCircleIcon,
   ChevronDownIcon,
   DownloadIcon,
   MailIcon,
   ShieldCheckIcon,
   UploadIcon,
 } from "lucide-react";
+import { SuccessCheck } from "../ui/success-check";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
@@ -135,9 +135,7 @@ export function SecurityStep({ onContinue, onSkip }: SecurityStepProps) {
   if (done) {
     return (
       <div className="flex flex-col items-center gap-3 py-4 text-center">
-        <div className="rounded-full bg-green-100 p-3 dark:bg-green-950">
-          <CheckCircleIcon className="h-7 w-7 text-green-600 dark:text-green-400" />
-        </div>
+        <SuccessCheck />
         <h1 className="text-xl font-bold tracking-tight">{t("doneTitle")}</h1>
         <p className="text-muted-foreground text-sm">
           {deliveredVia === "email" ? t("doneEmail") : t("doneDownload")}

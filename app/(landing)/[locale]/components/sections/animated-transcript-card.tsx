@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "@/components/locale-provider";
 import { Badge } from "@/components/ui/badge";
 import { KaraokeWord, karaokeState } from "@/components/ui/karaoke-text";
+import { useKaraoke } from "@/hooks/use-karaoke";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -128,90 +129,53 @@ export const AnimatedTranscriptCard = ({
   const t = useTranslations("transcriptCard");
   const { locale } = useLocale() || "en";
   const [wordStates, setWordStates] = useState<Map<number, string>>(new Map());
-  const [activeWordIndex, setActiveWordIndex] = useState(0);
-  const [, setIsEditing] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const wordsRef = useRef<WordData[]>(parseTranscript(locale));
+  // Parsed once (stable identity) from the initial locale.
+  const [words] = useState<WordData[]>(() => parseTranscript(locale));
+  const [wordTexts] = useState<string[]>(() => words.map((w) => w.text));
 
-  useEffect(() => {
-    const words = wordsRef.current;
-    let currentIndex = 0;
-
-    const animateWord = () => {
-      if (currentIndex >= words.length) {
-        // Loop back to start (keep current word states)
-        currentIndex = 0;
-        timeoutRef.current = setTimeout(() => animateWord(), 1000);
-        return;
-      }
-
-      const word = words[currentIndex];
-      const synonym = findSynonym(word.text, locale);
+  // The "currently spoken" cursor is driven by the shared karaoke timeline
+  // (dwell scales with word length). Editable words also get typed into: the
+  // synonym replacement runs as a side effect while the timeline holds on the
+  // word for the extra dwell we return.
+  const activeWordIndex = useKaraoke(wordTexts, {
+    loop: true,
+    onWord: (index, word) => {
+      const synonym = findSynonym(word, locale);
       const shouldEdit = synonym && Math.random() < 0.5; // 50% chance to edit
+      if (!shouldEdit || !synonym) return; // length-based default dwell
 
-      setActiveWordIndex(currentIndex);
+      // Clear the word, then type the synonym letter by letter.
+      setWordStates((prev) => new Map(prev).set(index, ""));
+      timeoutRef.current = setTimeout(() => {
+        let typedText = "";
+        intervalRef.current = setInterval(() => {
+          if (typedText.length < synonym.length) {
+            typedText += synonym[typedText.length];
+            setWordStates((prev) => new Map(prev).set(index, typedText));
+          } else {
+            if (intervalRef.current) clearInterval(intervalRef.current);
+            setWordStates((prev) => new Map(prev).set(index, synonym));
+          }
+        }, 50);
+      }, 150);
 
-      if (shouldEdit && synonym) {
-        // Word has a synonym and we decided to edit it
-        setIsEditing(true);
+      // Hold on the word for the type-in plus a short pause before moving on.
+      return 150 + 50 * synonym.length + (50 * synonym.length + Math.random() * 100);
+    },
+    isLineEnd: (index) =>
+      words[index + 1]?.sentenceIdx !== words[index]?.sentenceIdx,
+  });
 
-        // Instantly clear the word
-        setWordStates((prev) => new Map(prev).set(currentIndex, ""));
-
-        // Small delay before starting to type
-        timeoutRef.current = setTimeout(() => {
-          // Type new synonym letter by letter
-          let typedText = "";
-          intervalRef.current = setInterval(() => {
-            if (typedText.length < synonym.length) {
-              typedText += synonym[typedText.length];
-              setWordStates((prev) =>
-                new Map(prev).set(currentIndex, typedText),
-              );
-            } else {
-              if (intervalRef.current) clearInterval(intervalRef.current);
-              setIsEditing(false);
-              setWordStates((prev) => new Map(prev).set(currentIndex, synonym));
-
-              // Pause before moving to next word (slower timing)
-              const pauseTime = 50 * synonym.length + Math.random() * 100;
-              timeoutRef.current = setTimeout(() => {
-                currentIndex++;
-                animateWord();
-              }, pauseTime);
-            }
-          }, 50);
-        }, 150);
-      } else {
-        // No synonym or decided not to edit - just pause and move on
-        setIsEditing(false);
-
-        const lastOfLine = words.some(
-          (w, i) =>
-            w.wordIdx === word.wordIdx &&
-            w.sentenceIdx === word.sentenceIdx &&
-            words[i + 1]?.sentenceIdx !== words[i].sentenceIdx,
-        );
-
-        const pauseTime =
-          50 * word.text.length + Math.random() * 50 + (lastOfLine ? 200 : 0); // Longer pause at end of sentences
-        timeoutRef.current = setTimeout(() => {
-          currentIndex++;
-          animateWord();
-        }, pauseTime);
-      }
-    };
-
-    animateWord();
-
-    return () => {
+  // Tear down any in-flight typing timers on unmount.
+  useEffect(
+    () => () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  const words = wordsRef.current;
+    },
+    [],
+  );
 
   // Group words by sentence
   const groupedBySentence: { [key: number]: WordData[] } = {};

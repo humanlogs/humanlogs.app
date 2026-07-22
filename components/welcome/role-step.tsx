@@ -9,10 +9,11 @@ import {
   NewspaperIcon,
   type LucideIcon,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Button } from "../ui/button";
 import { InlineChoice } from "@/components/ui/inline-choice";
 import { KaraokeText, wordCount } from "@/components/ui/karaoke-text";
+import { useKaraoke } from "@/hooks/use-karaoke";
 import { HEADLINE_ROLES, OTHER_PROFESSIONS } from "./onboarding-roles";
 
 const MONTHLY_USAGE_KEYS = ["lt1h", "h1to5", "h5to20", "gt20h"];
@@ -58,51 +59,24 @@ export function RoleStep({
     : t("titleDefault");
   const subtitleText = t("roleStep.subtitle");
   const titleWords = wordCount(titleText);
-  const totalWords = titleWords + wordCount(subtitleText);
+  const words = titleText.split(" ").concat(subtitleText.split(" "));
 
-  // The greeting is "spoken" karaoke-style (title then subtitle) on one shared
-  // timeline; the role selector is revealed only once every word has landed. If
-  // a role is already chosen (coming back to this step), show it all instantly.
+  // The greeting is "spoken" karaoke-style (title then subtitle) at the same
+  // human, word-length-driven cadence as the landing transcript demo; the role
+  // selector is revealed only once every word has landed. If a role is already
+  // chosen (coming back to this step), show it all instantly.
   const alreadyChosen = !!profession;
-  const [spoken, setSpoken] = useState(alreadyChosen ? totalWords + 1 : 0);
   const [revealed, setRevealed] = useState(alreadyChosen);
-
-  // Latest word count, read fresh inside the timer: the greeting title depends
-  // on `name`, which resolves asynchronously, so a value captured in the effect
-  // closure would be stale. Keeping it in a ref lets the running timeline pick
-  // up the final count without restarting.
-  const totalRef = useRef(totalWords);
-  totalRef.current = totalWords;
-
-  useEffect(() => {
-    if (alreadyChosen) return;
-    // Drive the "spoken" word count from elapsed time (not an accumulating
-    // counter) so a re-mount converges to the same value instead of leaving a
-    // stray timer wedged mid-line. Words light ~100ms apart; once the last one
-    // lands we push past it so nothing stays highlighted, then reveal the
-    // selector a beat later.
-    const WORD_MS = 100;
-    const start = performance.now();
-    let raf = 0;
-    let revealTimer: ReturnType<typeof setTimeout> | undefined;
-    const tick = () => {
-      const total = totalRef.current;
-      const n = Math.floor((performance.now() - start) / WORD_MS);
-      if (n >= total) {
-        setSpoken(total + 1);
-        revealTimer = setTimeout(() => setRevealed(true), 250);
-        return;
-      }
-      setSpoken(n);
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => {
-      cancelAnimationFrame(raf);
-      if (revealTimer) clearTimeout(revealTimer);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const spoken = useKaraoke(words, {
+    enabled: !alreadyChosen,
+    perChar: 30,
+    jitter: 18,
+    lineEndPause: 260,
+    // Pause a touch at the end of the title before the subtitle picks up.
+    isLineEnd: (i) => i === titleWords - 1 || i === words.length - 1,
+    onComplete: () => setTimeout(() => setRevealed(true), 250),
+  });
+  const shownSpoken = alreadyChosen ? words.length + 1 : spoken;
 
   const isOtherProfession = (p: string) =>
     p === "other" || OTHER_PROFESSIONS.includes(p);
@@ -131,10 +105,10 @@ export function RoleStep({
       </div>
 
       <h1 className="text-2xl font-bold tracking-tight">
-        <KaraokeText text={titleText} active={spoken} />
+        <KaraokeText text={titleText} active={shownSpoken} />
       </h1>
       <p className="text-muted-foreground mt-2 text-[15px] pb-8">
-        <KaraokeText text={subtitleText} active={spoken - titleWords} />
+        <KaraokeText text={subtitleText} active={shownSpoken - titleWords} />
       </p>
 
       {/* The role selector + settings are revealed once the greeting finishes. */}

@@ -3,12 +3,6 @@
 import { AmbientBackground } from "@/components/ui/ambient-background";
 import { useEffect, useLayoutEffect, useState } from "react";
 
-/**
- * Session flag set by the onboarding flow right before it navigates into the
- * app, so the app knows to play its entrance once (and only once).
- */
-export const WELCOME_INTRO_FLAG = "humanlogs:welcome-intro";
-
 // useLayoutEffect on the client (so the app doesn't paint full-size for a frame
 // before shrinking), useEffect on the server to avoid the SSR warning.
 const useIsoLayoutEffect =
@@ -17,25 +11,18 @@ const useIsoLayoutEffect =
 type Phase = "idle" | "playing" | "done";
 
 /**
- * Plays a one-shot entrance for the main app right after onboarding: the whole
- * app zooms in (ease-out) over the same warm backdrop the funnel used, and the
- * backdrop is destroyed once the app has settled into full view. Any other
- * time it is a no-op passthrough (renders children with no extra box, via
+ * Plays the app's entrance on every full load of the product (after login,
+ * on reload, and after onboarding): the whole app zooms in (ease-out) over the
+ * same warm backdrop the funnel used, and the backdrop is destroyed once the
+ * app has settled into full view. It only fires on mount of the app layout, so
+ * client-side navigation within the app doesn't replay it. When it isn't
+ * playing it is a no-op passthrough (renders children with no extra box, via
  * `display: contents`, so the app layout is untouched).
  */
 export function WelcomeIntro({ children }: { children: React.ReactNode }) {
   const [phase, setPhase] = useState<Phase>("idle");
 
   useIsoLayoutEffect(() => {
-    let armed = false;
-    try {
-      armed = !!sessionStorage.getItem(WELCOME_INTRO_FLAG);
-      if (armed) sessionStorage.removeItem(WELCOME_INTRO_FLAG);
-    } catch {
-      // sessionStorage can throw (private mode); just skip the intro.
-    }
-    if (!armed) return;
-
     // Respect reduced-motion: land straight in the app with no animation.
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
 

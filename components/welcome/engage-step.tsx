@@ -3,17 +3,12 @@
 import { useTranslations } from "@/components/locale-provider";
 import { ReferralEmails } from "@/components/referral/referral-emails";
 import { fetchGateway } from "@/hooks/fetch";
-import {
-  Building2Icon,
-  CheckCircleIcon,
-  GiftIcon,
-  PlusIcon,
-  SendIcon,
-} from "lucide-react";
+import { Building2Icon, GiftIcon, PlusIcon, SendIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { SuccessCheck } from "../ui/success-check";
 import type { RoleBucket } from "./onboarding-roles";
 import { PricingStep } from "./pricing-step";
 
@@ -119,9 +114,7 @@ function ResearcherLicense({
   if (sent) {
     return (
       <div className="flex flex-col items-center gap-3 py-6 text-center">
-        <div className="rounded-full bg-green-100 p-3 dark:bg-green-950">
-          <CheckCircleIcon className="h-7 w-7 text-green-600 dark:text-green-400" />
-        </div>
+        <SuccessCheck />
         <h1 className="text-xl font-bold tracking-tight">
           {t("researcher.sentTitle")}
         </h1>

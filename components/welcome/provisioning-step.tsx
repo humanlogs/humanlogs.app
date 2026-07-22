@@ -1,7 +1,8 @@
 "use client";
 
 import { useTranslations } from "@/components/locale-provider";
-import { CheckCircleIcon, Loader2Icon } from "lucide-react";
+import { SuccessCheck } from "@/components/ui/success-check";
+import { Loader2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 /**
@@ -41,7 +42,7 @@ export function ProvisioningStep({ onDone }: { onDone: () => void }) {
               }`}
             >
               {isDone ? (
-                <CheckCircleIcon className="h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
+                <SuccessCheck size="h-5 w-5" />
               ) : (
                 <Loader2Icon
                   className={`h-5 w-5 shrink-0 text-primary ${

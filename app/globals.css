@@ -344,6 +344,37 @@
   animation: welcome-bg-fade 750ms ease-out both;
 }
 
+/* Success badge: the green disc pops in, then the white check strokes on. */
+@keyframes success-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+.animate-success-pop {
+  animation: success-pop 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes success-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.animate-success-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: success-draw 300ms ease-out 150ms forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-onboarding-aurora-1,
   .animate-onboarding-aurora-2,
@@ -357,7 +388,13 @@
   .animate-onboarding-step,
   .animate-onboarding-stepper-fill,
   .animate-welcome-zoom-in,
-  .animate-welcome-bg-fade {
+  .animate-welcome-bg-fade,
+  .animate-success-pop {
+    animation: none;
+  }
+  /* Keep the check visible (drawn) when its stroke animation is disabled. */
+  .animate-success-draw {
+    stroke-dashoffset: 0;
     animation: none;
   }
 }
