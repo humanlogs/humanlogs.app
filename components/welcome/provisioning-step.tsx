@@ -16,7 +16,7 @@ export function ProvisioningStep({ onDone }: { onDone: () => void }) {
 
   useEffect(() => {
     const timers = [
-      setTimeout(() => setCompleted(1), 1300),
+      setTimeout(() => setCompleted(1), 800),
       setTimeout(() => setCompleted(2), 2700),
       setTimeout(() => onDone(), 3300),
     ];
