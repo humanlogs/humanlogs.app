@@ -172,36 +172,43 @@
 
 /* ---------- Onboarding: animated background + modal entrance ---------- */
 
-/* Slowly drifting, blurred colour blobs (Stripe-like ambient gradient). */
-@keyframes onboarding-blob {
-  0% {
-    transform: translate(0, 0) scale(1);
-  }
-  33% {
-    transform: translate(6%, -8%) scale(1.15);
-  }
-  66% {
-    transform: translate(-5%, 5%) scale(0.92);
-  }
+/* Aurora: large soft gradient orbs drifting slowly on independent paths, for
+   a smooth flowing mesh (no hard edges). Each orb gets its own timing. */
+@keyframes onboarding-aurora-1 {
+  0%,
   100% {
     transform: translate(0, 0) scale(1);
   }
-}
-.animate-onboarding-blob {
-  animation: onboarding-blob 18s ease-in-out infinite;
-}
-
-/* Diagonal Stripe-style bands slowly sliding across the backdrop. */
-@keyframes onboarding-bands {
-  0% {
-    background-position: 0 0;
+  50% {
+    transform: translate(8%, 10%) scale(1.2);
   }
+}
+@keyframes onboarding-aurora-2 {
+  0%,
   100% {
-    background-position: 800px 0;
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-10%, 6%) scale(1.15);
   }
 }
-.animate-onboarding-bands {
-  animation: onboarding-bands 24s linear infinite;
+@keyframes onboarding-aurora-3 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(6%, -8%) scale(1.1);
+  }
+}
+.animate-onboarding-aurora-1 {
+  animation: onboarding-aurora-1 22s ease-in-out infinite;
+}
+.animate-onboarding-aurora-2 {
+  animation: onboarding-aurora-2 26s ease-in-out infinite;
+}
+.animate-onboarding-aurora-3 {
+  animation: onboarding-aurora-3 30s ease-in-out infinite;
 }
 
 /* Card entrance: rise + fade + subtle scale. */
@@ -249,8 +256,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-onboarding-blob,
-  .animate-onboarding-bands,
+  .animate-onboarding-aurora-1,
+  .animate-onboarding-aurora-2,
+  .animate-onboarding-aurora-3,
   .animate-onboarding-card,
   .animate-onboarding-step,
   .animate-onboarding-stepper-fill {

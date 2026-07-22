@@ -239,7 +239,12 @@
             "doneTitle": "Ihr Konto ist geschützt",
             "doneEmail": "Prüfen Sie Ihr Postfach auf Ihren Wiederherstellungsschlüssel – bewahren Sie diese E-Mail gut auf.",
             "doneDownload": "Ihr Wiederherstellungsschlüssel wurde gespeichert – bewahren Sie ihn sicher auf."
-        }
+        },
+        "heroSubtitle": "Schön, dass Sie da sind! Richten wir HumanLogs für Sie ein — in unter einer Minute.",
+        "personalize": "Personalisieren",
+        "heroChipPrivate": "Privat & verschlüsselt",
+        "heroChipFast": "Blitzschnell",
+        "heroChipQuick": "In 1 Min bereit"
     },
     "tutorialWelcome": {
         "title": "Willkommen zum Tutorial!",

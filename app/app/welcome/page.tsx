@@ -12,7 +12,9 @@ import { ReferralEmails } from "../../../components/referral/referral-emails";
 import { Button } from "../../../components/ui/button";
 import { Select } from "../../../components/ui/select";
 import { OnboardingShell } from "../../../components/welcome/onboarding-shell";
+import type { OnboardingBgVariant } from "../../../components/welcome/onboarding-backgrounds";
 import { SecurityStep } from "../../../components/welcome/security-step";
+import { WelcomeHero } from "../../../components/welcome/welcome-hero";
 import { useUpdateUser, useUserProfile } from "../../../hooks/use-api";
 import type { OnboardingStep } from "../../../hooks/use-api";
 import { languagesNames, Locale, locales } from "../../../lib/utils/i18n";
@@ -78,6 +80,17 @@ export default function WelcomePage() {
   const [profession, setProfession] = useState<string>("");
   const [monthlyUsage, setMonthlyUsage] = useState<string>("");
   const [residency, setResidency] = useState<"eu" | "us">("eu");
+  // Optional background override via ?bg=aurora|warm|minimal (design preview).
+  // Read from the URL directly to avoid a Suspense boundary for useSearchParams.
+  const [bgOverride, setBgOverride] = useState<OnboardingBgVariant | undefined>(
+    undefined,
+  );
+  useEffect(() => {
+    const bg = new URLSearchParams(window.location.search).get("bg");
+    if (bg === "aurora" || bg === "warm" || bg === "minimal") {
+      setBgOverride(bg);
+    }
+  }, []);
 
   useEffect(() => {
     if (data?.dataResidency === "eu" || data?.dataResidency === "us") {
@@ -99,14 +112,15 @@ export default function WelcomePage() {
 
   if (state === "profile") {
     return (
-      <OnboardingShell step={stepIndex} stepCount={STEP_ORDER.length} wide>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {data?.name
-              ? t("title").replace("{name}", data.name)
-              : t("titleDefault")}
-          </h1>
-          <p className="text-muted-foreground mt-1">{t("profileSubtitle")}</p>
+      <OnboardingShell step={stepIndex} stepCount={STEP_ORDER.length} bgVariant={bgOverride} wide>
+        <WelcomeHero name={data?.name} />
+
+        <div className="flex items-center gap-3">
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {t("personalize")}
+          </span>
+          <div className="h-px flex-1 bg-border" />
         </div>
 
         <div className="space-y-5">
@@ -269,7 +283,7 @@ export default function WelcomePage() {
 
   if (state === "security") {
     return (
-      <OnboardingShell step={stepIndex} stepCount={STEP_ORDER.length}>
+      <OnboardingShell step={stepIndex} stepCount={STEP_ORDER.length} bgVariant={bgOverride}>
         <SecurityStep
           userName={data?.name}
           onContinue={() => goTo("referral")}
@@ -281,7 +295,7 @@ export default function WelcomePage() {
 
   if (state === "referral") {
     return (
-      <OnboardingShell step={stepIndex} stepCount={STEP_ORDER.length}>
+      <OnboardingShell step={stepIndex} stepCount={STEP_ORDER.length} bgVariant={bgOverride}>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
             {t("referralTitle")}
@@ -300,7 +314,7 @@ export default function WelcomePage() {
 
   if (state === "ready") {
     return (
-      <OnboardingShell step={stepIndex} stepCount={STEP_ORDER.length}>
+      <OnboardingShell step={stepIndex} stepCount={STEP_ORDER.length} bgVariant={bgOverride}>
         <div className="flex items-start gap-4">
           <div className="rounded-full bg-green-100 dark:bg-green-950 p-3">
             <RocketIcon className="h-6 w-6 text-green-600 dark:text-green-400" />

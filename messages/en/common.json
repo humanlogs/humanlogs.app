@@ -239,7 +239,12 @@
             "doneTitle": "Your account is protected",
             "doneEmail": "Check your inbox for your recovery key — keep that email safe.",
             "doneDownload": "Your recovery key has been saved — keep it somewhere safe."
-        }
+        },
+        "heroSubtitle": "So glad you're here. Let's set up HumanLogs for you — it takes less than a minute.",
+        "personalize": "Personalize",
+        "heroChipPrivate": "Private & encrypted",
+        "heroChipFast": "Lightning fast",
+        "heroChipQuick": "Ready in 1 min"
     },
     "tutorialWelcome": {
         "title": "Welcome to the Tutorial!",

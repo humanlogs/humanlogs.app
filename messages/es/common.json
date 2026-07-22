@@ -239,7 +239,12 @@
             "doneTitle": "Tu cuenta está protegida",
             "doneEmail": "Revisa tu correo para encontrar tu clave de recuperación; guarda bien ese mensaje.",
             "doneDownload": "Tu clave de recuperación se ha guardado; consérvala en un lugar seguro."
-        }
+        },
+        "heroSubtitle": "¡Nos alegra tenerte aquí! Configuremos HumanLogs para ti — en menos de un minuto.",
+        "personalize": "Personalizar",
+        "heroChipPrivate": "Privado y cifrado",
+        "heroChipFast": "Muy rápido",
+        "heroChipQuick": "Listo en 1 min"
     },
     "tutorialWelcome": {
         "title": "¡Bienvenido al Tutorial!",

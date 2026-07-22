@@ -1,6 +1,10 @@
 "use client";
 
 import { cn } from "@/lib/utils/utils";
+import {
+  OnboardingBackground,
+  type OnboardingBgVariant,
+} from "./onboarding-backgrounds";
 
 /**
  * Shared chrome for the onboarding/welcome flow.
@@ -14,11 +18,16 @@ import { cn } from "@/lib/utils/utils";
  * Each welcome step renders its own inner content as children; the shell owns
  * the background, the stepper and the card wrapper.
  */
+// Default backdrop for the whole onboarding flow. Change this one constant to
+// switch the look everywhere.
+const DEFAULT_BG: OnboardingBgVariant = "aurora";
+
 export function OnboardingShell({
   step,
   stepCount,
   children,
   wide,
+  bgVariant = DEFAULT_BG,
 }: {
   /** Zero-based index of the current step. */
   step: number;
@@ -26,10 +35,11 @@ export function OnboardingShell({
   stepCount: number;
   children: React.ReactNode;
   wide?: boolean;
+  bgVariant?: OnboardingBgVariant;
 }) {
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-50 p-4 dark:bg-zinc-950">
-      <OnboardingBackground />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
+      <OnboardingBackground variant={bgVariant} />
 
       <div
         className={cn(
@@ -37,7 +47,7 @@ export function OnboardingShell({
           wide ? "max-w-lg" : "max-w-md",
         )}
       >
-        <div className="rounded-2xl border border-white/60 bg-white/90 p-8 shadow-2xl shadow-black/5 backdrop-blur-xl dark:border-white/10 dark:bg-zinc-900/85">
+        <div className="rounded-2xl border border-white/60 bg-white/80 p-8 shadow-2xl shadow-black/5 backdrop-blur-xl dark:border-white/10 dark:bg-zinc-900/80">
           <OnboardingStepper step={step} stepCount={stepCount} />
           {/* Re-key on step so the content re-animates on each transition. */}
           <div key={step} className="animate-onboarding-step mt-6 space-y-6">
@@ -74,32 +84,6 @@ function OnboardingStepper({
           </div>
         );
       })}
-    </div>
-  );
-}
-
-/** Purely decorative animated backdrop. */
-function OnboardingBackground() {
-  return (
-    <div aria-hidden className="pointer-events-none absolute inset-0">
-      {/* Colour blobs */}
-      <div className="animate-onboarding-blob absolute -left-24 -top-24 h-96 w-96 rounded-full bg-gradient-to-br from-indigo-400/40 to-sky-400/40 blur-3xl dark:from-indigo-600/30 dark:to-sky-600/30" />
-      <div
-        className="animate-onboarding-blob absolute -right-24 top-1/3 h-96 w-96 rounded-full bg-gradient-to-br from-fuchsia-400/40 to-rose-400/40 blur-3xl dark:from-fuchsia-600/25 dark:to-rose-600/25"
-        style={{ animationDelay: "-6s" }}
-      />
-      <div
-        className="animate-onboarding-blob absolute -bottom-24 left-1/4 h-96 w-96 rounded-full bg-gradient-to-br from-emerald-400/40 to-teal-400/40 blur-3xl dark:from-emerald-600/25 dark:to-teal-600/25"
-        style={{ animationDelay: "-12s" }}
-      />
-      {/* Diagonal Stripe-style bands */}
-      <div
-        className="animate-onboarding-bands absolute inset-0 text-primary opacity-[0.12] dark:opacity-[0.08]"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(115deg, transparent 0 60px, currentColor 60px 62px)",
-        }}
-      />
     </div>
   );
 }
