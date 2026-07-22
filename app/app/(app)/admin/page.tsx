@@ -231,13 +231,16 @@ export default function AdminPage() {
   };
 
   // Onboarding funnel steps, in order. "done" is the terminal completed state.
-  const ONBOARDING_STEPS: { key: string; label: string }[] = [
-    { key: "profile", label: "Profile" },
-    { key: "security", label: "Security key" },
-    { key: "referral", label: "Invite friends" },
-    { key: "ready", label: "Ready screen" },
-    { key: "done", label: "Completed" },
-  ];
+  // Legacy values (profile/referral/ready) are folded into the closest current
+  // stage so historical users still count toward the funnel.
+  const ONBOARDING_STEPS: { key: string; label: string; aliases?: string[] }[] =
+    [
+      { key: "role", label: "Role", aliases: ["profile"] },
+      { key: "engage", label: "Invite / plan", aliases: ["referral"] },
+      { key: "provisioning", label: "Provisioning" },
+      { key: "security", label: "Security key", aliases: ["ready"] },
+      { key: "done", label: "Completed" },
+    ];
 
   // `byOnboardingStep` holds each user's *furthest* step. A user who reached
   // "referral" also passed "profile" and "security", so the number who reached
@@ -245,9 +248,12 @@ export default function AdminPage() {
   const onboardingFunnel = useMemo(() => {
     const counts = stats?.users.byOnboardingStep ?? {};
     const total = stats?.users.total ?? 0;
+    const stepCount = (s: { key: string; aliases?: string[] }) =>
+      (counts[s.key] || 0) +
+      (s.aliases?.reduce((sum, a) => sum + (counts[a] || 0), 0) ?? 0);
     return ONBOARDING_STEPS.map((step, i) => {
       const reached = ONBOARDING_STEPS.slice(i).reduce(
-        (sum, s) => sum + (counts[s.key] || 0),
+        (sum, s) => sum + stepCount(s),
         0,
       );
       return {
@@ -745,7 +751,9 @@ export default function AdminPage() {
                                 title={`Stopped at: ${u.onboardingStep}`}
                               >
                                 {ONBOARDING_STEPS.find(
-                                  (s) => s.key === u.onboardingStep,
+                                  (s) =>
+                                    s.key === u.onboardingStep ||
+                                    s.aliases?.includes(u.onboardingStep),
                                 )?.label ?? u.onboardingStep}
                               </span>
                             )}

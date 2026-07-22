@@ -244,7 +244,45 @@
         "personalize": "Personalize",
         "heroChipPrivate": "Private & encrypted",
         "heroChipFast": "Lightning fast",
-        "heroChipQuick": "Ready in 1 min"
+        "heroChipQuick": "Ready in 1 min",
+        "roleStep": {
+            "subtitle": "So glad you're here. To tailor HumanLogs, tell us who you are.",
+            "question": "You are…",
+            "otherPrompt": "Tell us more"
+        },
+        "role": {
+            "researcher": "Researcher, professor",
+            "student": "Student",
+            "journalist": "Journalist",
+            "other": "Other"
+        },
+        "config": {
+            "processing": "Processing:",
+            "volume": "Volume:",
+            "euValue": "Europe (Gladia)",
+            "usValue": "United States (best model)"
+        },
+        "plan": {
+            "title": "You're ready to go",
+            "subtitle": "You start on the free plan with {credits} credits included.",
+            "continueFree": "Continue on the free plan",
+            "seePlans": "See plans"
+        },
+        "researcher": {
+            "title": "Bring HumanLogs to your lab",
+            "subtitle": "Leave your university email and we'll prepare a licence offer for your team.",
+            "placeholder": "firstname.lastname@university.edu",
+            "skip": "Maybe later",
+            "invalid": "Invalid email",
+            "sent": "Thanks! We'll get back to you very soon.",
+            "sentTitle": "Request received",
+            "error": "Something went wrong. Please try again."
+        },
+        "provisioning": {
+            "title": "Setting up your workspace…",
+            "step1": "Creating your workspace",
+            "step2": "Securing your access"
+        }
     },
     "tutorialWelcome": {
         "title": "Welcome to the Tutorial!",

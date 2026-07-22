@@ -244,7 +244,45 @@
         "personalize": "Personalisieren",
         "heroChipPrivate": "Privat & verschlüsselt",
         "heroChipFast": "Blitzschnell",
-        "heroChipQuick": "In 1 Min bereit"
+        "heroChipQuick": "In 1 Min bereit",
+        "roleStep": {
+            "subtitle": "Schön, dass Sie da sind! Sagen Sie uns, wer Sie sind, um HumanLogs anzupassen.",
+            "question": "Sie sind…",
+            "otherPrompt": "Sagen Sie uns mehr"
+        },
+        "role": {
+            "researcher": "Forscher·in, Professor·in",
+            "student": "Student·in",
+            "journalist": "Journalist·in",
+            "other": "Andere"
+        },
+        "config": {
+            "processing": "Verarbeitung:",
+            "volume": "Volumen:",
+            "euValue": "Europa (Gladia)",
+            "usValue": "USA (bestes Modell)"
+        },
+        "plan": {
+            "title": "Sie sind startklar",
+            "subtitle": "Sie starten im kostenlosen Plan mit {credits} Guthaben inklusive.",
+            "continueFree": "Kostenlos fortfahren",
+            "seePlans": "Pläne ansehen"
+        },
+        "researcher": {
+            "title": "Holen Sie HumanLogs in Ihr Labor",
+            "subtitle": "Hinterlassen Sie Ihre Universitäts-E-Mail und wir erstellen ein Lizenzangebot für Ihr Team.",
+            "placeholder": "vorname.nachname@universitaet.de",
+            "skip": "Vielleicht später",
+            "invalid": "Ungültige E-Mail",
+            "sent": "Danke! Wir melden uns sehr bald.",
+            "sentTitle": "Anfrage erhalten",
+            "error": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+        },
+        "provisioning": {
+            "title": "Ihr Arbeitsbereich wird vorbereitet…",
+            "step1": "Ihr Arbeitsbereich wird erstellt",
+            "step2": "Ihre Zugänge werden gesichert"
+        }
     },
     "tutorialWelcome": {
         "title": "Willkommen zum Tutorial!",

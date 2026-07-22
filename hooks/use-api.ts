@@ -11,11 +11,16 @@ type Project = {
 export type DataResidency = "eu" | "us";
 
 export type OnboardingStep =
-  | "profile"
+  // Current flow
+  | "role"
+  | "engage"
+  | "provisioning"
   | "security"
+  | "done"
+  // Legacy values kept for back-compat with already-stored data
+  | "profile"
   | "referral"
-  | "ready"
-  | "done";
+  | "ready";
 
 export type AvailableSttProviders = {
   eu: boolean;

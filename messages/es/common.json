@@ -244,7 +244,45 @@
         "personalize": "Personalizar",
         "heroChipPrivate": "Privado y cifrado",
         "heroChipFast": "Muy rápido",
-        "heroChipQuick": "Listo en 1 min"
+        "heroChipQuick": "Listo en 1 min",
+        "roleStep": {
+            "subtitle": "¡Nos alegra tenerte aquí! Para personalizar HumanLogs, dinos quién eres.",
+            "question": "Eres…",
+            "otherPrompt": "Cuéntanos más"
+        },
+        "role": {
+            "researcher": "Investigador·a, profesor·a",
+            "student": "Estudiante",
+            "journalist": "Periodista",
+            "other": "Otro"
+        },
+        "config": {
+            "processing": "Procesamiento:",
+            "volume": "Volumen:",
+            "euValue": "Europa (Gladia)",
+            "usValue": "Estados Unidos (mejor modelo)"
+        },
+        "plan": {
+            "title": "Todo listo",
+            "subtitle": "Empiezas con el plan gratuito con {credits} créditos incluidos.",
+            "continueFree": "Continuar con el plan gratuito",
+            "seePlans": "Ver planes"
+        },
+        "researcher": {
+            "title": "Lleva HumanLogs a tu laboratorio",
+            "subtitle": "Deja tu email universitario y te preparamos una oferta de licencia para tu equipo.",
+            "placeholder": "nombre.apellido@universidad.es",
+            "skip": "Quizá más tarde",
+            "invalid": "Email no válido",
+            "sent": "¡Gracias! Te responderemos muy pronto.",
+            "sentTitle": "Solicitud recibida",
+            "error": "Algo salió mal. Inténtalo de nuevo."
+        },
+        "provisioning": {
+            "title": "Preparando tu espacio…",
+            "step1": "Creando tu espacio",
+            "step2": "Asegurando tu acceso"
+        }
     },
     "tutorialWelcome": {
         "title": "¡Bienvenido al Tutorial!",

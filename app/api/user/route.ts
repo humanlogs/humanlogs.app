@@ -83,13 +83,17 @@ export const PATCH = withAuthRateLimit(async (request, user) => {
       );
     }
 
-    // Validate onboarding step if provided
+    // Validate onboarding step if provided. Current flow first, then legacy
+    // values kept so historical data and older clients stay valid.
     const ONBOARDING_STEPS = [
-      "profile",
+      "role",
+      "engage",
+      "provisioning",
       "security",
+      "done",
+      "profile",
       "referral",
       "ready",
-      "done",
     ];
     if (
       body.onboardingStep &&

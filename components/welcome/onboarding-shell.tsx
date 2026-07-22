@@ -28,6 +28,7 @@ export function OnboardingShell({
   children,
   wide,
   bgVariant = DEFAULT_BG,
+  topRight,
 }: {
   /** Zero-based index of the current step. */
   step: number;
@@ -36,10 +37,16 @@ export function OnboardingShell({
   children: React.ReactNode;
   wide?: boolean;
   bgVariant?: OnboardingBgVariant;
+  /** Optional discreet control pinned to the top-right corner of the screen. */
+  topRight?: React.ReactNode;
 }) {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
       <OnboardingBackground variant={bgVariant} />
+
+      {topRight && (
+        <div className="absolute right-4 top-4 z-20">{topRight}</div>
+      )}
 
       <div
         className={cn(
