@@ -266,6 +266,11 @@
   animation: onboarding-silk-b 42s ease-in-out infinite;
 }
 
+/* Smoothly animate a container's height to fit its content. */
+.onboarding-animate-height {
+  transition: height 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 /* Card entrance: rise + fade + subtle scale. */
 @keyframes onboarding-card-in {
   from {
@@ -318,6 +323,7 @@
   .animate-onboarding-veil-b,
   .animate-onboarding-silk-a,
   .animate-onboarding-silk-b,
+  .onboarding-animate-height,
   .animate-onboarding-card,
   .animate-onboarding-step,
   .animate-onboarding-stepper-fill {

@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils/utils";
+import { ChevronLeftIcon } from "lucide-react";
 import {
   AmbientBackground,
   type AmbientBgVariant,
@@ -29,6 +30,7 @@ export function OnboardingShell({
   wide,
   bgVariant = DEFAULT_BG,
   topRight,
+  onBack,
 }: {
   /** Zero-based index of the current step. */
   step: number;
@@ -39,6 +41,8 @@ export function OnboardingShell({
   bgVariant?: AmbientBgVariant;
   /** Optional discreet control pinned to the top-right corner of the screen. */
   topRight?: React.ReactNode;
+  /** When provided, a back button is shown before the stepper. */
+  onBack?: () => void;
 }) {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
@@ -55,11 +59,21 @@ export function OnboardingShell({
         )}
       >
         <div className="rounded-2xl border border-white/60 bg-white/80 p-8 shadow-2xl shadow-black/5 backdrop-blur-xl dark:border-white/10 dark:bg-zinc-900/80">
-          <OnboardingStepper step={step} stepCount={stepCount} />
-          {/* Re-key on step so the content re-animates on each transition. */}
-          <div key={step} className="animate-onboarding-step mt-6 space-y-6">
-            {children}
+          <div className="flex items-center gap-2">
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                aria-label="Back"
+                className="-ml-1 shrink-0 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <ChevronLeftIcon className="h-4 w-4" />
+              </button>
+            )}
+            <OnboardingStepper step={step} stepCount={stepCount} />
           </div>
+          {/* Height animates on step change / sub-block reveal; text does not. */}
+          <div className="mt-6">{children}</div>
         </div>
       </div>
     </div>

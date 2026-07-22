@@ -222,7 +222,7 @@
             "protect": "Enter my workspace",
             "working": "Securing…",
             "advanced": "Advanced options",
-            "deliveryLabel": "How should we deliver your recovery key?",
+            "deliveryLabel": "Your recovery key",
             "deliveryEmail": "Email it to me",
             "deliveryDownload": "I'll save it myself",
             "deliveryEmailHint": "The simplest option. The key is sent to your inbox. Don't delete that email.",
@@ -230,7 +230,7 @@
             "trustLabel": "Trust this device",
             "trustHint": "Stay signed in with your key on this device. Turn off on shared computers.",
             "importButton": "I already have a recovery key",
-            "skip": "Skip for now",
+            "skip": "I don't want to enable encryption",
             "emailedToast": "Recovery key sent to your email",
             "downloadedToast": "Recovery key downloaded",
             "importedToast": "Recovery key imported",
@@ -258,7 +258,7 @@
         },
         "config": {
             "processing": "Processing:",
-            "volume": "Volume:",
+            "volume": "Monthly volume:",
             "euValue": "Europe (Gladia)",
             "usValue": "United States (best model)"
         },
@@ -279,7 +279,8 @@
             "sentTitle": "Request received",
             "error": "Something went wrong. Please try again.",
             "secondPlaceholder": "Another contact (optional)",
-            "addSecond": "Add a second contact"
+            "addSecond": "Add a second contact",
+            "submit": "Send"
         },
         "provisioning": {
             "title": "Setting up your workspace…",

@@ -144,15 +144,21 @@ function ResearcherLicense({
       </p>
 
       <div className="mt-5 space-y-2.5 text-left">
-        <div className="flex gap-2">
+        <div className="flex items-stretch gap-2">
           <Input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder={t("researcher.placeholder")}
             onKeyDown={(e) => e.key === "Enter" && submit()}
+            className="h-11"
           />
-          <Button onClick={submit} disabled={sending} size="lg">
+          <Button
+            onClick={submit}
+            disabled={sending}
+            className="h-11 w-11 shrink-0 p-0"
+            aria-label={t("researcher.submit")}
+          >
             <SendIcon className="h-4 w-4" />
           </Button>
         </div>

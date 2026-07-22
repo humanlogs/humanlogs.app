@@ -222,7 +222,7 @@
             "protect": "Zu meinem Arbeitsbereich",
             "working": "Wird gesichert…",
             "advanced": "Erweiterte Optionen",
-            "deliveryLabel": "Wie sollen wir Ihren Wiederherstellungsschlüssel bereitstellen?",
+            "deliveryLabel": "Ihr Wiederherstellungsschlüssel",
             "deliveryEmail": "Per E-Mail senden",
             "deliveryDownload": "Ich speichere ihn selbst",
             "deliveryEmailHint": "Die einfachste Option. Der Schlüssel wird an Ihr Postfach gesendet. Löschen Sie diese E-Mail nicht.",
@@ -230,7 +230,7 @@
             "trustLabel": "Diesem Gerät vertrauen",
             "trustHint": "Mit Ihrem Schlüssel auf diesem Gerät angemeldet bleiben. Auf gemeinsam genutzten Computern deaktivieren.",
             "importButton": "Ich habe bereits einen Wiederherstellungsschlüssel",
-            "skip": "Vorerst überspringen",
+            "skip": "Ich möchte keine Verschlüsselung aktivieren",
             "emailedToast": "Wiederherstellungsschlüssel per E-Mail gesendet",
             "downloadedToast": "Wiederherstellungsschlüssel heruntergeladen",
             "importedToast": "Wiederherstellungsschlüssel importiert",
@@ -258,7 +258,7 @@
         },
         "config": {
             "processing": "Verarbeitung:",
-            "volume": "Volumen:",
+            "volume": "Monatliches Volumen:",
             "euValue": "Europa (Gladia)",
             "usValue": "USA (bestes Modell)"
         },
@@ -279,7 +279,8 @@
             "sentTitle": "Anfrage erhalten",
             "error": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
             "secondPlaceholder": "Weiterer Kontakt (optional)",
-            "addSecond": "Zweiten Kontakt hinzufügen"
+            "addSecond": "Zweiten Kontakt hinzufügen",
+            "submit": "Senden"
         },
         "provisioning": {
             "title": "Ihr Arbeitsbereich wird vorbereitet…",

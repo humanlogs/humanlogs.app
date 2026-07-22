@@ -222,7 +222,7 @@
             "protect": "Acceder a mi espacio",
             "working": "Protegiendo…",
             "advanced": "Opciones avanzadas",
-            "deliveryLabel": "¿Cómo quieres recibir tu clave de recuperación?",
+            "deliveryLabel": "Tu clave de recuperación",
             "deliveryEmail": "Enviármela por correo",
             "deliveryDownload": "La guardo yo mismo",
             "deliveryEmailHint": "La opción más sencilla. La clave se envía a tu correo. No elimines ese mensaje.",
@@ -230,7 +230,7 @@
             "trustLabel": "Confiar en este dispositivo",
             "trustHint": "Mantén la sesión con tu clave en este dispositivo. Desactívalo en equipos compartidos.",
             "importButton": "Ya tengo una clave de recuperación",
-            "skip": "Omitir por ahora",
+            "skip": "No quiero activar el cifrado",
             "emailedToast": "Clave de recuperación enviada por correo",
             "downloadedToast": "Clave de recuperación descargada",
             "importedToast": "Clave de recuperación importada",
@@ -258,7 +258,7 @@
         },
         "config": {
             "processing": "Procesamiento:",
-            "volume": "Volumen:",
+            "volume": "Volumen mensual:",
             "euValue": "Europa (Gladia)",
             "usValue": "Estados Unidos (mejor modelo)"
         },
@@ -279,7 +279,8 @@
             "sentTitle": "Solicitud recibida",
             "error": "Algo salió mal. Inténtalo de nuevo.",
             "secondPlaceholder": "Otro contacto (opcional)",
-            "addSecond": "Añadir un segundo contacto"
+            "addSecond": "Añadir un segundo contacto",
+            "submit": "Enviar"
         },
         "provisioning": {
             "title": "Preparando tu espacio…",

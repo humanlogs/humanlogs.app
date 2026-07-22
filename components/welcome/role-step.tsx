@@ -55,8 +55,9 @@ export function RoleStep({
   loading,
 }: RoleStepProps) {
   const t = useTranslations("welcome");
-  // Brief welcome, then reveal the actual onboarding after ~1s.
-  const [revealed, setRevealed] = useState(false);
+  // Brief welcome, then reveal the actual onboarding after ~1s. If a role is
+  // already chosen (e.g. coming back to this step), reveal immediately.
+  const [revealed, setRevealed] = useState(!!profession);
   const isOtherProfession = (p: string) =>
     p === "other" || OTHER_PROFESSIONS.includes(p);
   const [otherOpen, setOtherOpen] = useState(isOtherProfession(profession));
@@ -92,7 +93,7 @@ export function RoleStep({
 
       {/* The role selector + settings fade in a beat after the greeting. */}
       {revealed && (
-        <div className="animate-onboarding-step mt-6 space-y-5 text-left">
+        <div className="mt-6 space-y-5 text-left">
           <div>
             <p className="mb-2 text-sm font-medium">{t("roleStep.question")}</p>
             <div className="grid grid-cols-2 gap-2.5">
@@ -127,7 +128,7 @@ export function RoleStep({
 
           {/* Finer professions when "Other" is chosen. */}
           {otherOpen && (
-            <div className="animate-onboarding-step">
+            <div>
               <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {t("roleStep.otherPrompt")}
               </p>
@@ -153,7 +154,7 @@ export function RoleStep({
 
           {/* Discreet, editable secondary settings — read like text. */}
           {profession && (
-            <p className="animate-onboarding-step text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {showResidency && (
                 <>
                   {t("config.processing")}{" "}

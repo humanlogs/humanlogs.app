@@ -222,7 +222,7 @@
             "protect": "Accéder à mon espace",
             "working": "Sécurisation…",
             "advanced": "Options avancées",
-            "deliveryLabel": "Comment souhaitez-vous recevoir votre clé de récupération ?",
+            "deliveryLabel": "Votre clé de récupération",
             "deliveryEmail": "Me l'envoyer par email",
             "deliveryDownload": "Je l'enregistre moi-même",
             "deliveryEmailHint": "L'option la plus simple. La clé est envoyée dans votre boîte mail. Ne supprimez pas cet email.",
@@ -230,7 +230,7 @@
             "trustLabel": "Faire confiance à cet appareil",
             "trustHint": "Restez connecté avec votre clé sur cet appareil. À désactiver sur un ordinateur partagé.",
             "importButton": "J'ai déjà une clé de récupération",
-            "skip": "Ignorer pour l'instant",
+            "skip": "Je ne veux pas activer le chiffrement",
             "emailedToast": "Clé de récupération envoyée par email",
             "downloadedToast": "Clé de récupération téléchargée",
             "importedToast": "Clé de récupération importée",
@@ -258,7 +258,7 @@
         },
         "config": {
             "processing": "Traitement :",
-            "volume": "Volume :",
+            "volume": "Volume mensuel :",
             "euValue": "Europe (Gladia)",
             "usValue": "USA (meilleur modèle)"
         },
@@ -279,7 +279,8 @@
             "sentTitle": "Demande reçue",
             "error": "Une erreur est survenue. Veuillez réessayer.",
             "secondPlaceholder": "Un autre contact (optionnel)",
-            "addSecond": "Ajouter un second contact"
+            "addSecond": "Ajouter un second contact",
+            "submit": "Envoyer"
         },
         "provisioning": {
             "title": "Préparation de votre espace…",

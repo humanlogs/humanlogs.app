@@ -7,6 +7,7 @@ import {
   useLocale,
   useTranslations,
 } from "../../../components/locale-provider";
+import { AnimateHeight } from "@/components/ui/animate-height";
 import { InlineChoice } from "@/components/ui/inline-choice";
 import type { AmbientBgVariant } from "@/components/ui/ambient-background";
 import { OnboardingShell } from "../../../components/welcome/onboarding-shell";
@@ -120,6 +121,12 @@ export default function WelcomePage() {
     setState("security");
   }
 
+  // Step back to an earlier, user-actionable step (provisioning is transient).
+  function goBack(target: Step) {
+    updateUser.mutate({ onboardingStep: target as OnboardingStep });
+    setState(target);
+  }
+
   async function finishOnboarding() {
     setLoading(true);
     try {
@@ -146,75 +153,60 @@ export default function WelcomePage() {
     />
   );
 
-  if (state === "role") {
-    return (
-      <OnboardingShell
-        step={stepIndex}
-        stepCount={STEP_ORDER.length}
-        bgVariant={bgOverride}
-        topRight={languageSwitcher}
-        wide
-      >
-        <RoleStep
-          name={data?.name}
-          profession={profession}
-          onSelectProfession={applyRole}
-          residency={residency}
-          onResidencyChange={setResidency}
-          monthlyUsage={monthlyUsage}
-          onMonthlyUsageChange={setMonthlyUsage}
-          showResidency={showResidency}
-          onContinue={goToEngage}
-          loading={loading}
-        />
-      </OnboardingShell>
+  const stepContent =
+    state === "role" ? (
+      <RoleStep
+        name={data?.name}
+        profession={profession}
+        onSelectProfession={applyRole}
+        residency={residency}
+        onResidencyChange={setResidency}
+        monthlyUsage={monthlyUsage}
+        onMonthlyUsageChange={setMonthlyUsage}
+        showResidency={showResidency}
+        onContinue={goToEngage}
+        loading={loading}
+      />
+    ) : state === "engage" ? (
+      <EngageStep
+        bucket={roleBucket(profession)}
+        userEmail={data?.email}
+        isBillingEnabled={!!data?.isBillingEnabled}
+        onContinue={goToProvisioning}
+      />
+    ) : state === "provisioning" ? (
+      <ProvisioningStep onDone={goToSecurity} />
+    ) : (
+      <SecurityStep
+        userName={data?.name}
+        onContinue={finishOnboarding}
+        onSkip={finishOnboarding}
+      />
     );
-  }
 
-  if (state === "engage") {
-    return (
-      <OnboardingShell
-        step={stepIndex}
-        stepCount={STEP_ORDER.length}
-        bgVariant={bgOverride}
-      >
-        <EngageStep
-          bucket={roleBucket(profession)}
-          userEmail={data?.email}
-          isBillingEnabled={!!data?.isBillingEnabled}
-          onContinue={goToProvisioning}
-        />
-      </OnboardingShell>
-    );
-  }
+  // Provisioning is a transient auto-advance step, so no back from it.
+  const onBack =
+    state === "engage"
+      ? () => goBack("role")
+      : state === "security"
+        ? () => goBack("engage")
+        : undefined;
 
-  if (state === "provisioning") {
-    return (
-      <OnboardingShell
-        step={stepIndex}
-        stepCount={STEP_ORDER.length}
-        bgVariant={bgOverride}
-      >
-        <ProvisioningStep onDone={goToSecurity} />
-      </OnboardingShell>
-    );
-  }
-
-  if (state === "security") {
-    return (
-      <OnboardingShell
-        step={stepIndex}
-        stepCount={STEP_ORDER.length}
-        bgVariant={bgOverride}
-      >
-        <SecurityStep
-          userName={data?.name}
-          onContinue={finishOnboarding}
-          onSkip={finishOnboarding}
-        />
-      </OnboardingShell>
-    );
-  }
-
-  return null;
+  return (
+    <OnboardingShell
+      step={stepIndex}
+      stepCount={STEP_ORDER.length}
+      bgVariant={bgOverride}
+      topRight={languageSwitcher}
+      onBack={onBack}
+      wide
+    >
+      {/* One persistent card; height eases between steps and sub-block reveals. */}
+      <AnimateHeight>
+        <div key={state} className="space-y-6">
+          {stepContent}
+        </div>
+      </AnimateHeight>
+    </OnboardingShell>
+  );
 }

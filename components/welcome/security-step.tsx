@@ -184,13 +184,14 @@ export function SecurityStep({ onContinue, onSkip }: SecurityStepProps) {
         </button>
 
         {advanced && (
-          <div className="animate-onboarding-step space-y-4 border-t p-4">
-            {/* Delivery method */}
+          <div className="space-y-4 border-t p-4">
+            {/* Recovery key: email it, save it yourself, or import one you
+                already have — all three grouped as rows. */}
             <div className="space-y-2">
               <Label className="text-xs font-medium text-muted-foreground">
                 {t("deliveryLabel")}
               </Label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid gap-2">
                 <button
                   type="button"
                   onClick={() => setSendByEmail(true)}
@@ -215,6 +216,21 @@ export function SecurityStep({ onContinue, onSkip }: SecurityStepProps) {
                   <DownloadIcon className="h-4 w-4 shrink-0 text-primary" />
                   {t("deliveryDownload")}
                 </button>
+                <label
+                  htmlFor="security-import"
+                  className="flex cursor-pointer items-center gap-2 rounded-lg border border-border p-2.5 text-left text-sm transition-colors hover:border-primary/50"
+                >
+                  <UploadIcon className="h-4 w-4 shrink-0 text-primary" />
+                  {t("importButton")}
+                </label>
+                <Input
+                  id="security-import"
+                  type="file"
+                  accept=".json"
+                  onChange={handleImport}
+                  disabled={working}
+                  className="hidden"
+                />
               </div>
               <p className="text-xs text-muted-foreground">
                 {sendByEmail ? t("deliveryEmailHint") : t("deliveryDownloadHint")}
@@ -237,29 +253,7 @@ export function SecurityStep({ onContinue, onSkip }: SecurityStepProps) {
               </span>
             </label>
 
-            {/* Import existing */}
-            <div>
-              <Label htmlFor="security-import" className="sr-only">
-                {t("importButton")}
-              </Label>
-              <label
-                htmlFor="security-import"
-                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
-                <UploadIcon className="h-4 w-4" />
-                {t("importButton")}
-              </label>
-              <Input
-                id="security-import"
-                type="file"
-                accept=".json"
-                onChange={handleImport}
-                disabled={working}
-                className="hidden"
-              />
-            </div>
-
-            {/* Skip entirely */}
+            {/* Opt out of encryption entirely */}
             <button
               type="button"
               onClick={onSkip}
