@@ -315,6 +315,35 @@
   animation: onboarding-stepper-fill 0.45s ease-out both;
 }
 
+/* Post-onboarding entrance: the app zooms into place (ease-out) over the warm
+   backdrop the funnel used, then the backdrop is destroyed. */
+@keyframes welcome-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-welcome-zoom-in {
+  transform-origin: center;
+  animation: welcome-zoom-in 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes welcome-bg-fade {
+  0%,
+  55% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.animate-welcome-bg-fade {
+  animation: welcome-bg-fade 750ms ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-onboarding-aurora-1,
   .animate-onboarding-aurora-2,
@@ -326,7 +355,9 @@
   .onboarding-animate-height,
   .animate-onboarding-card,
   .animate-onboarding-step,
-  .animate-onboarding-stepper-fill {
+  .animate-onboarding-stepper-fill,
+  .animate-welcome-zoom-in,
+  .animate-welcome-bg-fade {
     animation: none;
   }
 }

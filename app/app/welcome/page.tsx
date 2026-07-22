@@ -20,6 +20,7 @@ import {
   roleBucket,
 } from "../../../components/welcome/onboarding-roles";
 import { SecurityStep } from "../../../components/welcome/security-step";
+import { WELCOME_INTRO_FLAG } from "../../../components/welcome/welcome-intro";
 import { useUpdateUser, useUserProfile } from "../../../hooks/use-api";
 import type { OnboardingStep } from "../../../hooks/use-api";
 import { GlobeIcon } from "lucide-react";
@@ -131,6 +132,12 @@ export default function WelcomePage() {
     setLoading(true);
     try {
       await updateUser.mutateAsync({ isWelcomeDone: true });
+      // Ask the app to play its zoom-in entrance once we land there.
+      try {
+        sessionStorage.setItem(WELCOME_INTRO_FLAG, "1");
+      } catch {
+        // Non-fatal: the app just won't play the entrance.
+      }
       // Navigates to the tutorial transcription (no conclusion screen).
       await handleResetTutorial(locale || "en");
     } catch (err) {

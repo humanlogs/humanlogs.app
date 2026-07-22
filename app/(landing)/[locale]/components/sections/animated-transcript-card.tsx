@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from "@/components/locale-provider";
 import { Badge } from "@/components/ui/badge";
-import { KARAOKE_ACTIVE_CLASS } from "@/components/ui/karaoke-text";
+import { KaraokeWord, karaokeState } from "@/components/ui/karaoke-text";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -129,7 +129,7 @@ export const AnimatedTranscriptCard = ({
   const { locale } = useLocale() || "en";
   const [wordStates, setWordStates] = useState<Map<number, string>>(new Map());
   const [activeWordIndex, setActiveWordIndex] = useState(0);
-  const [isEditing, setIsEditing] = useState(false);
+  const [, setIsEditing] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const wordsRef = useRef<WordData[]>(parseTranscript(locale));
@@ -251,36 +251,20 @@ export const AnimatedTranscriptCard = ({
                 <div className="text-base leading-relaxed">
                   {sentenceWords.map((word, idx) => {
                     const globalIdx = words.indexOf(word);
-                    const isActive = globalIdx === activeWordIndex;
-                    const isPast = globalIdx < activeWordIndex;
                     const customText = wordStates.get(globalIdx);
                     const displayText =
                       customText !== undefined ? customText : word.text;
 
                     return (
-                      <span
+                      <KaraokeWord
                         key={idx}
-                        className={`
-                      inline-block rounded-[5px] px-[1px] mx-[-1px]
-                      ${
-                        isActive
-                          ? "transition-none"
-                          : "transition-all duration-200"
-                      }
-                      ${
-                        isActive
-                          ? KARAOKE_ACTIVE_CLASS
-                          : isPast
-                            ? "text-gray-900"
-                            : "text-gray-400"
-                      }
-                    `}
-                        style={{
-                          marginRight: "0.25rem",
-                        }}
+                        state={karaokeState(globalIdx, activeWordIndex)}
+                        tone="muted"
+                        snapActive
+                        className="mx-[-1px]"
                       >
                         {displayText || "\u00A0"}
-                      </span>
+                      </KaraokeWord>
                     );
                   })}
                 </div>
