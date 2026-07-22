@@ -22,7 +22,10 @@ export type KaraokeTone = "opacity" | "muted";
 
 const TONE: Record<KaraokeTone, { past: string; future: string }> = {
   opacity: { past: "opacity-100", future: "opacity-25" },
-  muted: { past: "text-gray-900", future: "text-gray-400" },
+  muted: {
+    past: "text-gray-900 dark:text-gray-100",
+    future: "text-gray-400 dark:text-gray-600",
+  },
 };
 
 /** Word state relative to the karaoke cursor. The word at `active` is lit up. */
@@ -86,17 +89,19 @@ export function KaraokeWord({
 export function KaraokeText({
   text,
   active,
+  tone,
   className,
 }: {
   text: string;
   active: number;
+  tone?: KaraokeTone;
   className?: string;
 }) {
   const words = text.split(" ");
   return (
     <span className={className}>
       {words.map((word, idx) => (
-        <KaraokeWord key={idx} state={karaokeState(idx, active)}>
+        <KaraokeWord key={idx} state={karaokeState(idx, active)} tone={tone}>
           {word}
         </KaraokeWord>
       ))}

@@ -332,8 +332,11 @@
   animation: welcome-zoom-in 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 @keyframes welcome-bg-fade {
-  0%,
-  55% {
+  0% {
+    opacity: 0;
+  }
+  22%,
+  62% {
     opacity: 1;
   }
   100% {
@@ -341,7 +344,7 @@
   }
 }
 .animate-welcome-bg-fade {
-  animation: welcome-bg-fade 750ms ease-out both;
+  animation: welcome-bg-fade 850ms ease-out both;
 }
 
 /* Success badge: the green disc pops in, then the white check strokes on. */

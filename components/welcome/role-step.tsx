@@ -105,10 +105,14 @@ export function RoleStep({
       </div>
 
       <h1 className="text-2xl font-bold tracking-tight">
-        <KaraokeText text={titleText} active={shownSpoken} />
+        <KaraokeText text={titleText} active={shownSpoken} tone="muted" />
       </h1>
-      <p className="text-muted-foreground mt-2 text-[15px] pb-8">
-        <KaraokeText text={subtitleText} active={shownSpoken - titleWords} />
+      <p className="mt-2 text-[15px] pb-8">
+        <KaraokeText
+          text={subtitleText}
+          active={shownSpoken - titleWords}
+          tone="muted"
+        />
       </p>
 
       {/* The role selector + settings are revealed once the greeting finishes. */}
