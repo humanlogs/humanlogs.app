@@ -21,9 +21,6 @@ export function WelcomeHero({ name }: { name?: string }) {
 
   return (
     <div className="flex flex-col items-center text-center">
-      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 text-white shadow-lg shadow-violet-500/30">
-        <SparklesIcon className="h-8 w-8" />
-      </div>
       <h1 className="text-2xl font-bold tracking-tight">
         {name ? t("title").replace("{name}", name) : t("titleDefault")}
       </h1>

@@ -20,7 +20,7 @@ import {
  */
 // Default backdrop for the whole onboarding flow. Change this one constant to
 // switch the look everywhere.
-const DEFAULT_BG: OnboardingBgVariant = "aurora";
+const DEFAULT_BG: OnboardingBgVariant = "warm";
 
 export function OnboardingShell({
   step,

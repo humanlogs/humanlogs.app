@@ -59,32 +59,91 @@ function AuroraBackground() {
   );
 }
 
+// Flowing, blurred, colourful "silk veil": wide ribbons following soft S-curves
+// that undulate horizontally across the backdrop — like a draped fabric, but
+// heavily blurred and in a warm palette (amber → rose → violet).
+function SilkRibbon({
+  paths,
+  className,
+}: {
+  paths: { d: string; grad: string; width: number; opacity?: number }[];
+  className?: string;
+}) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 1440 900"
+      preserveAspectRatio="xMidYMid slice"
+    >
+      <defs>
+        {paths.map((p, i) => (
+          <linearGradient
+            key={i}
+            id={`silk-${p.grad}-${i}`}
+            x1="0"
+            y1="0"
+            x2="1"
+            y2="0.3"
+          >
+            {GRADS[p.grad].map((s, j) => (
+              <stop key={j} offset={s.o} stopColor={s.c} />
+            ))}
+          </linearGradient>
+        ))}
+      </defs>
+      {paths.map((p, i) => (
+        <path
+          key={i}
+          d={p.d}
+          fill="none"
+          stroke={`url(#silk-${p.grad}-${i})`}
+          strokeWidth={p.width}
+          strokeLinecap="round"
+          opacity={p.opacity ?? 1}
+        />
+      ))}
+    </svg>
+  );
+}
+
+const GRADS: Record<string, { o: number; c: string }[]> = {
+  a: [
+    { o: 0, c: "#fbbf24" },
+    { o: 0.5, c: "#fb7185" },
+    { o: 1, c: "#a855f7" },
+  ],
+  b: [
+    { o: 0, c: "#f472b6" },
+    { o: 0.5, c: "#fb923c" },
+    { o: 1, c: "#c084fc" },
+  ],
+};
+
 function WarmBackground() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-0 overflow-hidden bg-[#fffaf6] dark:bg-[#0c0806]"
+      className="pointer-events-none absolute inset-0 overflow-hidden bg-[#fff8f2] dark:bg-[#0b0708]"
     >
-      <div
-        className="animate-onboarding-aurora-1 absolute -left-[15%] -top-[20%] h-[75vh] w-[75vh] rounded-full opacity-70 blur-[110px] dark:opacity-50"
-        style={{
-          background:
-            "radial-gradient(circle at center, #fbbf24 0%, rgba(251,191,36,0) 70%)",
-        }}
+      <SilkRibbon
+        className="animate-onboarding-silk-a absolute inset-0 h-full w-full opacity-70 blur-[64px] dark:opacity-60"
+        paths={[
+          {
+            d: "M-260 500 C 250 300 620 640 1000 470 S 1500 300 1760 400",
+            grad: "a",
+            width: 230,
+          },
+        ]}
       />
-      <div
-        className="animate-onboarding-aurora-2 absolute -right-[12%] top-[12%] h-[70vh] w-[70vh] rounded-full opacity-60 blur-[110px] dark:opacity-45"
-        style={{
-          background:
-            "radial-gradient(circle at center, #fb7185 0%, rgba(251,113,133,0) 70%)",
-        }}
-      />
-      <div
-        className="animate-onboarding-aurora-3 absolute -bottom-[18%] left-[18%] h-[65vh] w-[65vh] rounded-full opacity-55 blur-[120px] dark:opacity-40"
-        style={{
-          background:
-            "radial-gradient(circle at center, #a855f7 0%, rgba(168,85,247,0) 70%)",
-        }}
+      <SilkRibbon
+        className="animate-onboarding-silk-b absolute inset-0 h-full w-full opacity-55 blur-[72px] dark:opacity-45"
+        paths={[
+          {
+            d: "M-260 600 C 320 440 760 740 1080 540 S 1520 360 1760 300",
+            grad: "b",
+            width: 170,
+          },
+        ]}
       />
       <Grain />
     </div>
