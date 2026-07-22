@@ -41,6 +41,9 @@ model User {
   feedbacks             Feedback[]
   deletionTokens        DeletionToken[]
   isWelcomeDone         Boolean         @default(false)
+  // Furthest onboarding step the user reached, so we can see exactly where
+  // people drop off. "profile" | "security" | "referral" | "ready" | "done".
+  onboardingStep        String          @default("profile")
   // Onboarding profile
   profession            String?
   monthlyUsage          String?

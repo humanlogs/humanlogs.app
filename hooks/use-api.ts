@@ -10,6 +10,13 @@ type Project = {
 
 export type DataResidency = "eu" | "us";
 
+export type OnboardingStep =
+  | "profile"
+  | "security"
+  | "referral"
+  | "ready"
+  | "done";
+
 export type AvailableSttProviders = {
   eu: boolean;
   us: boolean;
@@ -27,6 +34,7 @@ export type UserProfile = {
   creditsUsed: number;
   plan: string;
   isWelcomeDone: boolean;
+  onboardingStep: OnboardingStep;
   isBillingEnabled: boolean;
   isAdmin: boolean;
   profession?: string | null;
@@ -90,6 +98,7 @@ export function useUpdateUser() {
           UserProfile,
           | "language"
           | "isWelcomeDone"
+          | "onboardingStep"
           | "profession"
           | "monthlyUsage"
           | "dataResidency"
@@ -198,6 +207,7 @@ export type AdminStats = {
     byMonthlyUsage: Record<string, number>;
     byDataResidency: Record<string, number>;
     welcomeDoneCount: number;
+    byOnboardingStep: Record<string, number>;
     recent: Array<{
       id: string;
       email: string;
@@ -205,6 +215,7 @@ export type AdminStats = {
       createdAt: string;
       plan: string;
       isWelcomeDone: boolean;
+      onboardingStep: string;
       profession: string | null;
       monthlyUsage: string | null;
       dataResidency: string | null;

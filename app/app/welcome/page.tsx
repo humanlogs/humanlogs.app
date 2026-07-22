@@ -1,12 +1,7 @@
 "use client";
 
-import {
-  CheckCircleIcon,
-  GlobeIcon,
-  RocketIcon,
-  ShieldCheckIcon,
-} from "lucide-react";
-import { useEffect, useState } from "react";
+import { CheckCircleIcon, GlobeIcon, RocketIcon, ShieldCheckIcon } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useResetTutorial } from "../../../components/dialogs/help-dialog";
 import {
@@ -16,12 +11,17 @@ import {
 import { ReferralEmails } from "../../../components/referral/referral-emails";
 import { Button } from "../../../components/ui/button";
 import { Select } from "../../../components/ui/select";
+import { OnboardingShell } from "../../../components/welcome/onboarding-shell";
 import { SecurityStep } from "../../../components/welcome/security-step";
 import { useUpdateUser, useUserProfile } from "../../../hooks/use-api";
+import type { OnboardingStep } from "../../../hooks/use-api";
 import { languagesNames, Locale, locales } from "../../../lib/utils/i18n";
 import { cn } from "@/lib/utils/utils";
 
 type Step = "profile" | "security" | "referral" | "ready";
+
+// Step order drives both the routing and the stepper progress indicator.
+const STEP_ORDER: Step[] = ["profile", "security", "referral", "ready"];
 
 const PROFESSION_KEYS = [
   "researcher",
@@ -36,24 +36,6 @@ const PROFESSION_KEYS = [
 ];
 
 const MONTHLY_USAGE_KEYS = ["lt1h", "h1to5", "h5to20", "gt20h"];
-
-function StepCard({
-  children,
-  wide,
-}: {
-  children: React.ReactNode;
-  wide?: boolean;
-}) {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-black p-4">
-      <div
-        className={`w-full space-y-6 rounded-2xl bg-white p-8 shadow-xl dark:bg-zinc-950 ${wide ? "max-w-lg" : "max-w-md"}`}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
 
 function GridOption({
   selected,
@@ -103,9 +85,21 @@ export default function WelcomePage() {
     }
   }, [data?.dataResidency]);
 
+  // Move to a step and record it server-side so we can measure exactly where
+  // users drop off in the onboarding funnel (surfaced in the admin panel).
+  const goTo = useCallback(
+    (next: Step) => {
+      setState(next);
+      updateUser.mutate({ onboardingStep: next as OnboardingStep });
+    },
+    [updateUser],
+  );
+
+  const stepIndex = STEP_ORDER.indexOf(state);
+
   if (state === "profile") {
     return (
-      <StepCard wide>
+      <OnboardingShell step={stepIndex} stepCount={STEP_ORDER.length} wide>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
             {data?.name
@@ -143,59 +137,60 @@ export default function WelcomePage() {
           </div>
 
           {/* Server / data residency — only shown when both EU and US providers are configured */}
-          {!!data?.availableSttProviders?.eu && !!data?.availableSttProviders?.us && (
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                {t("residencyTitle")}
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setResidency("eu")}
-                  className={`text-left rounded-xl border p-3 transition-colors ${
-                    residency === "eu"
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <ShieldCheckIcon className="h-4 w-4 text-primary shrink-0" />
-                    <span className="font-medium text-sm">
-                      {t("residencyEuTitle")}
-                    </span>
-                    {residency === "eu" && (
-                      <CheckCircleIcon className="h-3.5 w-3.5 text-primary ml-auto" />
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {t("residencyEuDesc")}
-                  </p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setResidency("us")}
-                  className={`text-left rounded-xl border p-3 transition-colors ${
-                    residency === "us"
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <GlobeIcon className="h-4 w-4 text-primary shrink-0" />
-                    <span className="font-medium text-sm">
-                      {t("residencyUsTitle")}
-                    </span>
-                    {residency === "us" && (
-                      <CheckCircleIcon className="h-3.5 w-3.5 text-primary ml-auto" />
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {t("residencyUsDesc")}
-                  </p>
-                </button>
+          {!!data?.availableSttProviders?.eu &&
+            !!data?.availableSttProviders?.us && (
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("residencyTitle")}
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setResidency("eu")}
+                    className={`text-left rounded-xl border p-3 transition-colors ${
+                      residency === "eu"
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <ShieldCheckIcon className="h-4 w-4 text-primary shrink-0" />
+                      <span className="font-medium text-sm">
+                        {t("residencyEuTitle")}
+                      </span>
+                      {residency === "eu" && (
+                        <CheckCircleIcon className="h-3.5 w-3.5 text-primary ml-auto" />
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("residencyEuDesc")}
+                    </p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setResidency("us")}
+                    className={`text-left rounded-xl border p-3 transition-colors ${
+                      residency === "us"
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <GlobeIcon className="h-4 w-4 text-primary shrink-0" />
+                      <span className="font-medium text-sm">
+                        {t("residencyUsTitle")}
+                      </span>
+                      {residency === "us" && (
+                        <CheckCircleIcon className="h-3.5 w-3.5 text-primary ml-auto" />
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("residencyUsDesc")}
+                    </p>
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* Profession */}
           <div>
@@ -239,7 +234,7 @@ export default function WelcomePage() {
               variant="outline"
               className="flex-1"
               size="lg"
-              onClick={() => setState("security")}
+              onClick={() => goTo("security")}
             >
               {t("skip")}
             </Button>
@@ -254,13 +249,13 @@ export default function WelcomePage() {
                     ...(profession && { profession }),
                     ...(monthlyUsage && { monthlyUsage }),
                     dataResidency: residency,
+                    onboardingStep: "security",
                   });
-                  setState("security");
                 } catch (error) {
                   console.error("Error saving profile:", error);
-                  setState("security");
                 } finally {
                   setLoading(false);
+                  setState("security");
                 }
               }}
             >
@@ -268,23 +263,25 @@ export default function WelcomePage() {
             </Button>
           </div>
         </div>
-      </StepCard>
+      </OnboardingShell>
     );
   }
 
   if (state === "security") {
     return (
-      <SecurityStep
-        userName={data?.name}
-        onContinue={() => setState("referral")}
-        onSkip={() => setState("referral")}
-      />
+      <OnboardingShell step={stepIndex} stepCount={STEP_ORDER.length}>
+        <SecurityStep
+          userName={data?.name}
+          onContinue={() => goTo("referral")}
+          onSkip={() => goTo("referral")}
+        />
+      </OnboardingShell>
     );
   }
 
   if (state === "referral") {
     return (
-      <StepCard>
+      <OnboardingShell step={stepIndex} stepCount={STEP_ORDER.length}>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
             {t("referralTitle")}
@@ -294,16 +291,16 @@ export default function WelcomePage() {
 
         <ReferralEmails />
 
-        <Button className="w-full" size="lg" onClick={() => setState("ready")}>
+        <Button className="w-full" size="lg" onClick={() => goTo("ready")}>
           {t("continue")}
         </Button>
-      </StepCard>
+      </OnboardingShell>
     );
   }
 
   if (state === "ready") {
     return (
-      <StepCard>
+      <OnboardingShell step={stepIndex} stepCount={STEP_ORDER.length}>
         <div className="flex items-start gap-4">
           <div className="rounded-full bg-green-100 dark:bg-green-950 p-3">
             <RocketIcon className="h-6 w-6 text-green-600 dark:text-green-400" />
@@ -353,7 +350,7 @@ export default function WelcomePage() {
           <RocketIcon className="w-4 h-4 mr-2" />
           {loading ? t("starting") : t("startTutorial")}
         </Button>
-      </StepCard>
+      </OnboardingShell>
     );
   }
 

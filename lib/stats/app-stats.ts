@@ -288,6 +288,20 @@ export async function getAppStats() {
     where: { isWelcomeDone: true },
   });
 
+  // Onboarding funnel: how many users reached (as their furthest point) each
+  // step of the welcome flow. Lets us see exactly where people drop off.
+  const onboardingStepGroups = await prisma.user.groupBy({
+    by: ["onboardingStep"],
+    _count: { id: true },
+  });
+  const byOnboardingStep = onboardingStepGroups.reduce(
+    (acc, g) => {
+      acc[g.onboardingStep] = g._count.id;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
+
   // 10b. Ten most recently registered users with their usage (transcriptions,
   // editor revisions) and onboarding profile, to gauge new-user engagement.
   const latestUsers = await prisma.user.findMany({
@@ -299,6 +313,7 @@ export async function getAppStats() {
       name: true,
       createdAt: true,
       isWelcomeDone: true,
+      onboardingStep: true,
       profession: true,
       monthlyUsage: true,
       dataResidency: true,
@@ -343,6 +358,7 @@ export async function getAppStats() {
     createdAt: u.createdAt,
     plan: u.plan,
     isWelcomeDone: u.isWelcomeDone,
+    onboardingStep: u.onboardingStep,
     profession: u.profession,
     monthlyUsage: u.monthlyUsage,
     dataResidency: u.dataResidency,
@@ -535,6 +551,7 @@ export async function getAppStats() {
       byMonthlyUsage,
       byDataResidency,
       welcomeDoneCount,
+      byOnboardingStep,
       recent: recentUsers,
     },
     transcriptions: {

@@ -170,6 +170,94 @@
   }
 }
 
+/* ---------- Onboarding: animated background + modal entrance ---------- */
+
+/* Slowly drifting, blurred colour blobs (Stripe-like ambient gradient). */
+@keyframes onboarding-blob {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(6%, -8%) scale(1.15);
+  }
+  66% {
+    transform: translate(-5%, 5%) scale(0.92);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+.animate-onboarding-blob {
+  animation: onboarding-blob 18s ease-in-out infinite;
+}
+
+/* Diagonal Stripe-style bands slowly sliding across the backdrop. */
+@keyframes onboarding-bands {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 800px 0;
+  }
+}
+.animate-onboarding-bands {
+  animation: onboarding-bands 24s linear infinite;
+}
+
+/* Card entrance: rise + fade + subtle scale. */
+@keyframes onboarding-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-onboarding-card {
+  animation: onboarding-card-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Per-step content swap: quick, gentle fade-up so steps feel connected. */
+@keyframes onboarding-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-onboarding-step {
+  animation: onboarding-step-in 0.35s ease-out both;
+}
+
+/* Snapchat/stories-style stepper: the active segment fills left-to-right. */
+@keyframes onboarding-stepper-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.animate-onboarding-stepper-fill {
+  transform-origin: left;
+  animation: onboarding-stepper-fill 0.45s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-onboarding-blob,
+  .animate-onboarding-bands,
+  .animate-onboarding-card,
+  .animate-onboarding-step,
+  .animate-onboarding-stepper-fill {
+    animation: none;
+  }
+}
+
 .document h1 {
     font-size: 1.5rem;
     font-weight: 600;

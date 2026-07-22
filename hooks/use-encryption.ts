@@ -92,6 +92,48 @@ export function useGenerateCertificate() {
 }
 
 /**
+ * Email the certificate (recovery key) to the user as an attachment.
+ * The private key is relayed to the server only to be mailed — never stored.
+ */
+export function useEmailRecoveryKey() {
+  return useMutation({
+    mutationFn: async (certificate: {
+      publicKey: string;
+      privateKey: string;
+      createdAt?: string;
+    }) => {
+      const response = await fetchGateway("/api/user/encryption/email-key", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          certificate: JSON.stringify(
+            {
+              publicKey: certificate.publicKey,
+              privateKey: certificate.privateKey,
+              createdAt: certificate.createdAt ?? new Date().toISOString(),
+            },
+            null,
+            2,
+          ),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to email recovery key");
+      }
+
+      const data = (await response.json()) as {
+        success: boolean;
+        delivered?: boolean;
+      };
+      // `delivered` is false when no email provider is configured, so the
+      // caller can fall back to downloading the key.
+      return { success: true, delivered: data.delivered !== false };
+    },
+  });
+}
+
+/**
  * Upload public key to server and enable encryption
  */
 export function useEnableEncryption() {

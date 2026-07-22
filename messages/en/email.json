@@ -34,6 +34,16 @@
             "feedbackInvite": "If you have a question, an idea, or something that's been bugging you, just reply to this email, we read and answer every single message personally.",
             "signOff": "Talk soon,",
             "signName": "Romaric, from the HumanLogs team"
+        },
+        "encryptionKey": {
+            "subject": "Your HumanLogs recovery key — keep this email",
+            "title": "Your HumanLogs recovery key",
+            "intro": "Attached to this email is your HumanLogs recovery key. It encrypts your transcriptions so that only you can read them.",
+            "keep": "Please keep this email. Do not delete it.",
+            "recover": "This key is what lets you recover your account and your data if you lose access to your device or sign in somewhere new. Without it, encrypted data cannot be recovered — not even by us.",
+            "secret": "Anyone with this file can access your data, so don't forward this email or share the attachment.",
+            "signOff": "Best regards,",
+            "signName": "The HumanLogs Team"
         }
     }
 }
