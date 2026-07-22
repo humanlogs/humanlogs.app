@@ -123,7 +123,7 @@ function WarmBackground() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-0 overflow-hidden bg-[#fff8f2] dark:bg-[#0b0708]"
+      className="pointer-events-none absolute inset-0 overflow-hidden bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-black"
     >
       <SilkRibbon
         className="animate-onboarding-silk-a absolute inset-0 h-full w-full opacity-70 blur-[64px] dark:opacity-60"
