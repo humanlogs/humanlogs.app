@@ -216,9 +216,8 @@
         "residencyUsDesc": "Erlaubt ElevenLabs für höchste Genauigkeit, in den USA verarbeitet.",
         "security": {
             "title": "Sichern Sie Ihr Konto",
-            "subtitle": "Wir erstellen einen Wiederherstellungsschlüssel, damit nur Sie auf Ihre Daten zugreifen können.",
-            "explainerEmail": "Wir wenden höchste Sicherheitsstandards für Ihre Studien an. Ihre Daten sind für unser Team nie zugänglich. Der erzeugte Schlüssel ist die einzige Möglichkeit, Ihre Daten wiederherzustellen, falls Sie den Zugang zu Ihrem Konto verlieren. Bewahren Sie die E-Mail auf, die wir Ihnen senden.",
-            "explainerDownload": "Wir wenden höchste Sicherheitsstandards für Ihre Studien an. Ihre Daten sind für unser Team nie zugänglich. Der erzeugte Schlüssel ist die einzige Möglichkeit, Ihre Daten wiederherzustellen, falls Sie den Zugang zu Ihrem Konto verlieren. Bewahren Sie die Datei sicher auf.",
+            "subtitleEmail": "Ihr Schlüssel wird per E-Mail gesendet, bewahren Sie ihn gut auf.",
+            "subtitleDownload": "Ihr Schlüssel wird auf Ihren Computer heruntergeladen, bewahren Sie ihn gut auf.",
             "protect": "Zu meinem Arbeitsbereich",
             "working": "Wird gesichert…",
             "advanced": "Erweiterte Optionen",

@@ -216,9 +216,8 @@
         "residencyUsDesc": "Allows ElevenLabs for the highest accuracy, processed in the US.",
         "security": {
             "title": "Secure your account",
-            "subtitle": "We'll create a recovery key so that only you can access your data.",
-            "explainerEmail": "We apply the highest security standards to your studies. Your data is never accessible to our team. The key we generated is the only way to recover your data if you ever lose access to your account. Keep the email we send you.",
-            "explainerDownload": "We apply the highest security standards to your studies. Your data is never accessible to our team. The key we generated is the only way to recover your data if you ever lose access to your account. Keep the file safe.",
+            "subtitleEmail": "Your key will be sent by email, keep it safe.",
+            "subtitleDownload": "Your key will be downloaded to your computer, keep it safe.",
             "protect": "Enter my workspace",
             "working": "Securing…",
             "advanced": "Advanced options",

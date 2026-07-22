@@ -216,9 +216,8 @@
         "residencyUsDesc": "Autorise ElevenLabs pour la meilleure précision, traité aux USA.",
         "security": {
             "title": "Sécurisez votre compte",
-            "subtitle": "Nous allons créer une clé de récupération pour que vous seul puissiez accéder à vos données.",
-            "explainerEmail": "Nous appliquons les plus hauts standards de sécurité à vos études. Vos données ne sont jamais accessibles par nos équipes. La clé que nous avons générée est le seul moyen de récupérer vos données en cas de perte d'accès à votre compte. Conservez bien l'email que nous vous enverrons.",
-            "explainerDownload": "Nous appliquons les plus hauts standards de sécurité à vos études. Vos données ne sont jamais accessibles par nos équipes. La clé que nous avons générée est le seul moyen de récupérer vos données en cas de perte d'accès à votre compte. Conservez précieusement ce fichier.",
+            "subtitleEmail": "Votre clé sera envoyée par email, conservez la précieusement.",
+            "subtitleDownload": "Votre clé sera téléchargée sur votre ordinateur, conservez la précieusement.",
             "protect": "Accéder à mon espace",
             "working": "Sécurisation…",
             "advanced": "Options avancées",

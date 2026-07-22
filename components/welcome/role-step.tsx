@@ -9,7 +9,7 @@ import {
   NewspaperIcon,
   type LucideIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { InlineChoice } from "@/components/ui/inline-choice";
 import { KaraokeText, wordCount } from "@/components/ui/karaoke-text";
@@ -64,21 +64,43 @@ export function RoleStep({
   // timeline; the role selector is revealed only once every word has landed. If
   // a role is already chosen (coming back to this step), show it all instantly.
   const alreadyChosen = !!profession;
-  const [spoken, setSpoken] = useState(alreadyChosen ? totalWords : 0);
+  const [spoken, setSpoken] = useState(alreadyChosen ? totalWords + 1 : 0);
   const [revealed, setRevealed] = useState(alreadyChosen);
+
+  // Latest word count, read fresh inside the timer: the greeting title depends
+  // on `name`, which resolves asynchronously, so a value captured in the effect
+  // closure would be stale. Keeping it in a ref lets the running timeline pick
+  // up the final count without restarting.
+  const totalRef = useRef(totalWords);
+  totalRef.current = totalWords;
 
   useEffect(() => {
     if (alreadyChosen) return;
-    let n = 0;
-    const id = setInterval(() => {
-      n += 1;
-      setSpoken(n);
-      if (n >= totalWords) {
-        clearInterval(id);
-        setTimeout(() => setRevealed(true), 250);
+    // Drive the "spoken" word count from elapsed time (not an accumulating
+    // counter) so a re-mount converges to the same value instead of leaving a
+    // stray timer wedged mid-line. Words light ~100ms apart; once the last one
+    // lands we push past it so nothing stays highlighted, then reveal the
+    // selector a beat later.
+    const WORD_MS = 100;
+    const start = performance.now();
+    let raf = 0;
+    let revealTimer: ReturnType<typeof setTimeout> | undefined;
+    const tick = () => {
+      const total = totalRef.current;
+      const n = Math.floor((performance.now() - start) / WORD_MS);
+      if (n >= total) {
+        setSpoken(total + 1);
+        revealTimer = setTimeout(() => setRevealed(true), 250);
+        return;
       }
-    }, 100);
-    return () => clearInterval(id);
+      setSpoken(n);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(raf);
+      if (revealTimer) clearTimeout(revealTimer);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -109,13 +131,10 @@ export function RoleStep({
       </div>
 
       <h1 className="text-2xl font-bold tracking-tight">
-        <KaraokeText text={titleText} revealed={spoken} />
+        <KaraokeText text={titleText} active={spoken} />
       </h1>
       <p className="text-muted-foreground mt-2 text-[15px] pb-8">
-        <KaraokeText
-          text={subtitleText}
-          revealed={Math.max(0, spoken - titleWords)}
-        />
+        <KaraokeText text={subtitleText} active={spoken - titleWords} />
       </p>
 
       {/* The role selector + settings are revealed once the greeting finishes. */}

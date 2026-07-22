@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from "@/components/locale-provider";
 import { Badge } from "@/components/ui/badge";
+import { KARAOKE_ACTIVE_CLASS } from "@/components/ui/karaoke-text";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -268,7 +269,7 @@ export const AnimatedTranscriptCard = ({
                       }
                       ${
                         isActive
-                          ? "bg-[color-mix(in_oklab,_rgb(59_130_246)_25%,_transparent)] outline outline-1 outline-[color-mix(in_oklab,_rgb(59_130_246)_50%,_transparent)] outline-offset-1"
+                          ? KARAOKE_ACTIVE_CLASS
                           : isPast
                             ? "text-gray-900"
                             : "text-gray-400"

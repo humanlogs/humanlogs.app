@@ -216,9 +216,8 @@
         "residencyUsDesc": "Permite ElevenLabs para la máxima precisión, procesado en EE. UU.",
         "security": {
             "title": "Protege tu cuenta",
-            "subtitle": "Crearemos una clave de recuperación para que solo tú puedas acceder a tus datos.",
-            "explainerEmail": "Aplicamos los estándares de seguridad más altos a tus estudios. Tus datos nunca son accesibles para nuestro equipo. La clave que generamos es la única forma de recuperar tus datos si pierdes el acceso a tu cuenta. Conserva el correo que te enviaremos.",
-            "explainerDownload": "Aplicamos los estándares de seguridad más altos a tus estudios. Tus datos nunca son accesibles para nuestro equipo. La clave que generamos es la única forma de recuperar tus datos si pierdes el acceso a tu cuenta. Guarda bien este archivo.",
+            "subtitleEmail": "Tu clave se enviará por correo, guárdala con cuidado.",
+            "subtitleDownload": "Tu clave se descargará en tu ordenador, guárdala con cuidado.",
             "protect": "Acceder a mi espacio",
             "working": "Protegiendo…",
             "advanced": "Opciones avanzadas",

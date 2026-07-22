@@ -154,16 +154,8 @@ export function SecurityStep({ onContinue, onSkip }: SecurityStepProps) {
         </div>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground mt-1 text-sm">{t("subtitle")}</p>
-        </div>
-      </div>
-
-      {/* What the recovery key is, in one reassuring line. */}
-      <div className="rounded-xl border bg-muted/40 p-4">
-        <div className="flex items-start gap-3">
-          <MailIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-          <p className="text-sm text-muted-foreground">
-            {sendByEmail ? t("explainerEmail") : t("explainerDownload")}
+          <p className="text-muted-foreground mt-1 text-sm">
+            {sendByEmail ? t("subtitleEmail") : t("subtitleDownload")}
           </p>
         </div>
       </div>
