@@ -42,7 +42,7 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
       <div className="fixed inset-0 z-50 flex items-center justify-center">
         {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-black/50"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm"
           onClick={() => onOpenChange(false)}
         />
         {children}
@@ -65,7 +65,7 @@ export function DialogContent({
   return (
     <div
       className={cn(
-        "relative z-50 w-full max-w-lg bg-background rounded-lg border shadow-lg overflow-auto",
+        "relative z-50 w-full max-w-lg bg-background rounded-2xl border shadow-2xl shadow-black/10 overflow-auto",
         className,
       )}
       onClick={(e) => e.stopPropagation()}

@@ -9,9 +9,9 @@ import { GoogleLoginButton } from "react-social-login-buttons";
 import { MicrosoftLoginButton } from "react-social-login-buttons";
 import { FacebookLoginButton } from "react-social-login-buttons";
 import { toast } from "sonner";
+import { AmbientBackground } from "@/components/ui/ambient-background";
 import { AnimatedWave } from "@/app/(landing)/[locale]/components/sections/animated-wave";
 import { AnimatedTranscriptCard } from "@/app/(landing)/[locale]/components/sections/animated-transcript-card";
-import { TestimonialsSection } from "../../(landing)/[locale]/components/sections";
 import { TestimonialCard } from "../../(landing)/[locale]/components/sections/testimonials-section";
 
 type AuthProvider =
@@ -95,8 +95,9 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen">
       {/* Left Side - Login Form */}
-      <div className="flex-1 flex items-center justify-center bg-white dark:bg-black p-4 lg:p-8">
-        <div className="w-full max-w-md space-y-8 rounded-2xl p-8">
+      <div className="relative flex-1 flex items-center justify-center overflow-hidden p-4 lg:p-8">
+        <AmbientBackground variant="warm" />
+        <div className="relative z-10 w-full max-w-md space-y-8 rounded-2xl p-8">
           {/* Logo and Header */}
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center">

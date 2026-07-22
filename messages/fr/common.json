@@ -200,10 +200,10 @@
         "monthlyUsageLabel": "Combien transcrivez-vous par mois ?",
         "monthlyUsagePlaceholder": "Sélectionnez votre usage",
         "monthlyUsage": {
-            "lt1h": "0-1 heure",
+            "lt1h": "Moins d'1 heure",
             "h1to5": "1 à 5 heures",
             "h5to20": "5 à 20 heures",
-            "gt20h": "20+ heures"
+            "gt20h": "Plus de 20 heures"
         },
         "skip": "Passer",
         "referralTitle": "Invitez des amis, gagnez des minutes gratuites",
@@ -213,34 +213,34 @@
         "residencyEuTitle": "100 % Européen",
         "residencyEuDesc": "Traité uniquement sur des serveurs européens, sans rétention ni entraînement.",
         "residencyUsTitle": "US (meilleur modèle)",
-        "residencyUsDesc": "Autorise ElevenLabs pour la meilleure précision, traité aux États-Unis.",
+        "residencyUsDesc": "Autorise ElevenLabs pour la meilleure précision, traité aux USA.",
         "security": {
             "title": "Sécurisez votre compte",
             "subtitle": "Nous allons créer une clé de récupération pour que vous seul puissiez accéder à vos données.",
-            "explainerEmail": "Nous appliquons les plus hauts standards de sécurité à vos études. Vos données ne sont jamais accessibles par nos équipes. La clé que nous avons générée est le seul moyen de récupérer vos données en cas de perte d'accès à votre compte — conservez bien l'email que nous vous enverrons.",
-            "explainerDownload": "Nous appliquons les plus hauts standards de sécurité à vos études. Vos données ne sont jamais accessibles par nos équipes. La clé que nous avons générée est le seul moyen de récupérer vos données en cas de perte d'accès à votre compte — conservez précieusement ce fichier.",
+            "explainerEmail": "Nous appliquons les plus hauts standards de sécurité à vos études. Vos données ne sont jamais accessibles par nos équipes. La clé que nous avons générée est le seul moyen de récupérer vos données en cas de perte d'accès à votre compte. Conservez bien l'email que nous vous enverrons.",
+            "explainerDownload": "Nous appliquons les plus hauts standards de sécurité à vos études. Vos données ne sont jamais accessibles par nos équipes. La clé que nous avons générée est le seul moyen de récupérer vos données en cas de perte d'accès à votre compte. Conservez précieusement ce fichier.",
             "protect": "Accéder à mon espace",
             "working": "Sécurisation…",
             "advanced": "Options avancées",
             "deliveryLabel": "Comment souhaitez-vous recevoir votre clé de récupération ?",
-            "deliveryEmail": "Me l'envoyer par e-mail",
+            "deliveryEmail": "Me l'envoyer par email",
             "deliveryDownload": "Je l'enregistre moi-même",
-            "deliveryEmailHint": "L'option la plus simple. La clé est envoyée dans votre boîte mail — ne supprimez pas cet e-mail.",
+            "deliveryEmailHint": "L'option la plus simple. La clé est envoyée dans votre boîte mail. Ne supprimez pas cet email.",
             "deliveryDownloadHint": "L'option la plus confidentielle. La clé est téléchargée et ne quitte jamais votre appareil.",
             "trustLabel": "Faire confiance à cet appareil",
             "trustHint": "Restez connecté avec votre clé sur cet appareil. À désactiver sur un ordinateur partagé.",
             "importButton": "J'ai déjà une clé de récupération",
             "skip": "Ignorer pour l'instant",
-            "emailedToast": "Clé de récupération envoyée par e-mail",
+            "emailedToast": "Clé de récupération envoyée par email",
             "downloadedToast": "Clé de récupération téléchargée",
             "importedToast": "Clé de récupération importée",
             "error": "Une erreur est survenue. Veuillez réessayer.",
             "importError": "Impossible de lire ce fichier de clé. Vérifiez-le et réessayez.",
             "doneTitle": "Votre compte est protégé",
-            "doneEmail": "Consultez votre boîte mail pour votre clé de récupération — conservez bien cet e-mail.",
-            "doneDownload": "Votre clé de récupération a été enregistrée — gardez-la en lieu sûr."
+            "doneEmail": "Consultez votre boîte mail pour votre clé de récupération. Conservez bien cet email.",
+            "doneDownload": "Votre clé de récupération a été enregistrée. Gardez-la en lieu sûr."
         },
-        "heroSubtitle": "Ravi de vous accueillir ! Configurons HumanLogs pour vous — moins d'une minute suffit.",
+        "heroSubtitle": "Ravi de vous accueillir ! Configurer HumanLogs prend moins d'une minute.",
         "personalize": "Personnaliser",
         "heroChipPrivate": "Confidentiel & chiffré",
         "heroChipFast": "Ultra rapide",
@@ -260,14 +260,14 @@
             "processing": "Traitement :",
             "volume": "Volume :",
             "euValue": "Europe (Gladia)",
-            "usValue": "États-Unis (meilleur modèle)"
+            "usValue": "USA (meilleur modèle)"
         },
         "plan": {
             "title": "Vous êtes prêt",
             "subtitle": "Vous démarrez sur le plan gratuit avec {credits} crédits offerts.",
             "continueFree": "Continuer en gratuit",
             "seePlans": "Voir les offres",
-            "subtitleFree": "Vous démarrez sur le plan gratuit — 100 minutes de transcription chaque mois."
+            "subtitleFree": "Vous démarrez sur le plan gratuit. 100 minutes de transcription chaque mois."
         },
         "researcher": {
             "title": "Faites profiter votre université de HumanLogs",
@@ -291,7 +291,7 @@
             "subtitle": "Commencez gratuitement, passez au Pro quand vous voulez.",
             "monthly": "Mensuel",
             "yearly": "Annuel",
-            "save": "−17 %",
+            "save": "17 % de remise",
             "perMonth": "/mois",
             "billedYearly": "facturé annuellement · 20 h / mois",
             "freeName": "Gratuit",
@@ -303,7 +303,9 @@
             "feat2": "Éditeur collaboratif en temps réel",
             "freeCta": "Continuer en gratuit",
             "proCta": "Passer au Pro",
-            "error": "Impossible de démarrer le paiement. Réessayez."
+            "error": "Impossible de démarrer le paiement. Réessayez.",
+            "currency": "€",
+            "freePrice": "0 €"
         }
     },
     "tutorialWelcome": {

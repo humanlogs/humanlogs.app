@@ -200,10 +200,10 @@
         "monthlyUsageLabel": "Wie viel transkribieren Sie pro Monat?",
         "monthlyUsagePlaceholder": "Nutzung auswählen",
         "monthlyUsage": {
-            "lt1h": "0-1 Stunde",
-            "h1to5": "1–5 Stunden",
-            "h5to20": "5–20 Stunden",
-            "gt20h": "20+ Stunden"
+            "lt1h": "Weniger als 1 Std.",
+            "h1to5": "1 bis 5 Std.",
+            "h5to20": "5 bis 20 Std.",
+            "gt20h": "Über 20 Std."
         },
         "skip": "Überspringen",
         "referralTitle": "Freunde einladen, Gratisminuten verdienen",
@@ -217,15 +217,15 @@
         "security": {
             "title": "Sichern Sie Ihr Konto",
             "subtitle": "Wir erstellen einen Wiederherstellungsschlüssel, damit nur Sie auf Ihre Daten zugreifen können.",
-            "explainerEmail": "Wir wenden höchste Sicherheitsstandards für Ihre Studien an. Ihre Daten sind für unser Team nie zugänglich. Der für Sie erzeugte Schlüssel ist die einzige Möglichkeit, Ihre Daten wiederherzustellen, falls Sie den Zugang zu Ihrem Konto verlieren — bewahren Sie die E-Mail auf, die wir Ihnen senden.",
-            "explainerDownload": "Wir wenden höchste Sicherheitsstandards für Ihre Studien an. Ihre Daten sind für unser Team nie zugänglich. Der für Sie erzeugte Schlüssel ist die einzige Möglichkeit, Ihre Daten wiederherzustellen, falls Sie den Zugang zu Ihrem Konto verlieren — bewahren Sie die Datei sicher auf.",
+            "explainerEmail": "Wir wenden höchste Sicherheitsstandards für Ihre Studien an. Ihre Daten sind für unser Team nie zugänglich. Der erzeugte Schlüssel ist die einzige Möglichkeit, Ihre Daten wiederherzustellen, falls Sie den Zugang zu Ihrem Konto verlieren. Bewahren Sie die E-Mail auf, die wir Ihnen senden.",
+            "explainerDownload": "Wir wenden höchste Sicherheitsstandards für Ihre Studien an. Ihre Daten sind für unser Team nie zugänglich. Der erzeugte Schlüssel ist die einzige Möglichkeit, Ihre Daten wiederherzustellen, falls Sie den Zugang zu Ihrem Konto verlieren. Bewahren Sie die Datei sicher auf.",
             "protect": "Zu meinem Arbeitsbereich",
             "working": "Wird gesichert…",
             "advanced": "Erweiterte Optionen",
             "deliveryLabel": "Wie sollen wir Ihren Wiederherstellungsschlüssel bereitstellen?",
             "deliveryEmail": "Per E-Mail senden",
             "deliveryDownload": "Ich speichere ihn selbst",
-            "deliveryEmailHint": "Die einfachste Option. Der Schlüssel wird an Ihr Postfach gesendet – löschen Sie diese E-Mail nicht.",
+            "deliveryEmailHint": "Die einfachste Option. Der Schlüssel wird an Ihr Postfach gesendet. Löschen Sie diese E-Mail nicht.",
             "deliveryDownloadHint": "Die privateste Option. Der Schlüssel wird heruntergeladen und verlässt Ihr Gerät nie.",
             "trustLabel": "Diesem Gerät vertrauen",
             "trustHint": "Mit Ihrem Schlüssel auf diesem Gerät angemeldet bleiben. Auf gemeinsam genutzten Computern deaktivieren.",
@@ -237,10 +237,10 @@
             "error": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
             "importError": "Diese Schlüsseldatei konnte nicht gelesen werden. Bitte prüfen Sie sie und versuchen Sie es erneut.",
             "doneTitle": "Ihr Konto ist geschützt",
-            "doneEmail": "Prüfen Sie Ihr Postfach auf Ihren Wiederherstellungsschlüssel – bewahren Sie diese E-Mail gut auf.",
-            "doneDownload": "Ihr Wiederherstellungsschlüssel wurde gespeichert – bewahren Sie ihn sicher auf."
+            "doneEmail": "Prüfen Sie Ihr Postfach auf Ihren Wiederherstellungsschlüssel. Bewahren Sie diese E-Mail gut auf.",
+            "doneDownload": "Ihr Wiederherstellungsschlüssel wurde gespeichert. Bewahren Sie ihn sicher auf."
         },
-        "heroSubtitle": "Schön, dass Sie da sind! Richten wir HumanLogs für Sie ein — in unter einer Minute.",
+        "heroSubtitle": "Schön, dass Sie da sind! HumanLogs ist in unter einer Minute eingerichtet.",
         "personalize": "Personalisieren",
         "heroChipPrivate": "Privat & verschlüsselt",
         "heroChipFast": "Blitzschnell",
@@ -267,11 +267,11 @@
             "subtitle": "Sie starten im kostenlosen Plan mit {credits} Guthaben inklusive.",
             "continueFree": "Kostenlos fortfahren",
             "seePlans": "Pläne ansehen",
-            "subtitleFree": "Sie starten im kostenlosen Plan — 100 Minuten Transkription pro Monat."
+            "subtitleFree": "Sie starten im kostenlosen Plan. 100 Minuten Transkription pro Monat."
         },
         "researcher": {
             "title": "Holen Sie HumanLogs an Ihre Universität",
-            "subtitle": "HumanLogs bietet Lizenzen für Forschungslabore und Universitäten. Hinterlassen Sie die E-Mail der zuständigen Person (oder Ihre eigene) — wir melden uns in Ihrem Namen mit einem Angebot.",
+            "subtitle": "HumanLogs bietet Lizenzen für Forschungslabore und Universitäten. Hinterlassen Sie die E-Mail der zuständigen Person (oder Ihre eigene). Wir melden uns in Ihrem Namen mit einem Angebot.",
             "placeholder": "E-Mail der zuständigen Person",
             "skip": "Vielleicht später",
             "invalid": "Ungültige E-Mail",
@@ -291,7 +291,7 @@
             "subtitle": "Starten Sie kostenlos, wechseln Sie jederzeit zu Pro.",
             "monthly": "Monatlich",
             "yearly": "Jährlich",
-            "save": "−17 %",
+            "save": "17 % sparen",
             "perMonth": "/Mon.",
             "billedYearly": "jährlich abgerechnet · 20 Std. / Monat",
             "freeName": "Kostenlos",
@@ -303,7 +303,9 @@
             "feat2": "Kollaborativer Echtzeit-Editor",
             "freeCta": "Kostenlos fortfahren",
             "proCta": "Zu Pro wechseln",
-            "error": "Zahlung konnte nicht gestartet werden. Bitte erneut versuchen."
+            "error": "Zahlung konnte nicht gestartet werden. Bitte erneut versuchen.",
+            "currency": "€",
+            "freePrice": "0 €"
         }
     },
     "tutorialWelcome": {

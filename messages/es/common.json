@@ -200,10 +200,10 @@
         "monthlyUsageLabel": "¿Cuánto transcribes al mes?",
         "monthlyUsagePlaceholder": "Selecciona tu uso",
         "monthlyUsage": {
-            "lt1h": "0-1 hora",
-            "h1to5": "1–5 horas",
-            "h5to20": "5–20 horas",
-            "gt20h": "20+ horas"
+            "lt1h": "Menos de 1 hora",
+            "h1to5": "1 a 5 horas",
+            "h5to20": "5 a 20 horas",
+            "gt20h": "Más de 20 horas"
         },
         "skip": "Omitir",
         "referralTitle": "Invita a amigos y gana minutos gratis",
@@ -217,15 +217,15 @@
         "security": {
             "title": "Protege tu cuenta",
             "subtitle": "Crearemos una clave de recuperación para que solo tú puedas acceder a tus datos.",
-            "explainerEmail": "Aplicamos los estándares de seguridad más altos a tus estudios. Tus datos nunca son accesibles para nuestro equipo. La clave que hemos generado es la única forma de recuperar tus datos si pierdes el acceso a tu cuenta: conserva el correo que te enviaremos.",
-            "explainerDownload": "Aplicamos los estándares de seguridad más altos a tus estudios. Tus datos nunca son accesibles para nuestro equipo. La clave que hemos generado es la única forma de recuperar tus datos si pierdes el acceso a tu cuenta: guarda bien este archivo.",
+            "explainerEmail": "Aplicamos los estándares de seguridad más altos a tus estudios. Tus datos nunca son accesibles para nuestro equipo. La clave que generamos es la única forma de recuperar tus datos si pierdes el acceso a tu cuenta. Conserva el correo que te enviaremos.",
+            "explainerDownload": "Aplicamos los estándares de seguridad más altos a tus estudios. Tus datos nunca son accesibles para nuestro equipo. La clave que generamos es la única forma de recuperar tus datos si pierdes el acceso a tu cuenta. Guarda bien este archivo.",
             "protect": "Acceder a mi espacio",
             "working": "Protegiendo…",
             "advanced": "Opciones avanzadas",
             "deliveryLabel": "¿Cómo quieres recibir tu clave de recuperación?",
             "deliveryEmail": "Enviármela por correo",
             "deliveryDownload": "La guardo yo mismo",
-            "deliveryEmailHint": "La opción más sencilla. La clave se envía a tu correo: no elimines ese mensaje.",
+            "deliveryEmailHint": "La opción más sencilla. La clave se envía a tu correo. No elimines ese mensaje.",
             "deliveryDownloadHint": "La opción más privada. La clave se descarga y nunca sale de tu dispositivo.",
             "trustLabel": "Confiar en este dispositivo",
             "trustHint": "Mantén la sesión con tu clave en este dispositivo. Desactívalo en equipos compartidos.",
@@ -237,10 +237,10 @@
             "error": "Algo salió mal. Inténtalo de nuevo.",
             "importError": "No se pudo leer ese archivo de clave. Revísalo e inténtalo de nuevo.",
             "doneTitle": "Tu cuenta está protegida",
-            "doneEmail": "Revisa tu correo para encontrar tu clave de recuperación; guarda bien ese mensaje.",
-            "doneDownload": "Tu clave de recuperación se ha guardado; consérvala en un lugar seguro."
+            "doneEmail": "Revisa tu correo para encontrar tu clave de recuperación. Consérvalo bien.",
+            "doneDownload": "Tu clave de recuperación se ha guardado. Consérvala en un lugar seguro."
         },
-        "heroSubtitle": "¡Nos alegra tenerte aquí! Configuremos HumanLogs para ti — en menos de un minuto.",
+        "heroSubtitle": "¡Nos alegra tenerte aquí! Configurar HumanLogs lleva menos de un minuto.",
         "personalize": "Personalizar",
         "heroChipPrivate": "Privado y cifrado",
         "heroChipFast": "Muy rápido",
@@ -267,7 +267,7 @@
             "subtitle": "Empiezas con el plan gratuito con {credits} créditos incluidos.",
             "continueFree": "Continuar con el plan gratuito",
             "seePlans": "Ver planes",
-            "subtitleFree": "Empiezas con el plan gratuito: 100 minutos de transcripción al mes."
+            "subtitleFree": "Empiezas con el plan gratuito. 100 minutos de transcripción al mes."
         },
         "researcher": {
             "title": "Lleva HumanLogs a tu universidad",
@@ -291,7 +291,7 @@
             "subtitle": "Empieza gratis y pásate a Pro cuando quieras.",
             "monthly": "Mensual",
             "yearly": "Anual",
-            "save": "−17 %",
+            "save": "Ahorra 17 %",
             "perMonth": "/mes",
             "billedYearly": "facturado anualmente · 20 h / mes",
             "freeName": "Gratis",
@@ -303,7 +303,9 @@
             "feat2": "Editor colaborativo en tiempo real",
             "freeCta": "Continuar gratis",
             "proCta": "Pasar a Pro",
-            "error": "No se pudo iniciar el pago. Inténtalo de nuevo."
+            "error": "No se pudo iniciar el pago. Inténtalo de nuevo.",
+            "currency": "€",
+            "freePrice": "0 €"
         }
     },
     "tutorialWelcome": {

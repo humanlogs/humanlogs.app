@@ -7,8 +7,8 @@ import {
   useLocale,
   useTranslations,
 } from "../../../components/locale-provider";
-import { InlineChoice } from "../../../components/welcome/inline-choice";
-import type { OnboardingBgVariant } from "../../../components/welcome/onboarding-backgrounds";
+import { InlineChoice } from "@/components/ui/inline-choice";
+import type { AmbientBgVariant } from "@/components/ui/ambient-background";
 import { OnboardingShell } from "../../../components/welcome/onboarding-shell";
 import { EngageStep } from "../../../components/welcome/engage-step";
 import { ProvisioningStep } from "../../../components/welcome/provisioning-step";
@@ -43,7 +43,7 @@ export default function WelcomePage() {
   const [residency, setResidency] = useState<"eu" | "us">("eu");
 
   // Optional background override via ?bg=aurora|warm|minimal (design preview).
-  const [bgOverride, setBgOverride] = useState<OnboardingBgVariant | undefined>(
+  const [bgOverride, setBgOverride] = useState<AmbientBgVariant | undefined>(
     undefined,
   );
   useEffect(() => {

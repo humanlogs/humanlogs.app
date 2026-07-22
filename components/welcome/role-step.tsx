@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
-import { InlineChoice } from "./inline-choice";
+import { InlineChoice } from "@/components/ui/inline-choice";
 import {
   HEADLINE_ROLES,
   OTHER_PROFESSIONS,

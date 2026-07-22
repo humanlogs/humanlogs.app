@@ -101,7 +101,7 @@ export function PricingStep({
         {/* Free */}
         <div className="flex flex-col rounded-2xl border p-5">
           <div className="text-sm font-semibold">{t("pricing.freeName")}</div>
-          <div className="mt-1 text-3xl font-bold">0 €</div>
+          <div className="mt-1 text-3xl font-bold">{t("pricing.freePrice")}</div>
           <div className="text-muted-foreground mt-0.5 text-xs">
             {t("pricing.freeMinutes")}
           </div>
@@ -129,7 +129,7 @@ export function PricingStep({
               {proPrice.toLocaleString(undefined, {
                 minimumFractionDigits: proPrice % 1 ? 2 : 0,
               })}{" "}
-              €
+              {t("pricing.currency")}
             </span>
             <span className="text-muted-foreground text-sm">
               {t("pricing.perMonth")}

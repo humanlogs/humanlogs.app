@@ -36,11 +36,11 @@
             "signName": "Romaric, del equipo de HumanLogs"
         },
         "encryptionKey": {
-            "subject": "Tu clave de recuperación de HumanLogs: conserva este correo",
+            "subject": "Tu clave de recuperación de HumanLogs (conserva este correo)",
             "title": "Tu clave de recuperación de HumanLogs",
             "intro": "Adjunta a este correo está tu clave de recuperación de HumanLogs. Cifra tus transcripciones para que solo tú puedas leerlas.",
             "keep": "Conserva este correo. No lo elimines.",
-            "recover": "Esta clave te permite recuperar tu cuenta y tus datos si pierdes el acceso a tu dispositivo o inicias sesión en otro lugar. Sin ella, los datos cifrados no se pueden recuperar, ni siquiera nosotros.",
+            "recover": "Esta clave te permite recuperar tu cuenta y tus datos si pierdes el acceso a tu dispositivo o inicias sesión en otro lugar. Sin ella, los datos cifrados no se pueden recuperar. Ni siquiera nosotros.",
             "secret": "Cualquiera que tenga este archivo puede acceder a tus datos: no reenvíes este correo ni compartas el archivo adjunto.",
             "signOff": "Un saludo,",
             "signName": "El equipo de HumanLogs"

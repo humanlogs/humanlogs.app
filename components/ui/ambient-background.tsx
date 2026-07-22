@@ -1,17 +1,17 @@
 "use client";
 
 /**
- * Decorative animated backdrops for the onboarding flow.
+ * Reusable decorative animated backdrop (onboarding, login, empty states...).
  *
  * Three interchangeable directions so the look can be chosen by taste:
- *  - "aurora"  — soft, cohesive cool mesh (indigo/violet/blue), premium & calm.
- *  - "warm"    — warm, human mesh (amber/rose/violet), inviting.
- *  - "minimal" — near-white with a single brand glow + a faint dot grid, clean.
+ *  "aurora": soft, cohesive cool mesh (indigo/violet/blue), premium and calm.
+ *  "warm": warm, human silk (amber/rose/violet), inviting.
+ *  "minimal": near-white with a single brand glow and a faint dot grid, clean.
  *
  * All are purely decorative (aria-hidden) and respect prefers-reduced-motion
  * (the drift animations are disabled there via globals.css).
  */
-export type OnboardingBgVariant = "aurora" | "warm" | "minimal";
+export type AmbientBgVariant = "aurora" | "warm" | "minimal";
 
 // A very subtle film grain (inline SVG noise) to keep large gradients from
 // looking flat/banded. Kept extremely light.
@@ -181,10 +181,10 @@ function MinimalBackground() {
   );
 }
 
-export function OnboardingBackground({
+export function AmbientBackground({
   variant = "aurora",
 }: {
-  variant?: OnboardingBgVariant;
+  variant?: AmbientBgVariant;
 }) {
   if (variant === "warm") return <WarmBackground />;
   if (variant === "minimal") return <MinimalBackground />;

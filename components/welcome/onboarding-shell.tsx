@@ -2,9 +2,9 @@
 
 import { cn } from "@/lib/utils/utils";
 import {
-  OnboardingBackground,
-  type OnboardingBgVariant,
-} from "./onboarding-backgrounds";
+  AmbientBackground,
+  type AmbientBgVariant,
+} from "@/components/ui/ambient-background";
 
 /**
  * Shared chrome for the onboarding/welcome flow.
@@ -20,7 +20,7 @@ import {
  */
 // Default backdrop for the whole onboarding flow. Change this one constant to
 // switch the look everywhere.
-const DEFAULT_BG: OnboardingBgVariant = "warm";
+const DEFAULT_BG: AmbientBgVariant = "warm";
 
 export function OnboardingShell({
   step,
@@ -36,13 +36,13 @@ export function OnboardingShell({
   stepCount: number;
   children: React.ReactNode;
   wide?: boolean;
-  bgVariant?: OnboardingBgVariant;
+  bgVariant?: AmbientBgVariant;
   /** Optional discreet control pinned to the top-right corner of the screen. */
   topRight?: React.ReactNode;
 }) {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
-      <OnboardingBackground variant={bgVariant} />
+      <AmbientBackground variant={bgVariant} />
 
       {topRight && (
         <div className="absolute right-4 top-4 z-20">{topRight}</div>
