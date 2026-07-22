@@ -93,11 +93,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen">
-      {/* Left Side - Login Form */}
-      <div className="relative flex-1 flex items-center justify-center overflow-hidden p-4 lg:p-8">
-        <AmbientBackground variant="warm" />
-        <div className="relative z-10 w-full max-w-md space-y-8 rounded-2xl p-8">
+    <div className="relative flex min-h-screen overflow-hidden">
+      {/* Animated silk backdrop spanning the whole page */}
+      <AmbientBackground variant="warm" />
+
+      {/* Left Side - Login Form on a frosted, near-opaque panel (matches the
+          onboarding funnel card surface) */}
+      <div className="relative z-10 flex-1 flex items-center justify-center p-4 lg:p-8 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-r border-black/5 dark:border-white/10">
+        <div className="w-full max-w-md space-y-8 p-8">
           {/* Logo and Header */}
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center">
@@ -310,8 +313,8 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Side - Hero Animations */}
-      <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-zinc-50 to-zinc-100 border-l p-8 items-center justify-center">
+      {/* Right Side - Hero Animations, transparent so the silk shows through */}
+      <div className="relative z-10 hidden lg:flex lg:flex-1 p-8 items-center justify-center">
         <div className="w-full max-w-2xl space-y-8">
           {/* Animated Wave */}
           <div className="mb-8">
