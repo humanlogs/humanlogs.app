@@ -12,6 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { InlineChoice } from "@/components/ui/inline-choice";
+import { KaraokeText, wordCount } from "@/components/ui/karaoke-text";
 import { HEADLINE_ROLES, OTHER_PROFESSIONS } from "./onboarding-roles";
 
 const MONTHLY_USAGE_KEYS = ["lt1h", "h1to5", "h5to20", "gt20h"];
@@ -52,17 +53,38 @@ export function RoleStep({
   loading,
 }: RoleStepProps) {
   const t = useTranslations("welcome");
-  // Brief welcome, then reveal the actual onboarding after ~1s. If a role is
-  // already chosen (e.g. coming back to this step), reveal immediately.
-  const [revealed, setRevealed] = useState(!!profession);
+  const titleText = name
+    ? t("title").replace("{name}", name)
+    : t("titleDefault");
+  const subtitleText = t("roleStep.subtitle");
+  const titleWords = wordCount(titleText);
+  const totalWords = titleWords + wordCount(subtitleText);
+
+  // The greeting is "spoken" karaoke-style (title then subtitle) on one shared
+  // timeline; the role selector is revealed only once every word has landed. If
+  // a role is already chosen (coming back to this step), show it all instantly.
+  const alreadyChosen = !!profession;
+  const [spoken, setSpoken] = useState(alreadyChosen ? totalWords : 0);
+  const [revealed, setRevealed] = useState(alreadyChosen);
+
+  useEffect(() => {
+    if (alreadyChosen) return;
+    let n = 0;
+    const id = setInterval(() => {
+      n += 1;
+      setSpoken(n);
+      if (n >= totalWords) {
+        clearInterval(id);
+        setTimeout(() => setRevealed(true), 250);
+      }
+    }, 100);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const isOtherProfession = (p: string) =>
     p === "other" || OTHER_PROFESSIONS.includes(p);
   const [otherOpen, setOtherOpen] = useState(isOtherProfession(profession));
-
-  useEffect(() => {
-    const id = setTimeout(() => setRevealed(true), 1000);
-    return () => clearTimeout(id);
-  }, []);
 
   const headlineActive = (role: string) => {
     if (role === "other") return isOtherProfession(profession);
@@ -87,13 +109,16 @@ export function RoleStep({
       </div>
 
       <h1 className="text-2xl font-bold tracking-tight">
-        {name ? t("title").replace("{name}", name) : t("titleDefault")}
+        <KaraokeText text={titleText} revealed={spoken} />
       </h1>
       <p className="text-muted-foreground mt-2 text-[15px] pb-8">
-        {t("roleStep.subtitle")}
+        <KaraokeText
+          text={subtitleText}
+          revealed={Math.max(0, spoken - titleWords)}
+        />
       </p>
 
-      {/* The role selector + settings fade in a beat after the greeting. */}
+      {/* The role selector + settings are revealed once the greeting finishes. */}
       {revealed && (
         <div className="space-y-5 text-left">
           <div>
