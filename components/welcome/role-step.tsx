@@ -12,10 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { InlineChoice } from "@/components/ui/inline-choice";
-import {
-  HEADLINE_ROLES,
-  OTHER_PROFESSIONS,
-} from "./onboarding-roles";
+import { HEADLINE_ROLES, OTHER_PROFESSIONS } from "./onboarding-roles";
 
 const MONTHLY_USAGE_KEYS = ["lt1h", "h1to5", "h5to20", "gt20h"];
 
@@ -84,16 +81,21 @@ export function RoleStep({
 
   return (
     <div className="text-center">
+      <div className="flex items-center justify-center mb-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.svg" alt="Logo" className="flex w-16 h-16" />
+      </div>
+
       <h1 className="text-2xl font-bold tracking-tight">
         {name ? t("title").replace("{name}", name) : t("titleDefault")}
       </h1>
-      <p className="text-muted-foreground mt-2 text-[15px]">
+      <p className="text-muted-foreground mt-2 text-[15px] pb-8">
         {t("roleStep.subtitle")}
       </p>
 
       {/* The role selector + settings fade in a beat after the greeting. */}
       {revealed && (
-        <div className="mt-6 space-y-5 text-left">
+        <div className="space-y-5 text-left">
           <div>
             <p className="mb-2 text-sm font-medium">{t("roleStep.question")}</p>
             <div className="grid grid-cols-2 gap-2.5">

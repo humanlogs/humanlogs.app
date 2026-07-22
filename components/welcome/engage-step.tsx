@@ -69,14 +69,13 @@ export function EngageStep({
 }
 
 function ResearcherLicense({
-  userEmail,
   onContinue,
 }: {
   userEmail?: string;
   onContinue: () => void;
 }) {
   const t = useTranslations("welcome");
-  const [email, setEmail] = useState(userEmail ?? "");
+  const [email, setEmail] = useState("");
   const [secondEmail, setSecondEmail] = useState("");
   const [showSecond, setShowSecond] = useState(false);
   const [sending, setSending] = useState(false);
@@ -151,12 +150,11 @@ function ResearcherLicense({
             onChange={(e) => setEmail(e.target.value)}
             placeholder={t("researcher.placeholder")}
             onKeyDown={(e) => e.key === "Enter" && submit()}
-            className="h-11"
           />
           <Button
             onClick={submit}
             disabled={sending}
-            className="h-11 w-11 shrink-0 p-0"
+            className="h-8 w-12 shrink-0 p-0"
             aria-label={t("researcher.submit")}
           >
             <SendIcon className="h-4 w-4" />
