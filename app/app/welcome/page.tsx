@@ -181,7 +181,7 @@ export default function WelcomePage() {
         <EngageStep
           bucket={roleBucket(profession)}
           userEmail={data?.email}
-          credits={data?.credits ?? 100}
+          isBillingEnabled={!!data?.isBillingEnabled}
           onContinue={goToProvisioning}
         />
       </OnboardingShell>

@@ -217,9 +217,9 @@
         "security": {
             "title": "Sécurisez votre compte",
             "subtitle": "Nous allons créer une clé de récupération pour que vous seul puissiez accéder à vos données.",
-            "explainerEmail": "Nous vous enverrons une clé de récupération par e-mail. Conservez bien cet e-mail : c'est lui qui vous permettra de restaurer votre compte et vos données sur un nouvel appareil.",
-            "explainerDownload": "Nous enregistrerons une clé de récupération sur votre appareil. Conservez-la précieusement : c'est elle qui vous permettra de restaurer votre compte et vos données sur un nouvel appareil.",
-            "protect": "Protéger mon compte",
+            "explainerEmail": "Nous appliquons les plus hauts standards de sécurité à vos études. Vos données ne sont jamais accessibles par nos équipes. La clé que nous avons générée est le seul moyen de récupérer vos données en cas de perte d'accès à votre compte — conservez bien l'email que nous vous enverrons.",
+            "explainerDownload": "Nous appliquons les plus hauts standards de sécurité à vos études. Vos données ne sont jamais accessibles par nos équipes. La clé que nous avons générée est le seul moyen de récupérer vos données en cas de perte d'accès à votre compte — conservez précieusement ce fichier.",
+            "protect": "Accéder à mon espace",
             "working": "Sécurisation…",
             "advanced": "Options avancées",
             "deliveryLabel": "Comment souhaitez-vous recevoir votre clé de récupération ?",
@@ -246,7 +246,7 @@
         "heroChipFast": "Ultra rapide",
         "heroChipQuick": "Prêt en 1 min",
         "roleStep": {
-            "subtitle": "Ravi de vous accueillir ! Pour personnaliser HumanLogs, dites-nous qui vous êtes.",
+            "subtitle": "Ravi de vous accueillir ! Dites-nous en plus sur vos besoins en transcription et études qualitatives.",
             "question": "Vous êtes…",
             "otherPrompt": "Précisez votre profil"
         },
@@ -266,22 +266,44 @@
             "title": "Vous êtes prêt",
             "subtitle": "Vous démarrez sur le plan gratuit avec {credits} crédits offerts.",
             "continueFree": "Continuer en gratuit",
-            "seePlans": "Voir les offres"
+            "seePlans": "Voir les offres",
+            "subtitleFree": "Vous démarrez sur le plan gratuit — 100 minutes de transcription chaque mois."
         },
         "researcher": {
-            "title": "Faites profiter votre labo de HumanLogs",
-            "subtitle": "Laissez votre email universitaire et on vous prépare une offre licence pour votre équipe.",
-            "placeholder": "prenom.nom@universite.fr",
+            "title": "Faites profiter votre université de HumanLogs",
+            "subtitle": "HumanLogs propose des licences adaptées aux laboratoires et universités. Laissez l'email de la personne en charge (ou le vôtre) : nous la contacterons de votre part pour lui présenter une offre.",
+            "placeholder": "Email de la personne en charge",
             "skip": "Plus tard",
             "invalid": "Email invalide",
             "sent": "Merci ! On revient vers vous très vite.",
             "sentTitle": "Demande reçue",
-            "error": "Une erreur est survenue. Veuillez réessayer."
+            "error": "Une erreur est survenue. Veuillez réessayer.",
+            "secondPlaceholder": "Un autre contact (optionnel)",
+            "addSecond": "Ajouter un second contact"
         },
         "provisioning": {
             "title": "Préparation de votre espace…",
             "step1": "Création de votre espace",
             "step2": "Sécurisation de vos accès"
+        },
+        "pricing": {
+            "title": "Choisissez votre formule",
+            "subtitle": "Commencez gratuitement, passez au Pro quand vous voulez.",
+            "monthly": "Mensuel",
+            "yearly": "Annuel",
+            "save": "−17 %",
+            "perMonth": "/mois",
+            "billedYearly": "facturé annuellement · 20 h / mois",
+            "freeName": "Gratuit",
+            "freeMinutes": "100 minutes / mois",
+            "proName": "Pro",
+            "proMinutes": "20 heures / mois",
+            "popular": "Le plus choisi",
+            "feat1": "Chiffrement de bout en bout",
+            "feat2": "Éditeur collaboratif en temps réel",
+            "freeCta": "Continuer en gratuit",
+            "proCta": "Passer au Pro",
+            "error": "Impossible de démarrer le paiement. Réessayez."
         }
     },
     "tutorialWelcome": {

@@ -217,9 +217,9 @@
         "security": {
             "title": "Secure your account",
             "subtitle": "We'll create a recovery key so that only you can access your data.",
-            "explainerEmail": "We'll email you a recovery key. Keep that email safe — it's what lets you restore your account and your data on a new device.",
-            "explainerDownload": "We'll save a recovery key to your device. Keep it safe — it's what lets you restore your account and your data on a new device.",
-            "protect": "Protect my account",
+            "explainerEmail": "We apply the highest security standards to your studies. Your data is never accessible to our team. The key we've generated is the only way to recover your data if you ever lose access to your account — keep the email we'll send you.",
+            "explainerDownload": "We apply the highest security standards to your studies. Your data is never accessible to our team. The key we've generated is the only way to recover your data if you ever lose access to your account — keep the file safe.",
+            "protect": "Enter my workspace",
             "working": "Securing…",
             "advanced": "Advanced options",
             "deliveryLabel": "How should we deliver your recovery key?",
@@ -246,7 +246,7 @@
         "heroChipFast": "Lightning fast",
         "heroChipQuick": "Ready in 1 min",
         "roleStep": {
-            "subtitle": "So glad you're here. To tailor HumanLogs, tell us who you are.",
+            "subtitle": "So glad you're here. Tell us a bit about your transcription and qualitative-research needs.",
             "question": "You are…",
             "otherPrompt": "Tell us more"
         },
@@ -266,22 +266,44 @@
             "title": "You're ready to go",
             "subtitle": "You start on the free plan with {credits} credits included.",
             "continueFree": "Continue on the free plan",
-            "seePlans": "See plans"
+            "seePlans": "See plans",
+            "subtitleFree": "You're starting on the free plan — 100 minutes of transcription every month."
         },
         "researcher": {
-            "title": "Bring HumanLogs to your lab",
-            "subtitle": "Leave your university email and we'll prepare a licence offer for your team.",
-            "placeholder": "firstname.lastname@university.edu",
+            "title": "Bring HumanLogs to your university",
+            "subtitle": "HumanLogs offers licences tailored to research labs and universities. Leave the email of the person in charge (or your own) and we'll reach out to them on your behalf to present an offer.",
+            "placeholder": "Email of the person in charge",
             "skip": "Maybe later",
             "invalid": "Invalid email",
             "sent": "Thanks! We'll get back to you very soon.",
             "sentTitle": "Request received",
-            "error": "Something went wrong. Please try again."
+            "error": "Something went wrong. Please try again.",
+            "secondPlaceholder": "Another contact (optional)",
+            "addSecond": "Add a second contact"
         },
         "provisioning": {
             "title": "Setting up your workspace…",
             "step1": "Creating your workspace",
             "step2": "Securing your access"
+        },
+        "pricing": {
+            "title": "Choose your plan",
+            "subtitle": "Start free, upgrade to Pro whenever you like.",
+            "monthly": "Monthly",
+            "yearly": "Yearly",
+            "save": "−17%",
+            "perMonth": "/mo",
+            "billedYearly": "billed yearly · 20 h / month",
+            "freeName": "Free",
+            "freeMinutes": "100 minutes / month",
+            "proName": "Pro",
+            "proMinutes": "20 hours / month",
+            "popular": "Most popular",
+            "feat1": "End-to-end encryption",
+            "feat2": "Real-time collaborative editor",
+            "freeCta": "Continue for free",
+            "proCta": "Go Pro",
+            "error": "Couldn't start checkout. Please try again."
         }
     },
     "tutorialWelcome": {

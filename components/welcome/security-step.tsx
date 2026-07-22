@@ -168,17 +168,7 @@ export function SecurityStep({ onContinue, onSkip }: SecurityStepProps) {
         </div>
       </div>
 
-      <Button
-        onClick={handleProtect}
-        disabled={working}
-        size="lg"
-        className="w-full"
-      >
-        <ShieldCheckIcon className="mr-2 h-4 w-4" />
-        {working ? t("working") : t("protect")}
-      </Button>
-
-      {/* Advanced */}
+      {/* Advanced — kept above the main CTA so the primary action stays last. */}
       <div className="rounded-xl border">
         <button
           type="button"
@@ -281,6 +271,16 @@ export function SecurityStep({ onContinue, onSkip }: SecurityStepProps) {
           </div>
         )}
       </div>
+
+      <Button
+        onClick={handleProtect}
+        disabled={working}
+        size="lg"
+        className="w-full"
+      >
+        <ShieldCheckIcon className="mr-2 h-4 w-4" />
+        {working ? t("working") : t("protect")}
+      </Button>
     </>
   );
 }

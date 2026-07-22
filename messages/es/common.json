@@ -217,9 +217,9 @@
         "security": {
             "title": "Protege tu cuenta",
             "subtitle": "Crearemos una clave de recuperación para que solo tú puedas acceder a tus datos.",
-            "explainerEmail": "Te enviaremos una clave de recuperación por correo. Guarda bien ese correo: es lo que te permitirá restaurar tu cuenta y tus datos en un nuevo dispositivo.",
-            "explainerDownload": "Guardaremos una clave de recuperación en tu dispositivo. Consérvala bien: es lo que te permitirá restaurar tu cuenta y tus datos en un nuevo dispositivo.",
-            "protect": "Proteger mi cuenta",
+            "explainerEmail": "Aplicamos los estándares de seguridad más altos a tus estudios. Tus datos nunca son accesibles para nuestro equipo. La clave que hemos generado es la única forma de recuperar tus datos si pierdes el acceso a tu cuenta: conserva el correo que te enviaremos.",
+            "explainerDownload": "Aplicamos los estándares de seguridad más altos a tus estudios. Tus datos nunca son accesibles para nuestro equipo. La clave que hemos generado es la única forma de recuperar tus datos si pierdes el acceso a tu cuenta: guarda bien este archivo.",
+            "protect": "Acceder a mi espacio",
             "working": "Protegiendo…",
             "advanced": "Opciones avanzadas",
             "deliveryLabel": "¿Cómo quieres recibir tu clave de recuperación?",
@@ -246,7 +246,7 @@
         "heroChipFast": "Muy rápido",
         "heroChipQuick": "Listo en 1 min",
         "roleStep": {
-            "subtitle": "¡Nos alegra tenerte aquí! Para personalizar HumanLogs, dinos quién eres.",
+            "subtitle": "¡Nos alegra tenerte aquí! Cuéntanos un poco sobre tus necesidades de transcripción e investigación cualitativa.",
             "question": "Eres…",
             "otherPrompt": "Cuéntanos más"
         },
@@ -266,22 +266,44 @@
             "title": "Todo listo",
             "subtitle": "Empiezas con el plan gratuito con {credits} créditos incluidos.",
             "continueFree": "Continuar con el plan gratuito",
-            "seePlans": "Ver planes"
+            "seePlans": "Ver planes",
+            "subtitleFree": "Empiezas con el plan gratuito: 100 minutos de transcripción al mes."
         },
         "researcher": {
-            "title": "Lleva HumanLogs a tu laboratorio",
-            "subtitle": "Deja tu email universitario y te preparamos una oferta de licencia para tu equipo.",
-            "placeholder": "nombre.apellido@universidad.es",
+            "title": "Lleva HumanLogs a tu universidad",
+            "subtitle": "HumanLogs ofrece licencias adaptadas a laboratorios y universidades. Deja el email de la persona responsable (o el tuyo) y la contactaremos de tu parte para presentarle una oferta.",
+            "placeholder": "Email de la persona responsable",
             "skip": "Quizá más tarde",
             "invalid": "Email no válido",
             "sent": "¡Gracias! Te responderemos muy pronto.",
             "sentTitle": "Solicitud recibida",
-            "error": "Algo salió mal. Inténtalo de nuevo."
+            "error": "Algo salió mal. Inténtalo de nuevo.",
+            "secondPlaceholder": "Otro contacto (opcional)",
+            "addSecond": "Añadir un segundo contacto"
         },
         "provisioning": {
             "title": "Preparando tu espacio…",
             "step1": "Creando tu espacio",
             "step2": "Asegurando tu acceso"
+        },
+        "pricing": {
+            "title": "Elige tu plan",
+            "subtitle": "Empieza gratis y pásate a Pro cuando quieras.",
+            "monthly": "Mensual",
+            "yearly": "Anual",
+            "save": "−17 %",
+            "perMonth": "/mes",
+            "billedYearly": "facturado anualmente · 20 h / mes",
+            "freeName": "Gratis",
+            "freeMinutes": "100 minutos / mes",
+            "proName": "Pro",
+            "proMinutes": "20 horas / mes",
+            "popular": "El más elegido",
+            "feat1": "Cifrado de extremo a extremo",
+            "feat2": "Editor colaborativo en tiempo real",
+            "freeCta": "Continuar gratis",
+            "proCta": "Pasar a Pro",
+            "error": "No se pudo iniciar el pago. Inténtalo de nuevo."
         }
     },
     "tutorialWelcome": {

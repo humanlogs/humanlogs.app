@@ -217,9 +217,9 @@
         "security": {
             "title": "Sichern Sie Ihr Konto",
             "subtitle": "Wir erstellen einen Wiederherstellungsschlüssel, damit nur Sie auf Ihre Daten zugreifen können.",
-            "explainerEmail": "Wir senden Ihnen einen Wiederherstellungsschlüssel per E-Mail. Bewahren Sie diese E-Mail gut auf – damit stellen Sie Ihr Konto und Ihre Daten auf einem neuen Gerät wieder her.",
-            "explainerDownload": "Wir speichern einen Wiederherstellungsschlüssel auf Ihrem Gerät. Bewahren Sie ihn gut auf – damit stellen Sie Ihr Konto und Ihre Daten auf einem neuen Gerät wieder her.",
-            "protect": "Mein Konto schützen",
+            "explainerEmail": "Wir wenden höchste Sicherheitsstandards für Ihre Studien an. Ihre Daten sind für unser Team nie zugänglich. Der für Sie erzeugte Schlüssel ist die einzige Möglichkeit, Ihre Daten wiederherzustellen, falls Sie den Zugang zu Ihrem Konto verlieren — bewahren Sie die E-Mail auf, die wir Ihnen senden.",
+            "explainerDownload": "Wir wenden höchste Sicherheitsstandards für Ihre Studien an. Ihre Daten sind für unser Team nie zugänglich. Der für Sie erzeugte Schlüssel ist die einzige Möglichkeit, Ihre Daten wiederherzustellen, falls Sie den Zugang zu Ihrem Konto verlieren — bewahren Sie die Datei sicher auf.",
+            "protect": "Zu meinem Arbeitsbereich",
             "working": "Wird gesichert…",
             "advanced": "Erweiterte Optionen",
             "deliveryLabel": "Wie sollen wir Ihren Wiederherstellungsschlüssel bereitstellen?",
@@ -246,7 +246,7 @@
         "heroChipFast": "Blitzschnell",
         "heroChipQuick": "In 1 Min bereit",
         "roleStep": {
-            "subtitle": "Schön, dass Sie da sind! Sagen Sie uns, wer Sie sind, um HumanLogs anzupassen.",
+            "subtitle": "Schön, dass Sie da sind! Erzählen Sie uns etwas über Ihre Anforderungen an Transkription und qualitative Forschung.",
             "question": "Sie sind…",
             "otherPrompt": "Sagen Sie uns mehr"
         },
@@ -266,22 +266,44 @@
             "title": "Sie sind startklar",
             "subtitle": "Sie starten im kostenlosen Plan mit {credits} Guthaben inklusive.",
             "continueFree": "Kostenlos fortfahren",
-            "seePlans": "Pläne ansehen"
+            "seePlans": "Pläne ansehen",
+            "subtitleFree": "Sie starten im kostenlosen Plan — 100 Minuten Transkription pro Monat."
         },
         "researcher": {
-            "title": "Holen Sie HumanLogs in Ihr Labor",
-            "subtitle": "Hinterlassen Sie Ihre Universitäts-E-Mail und wir erstellen ein Lizenzangebot für Ihr Team.",
-            "placeholder": "vorname.nachname@universitaet.de",
+            "title": "Holen Sie HumanLogs an Ihre Universität",
+            "subtitle": "HumanLogs bietet Lizenzen für Forschungslabore und Universitäten. Hinterlassen Sie die E-Mail der zuständigen Person (oder Ihre eigene) — wir melden uns in Ihrem Namen mit einem Angebot.",
+            "placeholder": "E-Mail der zuständigen Person",
             "skip": "Vielleicht später",
             "invalid": "Ungültige E-Mail",
             "sent": "Danke! Wir melden uns sehr bald.",
             "sentTitle": "Anfrage erhalten",
-            "error": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+            "error": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+            "secondPlaceholder": "Weiterer Kontakt (optional)",
+            "addSecond": "Zweiten Kontakt hinzufügen"
         },
         "provisioning": {
             "title": "Ihr Arbeitsbereich wird vorbereitet…",
             "step1": "Ihr Arbeitsbereich wird erstellt",
             "step2": "Ihre Zugänge werden gesichert"
+        },
+        "pricing": {
+            "title": "Wählen Sie Ihren Plan",
+            "subtitle": "Starten Sie kostenlos, wechseln Sie jederzeit zu Pro.",
+            "monthly": "Monatlich",
+            "yearly": "Jährlich",
+            "save": "−17 %",
+            "perMonth": "/Mon.",
+            "billedYearly": "jährlich abgerechnet · 20 Std. / Monat",
+            "freeName": "Kostenlos",
+            "freeMinutes": "100 Minuten / Monat",
+            "proName": "Pro",
+            "proMinutes": "20 Stunden / Monat",
+            "popular": "Am beliebtesten",
+            "feat1": "Ende-zu-Ende-Verschlüsselung",
+            "feat2": "Kollaborativer Echtzeit-Editor",
+            "freeCta": "Kostenlos fortfahren",
+            "proCta": "Zu Pro wechseln",
+            "error": "Zahlung konnte nicht gestartet werden. Bitte erneut versuchen."
         }
     },
     "tutorialWelcome": {

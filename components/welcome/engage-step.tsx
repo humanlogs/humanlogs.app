@@ -3,27 +3,33 @@
 import { useTranslations } from "@/components/locale-provider";
 import { ReferralEmails } from "@/components/referral/referral-emails";
 import { fetchGateway } from "@/hooks/fetch";
-import { CheckCircleIcon, GiftIcon, SendIcon, SparklesIcon } from "lucide-react";
-import Link from "next/link";
+import {
+  Building2Icon,
+  CheckCircleIcon,
+  GiftIcon,
+  PlusIcon,
+  SendIcon,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import type { RoleBucket } from "./onboarding-roles";
+import { PricingStep } from "./pricing-step";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface EngageStepProps {
   bucket: RoleBucket;
   userEmail?: string;
-  credits: number;
+  isBillingEnabled: boolean;
   onContinue: () => void;
 }
 
 export function EngageStep({
   bucket,
   userEmail,
-  credits,
+  isBillingEnabled,
   onContinue,
 }: EngageStepProps) {
   const t = useTranslations("welcome");
@@ -56,31 +62,9 @@ export function EngageStep({
     return <ResearcherLicense userEmail={userEmail} onContinue={onContinue} />;
   }
 
-  // ---- Journalist / other: start free, with a peek at plans ----
+  // ---- Journalist / other: choose a plan (with a free option) ----
   return (
-    <div className="text-center">
-      <div className="mx-auto mb-3 w-fit rounded-2xl bg-primary/10 p-3">
-        <SparklesIcon className="h-6 w-6 text-primary" />
-      </div>
-      <h1 className="text-2xl font-bold tracking-tight">
-        {t("plan.title")}
-      </h1>
-      <p className="text-muted-foreground mt-2 text-sm">
-        {t("plan.subtitle").replace("{credits}", String(credits))}
-      </p>
-
-      <div className="mt-5 space-y-3">
-        <Button className="w-full" size="lg" onClick={onContinue}>
-          {t("plan.continueFree")}
-        </Button>
-        <Link
-          href="/app/account/billing"
-          className="block text-sm font-medium text-primary underline-offset-4 hover:underline"
-        >
-          {t("plan.seePlans")}
-        </Link>
-      </div>
-    </div>
+    <PricingStep onContinue={onContinue} isBillingEnabled={isBillingEnabled} />
   );
 }
 
@@ -93,6 +77,8 @@ function ResearcherLicense({
 }) {
   const t = useTranslations("welcome");
   const [email, setEmail] = useState(userEmail ?? "");
+  const [secondEmail, setSecondEmail] = useState("");
+  const [showSecond, setShowSecond] = useState(false);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
 
@@ -102,22 +88,28 @@ function ResearcherLicense({
       toast.error(t("researcher.invalid"));
       return;
     }
+    const second = secondEmail.trim().toLowerCase();
+    if (second && !EMAIL_REGEX.test(second)) {
+      toast.error(t("researcher.invalid"));
+      return;
+    }
     setSending(true);
     try {
       // Stored as a feature-request feedback so it surfaces in the admin panel
       // as a lead, without a dedicated table.
+      const emails = second ? `${value}, ${second}` : value;
       const res = await fetchGateway("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "FEATURE_REQUEST",
-          message: `[LICENCE LEAD] Institutional email: ${value}`,
+          message: `[LICENCE LEAD] Institutional contact(s): ${emails}`,
         }),
       });
       if (!res.ok) throw new Error("failed");
       setSent(true);
       toast.success(t("researcher.sent"));
-      setTimeout(onContinue, 1200);
+      setTimeout(onContinue, 1400);
     } catch {
       toast.error(t("researcher.error"));
     } finally {
@@ -142,16 +134,16 @@ function ResearcherLicense({
   return (
     <div className="text-center">
       <div className="mx-auto mb-3 w-fit rounded-2xl bg-primary/10 p-3">
-        <GiftIcon className="h-6 w-6 text-primary" />
+        <Building2Icon className="h-6 w-6 text-primary" />
       </div>
       <h1 className="text-2xl font-bold tracking-tight">
         {t("researcher.title")}
       </h1>
-      <p className="text-muted-foreground mt-2 text-sm">
+      <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
         {t("researcher.subtitle")}
       </p>
 
-      <div className="mt-5 space-y-3 text-left">
+      <div className="mt-5 space-y-2.5 text-left">
         <div className="flex gap-2">
           <Input
             type="email"
@@ -164,10 +156,30 @@ function ResearcherLicense({
             <SendIcon className="h-4 w-4" />
           </Button>
         </div>
+
+        {showSecond ? (
+          <Input
+            type="email"
+            value={secondEmail}
+            onChange={(e) => setSecondEmail(e.target.value)}
+            placeholder={t("researcher.secondPlaceholder")}
+            onKeyDown={(e) => e.key === "Enter" && submit()}
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowSecond(true)}
+            className="inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-4 hover:underline"
+          >
+            <PlusIcon className="h-3.5 w-3.5" />
+            {t("researcher.addSecond")}
+          </button>
+        )}
+
         <button
           type="button"
           onClick={onContinue}
-          className="w-full text-center text-xs text-muted-foreground underline-offset-4 hover:underline"
+          className="block w-full pt-1 text-center text-xs text-muted-foreground underline-offset-4 hover:underline"
         >
           {t("researcher.skip")}
         </button>

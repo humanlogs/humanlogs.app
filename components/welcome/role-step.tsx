@@ -2,6 +2,13 @@
 
 import { useTranslations } from "@/components/locale-provider";
 import { cn } from "@/lib/utils/utils";
+import {
+  EllipsisIcon,
+  GraduationCapIcon,
+  MicroscopeIcon,
+  NewspaperIcon,
+  type LucideIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { InlineChoice } from "./inline-choice";
@@ -11,6 +18,13 @@ import {
 } from "./onboarding-roles";
 
 const MONTHLY_USAGE_KEYS = ["lt1h", "h1to5", "h5to20", "gt20h"];
+
+const ROLE_ICONS: Record<string, LucideIcon> = {
+  researcher: MicroscopeIcon,
+  student: GraduationCapIcon,
+  journalist: NewspaperIcon,
+  other: EllipsisIcon,
+};
 
 interface RoleStepProps {
   name?: string;
@@ -82,21 +96,32 @@ export function RoleStep({
           <div>
             <p className="mb-2 text-sm font-medium">{t("roleStep.question")}</p>
             <div className="grid grid-cols-2 gap-2.5">
-              {HEADLINE_ROLES.map((role) => (
-                <button
-                  key={role}
-                  type="button"
-                  onClick={() => handleHeadline(role)}
-                  className={cn(
-                    "min-h-14 rounded-xl border p-3 text-sm font-medium transition-colors",
-                    headlineActive(role)
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50",
-                  )}
-                >
-                  {t(`role.${role}`)}
-                </button>
-              ))}
+              {HEADLINE_ROLES.map((role) => {
+                const Icon = ROLE_ICONS[role];
+                return (
+                  <button
+                    key={role}
+                    type="button"
+                    onClick={() => handleHeadline(role)}
+                    className={cn(
+                      "flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border p-3 text-sm font-medium transition-colors",
+                      headlineActive(role)
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50",
+                    )}
+                  >
+                    <Icon
+                      className={cn(
+                        "h-6 w-6",
+                        headlineActive(role)
+                          ? "text-primary"
+                          : "text-muted-foreground",
+                      )}
+                    />
+                    {t(`role.${role}`)}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
