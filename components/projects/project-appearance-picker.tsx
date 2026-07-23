@@ -205,7 +205,11 @@ export function ProjectAppearancePicker({
         <p className="text-sm text-muted-foreground">{t("hint")}</p>
       </div>
 
-      <Tabs value={value.iconType} onValueChange={setTab}>
+      <Tabs
+        defaultValue={value.iconType}
+        value={value.iconType}
+        onValueChange={setTab}
+      >
         <TabsList className="w-full">
           <TabsTrigger value="icon" className="flex-1">
             {t("tabIcon")}
