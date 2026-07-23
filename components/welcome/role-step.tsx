@@ -77,6 +77,11 @@ export function RoleStep({
     onComplete: () => setTimeout(() => setRevealed(true), 250),
   });
   const shownSpoken = alreadyChosen ? words.length + 1 : spoken;
+  // Show the selector once the greeting finishes OR a role is already chosen.
+  // The latter matters for a returning user: `profession` seeds in after the
+  // first render, flipping `alreadyChosen` true and stopping the karaoke, so we
+  // must not gate the selector on the karaoke's (now cancelled) onComplete.
+  const showSelector = revealed || alreadyChosen;
 
   const isOtherProfession = (p: string) =>
     p === "other" || OTHER_PROFESSIONS.includes(p);
@@ -116,7 +121,7 @@ export function RoleStep({
       </p>
 
       {/* The role selector + settings are revealed once the greeting finishes. */}
-      {revealed && (
+      {showSelector && (
         <div className="space-y-5 text-left">
           <div>
             <p className="mb-2 text-sm font-medium">{t("roleStep.question")}</p>
