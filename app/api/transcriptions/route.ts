@@ -114,6 +114,19 @@ const formatTranscriptionList = (t: Transcription, userId: string) => {
   const isOwner = t.userId === userId;
   const sharedUser = shared.find((s) => s.userId === userId);
 
+  // Speaker names live inside the (possibly large) transcription content JSON,
+  // which is already loaded here. Surface just the names so the documents list
+  // can show them for small panels. E2E-encrypted content has no readable
+  // `speakers` array, so this is simply undefined there and the UI falls back
+  // to the speaker count.
+  const content = t.transcription as {
+    speakers?: { id: string; name?: string | null }[];
+  } | null;
+  const speakers = content?.speakers;
+  const speakerNames = Array.isArray(speakers)
+    ? speakers.map((s) => s.name?.trim() || null)
+    : undefined;
+
   return {
     id: t.id,
     title: t.title,
@@ -122,6 +135,8 @@ const formatTranscriptionList = (t: Transcription, userId: string) => {
     updatedAt: t.updatedAt.toISOString(),
     isTutorial: t.isTutorial,
     projectId: t.projectId,
+    speakerCount: t.speakerCount,
+    speakerNames,
     state: t.state,
     errorMessage: t.errorMessage,
     isEncrypted: (t.audioFileEncryption as EncryptedDataEntity)?.privateKeys

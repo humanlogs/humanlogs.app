@@ -142,7 +142,7 @@ export default function ConfirmDeletionPage() {
               <li>All your transcriptions</li>
               <li>All audio files</li>
               <li>Your account settings</li>
-              <li>All project data</li>
+              <li>All study data</li>
               <li>Your encryption keys</li>
             </ul>
           </div>

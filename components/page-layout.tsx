@@ -1,9 +1,15 @@
 import { cn } from "@/lib/utils/utils";
 import { ReactNode } from "react";
+import { PageHeader } from "./page-header";
 
 type PageLayoutProps = {
   title: ReactNode;
   description?: ReactNode;
+  /** Right-aligned header action, typically a primary `<Button>`. */
+  action?: ReactNode;
+  /** Optional "back" link shown above the title. */
+  backHref?: string;
+  backLabel?: ReactNode;
   children: ReactNode;
   maxWidth?: "max-w-4xl" | "max-w-6xl";
   className?: string;
@@ -12,6 +18,9 @@ type PageLayoutProps = {
 export function PageLayout({
   title,
   description,
+  action,
+  backHref,
+  backLabel,
   children,
   maxWidth = "max-w-4xl",
   className,
@@ -24,14 +33,13 @@ export function PageLayout({
         className,
       )}
     >
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-          {title}
-        </h1>
-        {description && (
-          <p className="text-muted-foreground mt-2">{description}</p>
-        )}
-      </div>
+      <PageHeader
+        title={title}
+        description={description}
+        action={action}
+        backHref={backHref}
+        backLabel={backLabel}
+      />
       {children}
     </div>
   );

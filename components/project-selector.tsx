@@ -23,12 +23,12 @@ export function ProjectSelector({
   const { openCreate } = useProjectModal();
 
   const options = [
-    { label: "No Project", value: "none" },
+    { label: "No study", value: "none" },
     ...projects.map((project) => ({
       label: project.name,
       value: project.id,
     })),
-    { label: "Create new project...", value: "__create_new__" },
+    { label: "Create new study...", value: "__create_new__" },
   ];
 
   const handleChange = (newValue: string) => {
@@ -49,8 +49,8 @@ export function ProjectSelector({
       options={options}
       value={value || "none"}
       onChange={handleChange}
-      placeholder="Select a project..."
-      searchPlaceholder="Search projects..."
+      placeholder="Select a study..."
+      searchPlaceholder="Search studies..."
     />
   );
 }

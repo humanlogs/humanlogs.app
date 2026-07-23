@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import { refillUserCredits } from "../billing/credits-refill-service";
 import { processMarketingEmails } from "../email/marketing-email-service";
+import { cleanupStaleTranscriptions } from "./stale-transcription-cleanup";
 
 export function initializeCronJobs() {
   // Run credits refill daily at 2:00 AM
@@ -22,6 +23,17 @@ export function initializeCronJobs() {
       console.log("[CRON] Marketing email processing completed:", result);
     } catch (error) {
       console.error("[CRON] Error during marketing email processing:", error);
+    }
+  });
+
+  // Remove transcriptions stuck in PENDING/ERROR for >24h, hourly.
+  cron.schedule("0 * * * *", async () => {
+    console.log("[CRON] Running stale transcription cleanup...");
+    try {
+      const result = await cleanupStaleTranscriptions();
+      console.log("[CRON] Stale transcription cleanup completed:", result);
+    } catch (error) {
+      console.error("[CRON] Error during stale transcription cleanup:", error);
     }
   });
 

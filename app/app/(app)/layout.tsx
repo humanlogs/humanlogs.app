@@ -12,11 +12,8 @@ import { TranscriptionRenameDialog } from "@/components/transcriptions/dialogs/t
 import { TranscriptionSetProjectDialog } from "@/components/transcriptions/dialogs/transcription-set-project-dialog";
 import { TranscriptionShareDialog } from "@/components/transcriptions/dialogs/transcription-share-dialog";
 import { TranscriptionHistorySheet } from "@/components/transcriptions/dialogs/transcription-history-sheet";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { AppHeader } from "@/components/app-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { WelcomeIntro } from "@/components/welcome/welcome-intro";
 import { getCurrentUser } from "@/lib/auth/auth-helpers";
 import { prisma } from "@/lib/prisma";
@@ -49,16 +46,7 @@ export default async function AppLayout({
       <SidebarProvider>
         <AppSidebar user={user}>
         <SidebarInset className="flex flex-col">
-          <header className="sticky top-0 bg-background/50 backdrop-blur-lg z-10">
-            <div className="border-b px-4 flex h-14 shrink-0 items-center gap-2 bg-background">
-              <SidebarTrigger className="-ml-1" />
-              <div
-                id="header-actions-portal"
-                className="flex-1 flex items-center justify-between"
-              />
-            </div>
-            <div id="header-sub-portal" className="w-full" />
-          </header>
+          <AppHeader />
           <main className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto">
             {children}
           </main>

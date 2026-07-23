@@ -173,7 +173,7 @@
             "longTranscripts": "Transcripciones de hasta 4h",
             "speakerLabels": "Etiquetas de hablantes",
             "speakerOptions": "Opciones de hablantes",
-            "projects": "Proyectos",
+            "projects": "Estudios",
             "collaboration": "Colaboración",
             "dpa": "DPA disponible",
             "support": "Soporte"
@@ -264,8 +264,8 @@
             "description": "Diarización automática de hablantes con etiquetado manual, renombrado, fusión y eliminación. Aplica modificadores de texto y organiza conversaciones con múltiples hablantes sin esfuerzo."
         },
         "projects": {
-            "title": "Organización por proyecto",
-            "description": "¿Trabajas en múltiples proyectos? Organiza tus transcripciones en carpetas diseñadas específicamente para flujos de trabajo de investigación y colaboración en equipo."
+            "title": "Organización por estudio",
+            "description": "¿Trabajas en múltiples estudios? Organiza tus transcripciones en carpetas diseñadas específicamente para flujos de trabajo de investigación y colaboración en equipo."
         },
         "export": {
             "title": "Exportación para el mundo real",

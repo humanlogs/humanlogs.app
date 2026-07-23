@@ -221,7 +221,7 @@
             "longTranscripts": "Transcriptions jusqu'à 4h",
             "speakerLabels": "Labels de locuteurs",
             "speakerOptions": "Options de locuteurs",
-            "projects": "Projets",
+            "projects": "Études",
             "collaboration": "Collaboration",
             "dpa": "DPA disponible",
             "support": "Support"
@@ -312,8 +312,8 @@
             "description": "Diarisation automatique des locuteurs avec étiquetage manuel, renommage, fusion et suppression. Appliquez des modificateurs de texte et organisez facilement les conversations multi-locuteurs."
         },
         "projects": {
-            "title": "Organisation par projet",
-            "description": "Vous travaillez sur plusieurs projets ? Organisez vos transcriptions dans des dossiers spécialement conçus pour les flux de travail de recherche et la collaboration en équipe."
+            "title": "Organisation par étude",
+            "description": "Vous travaillez sur plusieurs études ? Organisez vos transcriptions dans des dossiers spécialement conçus pour les flux de travail de recherche et la collaboration en équipe."
         },
         "export": {
             "title": "Export pour le monde réel",

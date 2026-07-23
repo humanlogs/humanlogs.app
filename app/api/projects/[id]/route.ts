@@ -12,7 +12,7 @@ export const PATCH = withAuthRateLimit(
 
       if (!name || typeof name !== "string" || !name.trim()) {
         return NextResponse.json(
-          { error: "Project name is required" },
+          { error: "Study name is required" },
           { status: 400 },
         );
       }
@@ -27,7 +27,7 @@ export const PATCH = withAuthRateLimit(
 
       if (!existingProject) {
         return NextResponse.json(
-          { error: "Project not found" },
+          { error: "Study not found" },
           { status: 404 },
         );
       }
@@ -49,7 +49,7 @@ export const PATCH = withAuthRateLimit(
     } catch (error) {
       console.error("Error updating project:", error);
       return NextResponse.json(
-        { error: "Failed to update project" },
+        { error: "Failed to update study" },
         { status: 500 },
       );
     }

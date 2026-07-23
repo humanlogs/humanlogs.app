@@ -173,7 +173,7 @@
             "longTranscripts": "Up to 4h transcripts",
             "speakerLabels": "Speaker labels",
             "speakerOptions": "Speaker options",
-            "projects": "Projects",
+            "projects": "Studies",
             "collaboration": "Collaboration",
             "dpa": "DPA available",
             "support": "Support"
@@ -264,8 +264,8 @@
             "description": "Automatic speaker diarization with manual labeling, renaming, merging, and removal. Apply text modifiers and organize multi-speaker conversations effortlessly."
         },
         "projects": {
-            "title": "Organize per project",
-            "description": "Working on multiple projects? Organize your transcriptions into folders designed specifically for research workflows and team collaboration."
+            "title": "Organize per study",
+            "description": "Working on multiple studies? Organize your transcriptions into folders designed specifically for research workflows and team collaboration."
         },
         "export": {
             "title": "Export for the real world",

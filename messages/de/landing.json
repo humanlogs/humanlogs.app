@@ -173,7 +173,7 @@
             "longTranscripts": "Transkripte bis zu 4h",
             "speakerLabels": "Sprecherbeschriftungen",
             "speakerOptions": "Sprecheroptionen",
-            "projects": "Projekte",
+            "projects": "Studien",
             "collaboration": "Zusammenarbeit",
             "dpa": "AVV verfügbar",
             "support": "Support"
@@ -264,8 +264,8 @@
             "description": "Automatische Sprechererkennung mit manueller Beschriftung, Umbenennung, Zusammenführung und Entfernung. Wenden Sie Textmodifikatoren an und organisieren Sie mühelos Gespräche mit mehreren Sprechern."
         },
         "projects": {
-            "title": "Organisation nach Projekt",
-            "description": "Arbeiten Sie an mehreren Projekten? Organisieren Sie Ihre Transkriptionen in Ordnern, die speziell für Forschungsworkflows und Teamzusammenarbeit entwickelt wurden."
+            "title": "Organisation nach Studie",
+            "description": "Arbeiten Sie an mehreren Studien? Organisieren Sie Ihre Transkriptionen in Ordnern, die speziell für Forschungsworkflows und Teamzusammenarbeit entwickelt wurden."
         },
         "export": {
             "title": "Export für die reale Welt",
