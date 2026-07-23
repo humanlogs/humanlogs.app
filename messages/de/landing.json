@@ -46,6 +46,49 @@
         },
         "badge": "Kämpfen Sie mit NVivo? Hier klicken"
     },
+    "roadmap": {
+        "title": "Von der Transkription zur vollständigen Analyse",
+        "subtitle": "Ein moderner, privater Arbeitsbereich für den gesamten qualitativen Forschungsprozess. Das haben wir und das kommt als Nächstes.",
+        "status": {
+            "live": "Verfügbar",
+            "soon": "Demnächst"
+        },
+        "stages": {
+            "transcription": {
+                "title": "Transkription",
+                "features": [
+                    "Über 100 Sprachen, erstklassige Genauigkeit",
+                    "Automatische Sprecherkennung",
+                    "Audio-synchronisierter Editor, 4x schnellere Korrekturen",
+                    "Ende-zu-Ende-Verschlüsselung",
+                    "Export nach Word, PDF, CSV und TXT",
+                    "Zusammenarbeit in Echtzeit"
+                ]
+            },
+            "coding": {
+                "title": "Kodierung",
+                "features": [
+                    "Transkriptsegmente kodieren und markieren",
+                    "Hierarchische Codebücher",
+                    "Memos und Anmerkungen",
+                    "KI-gestützte automatische Kodierung",
+                    "Intercoder-Übereinstimmung",
+                    "Matrix- und Kreuztabellen-Abfragen"
+                ]
+            },
+            "analysis": {
+                "title": "Analyse",
+                "features": [
+                    "Worthäufigkeit und lexikalische Statistik",
+                    "Kookkurrenzen und Wortbäume",
+                    "Thematische Clusterbildung",
+                    "Korrespondenzanalyse",
+                    "Diagramme, Wortwolken und Karten",
+                    "Vergleich über Interviews hinweg"
+                ]
+            }
+        }
+    },
     "newsletter": {
         "badge": "Für die Forschung",
         "title": "Tools für die qualitative Analyse wirken aus der Zeit gefallen.",

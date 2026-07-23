@@ -94,6 +94,49 @@
         },
         "badge": "NVivo vous complique la vie ? Cliquez ici"
     },
+    "roadmap": {
+        "title": "De la transcription à l'analyse complète",
+        "subtitle": "Un espace de travail moderne et privé pour tout le parcours de recherche qualitative. Voici où nous en sommes et ce qui arrive.",
+        "status": {
+            "live": "Disponible",
+            "soon": "Bientôt"
+        },
+        "stages": {
+            "transcription": {
+                "title": "Transcription",
+                "features": [
+                    "Plus de 100 langues, précision de premier plan",
+                    "Identification automatique des locuteurs",
+                    "Éditeur synchronisé à l'audio, corrections 4x plus rapides",
+                    "Chiffrement de bout en bout",
+                    "Export vers Word, PDF, CSV et TXT",
+                    "Collaboration en temps réel"
+                ]
+            },
+            "coding": {
+                "title": "Codage",
+                "features": [
+                    "Coder et étiqueter des segments de transcription",
+                    "Grilles de codage hiérarchiques",
+                    "Mémos et annotations",
+                    "Codage automatique assisté par IA",
+                    "Accord inter-codeurs",
+                    "Requêtes matricielles et croisées"
+                ]
+            },
+            "analysis": {
+                "title": "Analyse",
+                "features": [
+                    "Fréquence des mots et statistiques lexicales",
+                    "Cooccurrences et arbres de mots",
+                    "Regroupement thématique",
+                    "Analyse factorielle des correspondances",
+                    "Graphiques, nuages de mots et cartes",
+                    "Comparaison entre entretiens"
+                ]
+            }
+        }
+    },
     "newsletter": {
         "badge": "Pour la recherche",
         "title": "Les outils d'analyse qualitative semblent coincés dans le passé.",

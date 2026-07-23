@@ -7,6 +7,7 @@ import {
   FeaturesSection,
   NewsletterSection,
   PricingSection,
+  RoadmapSection,
   TestimonialsSection,
 } from "./components/sections";
 import { HeroSection } from "./components/sections/hero-section";
@@ -72,6 +73,7 @@ export default async function LandingPage({ params }: Props) {
       <TestimonialsSection />
       <EncryptionSection />
       <PricingSection showFeatureGrid={false} />
+      <RoadmapSection />
       <NewsletterSection />
       <FAQSection />
     </>
