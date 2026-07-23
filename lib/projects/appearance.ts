@@ -96,9 +96,9 @@ export function isValidEmoji(value: unknown): value is string {
 }
 
 export type ProjectAppearance = {
-  iconType: ProjectIconType | null;
-  icon: string | null;
-  color: string | null;
+  iconType?: ProjectIconType | null;
+  icon?: string | null;
+  color?: string | null;
   /** True when an uploaded image exists (the URL is served by an API route). */
   hasImage?: boolean;
 };
