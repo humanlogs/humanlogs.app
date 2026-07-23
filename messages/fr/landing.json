@@ -91,7 +91,18 @@
             "encryption": "Chiffré de bout en bout",
             "editing": "Édition ultra-rapide",
             "openSource": "Open Source"
-        }
+        },
+        "badge": "NVivo vous complique la vie ? Cliquez ici"
+    },
+    "newsletter": {
+        "badge": "On construit quelque chose de mieux",
+        "title": "Les outils d'analyse qualitative sont coincés dans le passé.",
+        "description": "NVivo, MAXQDA, Alceste, Iramuteq — puissants, mais vieux, lourds et pénibles à utiliser. Nous travaillons sur une alternative moderne et respectueuse de la vie privée pour la recherche qualitative. Rejoignez la liste et aidez-nous à la façonner.",
+        "placeholder": "Entrez votre email",
+        "cta": "Tenez-moi informé",
+        "success": "Vous êtes inscrit ! Nous vous tiendrons au courant.",
+        "error": "Une erreur est survenue. Veuillez réessayer.",
+        "disclaimer": "Pas de spam. Désinscription à tout moment."
     },
     "logos": {
         "trustedBy": "UTILISÉ PAR ÉTUDIANTS ET CHERCHEURS DE"

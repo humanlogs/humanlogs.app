@@ -43,7 +43,18 @@
             "encryption": "Ende-zu-Ende-Verschlüsselung",
             "editing": "Blitzschnelle Bearbeitung",
             "openSource": "Open Source"
-        }
+        },
+        "badge": "Kämpfen Sie mit NVivo? Hier klicken"
+    },
+    "newsletter": {
+        "badge": "Wir bauen etwas Besseres",
+        "title": "Tools für qualitative Analyse hängen in der Vergangenheit fest.",
+        "description": "NVivo, MAXQDA, Alceste, Iramuteq — leistungsstark, aber alt, schwerfällig und mühsam zu bedienen. Wir arbeiten an einer modernen, datenschutzfreundlichen Alternative für die qualitative Forschung. Tragen Sie sich ein und gestalten Sie sie mit.",
+        "placeholder": "E-Mail-Adresse eingeben",
+        "cta": "Halten Sie mich auf dem Laufenden",
+        "success": "Sie sind auf der Liste! Wir halten Sie auf dem Laufenden.",
+        "error": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+        "disclaimer": "Kein Spam. Jederzeit abbestellbar."
     },
     "logos": {
         "trustedBy": "VERTRAUT VON FORSCHERN AN"

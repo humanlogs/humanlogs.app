@@ -7,3 +7,4 @@ export { TestimonialsSection } from "./testimonials-section";
 export { FAQSection } from "./faq-section";
 export { CTASection } from "./cta-section";
 export { ComparisonTable } from "./comparison-table";
+export { NewsletterSection } from "./newsletter-section";

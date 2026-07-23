@@ -5,6 +5,7 @@ import {
   EncryptionSection,
   FAQSection,
   FeaturesSection,
+  NewsletterSection,
   PricingSection,
   TestimonialsSection,
 } from "./components/sections";
@@ -71,6 +72,7 @@ export default async function LandingPage({ params }: Props) {
       <TestimonialsSection />
       <EncryptionSection />
       <PricingSection showFeatureGrid={false} />
+      <NewsletterSection />
       <FAQSection />
     </>
   );
