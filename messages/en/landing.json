@@ -47,12 +47,12 @@
         "badge": "Struggling with NVivo? Click here"
     },
     "newsletter": {
-        "badge": "We're building something better",
-        "title": "Qualitative analysis tools are stuck in the past.",
-        "description": "NVivo, MAXQDA, Alceste, Iramuteq — powerful, but old, clunky and painful to use. We're working on a modern, privacy-first alternative for qualitative research. Join the list and help us shape it.",
+        "badge": "For the research community",
+        "title": "Qualitative analysis tools feel stuck in the past.",
+        "description": "NVivo, MAXQDA, Alceste and Iramuteq are powerful but aging and clunky. We're working to modernize qualitative analysis and make research easier. Follow along and tell us what you need.",
         "placeholder": "Enter your email",
         "cta": "Keep me posted",
-        "success": "You're on the list! We'll keep you posted.",
+        "success": "You're on the list. We'll keep you posted.",
         "error": "Something went wrong. Please try again.",
         "disclaimer": "No spam. Unsubscribe anytime."
     },
