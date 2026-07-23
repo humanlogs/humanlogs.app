@@ -99,7 +99,7 @@ export default function LoginPage() {
 
       {/* Left Side - Login Form on a frosted, near-opaque panel (matches the
           onboarding funnel card surface) */}
-      <div className="relative z-10 flex-1 flex items-center justify-center p-4 lg:p-8 bg-white/90 dark:bg-zinc-900/80 backdrop-blur-xl border-r border-black/5 dark:border-white/10">
+      <div className="relative z-10 flex-1 flex items-center justify-center p-4 lg:p-8 bg-white dark:bg-zinc-900 backdrop-blur-xl border-r border-black/5 dark:border-white/10">
         <div className="w-full max-w-md space-y-8 p-8">
           {/* Logo and Header */}
           <div className="text-center space-y-4">

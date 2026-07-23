@@ -108,14 +108,19 @@ function SilkRibbon({
 
 const GRADS: Record<string, { o: number; c: string }[]> = {
   a: [
-    { o: 0, c: "#fbbf24" },
-    { o: 0.5, c: "#fb7185" },
-    { o: 1, c: "#a855f7" },
+    { o: 0, c: "#10b981" },
+    { o: 0.2, c: "#10b981" },
+    { o: 1, c: "#3b82f6" },
   ],
   b: [
-    { o: 0, c: "#f472b6" },
-    { o: 0.5, c: "#fb923c" },
-    { o: 1, c: "#c084fc" },
+    { o: 0, c: "#ec4899" },
+    { o: 0.2, c: "#ec4899" },
+    { o: 1, c: "#3b82f6" },
+  ],
+  c: [
+    { o: 0, c: "#3b82f6" },
+    { o: 0.2, c: "#3b82f6" },
+    { o: 1, c: "#10b981" },
   ],
 };
 
@@ -126,7 +131,7 @@ function WarmBackground() {
       className="pointer-events-none absolute inset-0 overflow-hidden bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-black"
     >
       <SilkRibbon
-        className="animate-onboarding-silk-a absolute inset-0 h-full w-full opacity-70 blur-[64px] dark:opacity-60"
+        className="animate-onboarding-silk-a absolute inset-0 h-full w-full opacity-70 blur-[40px] dark:opacity-60"
         paths={[
           {
             d: "M-260 500 C 250 300 620 640 1000 470 S 1500 300 1760 400",
@@ -136,11 +141,21 @@ function WarmBackground() {
         ]}
       />
       <SilkRibbon
-        className="animate-onboarding-silk-b absolute inset-0 h-full w-full opacity-55 blur-[72px] dark:opacity-45"
+        className="animate-onboarding-silk-b absolute inset-0 h-full w-full opacity-55 blur-[80px] dark:opacity-45"
         paths={[
           {
             d: "M-260 600 C 320 440 760 740 1080 540 S 1520 360 1760 300",
             grad: "b",
+            width: 170,
+          },
+        ]}
+      />
+      <SilkRibbon
+        className="animate-onboarding-silk-b absolute inset-0 h-full w-full opacity-55 blur-[60px] dark:opacity-45"
+        paths={[
+          {
+            d: "M-260 400 C 320 240 760 540 1080 340 S 1520 160 1760 200",
+            grad: "c",
             width: 170,
           },
         ]}

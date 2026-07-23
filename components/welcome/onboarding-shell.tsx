@@ -58,7 +58,7 @@ export function OnboardingShell({
           wide ? "max-w-lg" : "max-w-md",
         )}
       >
-        <div className="rounded-2xl border border-white/60 bg-white/90 p-8 shadow-2xl shadow-black/5 backdrop-blur-xl dark:border-white/10 dark:bg-zinc-900/80">
+        <div className="rounded-2xl border border-white/60 bg-white p-8 shadow-2xl shadow-black/5 backdrop-blur-xl dark:border-white/10 dark:bg-zinc-900">
           <div className="flex items-center gap-2">
             {onBack && (
               <button

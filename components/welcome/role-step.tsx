@@ -68,6 +68,7 @@ export function RoleStep({
   // reveal the role selector once the last word has landed.
   const [revealed, setRevealed] = useState(false);
   const spoken = useKaraoke(words, {
+    perChar: 20,
     // Pause a touch at the end of the title before the subtitle picks up.
     isLineEnd: (i) => i === titleWords - 1 || i === words.length - 1,
     onComplete: () => setTimeout(() => setRevealed(true), 250),
@@ -75,7 +76,7 @@ export function RoleStep({
   // Safety net: never strand the user on the greeting if the timeline is cut
   // short (unmount/remount, an interrupted tab...).
   useEffect(() => {
-    const t = setTimeout(() => setRevealed(true), 9000);
+    const t = setTimeout(() => setRevealed(true), 500);
     return () => clearTimeout(t);
   }, []);
   const showSelector = revealed;
