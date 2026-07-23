@@ -200,10 +200,10 @@
         "monthlyUsageLabel": "How much do you transcribe per month?",
         "monthlyUsagePlaceholder": "Select your usage",
         "monthlyUsage": {
-            "lt1h": "0-1 hour",
-            "h1to5": "1–5 hours",
-            "h5to20": "5–20 hours",
-            "gt20h": "20+ hours"
+            "lt1h": "Under 1 hour",
+            "h1to5": "1 to 5 hours",
+            "h5to20": "5 to 20 hours",
+            "gt20h": "Over 20 hours"
         },
         "skip": "Skip",
         "referralTitle": "Invite friends, earn free minutes",
@@ -211,9 +211,104 @@
         "residencyTitle": "Where should your audio be processed?",
         "residencySubtitle": "You can change this anytime for each transcription.",
         "residencyEuTitle": "100% European",
-        "residencyEuDesc": "Processed on EU servers only, no-retention and no-training.",
+        "residencyEuDesc": "Processed on EU servers only, no retention and no training.",
         "residencyUsTitle": "US (best model)",
-        "residencyUsDesc": "Allows ElevenLabs for the highest accuracy, processed in the US."
+        "residencyUsDesc": "Allows ElevenLabs for the highest accuracy, processed in the US.",
+        "security": {
+            "title": "Secure your account",
+            "explainerEmail": "We apply the highest security standards to your studies. Your data is never accessible to our team. The key we generated is the only way to recover your data if you ever lose access to your account.",
+            "explainerDownload": "We apply the highest security standards to your studies. Your data is never accessible to our team. The key we generated is the only way to recover your data if you ever lose access to your account.",
+            "subtitleEmail": "Your key will be sent by email, keep it safe.",
+            "subtitleDownload": "Your key will be downloaded to your computer, keep it safe.",
+            "protect": "Enter my workspace",
+            "working": "Securing…",
+            "advanced": "Advanced options",
+            "deliveryLabel": "Your recovery key",
+            "deliveryEmail": "Email it to me",
+            "deliveryDownload": "I'll save it myself",
+            "deliveryEmailHint": "The simplest option. The key is sent to your inbox. Don't delete that email.",
+            "deliveryDownloadHint": "Most private option. The key is downloaded and never leaves your device.",
+            "trustLabel": "Trust this device",
+            "trustHint": "Stay signed in with your key on this device. Turn off on shared computers.",
+            "importButton": "I already have a recovery key",
+            "skip": "I don't want to enable encryption",
+            "emailedToast": "Recovery key sent to your email",
+            "downloadedToast": "Recovery key downloaded",
+            "importedToast": "Recovery key imported",
+            "error": "Something went wrong. Please try again.",
+            "importError": "Couldn't read that key file. Please check it and try again.",
+            "doneTitle": "Your account is protected",
+            "doneEmail": "Check your inbox for your recovery key. Keep that email safe.",
+            "doneDownload": "Your recovery key has been saved. Keep it somewhere safe."
+        },
+        "heroSubtitle": "So glad you're here. Setting up HumanLogs takes less than a minute.",
+        "personalize": "Personalize",
+        "heroChipPrivate": "Private & encrypted",
+        "heroChipFast": "Lightning fast",
+        "heroChipQuick": "Ready in 1 min",
+        "roleStep": {
+            "subtitle": "So glad you're here. Tell us a bit about your transcription and qualitative-research needs.",
+            "question": "You are…",
+            "otherPrompt": "Tell us more"
+        },
+        "role": {
+            "researcher": "Researcher, professor",
+            "student": "Student",
+            "journalist": "Journalist",
+            "other": "Other"
+        },
+        "config": {
+            "processing": "Processing:",
+            "volume": "Monthly volume:",
+            "euValue": "Europe (Gladia)",
+            "usValue": "United States (best model)"
+        },
+        "plan": {
+            "title": "You're ready to go",
+            "subtitle": "You start on the free plan with {credits} credits included.",
+            "continueFree": "Continue on the free plan",
+            "seePlans": "See plans",
+            "subtitleFree": "You're starting on the free plan. 100 minutes of transcription every month."
+        },
+        "researcher": {
+            "title": "Bring HumanLogs to your university",
+            "subtitle": "HumanLogs offers licences tailored to research labs and universities. Leave the email of the person in charge (or your own) and we'll reach out to them on your behalf to present an offer.",
+            "placeholder": "Email of the person in charge",
+            "skip": "Maybe later",
+            "invalid": "Invalid email",
+            "sent": "Thanks! We'll get back to you very soon.",
+            "sentTitle": "Request received",
+            "error": "Something went wrong. Please try again.",
+            "secondPlaceholder": "Another contact (optional)",
+            "addSecond": "Add a second contact",
+            "submit": "Send"
+        },
+        "provisioning": {
+            "title": "Setting up your workspace…",
+            "step1": "Creating your workspace",
+            "step2": "Securing your access"
+        },
+        "pricing": {
+            "title": "Choose your plan",
+            "subtitle": "Start free, upgrade to Pro whenever you like.",
+            "monthly": "Monthly",
+            "yearly": "Yearly",
+            "save": "Save 17%",
+            "perMonth": "/mo",
+            "billedYearly": "billed yearly · 20 h / month",
+            "freeName": "Free",
+            "freeMinutes": "100 minutes / month",
+            "proName": "Pro",
+            "proMinutes": "20 hours / month",
+            "popular": "Most popular",
+            "feat1": "End-to-end encryption",
+            "feat2": "Real-time collaborative editor",
+            "freeCta": "Continue for free",
+            "proCta": "Go Pro",
+            "error": "Couldn't start checkout. Please try again.",
+            "currency": "€",
+            "freePrice": "0 €"
+        }
     },
     "tutorialWelcome": {
         "title": "Welcome to the Tutorial!",

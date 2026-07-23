@@ -17,7 +17,9 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { WelcomeIntro } from "@/components/welcome/welcome-intro";
 import { getCurrentUser } from "@/lib/auth/auth-helpers";
+import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
 export default async function AppLayout({
@@ -31,9 +33,21 @@ export default async function AppLayout({
     redirect("/app/login");
   }
 
+  // Send users who haven't finished onboarding straight to the welcome flow.
+  // Doing this server-side (rather than the client-side useWelcomeRedirect
+  // fallback) avoids the app UI flashing behind the welcome screen.
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { isWelcomeDone: true },
+  });
+  if (dbUser && !dbUser.isWelcomeDone) {
+    redirect("/app/welcome");
+  }
+
   return (
-    <SidebarProvider>
-      <AppSidebar user={user}>
+    <WelcomeIntro>
+      <SidebarProvider>
+        <AppSidebar user={user}>
         <SidebarInset className="flex flex-col">
           <header className="sticky top-0 bg-background/50 backdrop-blur-lg z-10">
             <div className="border-b px-4 flex h-14 shrink-0 items-center gap-2 bg-background">
@@ -63,6 +77,7 @@ export default async function AppLayout({
       <FeedbackDialog />
       <FeedbackAutoPrompt />
       <HelpDialog />
-    </SidebarProvider>
+      </SidebarProvider>
+    </WelcomeIntro>
   );
 }

@@ -336,6 +336,61 @@ ${signName}`.trim();
 }
 
 /**
+ * Create a recovery-key email template.
+ *
+ * Sent during onboarding when a user opts to receive their encryption
+ * certificate (recovery key) by email. The certificate itself is attached as a
+ * file by the caller — this body only explains why the email matters and must
+ * be kept. Note this is a deliberate convenience trade-off: mailing the key
+ * means it transits our mail provider, so it is not the pure end-to-end path
+ * (which is offered under "Advanced" as saving the key yourself).
+ */
+export async function getEncryptionKeyEmailTemplate(data: {
+  locale?: string;
+}): Promise<EmailTemplate> {
+  const locale = normalizeEmailLocale(data.locale);
+  const t = await getEmailTranslator(locale);
+
+  const subject = t("encryptionKey.subject");
+  const title = t("encryptionKey.title");
+  const greeting = t("greeting");
+  const intro = t("encryptionKey.intro");
+  const keep = t("encryptionKey.keep");
+  const recover = t("encryptionKey.recover");
+  const secret = t("encryptionKey.secret");
+  const signOff = t("encryptionKey.signOff");
+  const signName = t("encryptionKey.signName");
+
+  const content = `
+    <p>${greeting}</p>
+    <p>${intro}</p>
+    <p><strong>${keep}</strong></p>
+    <p>${recover}</p>
+    <p>${secret}</p>
+    <p>${signOff}<br>${signName}</p>
+  `;
+
+  const html = getBaseTemplate(content, { title: subject, preheader: keep });
+
+  const text = `${title}
+
+${greeting}
+
+${intro}
+
+${keep}
+
+${recover}
+
+${secret}
+
+${signOff}
+${signName}`.trim();
+
+  return { subject, html, text };
+}
+
+/**
  * Create a generic notification email template
  */
 export function getNotificationEmailTemplate(data: {

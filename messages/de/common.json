@@ -200,10 +200,10 @@
         "monthlyUsageLabel": "Wie viel transkribieren Sie pro Monat?",
         "monthlyUsagePlaceholder": "Nutzung auswählen",
         "monthlyUsage": {
-            "lt1h": "0-1 Stunde",
-            "h1to5": "1–5 Stunden",
-            "h5to20": "5–20 Stunden",
-            "gt20h": "20+ Stunden"
+            "lt1h": "Weniger als 1 Std.",
+            "h1to5": "1 bis 5 Std.",
+            "h5to20": "5 bis 20 Std.",
+            "gt20h": "Über 20 Std."
         },
         "skip": "Überspringen",
         "referralTitle": "Freunde einladen, Gratisminuten verdienen",
@@ -213,7 +213,102 @@
         "residencyEuTitle": "100 % Europäisch",
         "residencyEuDesc": "Nur auf EU-Servern verarbeitet, ohne Speicherung und Training.",
         "residencyUsTitle": "US-autorisiert",
-        "residencyUsDesc": "Erlaubt ElevenLabs für höchste Genauigkeit, in den USA verarbeitet."
+        "residencyUsDesc": "Erlaubt ElevenLabs für höchste Genauigkeit, in den USA verarbeitet.",
+        "security": {
+            "title": "Sichern Sie Ihr Konto",
+            "explainerEmail": "Wir wenden höchste Sicherheitsstandards für Ihre Studien an. Ihre Daten sind für unser Team nie zugänglich. Der erzeugte Schlüssel ist die einzige Möglichkeit, Ihre Daten wiederherzustellen, falls Sie den Zugang zu Ihrem Konto verlieren.",
+            "explainerDownload": "Wir wenden höchste Sicherheitsstandards für Ihre Studien an. Ihre Daten sind für unser Team nie zugänglich. Der erzeugte Schlüssel ist die einzige Möglichkeit, Ihre Daten wiederherzustellen, falls Sie den Zugang zu Ihrem Konto verlieren.",
+            "subtitleEmail": "Ihr Schlüssel wird per E-Mail gesendet, bewahren Sie ihn gut auf.",
+            "subtitleDownload": "Ihr Schlüssel wird auf Ihren Computer heruntergeladen, bewahren Sie ihn gut auf.",
+            "protect": "Zu meinem Arbeitsbereich",
+            "working": "Wird gesichert…",
+            "advanced": "Erweiterte Optionen",
+            "deliveryLabel": "Ihr Wiederherstellungsschlüssel",
+            "deliveryEmail": "Per E-Mail senden",
+            "deliveryDownload": "Ich speichere ihn selbst",
+            "deliveryEmailHint": "Die einfachste Option. Der Schlüssel wird an Ihr Postfach gesendet. Löschen Sie diese E-Mail nicht.",
+            "deliveryDownloadHint": "Die privateste Option. Der Schlüssel wird heruntergeladen und verlässt Ihr Gerät nie.",
+            "trustLabel": "Diesem Gerät vertrauen",
+            "trustHint": "Mit Ihrem Schlüssel auf diesem Gerät angemeldet bleiben. Auf gemeinsam genutzten Computern deaktivieren.",
+            "importButton": "Ich habe bereits einen Wiederherstellungsschlüssel",
+            "skip": "Ich möchte keine Verschlüsselung aktivieren",
+            "emailedToast": "Wiederherstellungsschlüssel per E-Mail gesendet",
+            "downloadedToast": "Wiederherstellungsschlüssel heruntergeladen",
+            "importedToast": "Wiederherstellungsschlüssel importiert",
+            "error": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+            "importError": "Diese Schlüsseldatei konnte nicht gelesen werden. Bitte prüfen Sie sie und versuchen Sie es erneut.",
+            "doneTitle": "Ihr Konto ist geschützt",
+            "doneEmail": "Prüfen Sie Ihr Postfach auf Ihren Wiederherstellungsschlüssel. Bewahren Sie diese E-Mail gut auf.",
+            "doneDownload": "Ihr Wiederherstellungsschlüssel wurde gespeichert. Bewahren Sie ihn sicher auf."
+        },
+        "heroSubtitle": "Schön, dass Sie da sind! HumanLogs ist in unter einer Minute eingerichtet.",
+        "personalize": "Personalisieren",
+        "heroChipPrivate": "Privat & verschlüsselt",
+        "heroChipFast": "Blitzschnell",
+        "heroChipQuick": "In 1 Min bereit",
+        "roleStep": {
+            "subtitle": "Schön, dass Sie da sind! Erzählen Sie uns etwas über Ihre Anforderungen an Transkription und qualitative Forschung.",
+            "question": "Sie sind…",
+            "otherPrompt": "Sagen Sie uns mehr"
+        },
+        "role": {
+            "researcher": "Forscher·in, Professor·in",
+            "student": "Student·in",
+            "journalist": "Journalist·in",
+            "other": "Andere"
+        },
+        "config": {
+            "processing": "Verarbeitung:",
+            "volume": "Monatliches Volumen:",
+            "euValue": "Europa (Gladia)",
+            "usValue": "USA (bestes Modell)"
+        },
+        "plan": {
+            "title": "Sie sind startklar",
+            "subtitle": "Sie starten im kostenlosen Plan mit {credits} Guthaben inklusive.",
+            "continueFree": "Kostenlos fortfahren",
+            "seePlans": "Pläne ansehen",
+            "subtitleFree": "Sie starten im kostenlosen Plan. 100 Minuten Transkription pro Monat."
+        },
+        "researcher": {
+            "title": "Holen Sie HumanLogs an Ihre Universität",
+            "subtitle": "HumanLogs bietet Lizenzen für Forschungslabore und Universitäten. Hinterlassen Sie die E-Mail der zuständigen Person (oder Ihre eigene). Wir melden uns in Ihrem Namen mit einem Angebot.",
+            "placeholder": "E-Mail der zuständigen Person",
+            "skip": "Vielleicht später",
+            "invalid": "Ungültige E-Mail",
+            "sent": "Danke! Wir melden uns sehr bald.",
+            "sentTitle": "Anfrage erhalten",
+            "error": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+            "secondPlaceholder": "Weiterer Kontakt (optional)",
+            "addSecond": "Zweiten Kontakt hinzufügen",
+            "submit": "Senden"
+        },
+        "provisioning": {
+            "title": "Ihr Arbeitsbereich wird vorbereitet…",
+            "step1": "Ihr Arbeitsbereich wird erstellt",
+            "step2": "Ihre Zugänge werden gesichert"
+        },
+        "pricing": {
+            "title": "Wählen Sie Ihren Plan",
+            "subtitle": "Starten Sie kostenlos, wechseln Sie jederzeit zu Pro.",
+            "monthly": "Monatlich",
+            "yearly": "Jährlich",
+            "save": "17 % sparen",
+            "perMonth": "/Mon.",
+            "billedYearly": "jährlich abgerechnet · 20 Std. / Monat",
+            "freeName": "Kostenlos",
+            "freeMinutes": "100 Minuten / Monat",
+            "proName": "Pro",
+            "proMinutes": "20 Stunden / Monat",
+            "popular": "Am beliebtesten",
+            "feat1": "Ende-zu-Ende-Verschlüsselung",
+            "feat2": "Kollaborativer Echtzeit-Editor",
+            "freeCta": "Kostenlos fortfahren",
+            "proCta": "Zu Pro wechseln",
+            "error": "Zahlung konnte nicht gestartet werden. Bitte erneut versuchen.",
+            "currency": "€",
+            "freePrice": "0 €"
+        }
     },
     "tutorialWelcome": {
         "title": "Willkommen zum Tutorial!",

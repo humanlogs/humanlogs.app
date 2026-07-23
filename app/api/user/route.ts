@@ -20,6 +20,7 @@ const userSelectDefault = {
   plan: true,
   shortcuts: true,
   isWelcomeDone: true,
+  onboardingStep: true,
   isAdmin: true,
   profession: true,
   monthlyUsage: true,
@@ -82,10 +83,37 @@ export const PATCH = withAuthRateLimit(async (request, user) => {
       );
     }
 
+    // Validate onboarding step if provided. Current flow first, then legacy
+    // values kept so historical data and older clients stay valid.
+    const ONBOARDING_STEPS = [
+      "role",
+      "engage",
+      "provisioning",
+      "security",
+      "done",
+      "profile",
+      "referral",
+      "ready",
+    ];
+    if (
+      body.onboardingStep &&
+      !ONBOARDING_STEPS.includes(body.onboardingStep)
+    ) {
+      return NextResponse.json(
+        { error: "Invalid onboarding step" },
+        { status: 400 },
+      );
+    }
+
     // Update allowed fields
     const updateData: Record<string, string | boolean> = {};
     if (body.language) updateData.language = body.language;
-    if (body.isWelcomeDone) updateData.isWelcomeDone = true;
+    if (body.isWelcomeDone) {
+      updateData.isWelcomeDone = true;
+      // Completing the welcome flow always lands on the terminal step.
+      updateData.onboardingStep = "done";
+    }
+    if (body.onboardingStep) updateData.onboardingStep = body.onboardingStep;
     if (typeof body.profession === "string")
       updateData.profession = body.profession;
     if (typeof body.monthlyUsage === "string")

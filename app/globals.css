@@ -170,6 +170,238 @@
   }
 }
 
+/* ---------- Onboarding: animated background + modal entrance ---------- */
+
+/* Aurora: large soft gradient orbs drifting slowly on independent paths, for
+   a smooth flowing mesh (no hard edges). Each orb gets its own timing. */
+@keyframes onboarding-aurora-1 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(8%, 10%) scale(1.2);
+  }
+}
+@keyframes onboarding-aurora-2 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-10%, 6%) scale(1.15);
+  }
+}
+@keyframes onboarding-aurora-3 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(6%, -8%) scale(1.1);
+  }
+}
+.animate-onboarding-aurora-1 {
+  animation: onboarding-aurora-1 22s ease-in-out infinite;
+}
+.animate-onboarding-aurora-2 {
+  animation: onboarding-aurora-2 26s ease-in-out infinite;
+}
+.animate-onboarding-aurora-3 {
+  animation: onboarding-aurora-3 30s ease-in-out infinite;
+}
+
+/* Horizontal veils: full-width soft colour bands that drift sideways, for a
+   layered "voile" look rather than distinct orbs. */
+@keyframes onboarding-veil-a {
+  0%,
+  100% {
+    transform: translateX(-3%);
+  }
+  50% {
+    transform: translateX(3%);
+  }
+}
+@keyframes onboarding-veil-b {
+  0%,
+  100% {
+    transform: translateX(4%);
+  }
+  50% {
+    transform: translateX(-4%);
+  }
+}
+.animate-onboarding-veil-a {
+  animation: onboarding-veil-a 30s ease-in-out infinite;
+}
+.animate-onboarding-veil-b {
+  animation: onboarding-veil-b 36s ease-in-out infinite;
+}
+
+/* Silk: a large blurred ribbon that slowly undulates and drifts, like a
+   flowing veil of fabric. Kept slightly overscaled so blurred edges stay
+   off-screen. */
+@keyframes onboarding-silk-a {
+  0%,
+  100% {
+    transform: translate3d(-2%, 0, 0) scale(1.08) skewY(-1deg);
+  }
+  50% {
+    transform: translate3d(2%, 1.5%, 0) scale(1.12) skewY(1deg);
+  }
+}
+@keyframes onboarding-silk-b {
+  0%,
+  100% {
+    transform: translate3d(2%, 1%, 0) scale(1.1) skewY(1.5deg);
+  }
+  50% {
+    transform: translate3d(-3%, -1%, 0) scale(1.06) skewY(-1.5deg);
+  }
+}
+.animate-onboarding-silk-a {
+  animation: onboarding-silk-a 34s ease-in-out infinite;
+}
+.animate-onboarding-silk-b {
+  animation: onboarding-silk-b 42s ease-in-out infinite;
+}
+
+/* Smoothly animate a container's height to fit its content. */
+.onboarding-animate-height {
+  transition: height 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Card entrance: rise + fade + subtle scale. */
+@keyframes onboarding-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-onboarding-card {
+  animation: onboarding-card-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Per-step content swap: quick, gentle fade-up so steps feel connected. */
+@keyframes onboarding-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-onboarding-step {
+  animation: onboarding-step-in 0.35s ease-out both;
+}
+
+/* Snapchat/stories-style stepper: the active segment fills left-to-right. */
+@keyframes onboarding-stepper-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.animate-onboarding-stepper-fill {
+  transform-origin: left;
+  animation: onboarding-stepper-fill 0.45s ease-out both;
+}
+
+/* Post-onboarding entrance: the app zooms into place (ease-out) over the warm
+   backdrop the funnel used, then the backdrop is destroyed. */
+@keyframes welcome-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-welcome-zoom-in {
+  transform-origin: center;
+  animation: welcome-zoom-in 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes welcome-bg-fade {
+  0% {
+    opacity: 0;
+  }
+  22%,
+  62% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.animate-welcome-bg-fade {
+  animation: welcome-bg-fade 850ms ease-out both;
+}
+
+/* Success badge: the green disc pops in, then the white check strokes on. */
+@keyframes success-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+.animate-success-pop {
+  animation: success-pop 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes success-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.animate-success-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: success-draw 300ms ease-out 150ms forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-onboarding-aurora-1,
+  .animate-onboarding-aurora-2,
+  .animate-onboarding-aurora-3,
+  .animate-onboarding-veil-a,
+  .animate-onboarding-veil-b,
+  .animate-onboarding-silk-a,
+  .animate-onboarding-silk-b,
+  .onboarding-animate-height,
+  .animate-onboarding-card,
+  .animate-onboarding-step,
+  .animate-onboarding-stepper-fill,
+  .animate-welcome-zoom-in,
+  .animate-welcome-bg-fade,
+  .animate-success-pop {
+    animation: none;
+  }
+  /* Keep the check visible (drawn) when its stroke animation is disabled. */
+  .animate-success-draw {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+}
+
 .document h1 {
     font-size: 1.5rem;
     font-weight: 600;

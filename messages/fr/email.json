@@ -34,6 +34,16 @@
             "feedbackInvite": "Si vous avez une question, une idée, ou quelque chose qui vous chiffonne, répondez simplement à cet e-mail : nous répondons personnellement à chaque message.",
             "signOff": "À très vite,",
             "signName": "Romaric, de l'équipe HumanLogs"
+        },
+        "encryptionKey": {
+            "subject": "Votre clé de récupération HumanLogs (conservez cet email)",
+            "title": "Votre clé de récupération HumanLogs",
+            "intro": "Vous trouverez en pièce jointe votre clé de récupération HumanLogs. Elle chiffre vos transcriptions afin que vous seul puissiez les lire.",
+            "keep": "Veuillez conserver cet email. Ne le supprimez pas.",
+            "recover": "Cette clé vous permet de récupérer votre compte et vos données si vous perdez l'accès à votre appareil ou vous connectez ailleurs. Sans elle, les données chiffrées ne peuvent pas être récupérées. Pas même par nous.",
+            "secret": "Toute personne disposant de ce fichier peut accéder à vos données : ne transférez pas cet email et ne partagez pas la pièce jointe.",
+            "signOff": "Cordialement,",
+            "signName": "L'équipe HumanLogs"
         }
     }
 }

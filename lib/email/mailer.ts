@@ -94,6 +94,14 @@ class Mailer {
   }
 
   /**
+   * Whether a working email provider is configured. Lets callers decide
+   * whether an email will actually be delivered (rather than silently no-op'd).
+   */
+  public getIsConfigured(): boolean {
+    return this.isConfigured;
+  }
+
+  /**
    * Send an email using the configured provider (SMTP or SES)
    */
   public async sendEmail(options: EmailOptions): Promise<void> {
@@ -235,7 +243,11 @@ class Mailer {
     replyTo?: string;
     attachments?: EmailOptions["attachments"];
   }): string {
-    const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    const seed = `${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    const altBoundary = `----=_Alt_${seed}`;
+    const mixedBoundary = `----=_Mixed_${seed}`;
+    const hasAttachments =
+      !!mailOptions.attachments && mailOptions.attachments.length > 0;
     const lines: string[] = [];
 
     // Headers
@@ -246,12 +258,23 @@ class Mailer {
     if (mailOptions.replyTo) lines.push(`Reply-To: ${mailOptions.replyTo}`);
     lines.push(`Subject: ${mailOptions.subject}`);
     lines.push(`MIME-Version: 1.0`);
-    lines.push(`Content-Type: multipart/alternative; boundary="${boundary}"`);
+
+    // With attachments the message is multipart/mixed: [alternative body] +
+    // [each attachment]. Without, it stays a plain multipart/alternative.
+    if (hasAttachments) {
+      lines.push(
+        `Content-Type: multipart/mixed; boundary="${mixedBoundary}"`,
+      );
+      lines.push("");
+      lines.push(`--${mixedBoundary}`);
+    }
+
+    lines.push(`Content-Type: multipart/alternative; boundary="${altBoundary}"`);
     lines.push("");
 
     // Text part
     if (mailOptions.text) {
-      lines.push(`--${boundary}`);
+      lines.push(`--${altBoundary}`);
       lines.push(`Content-Type: text/plain; charset=UTF-8`);
       lines.push(`Content-Transfer-Encoding: 7bit`);
       lines.push("");
@@ -261,7 +284,7 @@ class Mailer {
 
     // HTML part
     if (mailOptions.html) {
-      lines.push(`--${boundary}`);
+      lines.push(`--${altBoundary}`);
       lines.push(`Content-Type: text/html; charset=UTF-8`);
       lines.push(`Content-Transfer-Encoding: 7bit`);
       lines.push("");
@@ -269,7 +292,30 @@ class Mailer {
       lines.push("");
     }
 
-    lines.push(`--${boundary}--`);
+    lines.push(`--${altBoundary}--`);
+
+    // Attachment parts (base64-encoded), only when present.
+    if (hasAttachments) {
+      for (const attachment of mailOptions.attachments!) {
+        const buffer = Buffer.isBuffer(attachment.content)
+          ? attachment.content
+          : Buffer.from(attachment.content);
+        const base64 = buffer.toString("base64").replace(/(.{76})/g, "$1\r\n");
+        lines.push("");
+        lines.push(`--${mixedBoundary}`);
+        lines.push(
+          `Content-Type: ${attachment.contentType || "application/octet-stream"}; name="${attachment.filename}"`,
+        );
+        lines.push(`Content-Transfer-Encoding: base64`);
+        lines.push(
+          `Content-Disposition: attachment; filename="${attachment.filename}"`,
+        );
+        lines.push("");
+        lines.push(base64);
+      }
+      lines.push("");
+      lines.push(`--${mixedBoundary}--`);
+    }
 
     return lines.join("\r\n");
   }
@@ -318,4 +364,9 @@ const mailer = Mailer.getInstance();
 // Export helper function
 export async function sendEmail(options: EmailOptions): Promise<void> {
   return mailer.sendEmail(options);
+}
+
+/** Whether a working email provider is configured (SMTP or SES). */
+export function isEmailConfigured(): boolean {
+  return mailer.getIsConfigured();
 }

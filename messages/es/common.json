@@ -200,10 +200,10 @@
         "monthlyUsageLabel": "¿Cuánto transcribes al mes?",
         "monthlyUsagePlaceholder": "Selecciona tu uso",
         "monthlyUsage": {
-            "lt1h": "0-1 hora",
-            "h1to5": "1–5 horas",
-            "h5to20": "5–20 horas",
-            "gt20h": "20+ horas"
+            "lt1h": "Menos de 1 hora",
+            "h1to5": "1 a 5 horas",
+            "h5to20": "5 a 20 horas",
+            "gt20h": "Más de 20 horas"
         },
         "skip": "Omitir",
         "referralTitle": "Invita a amigos y gana minutos gratis",
@@ -213,7 +213,102 @@
         "residencyEuTitle": "100 % Europeo",
         "residencyEuDesc": "Procesado solo en servidores de la UE, sin retención ni entrenamiento.",
         "residencyUsTitle": "Autorizado en EE. UU.",
-        "residencyUsDesc": "Permite ElevenLabs para la máxima precisión, procesado en EE. UU."
+        "residencyUsDesc": "Permite ElevenLabs para la máxima precisión, procesado en EE. UU.",
+        "security": {
+            "title": "Protege tu cuenta",
+            "explainerEmail": "Aplicamos los estándares de seguridad más altos a tus estudios. Tus datos nunca son accesibles para nuestro equipo. La clave que generamos es la única forma de recuperar tus datos si pierdes el acceso a tu cuenta.",
+            "explainerDownload": "Aplicamos los estándares de seguridad más altos a tus estudios. Tus datos nunca son accesibles para nuestro equipo. La clave que generamos es la única forma de recuperar tus datos si pierdes el acceso a tu cuenta.",
+            "subtitleEmail": "Tu clave se enviará por correo, guárdala con cuidado.",
+            "subtitleDownload": "Tu clave se descargará en tu ordenador, guárdala con cuidado.",
+            "protect": "Acceder a mi espacio",
+            "working": "Protegiendo…",
+            "advanced": "Opciones avanzadas",
+            "deliveryLabel": "Tu clave de recuperación",
+            "deliveryEmail": "Enviármela por correo",
+            "deliveryDownload": "La guardo yo mismo",
+            "deliveryEmailHint": "La opción más sencilla. La clave se envía a tu correo. No elimines ese mensaje.",
+            "deliveryDownloadHint": "La opción más privada. La clave se descarga y nunca sale de tu dispositivo.",
+            "trustLabel": "Confiar en este dispositivo",
+            "trustHint": "Mantén la sesión con tu clave en este dispositivo. Desactívalo en equipos compartidos.",
+            "importButton": "Ya tengo una clave de recuperación",
+            "skip": "No quiero activar el cifrado",
+            "emailedToast": "Clave de recuperación enviada por correo",
+            "downloadedToast": "Clave de recuperación descargada",
+            "importedToast": "Clave de recuperación importada",
+            "error": "Algo salió mal. Inténtalo de nuevo.",
+            "importError": "No se pudo leer ese archivo de clave. Revísalo e inténtalo de nuevo.",
+            "doneTitle": "Tu cuenta está protegida",
+            "doneEmail": "Revisa tu correo para encontrar tu clave de recuperación. Consérvalo bien.",
+            "doneDownload": "Tu clave de recuperación se ha guardado. Consérvala en un lugar seguro."
+        },
+        "heroSubtitle": "¡Nos alegra tenerte aquí! Configurar HumanLogs lleva menos de un minuto.",
+        "personalize": "Personalizar",
+        "heroChipPrivate": "Privado y cifrado",
+        "heroChipFast": "Muy rápido",
+        "heroChipQuick": "Listo en 1 min",
+        "roleStep": {
+            "subtitle": "¡Nos alegra tenerte aquí! Cuéntanos un poco sobre tus necesidades de transcripción e investigación cualitativa.",
+            "question": "Eres…",
+            "otherPrompt": "Cuéntanos más"
+        },
+        "role": {
+            "researcher": "Investigador·a, profesor·a",
+            "student": "Estudiante",
+            "journalist": "Periodista",
+            "other": "Otro"
+        },
+        "config": {
+            "processing": "Procesamiento:",
+            "volume": "Volumen mensual:",
+            "euValue": "Europa (Gladia)",
+            "usValue": "Estados Unidos (mejor modelo)"
+        },
+        "plan": {
+            "title": "Todo listo",
+            "subtitle": "Empiezas con el plan gratuito con {credits} créditos incluidos.",
+            "continueFree": "Continuar con el plan gratuito",
+            "seePlans": "Ver planes",
+            "subtitleFree": "Empiezas con el plan gratuito. 100 minutos de transcripción al mes."
+        },
+        "researcher": {
+            "title": "Lleva HumanLogs a tu universidad",
+            "subtitle": "HumanLogs ofrece licencias adaptadas a laboratorios y universidades. Deja el email de la persona responsable (o el tuyo) y la contactaremos de tu parte para presentarle una oferta.",
+            "placeholder": "Email de la persona responsable",
+            "skip": "Quizá más tarde",
+            "invalid": "Email no válido",
+            "sent": "¡Gracias! Te responderemos muy pronto.",
+            "sentTitle": "Solicitud recibida",
+            "error": "Algo salió mal. Inténtalo de nuevo.",
+            "secondPlaceholder": "Otro contacto (opcional)",
+            "addSecond": "Añadir un segundo contacto",
+            "submit": "Enviar"
+        },
+        "provisioning": {
+            "title": "Preparando tu espacio…",
+            "step1": "Creando tu espacio",
+            "step2": "Asegurando tu acceso"
+        },
+        "pricing": {
+            "title": "Elige tu plan",
+            "subtitle": "Empieza gratis y pásate a Pro cuando quieras.",
+            "monthly": "Mensual",
+            "yearly": "Anual",
+            "save": "Ahorra 17 %",
+            "perMonth": "/mes",
+            "billedYearly": "facturado anualmente · 20 h / mes",
+            "freeName": "Gratis",
+            "freeMinutes": "100 minutos / mes",
+            "proName": "Pro",
+            "proMinutes": "20 horas / mes",
+            "popular": "El más elegido",
+            "feat1": "Cifrado de extremo a extremo",
+            "feat2": "Editor colaborativo en tiempo real",
+            "freeCta": "Continuar gratis",
+            "proCta": "Pasar a Pro",
+            "error": "No se pudo iniciar el pago. Inténtalo de nuevo.",
+            "currency": "€",
+            "freePrice": "0 €"
+        }
     },
     "tutorialWelcome": {
         "title": "¡Bienvenido al Tutorial!",

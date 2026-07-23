@@ -11,7 +11,7 @@
             "model": "Verwendetes Modell: {model}.",
             "button": "Transkription ansehen",
             "feedbackErrors": "Ein kurzer Hinweis: Die Qualität der Transkription kann je nach verwendetem Modell variieren, und es können einige Fehler verbleiben. HumanLogs ist noch ein junges Tool, das wir Woche für Woche verbessern.",
-            "feedbackInvite": "Genau deshalb ist uns Ihre Meinung so wichtig. Wenn Ihnen etwas seltsam vorkommt, wenn Sie eine Idee, einen Kritikpunkt oder einfach eine Frage haben, antworten Sie direkt auf diese E-Mail – wir lesen und beantworten jede Nachricht persönlich.",
+            "feedbackInvite": "Genau deshalb ist uns Ihre Meinung so wichtig. Wenn Ihnen etwas seltsam vorkommt, wenn Sie eine Idee, einen Kritikpunkt oder einfach eine Frage haben, antworten Sie direkt auf diese E-Mail, wir lesen und beantworten jede Nachricht persönlich.",
             "signOff": "Wir freuen uns auf Ihre Nachricht,",
             "signName": "Romaric vom HumanLogs-Team"
         },
@@ -21,7 +21,7 @@
             "body": "Beim Verarbeiten Ihrer Transkription ist etwas schiefgelaufen. Sie können es erneut versuchen, indem Sie Ihre Datei noch einmal hochladen, manchmal ist es nur eine kurze Störung.",
             "model": "Verwendetes Modell: {model}.",
             "button": "Details ansehen",
-            "feedbackInvite": "So etwas kann je nach Modell oder Datei passieren, und HumanLogs ist noch ein junges Tool, das wir jede Woche verbessern. Wenn der Fehler weiterhin auftritt – oder wenn Sie einfach nicht sicher sind, was schiefgelaufen ist – antworten Sie direkt auf diese E-Mail. Wir lesen jede Nachricht persönlich und helfen Ihnen, es zum Laufen zu bringen.",
+            "feedbackInvite": "So etwas kann je nach Modell oder Datei passieren, und HumanLogs ist noch ein junges Tool, das wir jede Woche verbessern. Wenn der Fehler weiterhin auftritt, oder wenn Sie einfach nicht sicher sind, was schiefgelaufen ist, antworten Sie direkt auf diese E-Mail. Wir lesen jede Nachricht persönlich und helfen Ihnen, es zum Laufen zu bringen.",
             "signOff": "Entschuldigen Sie die Unannehmlichkeiten, bis bald,",
             "signName": "Romaric vom HumanLogs-Team"
         },
@@ -31,9 +31,19 @@
             "body": "Gute Nachrichten: Ihr Konto wurde gerade mit {credits, plural, one {# Credit} other {# Credits}} für diesen Monat aufgefüllt, bereit zur Nutzung, wann immer Sie sie brauchen.",
             "usage": "Zur Erinnerung: 1 Credit entspricht 1 Minute Transkription.",
             "button": "Transkription starten",
-            "feedbackInvite": "Wenn Sie eine Frage oder eine Idee haben oder Sie etwas stört, antworten Sie einfach auf diese E-Mail – ich lese und beantworte jede Nachricht persönlich.",
+            "feedbackInvite": "Wenn Sie eine Frage oder eine Idee haben oder Sie etwas stört, antworten Sie einfach auf diese E-Mail, ich lese und beantworte jede Nachricht persönlich.",
             "signOff": "Bis bald,",
             "signName": "Romaric vom HumanLogs-Team"
+        },
+        "encryptionKey": {
+            "subject": "Ihr HumanLogs-Wiederherstellungsschlüssel (bitte aufbewahren)",
+            "title": "Ihr HumanLogs-Wiederherstellungsschlüssel",
+            "intro": "Im Anhang dieser E-Mail finden Sie Ihren HumanLogs-Wiederherstellungsschlüssel. Er verschlüsselt Ihre Transkriptionen, sodass nur Sie sie lesen können.",
+            "keep": "Bitte bewahren Sie diese E-Mail auf. Löschen Sie sie nicht.",
+            "recover": "Mit diesem Schlüssel stellen Sie Ihr Konto und Ihre Daten wieder her, falls Sie den Zugang zu Ihrem Gerät verlieren oder sich woanders anmelden. Ohne ihn können verschlüsselte Daten nicht wiederhergestellt werden. Auch nicht von uns.",
+            "secret": "Wer diese Datei besitzt, kann auf Ihre Daten zugreifen: Leiten Sie diese E-Mail nicht weiter und teilen Sie den Anhang nicht.",
+            "signOff": "Beste Grüße,",
+            "signName": "Das HumanLogs-Team"
         }
     }
 }

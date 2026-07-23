@@ -230,6 +230,41 @@ export default function AdminPage() {
     gt20h: "> 20h / month",
   };
 
+  // Onboarding funnel steps, in order. "done" is the terminal completed state.
+  // Legacy values (profile/referral/ready) are folded into the closest current
+  // stage so historical users still count toward the funnel.
+  const ONBOARDING_STEPS: { key: string; label: string; aliases?: string[] }[] =
+    [
+      { key: "role", label: "Role", aliases: ["profile"] },
+      { key: "engage", label: "Invite / plan", aliases: ["referral"] },
+      { key: "provisioning", label: "Provisioning" },
+      { key: "security", label: "Security key", aliases: ["ready"] },
+      { key: "done", label: "Completed" },
+    ];
+
+  // `byOnboardingStep` holds each user's *furthest* step. A user who reached
+  // "referral" also passed "profile" and "security", so the number who reached
+  // step i is the sum of everyone whose furthest step is i or later.
+  const onboardingFunnel = useMemo(() => {
+    const counts = stats?.users.byOnboardingStep ?? {};
+    const total = stats?.users.total ?? 0;
+    const stepCount = (s: { key: string; aliases?: string[] }) =>
+      (counts[s.key] || 0) +
+      (s.aliases?.reduce((sum, a) => sum + (counts[a] || 0), 0) ?? 0);
+    return ONBOARDING_STEPS.map((step, i) => {
+      const reached = ONBOARDING_STEPS.slice(i).reduce(
+        (sum, s) => sum + stepCount(s),
+        0,
+      );
+      return {
+        ...step,
+        reached,
+        pct: total > 0 ? reached / total : 0,
+      };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stats]);
+
   const professionPieData = useMemo(() => {
     if (!stats?.users.byProfession) return [];
     return Object.entries(stats.users.byProfession).map(([key, count]) => ({
@@ -492,6 +527,55 @@ export default function AdminPage() {
 
         {/* ---------- Users ---------- */}
         <TabsContent value="users" className="space-y-6">
+          {/* Onboarding funnel */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ActivityIcon className="h-5 w-5" />
+                Onboarding Funnel
+              </CardTitle>
+              <CardDescription>
+                How far users get in the welcome flow. Each bar is the share of
+                all users who reached that step — the drop between two bars is
+                where people abandon onboarding.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {onboardingFunnel.map((step, i) => {
+                  const prev = i > 0 ? onboardingFunnel[i - 1] : null;
+                  const dropoff =
+                    prev && prev.reached > 0
+                      ? (prev.reached - step.reached) / prev.reached
+                      : 0;
+                  return (
+                    <div key={step.key} className="space-y-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium">
+                          {i + 1}. {step.label}
+                        </span>
+                        <span className="tabular-nums text-muted-foreground">
+                          {step.reached} ({Math.round(step.pct * 100)}%)
+                          {prev && dropoff > 0 && (
+                            <span className="ml-2 text-amber-600">
+                              −{Math.round(dropoff * 100)}%
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                      <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-primary transition-all"
+                          style={{ width: `${Math.max(step.pct * 100, 1.5)}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Customer Profiles */}
           <Card>
             <CardHeader>
@@ -658,12 +742,19 @@ export default function AdminPage() {
                           <td className="py-2 pr-4 text-right font-medium tabular-nums">
                             {u.minutesUsed.toLocaleString()}
                           </td>
-                          <td className="py-2 pr-4">
+                          <td className="py-2 pr-4 whitespace-nowrap">
                             {u.isWelcomeDone ? (
                               <span className="text-green-600">Done</span>
                             ) : (
-                              <span className="text-muted-foreground">
-                                Pending
+                              <span
+                                className="text-amber-600"
+                                title={`Stopped at: ${u.onboardingStep}`}
+                              >
+                                {ONBOARDING_STEPS.find(
+                                  (s) =>
+                                    s.key === u.onboardingStep ||
+                                    s.aliases?.includes(u.onboardingStep),
+                                )?.label ?? u.onboardingStep}
                               </span>
                             )}
                           </td>
