@@ -26,12 +26,14 @@ export const RoadmapSection = () => {
   const t = useTranslations("roadmap");
 
   return (
-    <section className="container mx-auto px-4 py-24 md:px-6">
-      <div className="mx-auto mb-14 max-w-2xl text-center">
-        <h2 className="text-3xl font-bold tracking-tight text-black md:text-4xl">
+    <section className="container mx-auto px-4 py-8 md:px-6">
+      <div className="mx-auto mb-6 max-w-2xl text-center">
+        <h2 className="text-2xl font-bold tracking-tight text-black md:text-3xl">
           {t("title")}
         </h2>
-        <p className="mx-auto mt-4 text-lg text-gray-600">{t("subtitle")}</p>
+        <p className="mx-auto mt-3 text-base text-gray-600 md:text-lg">
+          {t("subtitle")}
+        </p>
       </div>
 
       <div className="flex flex-col items-stretch gap-4 lg:flex-row lg:gap-2">
@@ -45,7 +47,7 @@ export const RoadmapSection = () => {
           return (
             <div key={stage.key} className="contents">
               <div
-                className={`flex flex-1 flex-col rounded-2xl border p-6 md:p-8 ${
+                className={`flex flex-1 flex-col rounded-2xl border p-5 md:p-6 ${
                   isLive
                     ? "border-black bg-white shadow-sm"
                     : "border-dashed border-gray-300 bg-gray-50/60"
@@ -54,7 +56,7 @@ export const RoadmapSection = () => {
                 {/* Header */}
                 <div className="flex items-center justify-between gap-3">
                   <div
-                    className={`rounded-xl p-2.5 ${
+                    className={`rounded-xl p-2 ${
                       isLive
                         ? "bg-green-100 text-green-600"
                         : "bg-gray-200 text-gray-500"
@@ -74,7 +76,7 @@ export const RoadmapSection = () => {
                 </div>
 
                 <h3
-                  className={`mt-4 text-xl font-bold ${
+                  className={`mt-3 text-lg font-bold ${
                     isLive ? "text-black" : "text-gray-500"
                   }`}
                 >
@@ -82,10 +84,10 @@ export const RoadmapSection = () => {
                 </h3>
 
                 {/* Features */}
-                <ul className="mt-5 space-y-3">
+                <ul className="mt-3 space-y-2">
                   {(Array.isArray(features) ? features : []).map(
                     (feature, i) => (
-                      <li key={i} className="flex items-start gap-2.5">
+                      <li key={i} className="flex items-start gap-2">
                         <Check
                           className={`mt-0.5 h-4 w-4 shrink-0 ${
                             isLive ? "text-green-600" : "text-gray-400"

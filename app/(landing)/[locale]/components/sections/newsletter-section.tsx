@@ -46,20 +46,23 @@ export const NewsletterSection = () => {
   };
 
   return (
-    <section id="newsletter" className="container mx-auto px-4 py-24 md:px-6">
-      <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-8 md:p-12">
+    <section
+      id="newsletter"
+      className="container mx-auto px-4 pb-10 pt-0 md:px-6"
+    >
+      <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-6">
         <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-black md:text-4xl">
+          <h2 className="text-xl font-bold tracking-tight text-black md:text-2xl">
             {t("title")}
           </h2>
 
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
+          <p className="mx-auto mt-2 text-sm text-gray-600 md:text-base">
             {t("description")}
           </p>
         </div>
 
         {/* Form / success state */}
-        <div className="mx-auto mt-8 max-w-md">
+        <div className="mx-auto mt-5 max-w-md">
           {status === "success" ? (
             <div className="flex items-center justify-center gap-2 rounded-lg bg-green-50 px-4 py-4 text-center text-green-700">
               <CheckCircle2 className="h-5 w-5 shrink-0" />
