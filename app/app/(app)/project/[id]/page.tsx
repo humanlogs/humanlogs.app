@@ -1,34 +1,25 @@
 "use client";
 
+import { useProjectModal } from "@/components/dialogs/project-create-modal";
 import { GuideCallout } from "@/components/guidance/guide-callout";
-import { useLocale, useTranslations } from "@/components/locale-provider";
+import { useTranslations } from "@/components/locale-provider";
 import { PageLayout } from "@/components/page-layout";
+import { ProjectBadge } from "@/components/projects/project-badge";
+import { DocumentList } from "@/components/transcriptions/document-list";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProjects } from "@/hooks/use-api";
 import { useTranscriptions } from "@/hooks/use-transcriptions";
-import { useQueryClient } from "@tanstack/react-query";
-import {
-  AlertCircleIcon,
-  ArrowLeftIcon,
-  CheckIcon,
-  FileIcon,
-  LoaderIcon,
-  PlusIcon,
-  UsersIcon,
-} from "lucide-react";
-import Link from "next/link";
+import { ArrowLeftIcon, PlusIcon, Settings2Icon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
-import { toast } from "sonner";
 
 export default function StudyPage() {
   const params = useParams<{ id: string }>();
   const projectId = params.id;
   const t = useTranslations("study");
-  const { locale } = useLocale();
   const router = useRouter();
-  const queryClient = useQueryClient();
+  const { openRename } = useProjectModal();
 
   const { data: projects = [], isLoading: isLoadingProjects } = useProjects();
   const { data: transcriptions = [], isLoading: isLoadingTranscriptions } =
@@ -39,46 +30,14 @@ export default function StudyPage() {
     () =>
       transcriptions
         .filter((tr) => tr.projectId === projectId && tr.isOwner !== false)
-        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
+        .sort((a, b) =>
+          a.title.localeCompare(b.title, undefined, {
+            numeric: true,
+            sensitivity: "base",
+          }),
+        ),
     [transcriptions, projectId],
   );
-
-  // Inline-editable title.
-  const [isEditingTitle, setIsEditingTitle] = React.useState(false);
-  const [titleDraft, setTitleDraft] = React.useState("");
-  const [isSavingTitle, setIsSavingTitle] = React.useState(false);
-
-  const startEditingTitle = () => {
-    if (!project) return;
-    setTitleDraft(project.name);
-    setIsEditingTitle(true);
-  };
-
-  const saveTitle = async () => {
-    const name = titleDraft.trim();
-    if (!name || !project || name === project.name) {
-      setIsEditingTitle(false);
-      setTitleDraft(project?.name ?? "");
-      return;
-    }
-    setIsSavingTitle(true);
-    try {
-      const res = await fetch(`/api/projects/${projectId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-      });
-      if (!res.ok) throw new Error();
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
-      queryClient.invalidateQueries({ queryKey: ["transcriptions"] });
-      toast.success(t("titleSaved"));
-      setIsEditingTitle(false);
-    } catch {
-      toast.error(t("titleError"));
-    } finally {
-      setIsSavingTitle(false);
-    }
-  };
 
   const goImport = () => router.push(`/app/new?projectId=${projectId}`);
 
@@ -90,49 +49,6 @@ export default function StudyPage() {
       </div>
     );
   }
-
-  // The heading is the (inline-editable) study name. Form controls don't inherit
-  // typography, so the input/button keep explicit heading styles even though
-  // they render inside the PageHeader <h1>.
-  const titleNode =
-    project && isEditingTitle ? (
-      <span className="inline-flex items-center gap-2">
-        <input
-          autoFocus
-          value={titleDraft}
-          disabled={isSavingTitle}
-          onChange={(e) => setTitleDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") saveTitle();
-            if (e.key === "Escape") {
-              setIsEditingTitle(false);
-              setTitleDraft(project.name);
-            }
-          }}
-          onBlur={saveTitle}
-          className="border-b border-input bg-transparent text-3xl font-bold tracking-tight outline-none focus:border-primary"
-        />
-        <Button
-          size="icon"
-          variant="ghost"
-          disabled={isSavingTitle}
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={saveTitle}
-          aria-label={t("saveTitle")}
-        >
-          <CheckIcon className="h-4 w-4" />
-        </Button>
-      </span>
-    ) : (
-      <button
-        type="button"
-        onClick={startEditingTitle}
-        className="rounded-md text-left text-3xl font-bold tracking-tight hover:opacity-80"
-        title={t("editTitle")}
-      >
-        {project?.name}
-      </button>
-    );
 
   if (!project) {
     return (
@@ -147,16 +63,41 @@ export default function StudyPage() {
     );
   }
 
+  // The study's badge sits to the left of its name; the name is edited from the
+  // settings dialog (opened by the action button), not inline.
+  const titleNode = (
+    <span className="inline-flex items-center gap-3">
+      <ProjectBadge
+        appearance={project}
+        projectId={project.id}
+        name={project.name}
+        size="lg"
+        imageVersion={project.updatedAt}
+      />
+      <span>{project.name}</span>
+    </span>
+  );
+
   return (
     <PageLayout
       backHref="/app"
       backLabel={t("backHome")}
       title={titleNode}
       action={
-        <Button onClick={goImport}>
-          <PlusIcon className="h-4 w-4" />
-          {t("addDocument")}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={goImport}>
+            <PlusIcon className="h-4 w-4" />
+            {t("addDocument")}
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => openRename(project.id, project.name)}
+            aria-label={t("settings")}
+          >
+            <Settings2Icon className="h-4 w-4" />
+          </Button>
+        </div>
       }
       maxWidth="max-w-4xl"
     >
@@ -184,81 +125,9 @@ export default function StudyPage() {
             }}
           />
         ) : (
-          <ul className="divide-y rounded-xl border">
-            {documents.map((doc) => (
-              <li key={doc.id}>
-                <Link
-                  href={`/app/transcription/${doc.id}`}
-                  className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent/40"
-                >
-                  <DocumentStateIcon state={doc.state} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">
-                      {doc.title || t("documents.untitled")}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {t("documents.updatedAt", {
-                        date: new Date(doc.updatedAt).toLocaleDateString(
-                          locale,
-                        ),
-                      })}
-                    </p>
-                  </div>
-                  <SpeakerSummary
-                    speakerCount={doc.speakerCount}
-                    speakerNames={doc.speakerNames}
-                  />
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <DocumentList documents={documents} />
         )}
       </section>
     </PageLayout>
-  );
-}
-
-function DocumentStateIcon({
-  state,
-}: {
-  state: "PENDING" | "COMPLETED" | "ERROR";
-}) {
-  if (state === "PENDING")
-    return (
-      <LoaderIcon
-        className="h-5 w-5 shrink-0 animate-spin text-muted-foreground"
-        style={{ animationDuration: "5s" }}
-      />
-    );
-  if (state === "ERROR")
-    return <AlertCircleIcon className="h-5 w-5 shrink-0 text-red-500" />;
-  return <FileIcon className="h-5 w-5 shrink-0 text-muted-foreground" />;
-}
-
-/**
- * Shows the document's speakers on the right of a row: their names when the
- * panel is small (fewer than 4 speakers and names are available), otherwise a
- * plain count. Names come from the transcription content and are absent for
- * E2E-encrypted documents, in which case we fall back to the count.
- */
-function SpeakerSummary({
-  speakerCount,
-  speakerNames,
-}: {
-  speakerCount?: number;
-  speakerNames?: (string | null)[];
-}) {
-  const count = speakerCount ?? 0;
-  const names = (speakerNames ?? []).filter((n): n is string => !!n);
-  const showNames = count > 0 && count < 4 && names.length > 0;
-  const label = showNames ? names.join(", ") : count > 0 ? String(count) : null;
-
-  if (!label) return null;
-
-  return (
-    <span className="hidden max-w-[45%] items-center gap-1.5 text-xs text-muted-foreground sm:flex">
-      <UsersIcon className="h-3.5 w-3.5 shrink-0" />
-      <span className="truncate">{label}</span>
-    </span>
   );
 }

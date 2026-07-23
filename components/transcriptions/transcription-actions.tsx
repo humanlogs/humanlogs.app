@@ -15,9 +15,12 @@ import { downloadAndDecryptAudio } from "@/lib/audio/audio-decryption.browser";
 import {
   exportAsCSV,
   exportAsJSON,
+  exportAsMAXQDA,
+  exportAsNVivo,
   exportAsPDF,
   exportAsSRT,
   exportAsTXTWithOptions,
+  exportAsVTT,
   exportAsWord,
 } from "@/lib/utils/export-utils";
 import {
@@ -212,6 +215,51 @@ export function TranscriptionActions({
     }
   };
 
+  const handleExportVTT = () => {
+    const content = getTranscriptionContent();
+    if (!content) {
+      toast.error(t("actions.noDataAvailable"));
+      return;
+    }
+    try {
+      exportAsVTT(content, transcriptionName);
+      toast.success(t("actions.exportedVTT"));
+    } catch (error) {
+      toast.error(t("actions.failedExportVTT"));
+      console.error("Export VTT error:", error);
+    }
+  };
+
+  const handleExportNVivo = () => {
+    const content = getTranscriptionContent();
+    if (!content) {
+      toast.error(t("actions.noDataAvailable"));
+      return;
+    }
+    try {
+      exportAsNVivo(content, transcriptionName);
+      toast.success(t("actions.exportedNVivo"));
+    } catch (error) {
+      toast.error(t("actions.failedExportNVivo"));
+      console.error("Export NVivo error:", error);
+    }
+  };
+
+  const handleExportMAXQDA = () => {
+    const content = getTranscriptionContent();
+    if (!content) {
+      toast.error(t("actions.noDataAvailable"));
+      return;
+    }
+    try {
+      exportAsMAXQDA(content, transcriptionName);
+      toast.success(t("actions.exportedMAXQDA"));
+    } catch (error) {
+      toast.error(t("actions.failedExportMAXQDA"));
+      console.error("Export MAXQDA error:", error);
+    }
+  };
+
   const handleExportPDF = async () => {
     const content = getTranscriptionContent();
     if (!content) {
@@ -352,6 +400,18 @@ export function TranscriptionActions({
       <DropdownMenuItem onClick={handleExportSRT}>
         <FileTextIcon className="h-4 w-4 mr-2" />
         {t("actions.srt")}
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={handleExportVTT}>
+        <FileTextIcon className="h-4 w-4 mr-2" />
+        {t("actions.vtt")}
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={handleExportNVivo}>
+        <FileTextIcon className="h-4 w-4 mr-2" />
+        {t("actions.nvivo")}
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={handleExportMAXQDA}>
+        <FileTextIcon className="h-4 w-4 mr-2" />
+        {t("actions.maxqda")}
       </DropdownMenuItem>
       <DropdownMenuItem onClick={handleExportWord}>
         <FileIcon className="h-4 w-4 mr-2" />

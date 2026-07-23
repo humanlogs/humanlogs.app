@@ -7,9 +7,15 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: Apple System, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-  --font-mono: SF Mono, SF Mono Text, Consolas, "Liberation Mono", Menlo, Courier, monospace;
-  --font-heading: Apple System, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --font-sans:
+    Apple System, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --font-mono:
+    SF Mono, SF Mono Text, Consolas, "Liberation Mono", Menlo, Courier,
+    monospace;
+  --font-heading:
+    Apple System, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -129,7 +135,6 @@
   }
 }
 
-
 @keyframes gradient {
   0%,
   100% {
@@ -159,7 +164,7 @@
   animation-play-state: paused;
 }
 
- @keyframes fadeInUp {
+@keyframes fadeInUp {
   from {
     opacity: 0;
     transform: translateY(20px);
@@ -347,6 +352,182 @@
   animation: welcome-bg-fade 850ms ease-out both;
 }
 
+/* Modal entrance: the backdrop fades in and the content fades + rises + settles
+   from a slight zoom. Self-contained keyframes (not tw-animate-css utilities) so
+   the end state is guaranteed to be the natural one — `opacity: 1; transform:
+   none` — with no fill-mode / reduced-motion edge case leaving a dialog stuck at
+   its start frame (invisible backdrop, displaced content). */
+@keyframes dialog-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes dialog-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-dialog-overlay {
+  animation: dialog-overlay-in 200ms ease-out both;
+}
+.animate-dialog-content {
+  animation: dialog-content-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Sidebar entrance: fades in while rising a touch, just after the app zoom.
+   Uses `backwards` (not `both`) fill: this class sits on the wrapper that
+   contains the `position: fixed` sidebar, and a retained end-state transform
+   (what `forwards`/`both` leaves behind) would make that wrapper the fixed
+   child's containing block — detaching the sidebar so it scrolls with the page.
+   `backwards` primes the start frame during the delay, then reverts to no
+   transform once done, keeping the sidebar pinned. */
+@keyframes sidebar-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-sidebar-in {
+  animation: sidebar-in 520ms cubic-bezier(0.16, 1, 0.3, 1) 60ms backwards;
+}
+
+/* Sidebar entrance: fades in while rising a touch, just after the app zoom. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade-in {
+  animation: fade-in 520ms cubic-bezier(0.16, 1, 0.3, 1) 60ms both;
+}
+
+/* Route transitions: the incoming page fades + slides. Direction comes from the
+   sidebar map (see AppRouteTransition): down/up along the sidebar axis, right on
+   a forward push, left on a back navigation. Enter-only. */
+@keyframes route-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes route-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes route-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes route-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes route-in-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.route-transition {
+  animation-duration: 280ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: both;
+  will-change: transform, opacity;
+}
+.route-transition[data-dir="down"] {
+  animation-name: route-in-down;
+}
+.route-transition[data-dir="up"] {
+  animation-name: route-in-up;
+}
+.route-transition[data-dir="right"] {
+  animation-name: route-in-right;
+}
+.route-transition[data-dir="left"] {
+  animation-name: route-in-left;
+}
+.route-transition[data-dir="none"] {
+  animation-name: route-in-fade;
+}
+
+/* Pages dissolve into the fixed ambient backdrop (AppAmbientBackdrop): an opaque
+   page background painted as a background-only layer behind the content. It stays
+   fully opaque over the content, then fades to transparent over the 500px that
+   follow the end of the content — revealing the warm AmbientBackground behind the
+   main scroller.
+
+   The opaque layer (`.route-fade::before`) lives on the outer wrapper, which is
+   NOT animated — so the incoming page's enter animation (which runs on the inner
+   `.route-fade-content`) fades the content over this solid background instead of
+   over the ambient backdrop, avoiding a flash. It's anchored to the wrapper box
+   and extended 500px past its bottom, so the fade begins where the content ends.
+   The wrapper is at least a viewport tall (`min-h-full`) so short pages have room
+   below the content for the fade, and `overflow: clip` keeps that 500px extension
+   from ever adding scroll height. */
+.route-fade {
+  position: relative;
+  overflow: clip;
+}
+.route-fade-content {
+  position: relative;
+}
+.route-fade::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: -500px;
+  z-index: -1;
+  background: var(--background);
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 calc(100% - 500px),
+    transparent
+  );
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 500px), transparent);
+}
+
 /* Success badge: the green disc pops in, then the white check strokes on. */
 @keyframes success-pop {
   from {
@@ -392,6 +573,8 @@
   .animate-onboarding-stepper-fill,
   .animate-welcome-zoom-in,
   .animate-welcome-bg-fade,
+  .animate-sidebar-in,
+  .route-transition,
   .animate-success-pop {
     animation: none;
   }
@@ -403,53 +586,53 @@
 }
 
 .document h1 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-top: 0rem;
-    margin-bottom: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 0rem;
+  margin-bottom: 0.75rem;
 }
 
 .document h2 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-top: 1.25rem;
-    margin-bottom: 0.625rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.625rem;
 }
 
 .document h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin-top: 1rem;
-    margin-bottom: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .document p {
-    margin-bottom: 1rem;
-    line-height: 1.6;
+  margin-bottom: 1rem;
+  line-height: 1.6;
 }
 
 .document a {
-    color: var(--color-primary);
-    text-decoration: underline;
+  color: var(--color-primary);
+  text-decoration: underline;
 }
 
 .document code {
-    font-family: var(--font-mono);
-    background-color: var(--color-muted);
-    padding: 0.2em 0.4em;
-    border-radius: 4px;
+  font-family: var(--font-mono);
+  background-color: var(--color-muted);
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
 }
 
 .document ul,
 .document ol {
-    margin-left: 1.5rem;
-    margin-bottom: 1rem;
-    /* set a bullet style */
-    list-style-type: disc;
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+  /* set a bullet style */
+  list-style-type: disc;
 }
 
 .document li {
-    margin-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .blog-post p {
@@ -569,4 +752,51 @@
   box-shadow: 0 4px 64px rgba(0, 0, 0, 0.1);
   max-height: 500px;
   max-width: 100%;
+}
+
+/* Thin scrollbar that stays out of the way until you interact with the region:
+   the track is always transparent (so it never adds a visible frame) and the
+   thumb only appears on hover of the scrollable area. Used where reserving a
+   few px is fine (e.g. the fixed-width sidebar). */
+.scrollbar-hover {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 200ms ease;
+}
+.scrollbar-hover:hover,
+.scrollbar-hover:focus-within {
+  scrollbar-color: color-mix(in oklab, currentColor 22%, transparent)
+    transparent;
+}
+.scrollbar-hover::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scrollbar-hover::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-hover::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 200ms ease;
+}
+.scrollbar-hover:hover::-webkit-scrollbar-thumb,
+.scrollbar-hover:focus-within::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, currentColor 25%, transparent);
+  background-clip: padding-box;
+}
+.scrollbar-hover::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, currentColor 40%, transparent);
+  background-clip: padding-box;
+}
+
+/* Main content scroller: a base-ui ScrollArea gives an overlay scrollbar that
+   reserves no width (so the content is never padded by a gutter). base-ui sets
+   `overflow: scroll` inline on the viewport, so we override the horizontal axis
+   with !important to keep the previous clip behaviour and to stop the route
+   transition's brief horizontal slide from becoming scrollable. */
+.app-main-scroll [data-slot="scroll-area-viewport"] {
+  overflow-x: hidden !important;
 }

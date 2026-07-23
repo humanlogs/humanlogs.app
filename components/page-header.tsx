@@ -42,9 +42,9 @@ export function PageHeader({
           {backLabel}
         </Link>
       )}
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="space-y-4">
         <div className="min-w-0 space-y-2">
-          <h1 className="flex items-center gap-2 text-3xl font-bold tracking-tight">
+          <h1 className="flex items-center gap-2 text-4xl font-bold tracking-tight">
             {title}
           </h1>
           {description && (

@@ -13,6 +13,9 @@ import { TranscriptionSetProjectDialog } from "@/components/transcriptions/dialo
 import { TranscriptionShareDialog } from "@/components/transcriptions/dialogs/transcription-share-dialog";
 import { TranscriptionHistorySheet } from "@/components/transcriptions/dialogs/transcription-history-sheet";
 import { AppHeader } from "@/components/app-header";
+import { AppAmbientBackdrop } from "@/components/app-ambient-backdrop";
+import { AppRouteTransition } from "@/components/app-route-transition";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { WelcomeIntro } from "@/components/welcome/welcome-intro";
 import { getCurrentUser } from "@/lib/auth/auth-helpers";
@@ -47,8 +50,11 @@ export default async function AppLayout({
         <AppSidebar user={user}>
         <SidebarInset className="flex flex-col">
           <AppHeader />
-          <main className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto">
-            {children}
+          <main className="relative flex-1 min-w-0 overflow-hidden">
+            <AppAmbientBackdrop />
+            <ScrollArea className="app-main-scroll relative z-10 h-full">
+              <AppRouteTransition>{children}</AppRouteTransition>
+            </ScrollArea>
           </main>
         </SidebarInset>
       </AppSidebar>

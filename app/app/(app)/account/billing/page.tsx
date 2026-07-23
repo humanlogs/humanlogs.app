@@ -215,11 +215,12 @@ export default function BillingPage() {
     <PageLayout
       title={t("billing.title")}
       description={t("billing.description")}
+      maxWidth="max-w-6xl"
       className="p-6"
     >
       {/* Current Plan & Credits */}
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <Card className="relative overflow-hidden rounded-2xl border-primary/20 bg-gradient-to-br from-pink-500/5 via-primary/10 to-background">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CreditCardIcon className="w-5 h-5" />
@@ -278,7 +279,7 @@ export default function BillingPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="relative overflow-hidden rounded-2xl border-primary/20 bg-gradient-to-br from-pink-500/5 via-primary/10 to-background">
           <CardHeader>
             <CardTitle>{t("billing.credits")}</CardTitle>
           </CardHeader>
@@ -319,14 +320,14 @@ export default function BillingPage() {
         <h2 className="text-2xl font-bold text-foreground mb-6">
           {t("billing.plans.title")}
         </h2>
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {plans
             .filter((a) => !!a.planType)
             .map((plan) => (
               <div
                 key={plan.id}
                 className={cn(
-                  "border rounded-lg p-8 hover:shadow-lg transition-shadow flex flex-col relative",
+                  "border rounded-lg p-6 hover:shadow-lg transition-shadow flex flex-col relative",
                   plan.isCurrent && "border-2 border-green-500",
                   plan.id === "monthly" &&
                     !plan.isCurrent &&

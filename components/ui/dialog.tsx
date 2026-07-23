@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils/utils";
 import { XIcon } from "lucide-react";
 import * as React from "react";
+import { createPortal } from "react-dom";
 
 type DialogContextType = {
   open: boolean;
@@ -35,19 +36,24 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
     }
   }, [open, onOpenChange]);
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
-  return (
+  // Portaled to <body> so the fixed overlay is anchored to the viewport, not to
+  // whatever ancestor might establish a containing block (e.g. the route
+  // transition wrapper's `will-change: transform`) — otherwise the backdrop and
+  // centering would be trapped inside the main content area.
+  return createPortal(
     <DialogContext.Provider value={{ open, onOpenChange }}>
       <div className="fixed inset-0 z-50 flex items-center justify-center">
         {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm animate-dialog-overlay"
           onClick={() => onOpenChange(false)}
         />
         {children}
       </div>
-    </DialogContext.Provider>
+    </DialogContext.Provider>,
+    document.body,
   );
 }
 
@@ -66,6 +72,7 @@ export function DialogContent({
     <div
       className={cn(
         "relative z-50 w-full max-w-lg bg-background rounded-2xl border shadow-2xl shadow-black/10 overflow-auto",
+        "animate-dialog-content",
         className,
       )}
       onClick={(e) => e.stopPropagation()}

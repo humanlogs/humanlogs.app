@@ -5,9 +5,12 @@ import { TranscriptionActions } from "@/components/transcriptions/transcription-
 import { TranscriptionEditor } from "@/components/transcriptions/transcription-editor";
 import { TranscriptionFailed } from "@/components/transcriptions/transcription-failed";
 import { TranscriptionLoading } from "@/components/transcriptions/transcription-loading";
+import { ProjectBadge } from "@/components/projects/project-badge";
+import { useProjects } from "@/hooks/use-api";
 import { useEncryptionStatus } from "@/hooks/use-encryption";
 import { useTranscription } from "@/hooks/use-transcriptions";
 import { PencilIcon } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -33,6 +36,8 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
   } = useTranscription(id);
   const { data: encryptionState } = useEncryptionStatus();
   const { openRename } = useTranscriptionRenameModal();
+  const { data: projects = [] } = useProjects();
+  const project = projects.find((p) => p.id === transcription?.projectId);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [editorAPI, setEditorAPI] = useState<any>(null);
   const router = useRouter();
@@ -77,8 +82,11 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
 
   const hasWriteAccess =
     transcription && (transcription.isOwner || transcription.role === "write");
+  // Imported text documents have no audio, so there is nothing to listen to.
+  const hasAudio = transcription && transcription.mediaType !== "text";
   const hasListenAccess =
     transcription &&
+    hasAudio &&
     (transcription.isOwner ||
       transcription.role === "read+listen" ||
       transcription.role === "write");
@@ -90,9 +98,32 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
         <>
           {createPortal(
             <div className="flex items-center gap-2 w-full">
-              <div className="flex-1">
-                <span className="font-semibold group/label">
-                  {transcription.title || transcription.audioFileName}
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                {/* Breadcrumb: study (badge + name, links to the study) / doc. */}
+                {project && (
+                  <>
+                    <Link
+                      href={`/app/project/${project.id}`}
+                      className="flex shrink-0 items-center gap-1.5 hover:opacity-80"
+                    >
+                      <ProjectBadge
+                        appearance={project}
+                        projectId={project.id}
+                        name={project.name}
+                        size="sm"
+                        imageVersion={project.updatedAt}
+                      />
+                      <span className="max-w-[10rem] truncate font-medium">
+                        {project.name}
+                      </span>
+                    </Link>
+                    <span className="shrink-0 text-muted-foreground/60">/</span>
+                  </>
+                )}
+                <span className="group/label flex min-w-0 items-center font-semibold">
+                  <span className="truncate">
+                    {transcription.title || transcription.audioFileName}
+                  </span>
                   {isOwner && (
                     <Button
                       type="button"

@@ -28,7 +28,7 @@ export function PageLayout({
   return (
     <div
       className={cn(
-        "container mx-auto p-4 py-12 space-y-6",
+        "container mx-auto p-4 py-12 space-y-6 animate-fade-in",
         maxWidth,
         className,
       )}

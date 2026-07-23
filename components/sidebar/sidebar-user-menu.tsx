@@ -28,7 +28,7 @@ import {
 import * as React from "react";
 import { UserProfile } from "../../hooks/use-api";
 import { languagesNames, locales } from "../../lib/utils/i18n";
-import { SidebarMenuButton, SidebarMenuItem } from "../ui/sidebar";
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "../ui/sidebar";
 
 type SidebarUserMenuProps = {
   user: {
@@ -73,14 +73,16 @@ export function SidebarUserMenu({
 
   return (
     <>
-      <SidebarMenuItem>
-        <SidebarMenuButton
-          onClick={() => openFeedbackModal({ mode: "rating" })}
-        >
-          <StarIcon className="h-4 w-4" />
-          {t("user.feedbackDirect")}
-        </SidebarMenuButton>
-      </SidebarMenuItem>
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            onClick={() => openFeedbackModal({ mode: "rating" })}
+          >
+            <StarIcon className="h-4 w-4" />
+            {t("user.feedbackDirect")}
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
       <DropdownMenu
         trigger={
           <button

@@ -378,7 +378,12 @@
     "studies": {
       "title": "Deine Studien ({count})",
       "new": "Neue Studie",
-      "documentCount": "{count} Dokument(e)"
+      "import": "Audio oder Text importieren",
+      "documentCount": "{count} Dokument(e)",
+      "settings": "Studien-Einstellungen"
+    },
+    "unassigned": {
+      "title": "Nicht zugeordnete Dokumente ({count})"
     }
   },
   "study": {
@@ -387,7 +392,7 @@
     "saveTitle": "Speichern",
     "titleSaved": "Studie umbenannt",
     "titleError": "Studie konnte nicht umbenannt werden",
-    "addDocument": "Audio hinzufügen",
+    "addDocument": "Audio oder Text importieren",
     "documents": {
       "title": "Dokumente ({count})",
       "updatedAt": "Aktualisiert am {date}",
@@ -396,17 +401,19 @@
         "PENDING": "In Bearbeitung",
         "COMPLETED": "Fertig",
         "ERROR": "Fehler"
-      }
+      },
+      "shared": "Geteilt"
     },
     "empty": {
       "title": "Noch keine Dokumente",
       "description": "Importiere eine oder mehrere Audiodateien, um in dieser Studie mit dem Transkribieren zu beginnen.",
-      "action": "Audio hinzufügen"
+      "action": "Audio oder Text importieren"
     },
     "notFound": {
       "title": "Studie nicht gefunden",
       "description": "Diese Studie existiert nicht oder du hast keinen Zugriff mehr darauf.",
       "back": "Zurück zur Startseite"
-    }
+    },
+    "settings": "Einstellungen"
   }
 }

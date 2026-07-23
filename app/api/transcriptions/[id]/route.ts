@@ -398,6 +398,7 @@ export const mapTransactionDetails = (transcription: Transcription) =>
     "audioFileSize",
     "audioFileKey",
     "audioFileEncryption",
+    "mediaType",
     "language",
     "vocabulary",
     "speakerCount",

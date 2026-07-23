@@ -19,9 +19,25 @@ export function AppHeader() {
   const pathname = usePathname();
   const isTranscription = pathname?.startsWith("/app/transcription/") ?? false;
 
+  // On desktop, non-transcription routes leave the bar empty (the toggle and the
+  // mobile title are hidden, and only the editor injects into the header
+  // portals). In that case make the bar invisible — no border, no background —
+  // while keeping its height so the content below stays pushed down.
+  const emptyOnDesktop = !isTranscription;
+
   return (
-    <header className="sticky top-0 bg-background/50 backdrop-blur-lg z-10">
-      <div className="border-b px-4 flex h-14 shrink-0 items-center gap-2 bg-background">
+    <header
+      className={cn(
+        "sticky top-0 z-10 bg-background/50 backdrop-blur-lg",
+        emptyOnDesktop && "md:bg-transparent md:backdrop-blur-none",
+      )}
+    >
+      <div
+        className={cn(
+          "border-b px-4 flex h-14 shrink-0 items-center gap-2 bg-background",
+          emptyOnDesktop && "md:border-transparent md:bg-transparent",
+        )}
+      >
         <SidebarTrigger
           className={cn("-ml-1", !isTranscription && "md:hidden")}
         />

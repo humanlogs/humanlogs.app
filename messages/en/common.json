@@ -378,7 +378,12 @@
     "studies": {
       "title": "Your studies ({count})",
       "new": "New study",
-      "documentCount": "{count} document(s)"
+      "import": "Import audio or text",
+      "documentCount": "{count} document(s)",
+      "settings": "Study settings"
+    },
+    "unassigned": {
+      "title": "Unassigned documents ({count})"
     }
   },
   "study": {
@@ -387,7 +392,7 @@
     "saveTitle": "Save",
     "titleSaved": "Study renamed",
     "titleError": "Could not rename the study",
-    "addDocument": "Add an audio",
+    "addDocument": "Import audio or text",
     "documents": {
       "title": "Documents ({count})",
       "updatedAt": "Updated {date}",
@@ -396,17 +401,19 @@
         "PENDING": "Processing",
         "COMPLETED": "Ready",
         "ERROR": "Error"
-      }
+      },
+      "shared": "Shared"
     },
     "empty": {
       "title": "No documents yet",
       "description": "Import one or several audio files to start transcribing in this study.",
-      "action": "Add an audio"
+      "action": "Import audio or text"
     },
     "notFound": {
       "title": "Study not found",
       "description": "This study doesn't exist or you no longer have access to it.",
       "back": "Back to home"
-    }
+    },
+    "settings": "Settings"
   }
 }

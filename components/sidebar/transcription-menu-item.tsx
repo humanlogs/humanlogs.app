@@ -4,13 +4,11 @@ import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import {
   AlertCircleIcon,
   FileIcon,
-  FileLock2Icon,
   FileLockIcon,
   FileTextIcon,
   LoaderIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { Tooltip } from "../ui/tooltip";
 
 type TranscriptionState = "PENDING" | "COMPLETED" | "ERROR";
 
@@ -21,6 +19,7 @@ type TranscriptionMenuItemProps = {
     state: TranscriptionState;
     errorMessage?: string | null;
     isEncrypted?: boolean;
+    mediaType?: "audio" | "text";
   };
   isActive: boolean;
 };
@@ -48,6 +47,9 @@ export function TranscriptionMenuItem({
         );
       case "COMPLETED":
       default:
+        if (transcription.mediaType === "text") {
+          return <FileTextIcon className="h-4 w-4" />;
+        }
         return transcription.isEncrypted ? (
           <FileLockIcon className="h-4 w-4" />
         ) : (

@@ -137,6 +137,7 @@ const formatTranscriptionList = (t: Transcription, userId: string) => {
     projectId: t.projectId,
     speakerCount: t.speakerCount,
     speakerNames,
+    mediaType: t.mediaType,
     state: t.state,
     errorMessage: t.errorMessage,
     isEncrypted: (t.audioFileEncryption as EncryptedDataEntity)?.privateKeys

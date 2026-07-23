@@ -378,7 +378,12 @@
     "studies": {
       "title": "Tus estudios ({count})",
       "new": "Nuevo estudio",
-      "documentCount": "{count} documento(s)"
+      "import": "Importar audio o texto",
+      "documentCount": "{count} documento(s)",
+      "settings": "Ajustes del estudio"
+    },
+    "unassigned": {
+      "title": "Documentos sin asignar ({count})"
     }
   },
   "study": {
@@ -387,7 +392,7 @@
     "saveTitle": "Guardar",
     "titleSaved": "Estudio renombrado",
     "titleError": "No se pudo renombrar el estudio",
-    "addDocument": "Añadir un audio",
+    "addDocument": "Importar audio o texto",
     "documents": {
       "title": "Documentos ({count})",
       "updatedAt": "Actualizado el {date}",
@@ -396,17 +401,19 @@
         "PENDING": "En proceso",
         "COMPLETED": "Listo",
         "ERROR": "Error"
-      }
+      },
+      "shared": "Compartido"
     },
     "empty": {
       "title": "Aún no hay documentos",
       "description": "Importa uno o varios archivos de audio para empezar a transcribir en este estudio.",
-      "action": "Añadir un audio"
+      "action": "Importar audio o texto"
     },
     "notFound": {
       "title": "Estudio no encontrado",
       "description": "Este estudio no existe o ya no tienes acceso a él.",
       "back": "Volver al inicio"
-    }
+    },
+    "settings": "Ajustes"
   }
 }

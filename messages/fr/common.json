@@ -378,7 +378,12 @@
     "studies": {
       "title": "Vos études ({count})",
       "new": "Nouvelle étude",
-      "documentCount": "{count} document(s)"
+      "import": "Importer un audio ou un texte",
+      "documentCount": "{count} document(s)",
+      "settings": "Paramètres de l'étude"
+    },
+    "unassigned": {
+      "title": "Documents non assignés ({count})"
     }
   },
   "study": {
@@ -387,7 +392,7 @@
     "saveTitle": "Enregistrer",
     "titleSaved": "Étude renommée",
     "titleError": "Impossible de renommer l'étude",
-    "addDocument": "Ajouter un audio",
+    "addDocument": "Importer un audio ou un texte",
     "documents": {
       "title": "Documents ({count})",
       "updatedAt": "Modifié le {date}",
@@ -396,17 +401,19 @@
         "PENDING": "En cours",
         "COMPLETED": "Prêt",
         "ERROR": "Erreur"
-      }
+      },
+      "shared": "Partagé"
     },
     "empty": {
       "title": "Aucun document",
       "description": "Importez un ou plusieurs fichiers audio pour commencer à transcrire dans cette étude.",
-      "action": "Ajouter un audio"
+      "action": "Importer un audio ou un texte"
     },
     "notFound": {
       "title": "Étude introuvable",
       "description": "Cette étude n'existe pas ou vous n'y avez plus accès.",
       "back": "Retour à l'accueil"
-    }
+    },
+    "settings": "Paramètres"
   }
 }

@@ -11,7 +11,7 @@ import {
  * 60 requests per minute
  */
 const DEFAULT_AUTH_RATE_LIMIT: RateLimitConfig = {
-  maxRequests: 60,
+  maxRequests: 120,
   windowMs: 60 * 1000, // 1 minute
   keyPrefix: "auth",
 };

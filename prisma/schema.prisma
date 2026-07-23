@@ -78,6 +78,14 @@ model Project {
   id             String          @id @default(uuid())
   name           String
   userId         String
+  // Visual customization. `iconType` is "icon" | "emoji" | "image".
+  // - icon:  `icon` holds a curated Lucide icon key, `color` the palette key
+  // - emoji: `icon` holds the emoji character, `color` the palette key
+  // - image: `imageKey` holds the storage key of the uploaded image
+  iconType       String?
+  icon           String?
+  color          String?
+  imageKey       String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   transcriptions Transcription[]
@@ -95,6 +103,8 @@ model Transcription {
   audioFileEncryption       Json?
   audioFileName             String
   audioFileSize             Int
+  // Source of the transcript: "audio" (transcribed from audio/video) or "text" (imported document)
+  mediaType                 String             @default("audio")
   transcription             Json?
   isTutorial                Boolean            @default(false)
   language                  String

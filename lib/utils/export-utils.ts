@@ -141,6 +141,139 @@ function formatSRTTime(seconds: number): string {
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")},${String(milliseconds).padStart(3, "0")}`;
 }
 
+/** WebVTT uses a dot before milliseconds instead of a comma. */
+function formatVTTTime(seconds: number): string {
+  return formatSRTTime(seconds).replace(",", ".");
+}
+
+/** Clock timestamp HH:MM:SS (no milliseconds), used by NVivo/MAXQDA output. */
+function formatClockTime(seconds: number): string {
+  const s = Math.max(0, seconds);
+  const hours = Math.floor(s / 3600);
+  const minutes = Math.floor((s % 3600) / 60);
+  const secs = Math.floor(s % 60);
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
+type SpeakerTurn = {
+  speakerId: string;
+  text: string;
+  start?: number;
+  end?: number;
+};
+
+/**
+ * Collapse the flat word/spacing segment stream into speaker turns (one block of
+ * contiguous text per speaker, split on paragraph breaks), carrying the turn's
+ * start/end times. Shared by the NVivo/MAXQDA/VTT exporters.
+ */
+function toSpeakerTurns(transcription: TranscriptionContent): SpeakerTurn[] {
+  const turns: SpeakerTurn[] = [];
+  let current: SpeakerTurn | null = null;
+
+  for (const seg of transcription.words) {
+    if (seg.type === "word") {
+      if (!current || current.speakerId !== (seg.speakerId ?? "")) {
+        if (current) turns.push(current);
+        current = {
+          speakerId: seg.speakerId ?? "speaker_0",
+          text: "",
+          start: seg.start,
+          end: seg.end,
+        };
+      }
+      current.text += (current.text ? " " : "") + seg.text;
+      if (current.start === undefined && seg.start !== undefined) {
+        current.start = seg.start;
+      }
+      if (seg.end !== undefined) current.end = seg.end;
+    } else if (seg.type === "spacing" && seg.text.includes("\n\n")) {
+      // Paragraph break: end the current turn even within the same speaker.
+      if (current) {
+        turns.push(current);
+        current = null;
+      }
+    }
+  }
+  if (current) turns.push(current);
+  return turns;
+}
+
+/**
+ * Export as WebVTT (.vtt). Speaker labels are emitted as voice tags
+ * (`<v Name>...`), preserving per-turn timing.
+ */
+export function exportAsVTT(
+  transcription: TranscriptionContent,
+  fileName: string,
+): void {
+  const turns = toSpeakerTurns(transcription);
+  let out = "WEBVTT\n\n";
+  let index = 1;
+
+  for (const turn of turns) {
+    if (turn.start === undefined || turn.end === undefined) continue;
+    const name = getSpeakerName(transcription, turn.speakerId);
+    out += `${index}\n`;
+    out += `${formatVTTTime(turn.start)} --> ${formatVTTTime(turn.end)}\n`;
+    out += `<v ${name}>${turn.text.trim()}</v>\n\n`;
+    index++;
+  }
+
+  downloadFile(out, `${fileName}.vtt`, "text/vtt");
+}
+
+/**
+ * Export as an NVivo-compatible transcript (.txt): tab-separated
+ * `Speaker <TAB> Timespan <TAB> Content` rows, which NVivo's transcript import
+ * can map to columns.
+ */
+export function exportAsNVivo(
+  transcription: TranscriptionContent,
+  fileName: string,
+): void {
+  const turns = toSpeakerTurns(transcription);
+  const lines: string[] = [];
+
+  for (const turn of turns) {
+    const name = getSpeakerName(transcription, turn.speakerId);
+    const timespan =
+      turn.start !== undefined && turn.end !== undefined
+        ? `${formatClockTime(turn.start)} - ${formatClockTime(turn.end)}`
+        : turn.start !== undefined
+          ? formatClockTime(turn.start)
+          : "";
+    const text = turn.text.trim().replace(/\s+/g, " ");
+    if (!text) continue;
+    lines.push(`${name}\t${timespan}\t${text}`);
+  }
+
+  downloadFile(lines.join("\n"), `${fileName}.txt`, "text/plain");
+}
+
+/**
+ * Export as a MAXQDA-compatible transcript (.txt): `Speaker:` prefixed
+ * paragraphs with an inline `#hh:mm:ss-0#` timestamp marker at each turn start.
+ */
+export function exportAsMAXQDA(
+  transcription: TranscriptionContent,
+  fileName: string,
+): void {
+  const turns = toSpeakerTurns(transcription);
+  const lines: string[] = [];
+
+  for (const turn of turns) {
+    const name = getSpeakerName(transcription, turn.speakerId);
+    const marker =
+      turn.start !== undefined ? `#${formatClockTime(turn.start)}-0# ` : "";
+    const text = turn.text.trim().replace(/\s+/g, " ");
+    if (!text) continue;
+    lines.push(`${name}: ${marker}${text}`);
+  }
+
+  downloadFile(lines.join("\n\n"), `${fileName}.txt`, "text/plain");
+}
+
 /**
  * Export transcription as CSV format
  * One line per speaker change, subtitle-like format

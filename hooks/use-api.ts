@@ -3,9 +3,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchGateway } from "./fetch";
 
-type Project = {
+export type Project = {
   id: string;
   name: string;
+  iconType?: "icon" | "emoji" | "image" | null;
+  icon?: string | null;
+  color?: string | null;
+  hasImage?: boolean;
+  updatedAt?: string;
 };
 
 export type DataResidency = "eu" | "us";
@@ -74,7 +79,14 @@ export function useProjects() {
       if (!response.ok) {
         throw new Error("Failed to fetch projects");
       }
-      return response.json() as Promise<Project[]>;
+      const projects = (await response.json()) as Project[];
+      // Studies are listed alphabetically everywhere (sidebar, home, pickers).
+      return projects.sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, {
+          numeric: true,
+          sensitivity: "base",
+        }),
+      );
     },
   });
 }

@@ -16,13 +16,16 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, type SelectOption } from "@/components/ui/select";
+import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import _ from "lodash";
+import { ImportTextForm } from "@/components/transcriptions/import-text-form";
+import { getLanguageOptions, supportedLanguages } from "@/lib/utils/languages";
 import {
   AlertCircle,
   FileIcon,
+  FileTextIcon,
+  Headphones,
   PauseIcon,
   PencilIcon,
   PlayIcon,
@@ -87,162 +90,6 @@ function uploadWithProgress(
   });
 }
 
-const supportedLanguages = {
-  bel: "Belarusian",
-  bos: "Bosnian",
-  bul: "Bulgarian",
-  cat: "Catalan",
-  hrv: "Croatian",
-  ces: "Czech",
-  dan: "Danish",
-  nld: "Dutch",
-  eng: "English",
-  est: "Estonian",
-  fin: "Finnish",
-  fra: "Français",
-  glg: "Galician",
-  deu: "German",
-  ell: "Greek",
-  hun: "Hungarian",
-  isl: "Icelandic",
-  ind: "Indonesian",
-  ita: "Italian",
-  jpn: "Japanese",
-  kan: "Kannada",
-  lav: "Latvian",
-  mkd: "Macedonian",
-  msa: "Malay",
-  mal: "Malayalam",
-  nor: "Norwegian",
-  pol: "Polish",
-  por: "Portuguese",
-  ron: "Romanian",
-  rus: "Russian",
-  slk: "Slovak",
-  spa: "Spanish",
-  swe: "Swedish",
-  tur: "Turkish",
-  ukr: "Ukrainian",
-  vie: "Vietnamese",
-  hye: "Armenian",
-  aze: "Azerbaijani",
-  ben: "Bengali",
-  // yue: "Cantonese", // Not supported by Gladia
-  fil: "Filipino",
-  kat: "Georgian",
-  guj: "Gujarati",
-  hin: "Hindi",
-  kaz: "Kazakh",
-  lit: "Lithuanian",
-  mlt: "Maltese",
-  cmn: "Mandarin",
-  mar: "Marathi",
-  nep: "Nepali",
-  // ori: "Odia", // Not supported by Gladia
-  fas: "Persian",
-  srp: "Serbian",
-  slv: "Slovenian",
-  swa: "Swahili",
-  tam: "Tamil",
-  tel: "Telugu",
-  afr: "Afrikaans",
-  ara: "Arabic",
-  asm: "Assamese",
-  // ast: "Asturian", // Not supported by Gladia
-  mya: "Burmese",
-  hau: "Hausa",
-  heb: "Hebrew",
-  jav: "Javanese",
-  kor: "Korean",
-  // kir: "Kyrgyz", // Not supported by Gladia
-  ltz: "Luxembourgish",
-  mri: "Māori",
-  oci: "Occitan",
-  pan: "Punjabi",
-  tgk: "Tajik",
-  tha: "Thai",
-  uzb: "Uzbek",
-  cym: "Welsh",
-  amh: "Amharic",
-  // lug: "Ganda", // Not supported by Gladia
-  // ibo: "Igbo", // Not supported by Gladia
-  // gle: "Irish", // Not supported by Gladia
-  khm: "Khmer",
-  // kur: "Kurdish", // Not supported by Gladia
-  lao: "Lao",
-  mon: "Mongolian",
-  // nso: "Northern Sotho", // Not supported by Gladia
-  pus: "Pashto",
-  sna: "Shona",
-  snd: "Sindhi",
-  som: "Somali",
-  urd: "Urdu",
-  // wol: "Wolof", // Not supported by Gladia
-  // xho: "Xhosa", // Not supported by Gladia
-  yor: "Yoruba",
-  // zul: "Zulu", // Not supported by Gladia
-};
-
-// The most commonly used languages, surfaced at the top of the selector
-// (followed by a separator) before the alphabetical list of the rest.
-const TOP_LANGUAGES = ["eng", "fra", "spa", "deu", "ita"];
-
-// Cache the computed option list per locale: deriving names via Intl is cheap
-// but there's no reason to redo it on every render.
-const languageOptionsCache = new Map<string, SelectOption[]>();
-
-/**
- * Build the language selector options for a given UI locale. Each option's
- * label shows the language name translated into the current locale alongside
- * its name in its own dialect (e.g. "German (Deutsch)"), and both names — plus
- * the ISO code — are searchable.
- */
-function getLanguageOptions(locale: string): SelectOption[] {
-  const cached = languageOptionsCache.get(locale);
-  if (cached) return cached;
-
-  const translatedNames = new Intl.DisplayNames([locale], { type: "language" });
-
-  const buildOption = (code: string): SelectOption => {
-    let translated: string;
-    try {
-      translated = translatedNames.of(code) ?? (supportedLanguages as any)[code];
-    } catch {
-      translated = (supportedLanguages as any)[code];
-    }
-
-    let native = translated;
-    try {
-      native =
-        new Intl.DisplayNames([code], { type: "language" }).of(code) ??
-        translated;
-    } catch {
-      native = translated;
-    }
-
-    const sameName = native.toLowerCase() === translated.toLowerCase();
-    return {
-      value: code,
-      label: sameName ? translated : `${translated} (${native})`,
-      keywords: sameName ? [translated, code] : [translated, native, code],
-    };
-  };
-
-  const allCodes = Object.keys(supportedLanguages);
-  const topCodes = TOP_LANGUAGES.filter((code) => allCodes.includes(code));
-  const restCodes = allCodes.filter((code) => !topCodes.includes(code));
-
-  const options: SelectOption[] = [
-    ...topCodes.map(buildOption),
-    { value: "__separator__", label: "", separator: true },
-    ..._.sortBy(restCodes.map(buildOption), (option) =>
-      option.label.toLowerCase(),
-    ),
-  ];
-
-  languageOptionsCache.set(locale, options);
-  return options;
-}
 
 function NewTranscriptionForm() {
   const t = useTranslations("newTranscription");
@@ -284,6 +131,9 @@ function NewTranscriptionForm() {
     return saved === "true";
   });
   const [isDragging, setIsDragging] = React.useState(false);
+  // Whether the user is transcribing audio/video or importing an existing text
+  // document. Text imports skip STT entirely.
+  const [mode, setMode] = React.useState<"audio" | "text">("audio");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   // Upload progress (0-100). Null while not uploading.
   const [uploadProgress, setUploadProgress] = React.useState<number | null>(
@@ -776,8 +626,40 @@ function NewTranscriptionForm() {
 
   return (
     <div className="flex flex-col flex-1">
-      <PageLayout title={t("audioFiles")}>
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <PageLayout title={t("title")}>
+        {/* Source mode: transcribe audio/video vs import an existing text doc */}
+        <div className="mb-6 inline-flex rounded-lg border p-1 gap-1">
+          <Button
+            type="button"
+            variant={mode === "audio" ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setMode("audio")}
+          >
+            <Headphones className="w-4 h-4" />
+            Audio / video
+          </Button>
+          <Button
+            type="button"
+            variant={mode === "text" ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setMode("text")}
+          >
+            <FileTextIcon className="w-4 h-4" />
+            Text / document
+          </Button>
+        </div>
+
+        {mode === "text" && (
+          <ImportTextForm
+            defaultProjectId={projectId}
+            defaultLanguage={language}
+          />
+        )}
+
+        <form
+          onSubmit={handleSubmit}
+          className={`space-y-6 ${mode === "text" ? "hidden" : ""}`}
+        >
           {/* Low Credits Warning */}
           {user?.credits !== null && (user?.credits || 0) < 200 && (
             <GuideCallout

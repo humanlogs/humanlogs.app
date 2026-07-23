@@ -67,6 +67,12 @@
             "failedExportPDF": "PDF-Export fehlgeschlagen",
             "exportedJSON": "Als JSON exportiert",
             "failedExportJSON": "JSON-Export fehlgeschlagen",
+            "exportedVTT": "Als WebVTT exportiert",
+            "failedExportVTT": "WebVTT-Export fehlgeschlagen",
+            "exportedNVivo": "Als NVivo-Transkript exportiert",
+            "failedExportNVivo": "NVivo-Export fehlgeschlagen",
+            "exportedMAXQDA": "Als MAXQDA-Transkript exportiert",
+            "failedExportMAXQDA": "MAXQDA-Export fehlgeschlagen",
             "downloadingAudio": "Audiodatei wird heruntergeladen",
             "downloadingDecryptingAudio": "Audiodatei wird heruntergeladen und entschlüsselt...",
             "audioDownloaded": "Audiodatei heruntergeladen",
@@ -91,6 +97,9 @@
             "word": "Word",
             "pdf": "PDF",
             "json": "JSON",
+            "vtt": "WebVTT (Untertitel)",
+            "nvivo": "NVivo",
+            "maxqda": "MAXQDA",
             "advanced": "Erweitert"
         },
         "share": {

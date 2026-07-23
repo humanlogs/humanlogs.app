@@ -1,21 +1,22 @@
 "use client";
 
-import { GuideCallout } from "@/components/guidance/guide-callout";
 import { useResetTutorial } from "@/components/dialogs/help-dialog";
 import { useProjectModal } from "@/components/dialogs/project-create-modal";
+import { GuideCallout } from "@/components/guidance/guide-callout";
 import { useLocale, useTranslations } from "@/components/locale-provider";
 import { PageLayout } from "@/components/page-layout";
+import { ProjectBadge } from "@/components/projects/project-badge";
+import { DocumentList } from "@/components/transcriptions/document-list";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useProjects, useUserProfile } from "@/hooks/use-api";
 import { useTranscriptions } from "@/hooks/use-transcriptions";
 import {
   ArrowRightIcon,
-  FolderIcon,
   FolderPlusIcon,
   GraduationCapIcon,
   PlusIcon,
+  Settings2Icon,
   UploadIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -31,7 +32,7 @@ export default function HomePage() {
   const { data: projects = [], isLoading: isLoadingProjects } = useProjects();
   const { data: transcriptions = [], isLoading: isLoadingTranscriptions } =
     useTranscriptions();
-  const { openCreate } = useProjectModal();
+  const { openCreate, openRename } = useProjectModal();
   const { isResettingTutorial, handleResetTutorial } = useResetTutorial();
 
   // Pick one welcome-back greeting per mount (the (app) template re-mounts on
@@ -53,6 +54,21 @@ export default function HomePage() {
     }
     return counts;
   }, [transcriptions]);
+
+  // Owned documents that aren't attached to any study. They'd otherwise be
+  // invisible on this page, so we surface them in their own section at the end.
+  const unassignedDocuments = React.useMemo(
+    () =>
+      transcriptions
+        .filter((tr) => !tr.projectId && tr.isOwner !== false)
+        .sort((a, b) =>
+          a.title.localeCompare(b.title, undefined, {
+            numeric: true,
+            sensitivity: "base",
+          }),
+        ),
+    [transcriptions],
+  );
 
   // Creating a study only asks for a name, then drops the user into the study
   // page where they import their audios.
@@ -84,17 +100,7 @@ export default function HomePage() {
     isLoadingUser || isLoadingProjects || isLoadingTranscriptions;
 
   if (isLoading) {
-    return (
-      <PageLayout
-        title={<Skeleton className="h-9 w-72 max-w-full" />}
-        maxWidth="max-w-4xl"
-      >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Skeleton className="h-44 rounded-xl" />
-          <Skeleton className="h-44 rounded-xl" />
-        </div>
-      </PageLayout>
-    );
+    return <></>;
   }
 
   const title = !user?.name
@@ -109,10 +115,16 @@ export default function HomePage() {
       description={showOnboardingActions ? t("subtitle") : undefined}
       action={
         !hasNoStudies ? (
-          <Button onClick={handleCreateStudy}>
-            <PlusIcon className="h-4 w-4" />
-            {t("studies.new")}
-          </Button>
+          <div className="flex items-center gap-2 mt-4">
+            <Button onClick={handleCreateStudy}>
+              <PlusIcon className="h-4 w-4" />
+              {t("studies.new")}
+            </Button>
+            <Button variant="outline" onClick={() => router.push("/app/new")}>
+              <UploadIcon className="h-4 w-4" />
+              {t("studies.import")}
+            </Button>
+          </div>
         ) : undefined
       }
       maxWidth="max-w-4xl"
@@ -162,24 +174,56 @@ export default function HomePage() {
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
             {projects.map((project) => (
-              <Link key={project.id} href={`/app/project/${project.id}`}>
-                <Card className="group flex items-center gap-3 p-4 transition-colors hover:border-primary/40 hover:bg-accent/40">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-500 text-white">
-                    <FolderIcon className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">{project.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {t("studies.documentCount", {
-                        count: docCountByProject.get(project.id) ?? 0,
-                      })}
-                    </p>
-                  </div>
-                  <ArrowRightIcon className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 -translate-x-1 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
-                </Card>
-              </Link>
+              <Card
+                key={project.id}
+                className="group relative flex items-center gap-3 p-4 transition-colors hover:border-primary/40 hover:bg-accent/40"
+              >
+                {/* Full-card link overlay so the settings button stays a
+                    separately-clickable control (no nested <button> in <a>). */}
+                <Link
+                  href={`/app/project/${project.id}`}
+                  aria-label={project.name}
+                  className="absolute inset-0 rounded-[inherit]"
+                />
+                <ProjectBadge
+                  appearance={project}
+                  projectId={project.id}
+                  name={project.name}
+                  imageVersion={project.updatedAt}
+                  className="pointer-events-none relative"
+                />
+                <div className="pointer-events-none relative min-w-0 flex-1">
+                  <p className="truncate font-medium">{project.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("studies.documentCount", {
+                      count: docCountByProject.get(project.id) ?? 0,
+                    })}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  aria-label={t("studies.settings")}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openRename(project.id, project.name);
+                  }}
+                  className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-all hover:bg-accent hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100"
+                >
+                  <Settings2Icon className="h-4 w-4" />
+                </button>
+              </Card>
             ))}
           </div>
+        </section>
+      )}
+
+      {unassignedDocuments.length > 0 && (
+        <section className="space-y-3 pt-2">
+          <h2 className="text-sm font-medium text-muted-foreground">
+            {t("unassigned.title", { count: unassignedDocuments.length })}
+          </h2>
+          <DocumentList documents={unassignedDocuments} />
         </section>
       )}
     </PageLayout>

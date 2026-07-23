@@ -23,6 +23,7 @@ type Transcription = {
   projectId?: string;
   speakerCount?: number;
   speakerNames?: (string | null)[];
+  mediaType?: "audio" | "text";
   state: "PENDING" | "COMPLETED" | "ERROR";
   errorMessage?: string | null;
   isOwner?: boolean;
@@ -42,6 +43,7 @@ export type TranscriptionDetail = {
   audioFileSize: number;
   audioFileKey: string;
   audioFileEncryption?: string;
+  mediaType?: "audio" | "text";
   language: string;
   vocabulary: string[];
   speakerCount: number;
