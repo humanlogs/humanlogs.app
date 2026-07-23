@@ -9,7 +9,7 @@ import {
   NewspaperIcon,
   type LucideIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { InlineChoice } from "@/components/ui/inline-choice";
 import { KaraokeText, wordCount } from "@/components/ui/karaoke-text";
@@ -61,27 +61,24 @@ export function RoleStep({
   const titleWords = wordCount(titleText);
   const words = titleText.split(" ").concat(subtitleText.split(" "));
 
-  // The greeting is "spoken" karaoke-style (title then subtitle) at the same
-  // human, word-length-driven cadence as the landing transcript demo; the role
-  // selector is revealed only once every word has landed. If a role is already
-  // chosen (coming back to this step), show it all instantly.
-  const alreadyChosen = !!profession;
-  const [revealed, setRevealed] = useState(alreadyChosen);
+  // The greeting is "spoken" karaoke-style (title then subtitle) using the exact
+  // same timeline as the landing transcript demo (useKaraoke): each word lights
+  // for `50·len + jitter + (line end ? 200 : 0)` ms before the cursor advances.
+  // We always play it (even for a returning user whose role is pre-filled) and
+  // reveal the role selector once the last word has landed.
+  const [revealed, setRevealed] = useState(false);
   const spoken = useKaraoke(words, {
-    enabled: !alreadyChosen,
-    perChar: 30,
-    jitter: 18,
-    lineEndPause: 260,
     // Pause a touch at the end of the title before the subtitle picks up.
     isLineEnd: (i) => i === titleWords - 1 || i === words.length - 1,
     onComplete: () => setTimeout(() => setRevealed(true), 250),
   });
-  const shownSpoken = alreadyChosen ? words.length + 1 : spoken;
-  // Show the selector once the greeting finishes OR a role is already chosen.
-  // The latter matters for a returning user: `profession` seeds in after the
-  // first render, flipping `alreadyChosen` true and stopping the karaoke, so we
-  // must not gate the selector on the karaoke's (now cancelled) onComplete.
-  const showSelector = revealed || alreadyChosen;
+  // Safety net: never strand the user on the greeting if the timeline is cut
+  // short (unmount/remount, an interrupted tab...).
+  useEffect(() => {
+    const t = setTimeout(() => setRevealed(true), 9000);
+    return () => clearTimeout(t);
+  }, []);
+  const showSelector = revealed;
 
   const isOtherProfession = (p: string) =>
     p === "other" || OTHER_PROFESSIONS.includes(p);
@@ -110,12 +107,12 @@ export function RoleStep({
       </div>
 
       <h1 className="text-2xl font-bold tracking-tight">
-        <KaraokeText text={titleText} active={shownSpoken} tone="muted" />
+        <KaraokeText text={titleText} active={spoken} tone="muted" />
       </h1>
       <p className="mt-2 text-[15px] pb-8">
         <KaraokeText
           text={subtitleText}
-          active={shownSpoken - titleWords}
+          active={spoken - titleWords}
           tone="muted"
         />
       </p>
