@@ -26,7 +26,7 @@ export const RoadmapSection = () => {
   const t = useTranslations("roadmap");
 
   return (
-    <section className="container mx-auto px-4 py-8 md:px-6">
+    <section className="mt-24 container mx-auto px-4 py-8 md:px-6" id="roadmap">
       <div className="mx-auto mb-6 max-w-2xl text-center">
         <h2 className="text-2xl font-bold tracking-tight text-black md:text-3xl">
           {t("title")}
@@ -36,7 +36,7 @@ export const RoadmapSection = () => {
         </p>
       </div>
 
-      <div className="flex flex-col items-stretch gap-4 lg:flex-row lg:gap-2">
+      <div className="flex flex-col items-stretch gap-4 lg:flex-row lg:gap-2 max-w-5xl mx-auto">
         {STAGES.map((stage, index) => {
           const Icon = stage.icon;
           const isLive = stage.status === "live";

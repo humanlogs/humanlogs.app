@@ -22,7 +22,7 @@ export const HeroSection = () => {
           <div className="space-y-4">
             {/* NVivo badge above the slogan */}
             <Link
-              href="#newsletter"
+              href="#roadmap"
               className="group inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-100 px-4 py-1.5 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-200"
             >
               <span>{t("badge")}</span>

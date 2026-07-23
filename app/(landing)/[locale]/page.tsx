@@ -12,6 +12,7 @@ import {
 } from "./components/sections";
 import { HeroSection } from "./components/sections/hero-section";
 import { LogoSection } from "./components/sections/logo-section";
+import { DemoSection } from "./components/sections/features-section";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -70,12 +71,14 @@ export default async function LandingPage({ params }: Props) {
       <HeroSection />
       <LogoSection />
       <FeaturesSection />
-      <TestimonialsSection />
-      <EncryptionSection />
-      <PricingSection showFeatureGrid={false} />
       <RoadmapSection />
       <NewsletterSection />
+      <DemoSection />
+      <TestimonialsSection />
+      <EncryptionSection />
       <FAQSection />
+      <PricingSection showFeatureGrid={false} />
+      <NewsletterSection />
     </>
   );
 }
