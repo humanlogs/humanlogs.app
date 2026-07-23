@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useResetTutorial } from "../../../components/dialogs/help-dialog";
 import {
   useLocale,
   useTranslations,
@@ -36,7 +35,6 @@ export default function WelcomePage() {
   const updateUser = useUpdateUser();
   const [loading, setLoading] = useState(false);
   const [state, setState] = useState<Step>("role");
-  const { handleResetTutorial } = useResetTutorial();
   const { locale, setLocale } = useLocale();
 
   const [profession, setProfession] = useState<string>("");
@@ -131,8 +129,10 @@ export default function WelcomePage() {
     setLoading(true);
     try {
       await updateUser.mutateAsync({ isWelcomeDone: true });
-      // The app plays its zoom-in entrance on load (see WelcomeIntro).
-      await handleResetTutorial(locale || "en");
+      // Land on the new study-based home. The tutorial is now opt-in from there
+      // (the "Launch tutorial" card), so we no longer seed it automatically.
+      // A full navigation lets the app play its zoom-in entrance (WelcomeIntro).
+      window.location.href = "/app";
     } catch (err) {
       console.error("Error completing welcome:", err);
       toast.error(t("setupError"));

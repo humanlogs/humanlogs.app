@@ -161,7 +161,7 @@ export const PATCH = withAuthRateLimit(
       if (body.projectId !== undefined) {
         if (!access.isOwner) {
           return NextResponse.json(
-            { error: "Only the owner can change the project" },
+            { error: "Only the owner can change the study" },
             { status: 403 },
           );
         }
@@ -175,7 +175,7 @@ export const PATCH = withAuthRateLimit(
 
           if (!project) {
             return NextResponse.json(
-              { error: "Project not found" },
+              { error: "Study not found" },
               { status: 404 },
             );
           }

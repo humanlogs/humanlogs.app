@@ -34,6 +34,7 @@ export type UserProfile = {
   email: string;
   name?: string;
   language: string;
+  createdAt: string;
   credits: number;
   creditsRefill: number;
   creditsUsed: number;

@@ -21,6 +21,8 @@ type Transcription = {
   updatedAt: string;
   isTutorial?: boolean;
   projectId?: string;
+  speakerCount?: number;
+  speakerNames?: (string | null)[];
   state: "PENDING" | "COMPLETED" | "ERROR";
   errorMessage?: string | null;
   isOwner?: boolean;

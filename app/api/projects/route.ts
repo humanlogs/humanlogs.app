@@ -24,7 +24,7 @@ export const GET = withAuthRateLimit(async (request, user) => {
   } catch (error) {
     console.error("Error fetching projects:", error);
     return NextResponse.json(
-      { error: "Failed to fetch projects" },
+      { error: "Failed to fetch studies" },
       { status: 500 },
     );
   }
@@ -38,7 +38,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
 
     if (!name || typeof name !== "string" || !name.trim()) {
       return NextResponse.json(
-        { error: "Project name is required" },
+        { error: "Study name is required" },
         { status: 400 },
       );
     }
@@ -59,7 +59,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
   } catch (error) {
     console.error("Error creating project:", error);
     return NextResponse.json(
-      { error: "Failed to create project" },
+      { error: "Failed to create study" },
       { status: 500 },
     );
   }

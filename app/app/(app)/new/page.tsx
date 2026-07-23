@@ -1,5 +1,6 @@
 "use client";
 
+import { GuideCallout } from "@/components/guidance/guide-callout";
 import { useLocale, useTranslations } from "@/components/locale-provider";
 import { PageLayout } from "@/components/page-layout";
 import { ProjectSelector } from "@/components/project-selector";
@@ -28,8 +29,7 @@ import {
   Trash2Icon,
   UploadIcon,
 } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
 import { useUserProfile } from "../../../../hooks/use-api";
@@ -244,16 +244,21 @@ function getLanguageOptions(locale: string): SelectOption[] {
   return options;
 }
 
-export default function NewTranscriptionPage() {
+function NewTranscriptionForm() {
   const t = useTranslations("newTranscription");
   const { locale } = useLocale();
   const { data: user } = useUserProfile();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
 
   // Form state
   const [audioFiles, setAudioFiles] = React.useState<AudioFile[]>([]);
+  // When arriving from a study (`?projectId=...`), pre-scope the upload to it;
+  // otherwise fall back to the last-used project stored in localStorage.
   const [projectId, setProjectId] = React.useState<string | undefined>(() => {
+    const fromQuery = searchParams.get("projectId");
+    if (fromQuery) return fromQuery;
     const saved = localStorage.getItem("transcription_project");
     return saved || undefined;
   });
@@ -775,24 +780,17 @@ export default function NewTranscriptionPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Low Credits Warning */}
           {user?.credits !== null && (user?.credits || 0) < 200 && (
-            <Alert
-              variant="default"
-              className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20"
-            >
-              <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
-              <AlertTitle className="text-yellow-800 dark:text-yellow-300">
-                {t("lowCredits")}
-              </AlertTitle>
-              <AlertDescription className="text-yellow-700 dark:text-yellow-400">
-                {t("lowCreditsDescription", { credits: user?.credits || 0 })}{" "}
-                <Link
-                  href="/app/account/billing"
-                  className="font-semibold underline hover:no-underline"
-                >
-                  {t("viewBillingOptions")}
-                </Link>
-              </AlertDescription>
-            </Alert>
+            <GuideCallout
+              icon={<AlertCircle className="h-5 w-5" />}
+              title={t("lowCredits")}
+              description={t("lowCreditsDescription", {
+                credits: user?.credits || 0,
+              })}
+              action={{
+                label: t("viewBillingOptions"),
+                onClick: () => router.push("/app/account/billing"),
+              }}
+            />
           )}
 
           {/* Drag & Drop Zone */}
@@ -1111,5 +1109,14 @@ export default function NewTranscriptionPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+// useSearchParams() must be wrapped in a Suspense boundary for the production build.
+export default function NewTranscriptionPage() {
+  return (
+    <React.Suspense fallback={null}>
+      <NewTranscriptionForm />
+    </React.Suspense>
   );
 }

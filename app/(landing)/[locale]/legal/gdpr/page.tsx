@@ -89,7 +89,7 @@ export default function Page() {
             transcription)
           </li>
           <li>Generated transcriptions (end-to-end encrypted)</li>
-          <li>Project data and metadata (when you choose to store content)</li>
+          <li>Study data and metadata (when you choose to store content)</li>
         </ul>
 
         <h3>Communication Data</h3>

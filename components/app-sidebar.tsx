@@ -21,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useProjects, useUpdateUser, useUserProfile } from "@/hooks/use-api";
 import {
   FilePlusCornerIcon,
+  HomeIcon,
   PencilIcon,
   SearchIcon,
   ShieldIcon,
@@ -154,8 +155,17 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
         <SidebarContent>
           <div className="px-2">
             <SidebarMenuItem>
+              <Link href="/app">
+                <SidebarMenuButton isActive={pathname === "/app"}>
+                  <HomeIcon className="h-4 w-4" />
+                  {t("home")}
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
               <Link href="/app/new">
-                <SidebarMenuButton isActive={pathname === "/new"}>
+                <SidebarMenuButton isActive={pathname === "/app/new"}>
                   <FilePlusCornerIcon className="h-4 w-4" />
                   {t("newTranscription")}
                 </SidebarMenuButton>
@@ -230,7 +240,12 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
               {filteredProjects.map((project) => (
                 <SidebarGroup key={project.id}>
                   <SidebarGroupLabel className="group/label">
-                    <span className="">{project.name}</span>
+                    <Link
+                      href={`/app/project/${project.id}`}
+                      className="flex-1 truncate hover:underline"
+                    >
+                      {project.name}
+                    </Link>
                     <Button
                       type="button"
                       className="opacity-0 group-hover/label:opacity-100 transition-opacity"
@@ -239,7 +254,7 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
                       onClick={() => {
                         openRename(project.id, project.name);
                       }}
-                      aria-label="Edit project name"
+                      aria-label="Edit study name"
                     >
                       <PencilIcon className="h-3 w-3" />
                     </Button>
@@ -264,7 +279,7 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
               {/* No Projects section */}
               {filteredUnassigned.length > 0 && (
                 <SidebarGroup>
-                  <SidebarGroupLabel>No Projects</SidebarGroupLabel>
+                  <SidebarGroupLabel>{t("unassigned")}</SidebarGroupLabel>
                   <SidebarGroupContent>
                     <SidebarMenu>
                       {filteredUnassigned.map((transcription) => (
