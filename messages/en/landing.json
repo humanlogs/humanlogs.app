@@ -43,7 +43,61 @@
             "encryption": "End-to-End Encrypted",
             "editing": "Lightning fast editing",
             "openSource": "Open Source"
+        },
+        "badge": "Struggling with NVivo? Click here"
+    },
+    "roadmap": {
+        "title": "From transcription to full analysis",
+        "subtitle": "One modern, private workspace for the whole qualitative research journey. Here's where we are and what's next.",
+        "status": {
+            "live": "Available now",
+            "soon": "Coming soon"
+        },
+        "stages": {
+            "transcription": {
+                "title": "Transcription",
+                "features": [
+                    "100+ languages, best-in-class accuracy",
+                    "Automatic speaker labels",
+                    "Audio-synced editor, 4x faster corrections",
+                    "End-to-end encryption",
+                    "Export to Word, PDF, CSV and TXT",
+                    "Real-time collaboration"
+                ]
+            },
+            "coding": {
+                "title": "Coding",
+                "features": [
+                    "Code and tag transcript segments",
+                    "Hierarchical codebooks",
+                    "Memos and annotations",
+                    "AI-assisted auto-coding",
+                    "Inter-coder agreement",
+                    "Matrix and cross-tab queries"
+                ]
+            },
+            "analysis": {
+                "title": "Analysis",
+                "features": [
+                    "Word frequency and lexical statistics",
+                    "Co-occurrence and word trees",
+                    "Thematic clustering",
+                    "Correspondence factor analysis",
+                    "Charts, word clouds and maps",
+                    "Compare across interviews"
+                ]
+            }
         }
+    },
+    "newsletter": {
+        "badge": "For the research community",
+        "title": "Qualitative analysis tools feel stuck in the past.",
+        "description": "NVivo, MAXQDA, Alceste and IRaMuTeQ are powerful but aging and clunky. We're working to modernize qualitative analysis and make research easier. Follow along and tell us what you need.",
+        "placeholder": "Enter your email",
+        "cta": "Keep me posted",
+        "success": "You're on the list. We'll keep you posted.",
+        "error": "Something went wrong. Please try again.",
+        "disclaimer": "No spam. Unsubscribe anytime."
     },
     "logos": {
         "trustedBy": "TRUSTED BY STUDENTS & RESEARCHERS AT"

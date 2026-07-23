@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Star, Shield, Keyboard, Lock } from "lucide-react";
+import { Star, Shield, Keyboard, Lock, ArrowRight } from "lucide-react";
 import { AnimatedWave } from "./animated-wave";
 import { AnimatedTranscriptCard } from "./animated-transcript-card";
 import { useTranslations } from "@/components/locale-provider";
@@ -20,6 +20,14 @@ export const HeroSection = () => {
         {/* Left: Slogan & CTAs */}
         <div className="space-y-8">
           <div className="space-y-4">
+            {/* NVivo badge above the slogan */}
+            <Link
+              href="#roadmap"
+              className="group inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-100 px-4 py-1.5 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-200"
+            >
+              <span>{t("badge")}</span>
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
             <h1 className="text-4xl font-bold tracking-tight text-black md:text-5xl lg:text-6xl">
               {t("title")}
             </h1>

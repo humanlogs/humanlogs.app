@@ -141,7 +141,7 @@ export const FeaturesSection = () => {
   const t = useTranslations("features");
 
   return (
-    <section className="pt-24 bg-white border-b overflow-hidden">
+    <section className="pt-24 bg-white overflow-hidden">
       <div className="container mx-auto px-4 md:px-6">
         <AnimatedSectionTitle className="text-black" subtitle={t("subtitle")}>
           {t("title")}
@@ -213,24 +213,29 @@ export const FeaturesSection = () => {
             colorIndex={0}
           />
         </div>
-
-        {/* Demo Video - Half covered by next section */}
-        <Link href="/app">
-          <div className="relative max-w-5xl mx-auto z-10 -mt-[200px] bottom-[-300px] hover:bottom-[-200px] transition-all">
-            <FakeBrowser />
-            <div className="bg-gray-900 rounded-b-xl border border-gray-200 border-t-0 overflow-hidden shadow-2xl">
-              <video className="w-full" autoPlay loop muted playsInline>
-                <source src="/landing/demo-humanlogs.webm" type="video/webm" />
-                <source
-                  src="/landing/demo-humanlogs.mov"
-                  type="video/quicktime"
-                />
-                Your browser does not support the video tag.
-              </video>
-            </div>
-          </div>
-        </Link>
       </div>
+    </section>
+  );
+};
+
+export const DemoSection = () => {
+  return (
+    <section className="bg-white border-b overflow-hidden">
+      <Link href="/app">
+        <div className="relative max-w-5xl mx-auto z-10 -mt-[200px] bottom-[-300px] hover:bottom-[-200px] transition-all">
+          <FakeBrowser />
+          <div className="bg-gray-900 rounded-b-xl border border-gray-200 border-t-0 overflow-hidden shadow-2xl">
+            <video className="w-full" autoPlay loop muted playsInline>
+              <source src="/landing/demo-humanlogs.webm" type="video/webm" />
+              <source
+                src="/landing/demo-humanlogs.mov"
+                type="video/quicktime"
+              />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+      </Link>
     </section>
   );
 };

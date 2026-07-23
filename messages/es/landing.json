@@ -43,7 +43,61 @@
             "encryption": "Cifrado de extremo a extremo",
             "editing": "Edición ultrarrápida",
             "openSource": "Open Source"
+        },
+        "badge": "¿Batallando con NVivo? Haz clic aquí"
+    },
+    "roadmap": {
+        "title": "De la transcripción al análisis completo",
+        "subtitle": "Un espacio de trabajo moderno y privado para todo el proceso de investigación cualitativa. Esto es lo que tenemos y lo que viene.",
+        "status": {
+            "live": "Disponible",
+            "soon": "Próximamente"
+        },
+        "stages": {
+            "transcription": {
+                "title": "Transcripción",
+                "features": [
+                    "Más de 100 idiomas, precisión de primer nivel",
+                    "Identificación automática de hablantes",
+                    "Editor sincronizado con el audio, correcciones 4x más rápidas",
+                    "Cifrado de extremo a extremo",
+                    "Exportación a Word, PDF, CSV y TXT",
+                    "Colaboración en tiempo real"
+                ]
+            },
+            "coding": {
+                "title": "Codificación",
+                "features": [
+                    "Codificar y etiquetar segmentos de la transcripción",
+                    "Libros de códigos jerárquicos",
+                    "Notas y anotaciones",
+                    "Codificación automática asistida por IA",
+                    "Acuerdo entre codificadores",
+                    "Consultas matriciales y cruzadas"
+                ]
+            },
+            "analysis": {
+                "title": "Análisis",
+                "features": [
+                    "Frecuencia de palabras y estadísticas léxicas",
+                    "Coocurrencias y árboles de palabras",
+                    "Agrupación temática",
+                    "Análisis factorial de correspondencias",
+                    "Gráficos, nubes de palabras y mapas",
+                    "Comparación entre entrevistas"
+                ]
+            }
         }
+    },
+    "newsletter": {
+        "badge": "Para la investigación",
+        "title": "Las herramientas de análisis cualitativo parecen ancladas en el pasado.",
+        "description": "NVivo, MAXQDA, Alceste e IRaMuTeQ son potentes pero anticuadas y poco prácticas. Estamos trabajando para modernizar el análisis cualitativo y facilitar la investigación. Sigue el proyecto y cuéntanos qué necesitas.",
+        "placeholder": "Introduce tu email",
+        "cta": "Mantenme informado",
+        "success": "Estás en la lista. Te mantendremos informado.",
+        "error": "Algo salió mal. Inténtalo de nuevo.",
+        "disclaimer": "Sin spam. Cancela cuando quieras."
     },
     "logos": {
         "trustedBy": "CONFIADO POR INVESTIGADORES DE"

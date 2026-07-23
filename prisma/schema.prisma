@@ -196,3 +196,14 @@ model LandingPageVisit {
   @@index([ipHash])
   @@index([page])
 }
+
+model NewsletterSubscription {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  locale    String   @default("en")
+  source    String   @default("landing") // Where the signup came from (e.g., "landing", "nvivo-modernization")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+}
