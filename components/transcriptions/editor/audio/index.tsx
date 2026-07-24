@@ -126,7 +126,7 @@ export const InteractiveAudio = ({
         container: containerRef.current!,
         waveColor: "#4a5568",
         progressColor: "#FFFFFF44",
-        cursorColor: "rgb(255, 0, 0)",
+        cursorColor: "rgb(0, 0, 0, 0)",
         cursorWidth: 2,
         barWidth: 2,
         barGap: 1,
