@@ -310,7 +310,7 @@
         },
         {
             "end": 9.5,
-            "text": "Alt",
+            "text": "Control",
             "type": "word",
             "start": 9.3,
             "speakerId": "speaker_1"
@@ -436,7 +436,7 @@
         },
         {
             "end": 12.52,
-            "text": "Alt",
+            "text": "Control",
             "type": "word",
             "start": 12.32,
             "speakerId": "speaker_1"
@@ -590,7 +590,7 @@
         },
         {
             "end": 17.28,
-            "text": "Control",
+            "text": "Alt",
             "type": "word",
             "start": 16.66,
             "speakerId": "speaker_0"
@@ -660,7 +660,7 @@
         },
         {
             "end": 19.12,
-            "text": "Alt",
+            "text": "Control",
             "type": "word",
             "start": 18.78,
             "speakerId": "speaker_0"
@@ -2354,7 +2354,7 @@
         },
         {
             "end": 65.3,
-            "text": "Alt",
+            "text": "Control",
             "type": "word",
             "start": 65.019,
             "speakerId": "speaker_2"
