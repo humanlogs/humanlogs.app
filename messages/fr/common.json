@@ -384,6 +384,9 @@
     },
     "unassigned": {
       "title": "Documents non assignés ({count})"
+    },
+    "recent": {
+      "title": "Documents récents"
     }
   },
   "study": {

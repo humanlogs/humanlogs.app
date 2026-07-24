@@ -8,7 +8,8 @@ import { TranscriptionLoading } from "@/components/transcriptions/transcription-
 import { ProjectBadge } from "@/components/projects/project-badge";
 import { useProjects } from "@/hooks/use-api";
 import { useEncryptionStatus } from "@/hooks/use-encryption";
-import { useTranscription } from "@/hooks/use-transcriptions";
+import { useTranscription, useTranscriptions } from "@/hooks/use-transcriptions";
+import { useTranscriptionDeleteModal } from "@/components/transcriptions/dialogs/transcription-delete-dialog";
 import { PencilIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -36,6 +37,8 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
   } = useTranscription(id);
   const { data: encryptionState } = useEncryptionStatus();
   const { openRename } = useTranscriptionRenameModal();
+  const { openDelete } = useTranscriptionDeleteModal();
+  const { data: allTranscriptions = [] } = useTranscriptions();
   const { data: projects = [] } = useProjects();
   const project = projects.find((p) => p.id === transcription?.projectId);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
@@ -62,12 +65,23 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
     const hasLocalKey = encryptionState?.hasLocalKey ?? false;
     const reason = hasLocalKey ? "certificate-mismatch" : "no-certificate";
 
+    // The content can't be decrypted, but the list still carries plaintext
+    // metadata (title/ownership), so an owner can still delete the doc from here.
+    const listEntry = allTranscriptions.find((tr) => tr.id === id);
+    const canDelete = !listEntry || listEntry.isOwner !== false;
+
     return (
       <div className="flex flex-col flex-1 p-8">
         <div className="w-full max-w-4xl mx-auto">
           <CannotAccessTranscription
             reason={reason}
             onImportCertificate={handleImportCertificate}
+            transcriptionTitle={listEntry?.title}
+            onDelete={
+              canDelete
+                ? () => openDelete(id, listEntry?.title || id, true)
+                : undefined
+            }
           />
         </div>
       </div>

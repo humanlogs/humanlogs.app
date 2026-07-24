@@ -55,18 +55,18 @@ export default function HomePage() {
     return counts;
   }, [transcriptions]);
 
-  // Owned documents that aren't attached to any study. They'd otherwise be
-  // invisible on this page, so we surface them in their own section at the end.
-  const unassignedDocuments = React.useMemo(
+  // Your most recently touched documents, so you can jump straight back into
+  // whatever you were last working on — newest first, regardless of study.
+  const RECENT_DOCUMENTS_LIMIT = 6;
+  const recentDocuments = React.useMemo(
     () =>
       transcriptions
-        .filter((tr) => !tr.projectId && tr.isOwner !== false)
-        .sort((a, b) =>
-          a.title.localeCompare(b.title, undefined, {
-            numeric: true,
-            sensitivity: "base",
-          }),
-        ),
+        .filter((tr) => tr.isOwner !== false)
+        .sort(
+          (a, b) =>
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+        )
+        .slice(0, RECENT_DOCUMENTS_LIMIT),
     [transcriptions],
   );
 
@@ -218,12 +218,12 @@ export default function HomePage() {
         </section>
       )}
 
-      {unassignedDocuments.length > 0 && (
+      {recentDocuments.length > 0 && (
         <section className="space-y-3 pt-2">
           <h2 className="text-sm font-medium text-muted-foreground">
-            {t("unassigned.title", { count: unassignedDocuments.length })}
+            {t("recent.title")}
           </h2>
-          <DocumentList documents={unassignedDocuments} />
+          <DocumentList documents={recentDocuments} />
         </section>
       )}
     </PageLayout>

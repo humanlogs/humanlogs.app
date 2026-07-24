@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircleIcon, KeyIcon, LockIcon } from "lucide-react";
+import { AlertCircleIcon, KeyIcon, LockIcon, Trash2Icon } from "lucide-react";
 import { useTranslations } from "@/components/locale-provider";
 import { Button } from "../ui/button";
 
@@ -8,12 +8,15 @@ interface CannotAccessTranscriptionProps {
   reason: "no-certificate" | "certificate-mismatch";
   onImportCertificate?: () => void;
   transcriptionTitle?: string;
+  /** When provided, offers to permanently delete the (undecryptable) transcription. */
+  onDelete?: () => void;
 }
 
 export function CannotAccessTranscription({
   reason,
   onImportCertificate,
   transcriptionTitle,
+  onDelete,
 }: CannotAccessTranscriptionProps) {
   const t = useTranslations("account.encryption.cannotAccess");
 
@@ -116,6 +119,24 @@ export function CannotAccessTranscription({
                 {t("certificateMismatch.button")}
               </Button>
             )}
+          </div>
+        )}
+
+        {/* Even when the content can't be decrypted, the owner can still delete
+            the transcription (the server authorizes by ownership, not by key). */}
+        {onDelete && (
+          <div className="space-y-2 border-t pt-4">
+            <p className="text-center text-xs text-muted-foreground">
+              {t("delete.hint")}
+            </p>
+            <Button
+              onClick={onDelete}
+              variant="ghost"
+              className="w-full text-destructive hover:text-destructive"
+            >
+              <Trash2Icon className="w-4 h-4 mr-2" />
+              {t("delete.button")}
+            </Button>
           </div>
         )}
       </div>

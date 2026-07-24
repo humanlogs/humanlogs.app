@@ -384,6 +384,9 @@
     },
     "unassigned": {
       "title": "Nicht zugeordnete Dokumente ({count})"
+    },
+    "recent": {
+      "title": "Zuletzt bearbeitete Dokumente"
     }
   },
   "study": {
