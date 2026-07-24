@@ -145,43 +145,55 @@ export function useNavigationMode(
   // Maintain shift while in play mode: goes to x2 playback + ctrl goes to x4 playback
   // Maintain ctrl while in play mode: goes to x0.5 playback
 
-  // Play / pause / change speed.
+  // Play / Pause.
   //
-  // In navigate mode a bare Space toggles playback. We used to also bind
-  // alt+space / ctrl+space so you could toggle while holding a speed modifier,
-  // but on Windows those collide with OS shortcuts (Alt+Space opens the window
-  // system menu, Ctrl+Space toggles the IME) and never reach the page reliably.
-  // Instead we match Space with `ignoreModifiers`, so it fires regardless of any
-  // held modifier — same ergonomics, no OS-reserved combos.
-  useHotkeys(
-    ["space"],
-    (event) => {
-      event.preventDefault();
-      if (state !== "navigate") return;
-      audioControls?.togglePlayPause();
-    },
-    { ignoreModifiers: true },
-    [state, audioControls],
-  );
-  // Toggle playback while editing without leaving the text. Space types a space
-  // here, so this needs a modifier combo; mod+Enter (Ctrl/Cmd+Enter) is free of
-  // both OS and editor conflicts, unlike the previous alt+space.
-  useHotkeys(
-    ["mod+enter", "ctrl+enter", "cmd+enter"],
-    (event) => {
-      event.preventDefault();
-      // Ignore if the editor is not focused
-      if (state !== "edit") return;
-      // Blur the editor to trigger the navigate mode and then toggle play/pause
-      editorAPI.blur();
-      audioControls?.togglePlayPause();
-    },
-    {
-      enableOnContentEditable: true,
-      enableOnFormTags: true,
-    },
-    [state, audioControls],
-  );
+  // This is the transcription's most-used shortcut, so we own the key handling
+  // directly (a capture-phase document listener) instead of going through
+  // react-hotkeys-hook. That keeps it fully deterministic and independent of the
+  // library's focus/modifier handling, and lets us avoid the old alt+space /
+  // ctrl+space bindings that Windows reserves (window menu / IME) and never
+  // delivers reliably.
+  //
+  //  - Space  → toggle whenever you're NOT typing (navigate mode). Modifiers are
+  //             ignored, so holding Ctrl/Alt for playback speed and tapping Space
+  //             still toggles.
+  //  - Tab    → toggle while editing the transcript, then drop back to navigate
+  //             mode. It's a reachable, foot-pedal-style key, and Space keeps
+  //             typing a normal space inside the editor.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (isModalOpen) return;
+
+      const el = (e.target as HTMLElement) ?? null;
+      const tag = el?.tagName;
+      // Never hijack real form typing.
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      const editing = !!el?.isContentEditable;
+
+      if (e.code === "Space" && !editing) {
+        // Leave Space to activate a focused button/link.
+        const role = el?.getAttribute?.("role");
+        if (
+          tag === "BUTTON" ||
+          tag === "A" ||
+          role === "button" ||
+          role === "link"
+        ) {
+          return;
+        }
+        e.preventDefault();
+        audioControls?.togglePlayPause();
+      } else if (e.code === "Tab" && editing) {
+        e.preventDefault();
+        editorAPI.blur();
+        audioControls?.togglePlayPause();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown, { capture: true });
+    return () =>
+      document.removeEventListener("keydown", onKeyDown, { capture: true });
+  }, [audioControls, editorAPI, isModalOpen]);
   useHotkeys(
     ["alt", "ctrl", "alt+ctrl"],
     (event) => {
