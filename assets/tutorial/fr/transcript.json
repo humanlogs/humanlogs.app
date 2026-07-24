@@ -310,7 +310,7 @@
     },
     {
       "end": 10.02,
-      "text": "Alt",
+      "text": "Contrôle",
       "type": "word",
       "start": 9.74,
       "speakerId": "speaker_1"
@@ -450,7 +450,7 @@
     },
     {
       "end": 13.58,
-      "text": "Alt",
+      "text": "Contrôle",
       "type": "word",
       "start": 13.34,
       "speakerId": "speaker_1"
@@ -2326,7 +2326,7 @@
     },
     {
       "end": 72.48,
-      "text": "Alt",
+      "text": "Contrôle",
       "type": "word",
       "start": 72.14,
       "speakerId": "speaker_2"
