@@ -1,7 +1,7 @@
 {
     "editor": {
         "toolbar": {
-            "playPause": "Reproducir / Pausa (Espacio)",
+            "playPause": "Reproducir / Pausa (Espacio / Tab)",
             "playbackSpeed": "Velocidad de reproducción (Alt+Ctrl)",
             "bold": "Negrita (⌘B)",
             "italic": "Cursiva (⌘I)",

@@ -149,17 +149,18 @@ export function useNavigationMode(
   //
   // This is the transcription's most-used shortcut, so we own the key handling
   // directly (a capture-phase document listener) instead of going through
-  // react-hotkeys-hook. That keeps it fully deterministic and independent of the
-  // library's focus/modifier handling, and lets us avoid the old alt+space /
-  // ctrl+space bindings that Windows reserves (window menu / IME) and never
-  // delivers reliably.
+  // react-hotkeys-hook, which was delivering these unreliably. It stays fully
+  // deterministic and works the same whether or not you're typing:
   //
-  //  - Space  → toggle whenever you're NOT typing (navigate mode). Modifiers are
-  //             ignored, so holding Ctrl/Alt for playback speed and tapping Space
-  //             still toggles.
-  //  - Tab    → toggle while editing the transcript, then drop back to navigate
-  //             mode. It's a reachable, foot-pedal-style key, and Space keeps
-  //             typing a normal space inside the editor.
+  //  - Tab           → always toggles. Because starting playback drops you back
+  //                    into navigate mode, this is what lets you PAUSE mid-play
+  //                    without reaching for the mouse. Blurs the editor first if
+  //                    you were editing.
+  //  - Space         → toggles when you're NOT typing (navigate mode). Plain
+  //                    Space keeps typing a normal space inside the editor.
+  //  - Alt/Ctrl+Space→ toggles even WHILE editing, so you can pause without
+  //                    leaving the text (Windows still reserves these at the OS
+  //                    level, hence Tab as the universal fallback).
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (isModalOpen) return;
@@ -169,23 +170,32 @@ export function useNavigationMode(
       // Never hijack real form typing.
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
       const editing = !!el?.isContentEditable;
+      const hasModifier = e.altKey || e.ctrlKey || e.metaKey;
 
-      if (e.code === "Space" && !editing) {
-        // Leave Space to activate a focused button/link.
-        const role = el?.getAttribute?.("role");
-        if (
-          tag === "BUTTON" ||
-          tag === "A" ||
-          role === "button" ||
-          role === "link"
-        ) {
-          return;
+      if (e.code === "Tab") {
+        e.preventDefault();
+        if (editing) editorAPI.blur();
+        audioControls?.togglePlayPause();
+        return;
+      }
+
+      if (e.code === "Space") {
+        // Plain Space types inside the editor; only a modifier turns it into a
+        // toggle there.
+        if (editing && !hasModifier) return;
+        // When not editing, leave Space to activate a focused button/link.
+        if (!editing) {
+          const role = el?.getAttribute?.("role");
+          if (
+            tag === "BUTTON" ||
+            tag === "A" ||
+            role === "button" ||
+            role === "link"
+          ) {
+            return;
+          }
         }
         e.preventDefault();
-        audioControls?.togglePlayPause();
-      } else if (e.code === "Tab" && editing) {
-        e.preventDefault();
-        editorAPI.blur();
         audioControls?.togglePlayPause();
       }
     };

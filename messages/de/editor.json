@@ -1,7 +1,7 @@
 {
     "editor": {
         "toolbar": {
-            "playPause": "Abspielen / Pause (Leertaste)",
+            "playPause": "Abspielen / Pause (Leertaste / Tab)",
             "playbackSpeed": "Wiedergabegeschwindigkeit (Alt+Strg)",
             "bold": "Fett (⌘B)",
             "italic": "Kursiv (⌘I)",

@@ -1,7 +1,7 @@
 {
     "editor": {
         "toolbar": {
-            "playPause": "Play / Pause (Space)",
+            "playPause": "Play / Pause (Space / Tab)",
             "playbackSpeed": "Playback Speed (Alt+Ctrl)",
             "bold": "Bold (⌘B)",
             "italic": "Italic (⌘I)",
