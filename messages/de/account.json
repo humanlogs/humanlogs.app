@@ -136,6 +136,10 @@
                     },
                     "note": "Wenn Sie das ursprüngliche Zertifikat haben, das zum Verschlüsseln dieser Transkription verwendet wurde, können Sie versuchen, es zu importieren.",
                     "button": "Anderes Zertifikat versuchen"
+                },
+                "delete": {
+                    "hint": "Wenn Sie das Zertifikat nicht wiederherstellen können, können Sie diese Transkription dauerhaft löschen.",
+                    "button": "Transkription löschen"
                 }
             },
             "settings": {

@@ -136,6 +136,10 @@
                     },
                     "note": "If you have the original certificate that was used to encrypt this transcription, you can try importing it.",
                     "button": "Try Different Certificate"
+                },
+                "delete": {
+                    "hint": "If you can't recover the certificate, you can permanently delete this transcription.",
+                    "button": "Delete transcription"
                 }
             },
             "settings": {

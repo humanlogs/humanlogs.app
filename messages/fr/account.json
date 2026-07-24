@@ -136,6 +136,10 @@
                     },
                     "note": "Si vous avez le certificat original utilisé pour chiffrer cette transcription, vous pouvez essayer de l'importer.",
                     "button": "Essayer un autre certificat"
+                },
+                "delete": {
+                    "hint": "Si vous ne parvenez pas à récupérer le certificat, vous pouvez supprimer définitivement cette transcription.",
+                    "button": "Supprimer la transcription"
                 }
             },
             "settings": {

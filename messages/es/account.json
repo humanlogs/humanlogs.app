@@ -136,6 +136,10 @@
                     },
                     "note": "Si tiene el certificado original que se usó para cifrar esta transcripción, puede intentar importarlo.",
                     "button": "Probar otro certificado"
+                },
+                "delete": {
+                    "hint": "Si no puedes recuperar el certificado, puedes eliminar permanentemente esta transcripción.",
+                    "button": "Eliminar transcripción"
                 }
             },
             "settings": {

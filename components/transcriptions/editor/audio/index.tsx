@@ -126,7 +126,7 @@ export const InteractiveAudio = ({
         container: containerRef.current!,
         waveColor: "#4a5568",
         progressColor: "#FFFFFF44",
-        cursorColor: "rgb(255, 0, 0)",
+        cursorColor: "rgb(0, 0, 0, 0)",
         cursorWidth: 2,
         barWidth: 2,
         barGap: 1,
@@ -203,6 +203,13 @@ export const InteractiveAudio = ({
         console.log("[Audio] Wavesurfer finished loading, duration:", duration);
         setIsLoadingWaveform(false);
 
+        // Make sure the total duration reflects the decoded audio. Without a
+        // cached waveform (e.g. the first load of an end-to-end encrypted file)
+        // the duration is only known once decoding finishes, so update it here.
+        if (duration && Number.isFinite(duration)) {
+          setTotalDuration(duration);
+        }
+
         // Cache the waveform peaks and duration if not already cached
         if (!cachedData) {
           (async () => {
@@ -236,10 +243,25 @@ export const InteractiveAudio = ({
         if (onTimeUpdateRef.current) onTimeUpdateRef.current(currentTime);
       });
 
-      audioMediaRef.current?.addEventListener("load", () => {
-        const duration = audioMediaRef.current?.duration || 0;
-        setTotalDuration(duration);
-      });
+      // Keep the total duration in sync with the actual media element. The
+      // native "loadedmetadata"/"durationchange" events are the authoritative
+      // source (a previous "load" listener never fired — "load" is not a media
+      // event), which is what left the total time stuck at 0 after decoding an
+      // encrypted file that had no cached waveform yet.
+      const handleDurationChange = () => {
+        const duration = audioMediaRef.current?.duration;
+        if (duration && Number.isFinite(duration)) {
+          setTotalDuration(duration);
+        }
+      };
+      audioMediaRef.current?.addEventListener(
+        "loadedmetadata",
+        handleDurationChange,
+      );
+      audioMediaRef.current?.addEventListener(
+        "durationchange",
+        handleDurationChange,
+      );
 
       // Track play/pause state
       audioMediaRef.current?.addEventListener("play", () => {

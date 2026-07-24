@@ -2,6 +2,7 @@ import { UserCursor } from "@/hooks/use-transcription-cursors";
 import { EditorAPI } from "../text/api";
 import { getUserColor } from "../text/components/remote-cursors";
 import { offsetToTime } from "./helpers";
+import { useAudio } from "./audio-context";
 
 export const CollaborationTicks = ({
   cursors,
@@ -12,8 +13,17 @@ export const CollaborationTicks = ({
   totalDuration: number;
   cursors?: UserCursor[];
 }) => {
+  const { currentTime } = useAudio();
+
   return (
     <>
+      <div
+        className="absolute bottom-0 pointer-events-none z-10 transition-all duration-100 ease-out h-full w-0.5 bg-red-500"
+        style={{
+          left: `${100 * (currentTime / totalDuration)}%`,
+          transform: "translateX(-50%)",
+        }}
+      />
       {(cursors || []).map((cursor) => {
         const segments = editorAPI.getSegments();
         const cursorTime = offsetToTime(cursor.endOffset, segments);

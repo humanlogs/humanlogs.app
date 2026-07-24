@@ -145,33 +145,65 @@ export function useNavigationMode(
   // Maintain shift while in play mode: goes to x2 playback + ctrl goes to x4 playback
   // Maintain ctrl while in play mode: goes to x0.5 playback
 
-  // Play / pause / change speed
-  useHotkeys(
-    ["space", "alt+space", "ctrl+space", "ctrl+alt+space"],
-    (event) => {
-      event.preventDefault();
-      if (state !== "navigate") return;
-      audioControls?.togglePlayPause();
-    },
-    {},
-    [state, audioControls],
-  );
-  useHotkeys(
-    ["alt+space"],
-    (event) => {
-      event.preventDefault();
-      // Ignore if the editor is not focused
-      if (state !== "edit") return;
-      // Blur the editor to trigger the navigate mode and then toggle play/pause
-      editorAPI.blur();
-      audioControls?.togglePlayPause();
-    },
-    {
-      enableOnContentEditable: true,
-      enableOnFormTags: true,
-    },
-    [state, audioControls],
-  );
+  // Play / Pause.
+  //
+  // This is the transcription's most-used shortcut, so we own the key handling
+  // directly (a capture-phase document listener) instead of going through
+  // react-hotkeys-hook, which was delivering these unreliably. It stays fully
+  // deterministic and works the same whether or not you're typing:
+  //
+  //  - Tab           → always toggles. Because starting playback drops you back
+  //                    into navigate mode, this is what lets you PAUSE mid-play
+  //                    without reaching for the mouse. Blurs the editor first if
+  //                    you were editing.
+  //  - Space         → toggles when you're NOT typing (navigate mode). Plain
+  //                    Space keeps typing a normal space inside the editor.
+  //  - Alt/Ctrl+Space→ toggles even WHILE editing, so you can pause without
+  //                    leaving the text (Windows still reserves these at the OS
+  //                    level, hence Tab as the universal fallback).
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (isModalOpen) return;
+
+      const el = (e.target as HTMLElement) ?? null;
+      const tag = el?.tagName;
+      // Never hijack real form typing.
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      const editing = !!el?.isContentEditable;
+      const hasModifier = e.altKey || e.ctrlKey || e.metaKey;
+
+      if (e.code === "Tab") {
+        e.preventDefault();
+        if (editing) editorAPI.blur();
+        audioControls?.togglePlayPause();
+        return;
+      }
+
+      if (e.code === "Space") {
+        // Plain Space types inside the editor; only a modifier turns it into a
+        // toggle there.
+        if (editing && !hasModifier) return;
+        // When not editing, leave Space to activate a focused button/link.
+        if (!editing) {
+          const role = el?.getAttribute?.("role");
+          if (
+            tag === "BUTTON" ||
+            tag === "A" ||
+            role === "button" ||
+            role === "link"
+          ) {
+            return;
+          }
+        }
+        e.preventDefault();
+        audioControls?.togglePlayPause();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown, { capture: true });
+    return () =>
+      document.removeEventListener("keydown", onKeyDown, { capture: true });
+  }, [audioControls, editorAPI, isModalOpen]);
   useHotkeys(
     ["alt", "ctrl", "alt+ctrl"],
     (event) => {
