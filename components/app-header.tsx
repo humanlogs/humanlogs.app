@@ -28,7 +28,11 @@ export function AppHeader() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-10 bg-background/50 backdrop-blur-lg",
+        // z-20 keeps the bar (and the audio player/toolbar the transcription
+        // editor portals into it) above the scrolling content, which is itself
+        // lifted to z-10. Without this they tie at z-10 and the later-in-DOM
+        // content paints on top, so the sticky header appears to slide behind it.
+        "sticky top-0 z-20 bg-background/50 backdrop-blur-lg",
         emptyOnDesktop && "md:bg-transparent md:backdrop-blur-none",
       )}
     >

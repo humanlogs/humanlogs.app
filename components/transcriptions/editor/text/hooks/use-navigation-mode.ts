@@ -145,19 +145,29 @@ export function useNavigationMode(
   // Maintain shift while in play mode: goes to x2 playback + ctrl goes to x4 playback
   // Maintain ctrl while in play mode: goes to x0.5 playback
 
-  // Play / pause / change speed
+  // Play / pause / change speed.
+  //
+  // In navigate mode a bare Space toggles playback. We used to also bind
+  // alt+space / ctrl+space so you could toggle while holding a speed modifier,
+  // but on Windows those collide with OS shortcuts (Alt+Space opens the window
+  // system menu, Ctrl+Space toggles the IME) and never reach the page reliably.
+  // Instead we match Space with `ignoreModifiers`, so it fires regardless of any
+  // held modifier — same ergonomics, no OS-reserved combos.
   useHotkeys(
-    ["space", "alt+space", "ctrl+space", "ctrl+alt+space"],
+    ["space"],
     (event) => {
       event.preventDefault();
       if (state !== "navigate") return;
       audioControls?.togglePlayPause();
     },
-    {},
+    { ignoreModifiers: true },
     [state, audioControls],
   );
+  // Toggle playback while editing without leaving the text. Space types a space
+  // here, so this needs a modifier combo; mod+Enter (Ctrl/Cmd+Enter) is free of
+  // both OS and editor conflicts, unlike the previous alt+space.
   useHotkeys(
-    ["alt+space"],
+    ["mod+enter", "ctrl+enter", "cmd+enter"],
     (event) => {
       event.preventDefault();
       // Ignore if the editor is not focused

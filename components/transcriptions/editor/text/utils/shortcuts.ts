@@ -9,7 +9,8 @@ export const defaultShortcuts = [
   {
     category: "Playback",
     shortcuts: [
-      { keys: ["Alt + Space"], description: "Play/Pause" },
+      { keys: ["Space"], description: "Play/Pause" },
+      { keys: ["Ctrl/Cmd + Enter"], description: "Play/Pause while editing" },
       { keys: ["Hold Alt"], description: "0.5x playback speed" },
       { keys: ["Hold Ctrl"], description: "2x playback speed" },
       { keys: ["Hold Alt + Ctrl"], description: "4x playback speed" },
