@@ -163,6 +163,17 @@ export function TranscriptEditor({
     transcription.id,
   );
 
+  // In real-time collab (`?collab`) the single-writer lock is bypassed: every user
+  // with write access edits concurrently (CRDT). Otherwise the legacy lock stands.
+  const [collabEnabled, setCollabEnabled] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setCollabEnabled(new URLSearchParams(window.location.search).has("collab"));
+  }, []);
+  const canWrite = collabEnabled
+    ? hasWriteAccess
+    : isLockedByMe && hasWriteAccess;
+
   // Auto-save with debounce
   const { onChange: autoSaveOnChange, saveStatus } = useAutoSave({
     transcriptionId: transcription.id,
@@ -183,7 +194,7 @@ export function TranscriptEditor({
     <div ref={containerRef} className="h-full min-w-0 overflow-x-hidden">
       <SpeakerRenameDialog />
       <div className="flex flex-col h-full">
-        {isLocked && !isLockedByMe && (
+        {!collabEnabled && isLocked && !isLockedByMe && (
           <>
             <div className="mb-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 border-y border-yellow-300 dark:border-yellow-700 text-sm text-yellow-800 dark:text-yellow-200 fixed w-full z-10">
               <span className="font-semibold">
@@ -216,7 +227,7 @@ export function TranscriptEditor({
                 activeFormats={activeFormats}
                 searchReplace={searchReplace}
                 audioControls={audioControls}
-                hasWriteAccess={isLockedByMe && hasWriteAccess}
+                hasWriteAccess={canWrite}
                 hasListenAccess={hasListenAccess}
               />
             </div>
@@ -226,13 +237,14 @@ export function TranscriptEditor({
 
         {/* Scrollable content area */}
         <div className="flex flex-row px-4 gap-2 flex-1 min-w-0 overflow-hidden pb-6 pt-4 pb-16">
-          <SpeakerColumn
-            editorAPI={editorAPI}
-            readOnly={!(isLockedByMe && hasWriteAccess)}
-          />
+          <SpeakerColumn editorAPI={editorAPI} readOnly={!canWrite} />
           <div className="flex-[1_1_0%] px-2 min-w-0 flex gap-4 overflow-hidden">
             <div className="relative flex-[1_1_0%] min-w-0 overflow-visible">
-              <RemoteCursors editorAPI={editorAPI} cursors={cursors} />
+              {/* Text carets come from CollaborationCursor in collab mode; the
+                  custom socket cursors still drive the audio waveform ticks. */}
+              {!collabEnabled && (
+                <RemoteCursors editorAPI={editorAPI} cursors={cursors} />
+              )}
               <SearchHighlights highlights={searchReplace.highlights} />
               <ActiveSegmentHighlight
                 editorAPI={editorAPI}
@@ -253,13 +265,13 @@ export function TranscriptEditor({
                     updateCursorPosition(
                       editor.state.selection.from - 1,
                       editor.state.selection.to - 1,
-                      isLockedByMe && hasWriteAccess,
+                      canWrite,
                     );
                     selectionUpdate();
                     formatSelectionUpdate(editor);
                   }}
                   onUpdate={() => {}}
-                  hasWriteAccess={isLockedByMe && hasWriteAccess}
+                  hasWriteAccess={canWrite}
                 />
               </div>
             </div>

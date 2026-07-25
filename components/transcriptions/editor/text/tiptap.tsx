@@ -31,6 +31,7 @@ export function TranscriptEditorContentTipTap({
   const { editor: tiptapEditor, segmentsRef } = useTiptapEditor({
     transcriptionId,
     segments, // Replace \n\n with space for better handling in Tiptap
+    speakers,
     onChange,
     editorAPI,
     editable: hasWriteAccess,
