@@ -122,6 +122,21 @@ export function useAutoSave({
   // Keep performSaveRef up to date so the navigation guard can always call the latest version
   performSaveRef.current = performSave;
 
+  // Imperative flush — persist current state NOW (used on collab leadership handoff
+  // so the incoming save leader closes any unsaved window immediately).
+  const flush = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+    if (maxDebounceTimeoutRef.current) {
+      clearTimeout(maxDebounceTimeoutRef.current);
+      maxDebounceTimeoutRef.current = null;
+    }
+    void performSaveRef.current(false, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Handle Ctrl+S / Cmd+S keyboard shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -241,7 +256,7 @@ export function useAutoSave({
     };
   }, []);
 
-  return { saveStatus, onChange };
+  return { saveStatus, onChange, flush };
 }
 
 const setBeforeUnloadWarning = (

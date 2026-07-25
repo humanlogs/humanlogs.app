@@ -22,6 +22,7 @@ import { useEffect, useRef, useState } from "react";
 import * as awarenessProtocol from "y-protocols/awareness";
 import * as Y from "yjs";
 import { EditorAPI } from "../api";
+import { CollabCaret } from "../collab/collab-caret";
 import { docToSegments } from "../collab/doc-to-segments";
 import { AutoWrapExtension } from "../extensions/auto-wrap-extension";
 import { segmentsToHtml } from "../utils/html";
@@ -236,10 +237,13 @@ export function useTiptapEditor({
         }),
         // Auto-wrap selected text with matching pairs
         AutoWrapExtension,
-        // Real-time collaboration (standard Yjs binding — text/structure/undo).
-        // Remote carets (CollaborationCaret) are added next, once versions align.
+        // Real-time collaboration (standard Yjs binding) + remote carets (built on
+        // the same y-tiptap package, so plugin keys match).
         ...(collabEnabled && yjsDoc.current
-          ? [Collaboration.configure({ document: yjsDoc.current })]
+          ? [
+              Collaboration.configure({ document: yjsDoc.current }),
+              CollabCaret.configure({ awareness: awarenessRef.current }),
+            ]
           : []),
       ],
       editable,
@@ -391,7 +395,10 @@ export function useTiptapEditor({
             debug,
             onRole: (isSaver) => {
               isCollabSaverRef.current = isSaver;
-              if (isSaver) collabDeriveRef.current();
+              if (isSaver) {
+                collabDeriveRef.current(); // derive current segments + schedule save
+                editorAPI.emit("becameSaver"); // force-flush now (robust handoff)
+              }
             },
           },
         );
@@ -417,6 +424,17 @@ export function useTiptapEditor({
       providerRef.current = null;
     };
   }, [editor, isMounted]);
+
+  // Collab: publish our identity (name/color) into awareness so peers can label our
+  // remote caret. yCursorPlugin writes our selection into awareness automatically.
+  useEffect(() => {
+    if (!collabEnabled || !awarenessRef.current) return;
+    awarenessRef.current.setLocalStateField("user", {
+      name: userProfile?.name || userProfile?.email || "Anonymous",
+      color: cursorColorRef.current,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userProfile]);
 
   editorRef.current = editor;
 

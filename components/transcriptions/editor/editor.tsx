@@ -174,11 +174,26 @@ export function TranscriptEditor({
     ? hasWriteAccess
     : isLockedByMe && hasWriteAccess;
 
-  // Auto-save with debounce
-  const { onChange: autoSaveOnChange, saveStatus } = useAutoSave({
-    transcriptionId: transcription.id,
-    editorAPI,
-  });
+  // Auto-save with debounce. In collab the Y.Doc is the live source of truth and
+  // Postgres is just a checkpoint, so we save less aggressively (and only the save
+  // leader persists — gated in the editor hook).
+  const { onChange: autoSaveOnChange, saveStatus, flush: flushSave } =
+    useAutoSave({
+      transcriptionId: transcription.id,
+      editorAPI,
+      debounceMs: collabEnabled ? 5000 : 3000,
+    });
+
+  // Collab: when this client becomes the save leader (authority handoff), persist
+  // the current state immediately so no edits sit in an unsaved window.
+  useEffect(() => {
+    if (!collabEnabled) return;
+    const onBecameSaver = () => flushSave();
+    editorAPI.addListener("becameSaver", onBecameSaver);
+    return () => {
+      editorAPI.removeListener("becameSaver", onBecameSaver);
+    };
+  }, [collabEnabled, editorAPI, flushSave]);
 
   // Notify parent when editor is ready
   useEffect(() => {
