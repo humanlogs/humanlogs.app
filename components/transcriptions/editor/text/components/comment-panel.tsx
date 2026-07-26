@@ -13,6 +13,7 @@ import {
 } from "@/hooks/use-comments";
 import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { EditorAPI } from "../api";
 import {
   excerptText,
@@ -103,16 +104,15 @@ export function CommentPanel({
           return;
         }
         attempts = 0;
-        const left = Math.min(
-          rect.right + 16,
-          window.innerWidth - PANEL_WIDTH - 12,
-        );
+        // Right margin, just below the commented line: the panel never sits on top of
+        // the text it refers to, and always appears in the same predictable place.
+        const left = Math.max(12, window.innerWidth - PANEL_WIDTH - 16);
         const height = panelRef.current?.offsetHeight ?? 240;
         const top = Math.max(
           12,
-          Math.min(rect.top, window.innerHeight - height - 12),
+          Math.min(rect.bottom + 8, window.innerHeight - height - 12),
         );
-        setPosition({ top, left: Math.max(12, left) });
+        setPosition({ top, left });
       });
     };
 
@@ -160,9 +160,12 @@ export function CommentPanel({
     };
   }, [open, onClose]);
 
-  if (!open || !anchorId) return null;
+  if (!open || !anchorId || typeof document === "undefined") return null;
 
-  return (
+  // Portalled to <body>: an ancestor of the editor (`.route-transition`) sets
+  // `will-change: transform`, which makes it the containing block for `position:
+  // fixed` — anchoring in place would offset the panel by that element's origin.
+  return createPortal(
     <div
       ref={panelRef}
       className="fixed z-50 flex max-h-[70vh] flex-col overflow-hidden rounded-lg border border-foreground/10 bg-popover text-popover-foreground shadow-lg"
@@ -183,7 +186,8 @@ export function CommentPanel({
         onSaved={onSaved}
         onEmptied={onEmptied}
       />
-    </div>
+    </div>,
+    document.body,
   );
 }
 
