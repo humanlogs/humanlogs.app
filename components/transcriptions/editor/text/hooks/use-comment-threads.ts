@@ -27,9 +27,23 @@ export function useCommentThreads({
 
   const getEditor = () => editorAPI.getEditor();
 
+  /** Drop the mark of a still-unsaved thread we're navigating away from. */
+  const discardPending = useCallback((except?: string) => {
+    const pending = pendingNewRef.current;
+    if (!pending || pending === except) return;
+    const editor = getEditor();
+    if (editor) {
+      removeCommentMark(editor, pending);
+      editorAPI.emit("commentsChange");
+    }
+    pendingNewRef.current = null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const startNewComment = useCallback(() => {
     const editor = getEditor();
     if (!editor || !canWrite) return;
+    discardPending();
     const id =
       typeof crypto !== "undefined" && crypto.randomUUID
         ? crypto.randomUUID()
@@ -39,12 +53,15 @@ export function useCommentThreads({
     pendingNewRef.current = id;
     setActiveAnchorId(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canWrite]);
+  }, [canWrite, discardPending]);
 
-  const openThread = useCallback((anchorId: string) => {
-    pendingNewRef.current = null;
-    setActiveAnchorId(anchorId);
-  }, []);
+  const openThread = useCallback(
+    (anchorId: string) => {
+      discardPending(anchorId);
+      setActiveAnchorId(anchorId);
+    },
+    [discardPending],
+  );
 
   // A note was saved into the active thread → it's no longer a throwaway.
   const markSaved = useCallback(() => {
@@ -52,15 +69,9 @@ export function useCommentThreads({
   }, []);
 
   const close = useCallback(() => {
-    const editor = getEditor();
-    if (editor && pendingNewRef.current) {
-      removeCommentMark(editor, pendingNewRef.current);
-      editorAPI.emit("commentsChange");
-    }
-    pendingNewRef.current = null;
+    discardPending();
     setActiveAnchorId(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [discardPending]);
 
   // The last note in a thread was deleted → drop the anchor mark and close.
   const emptied = useCallback((anchorId: string) => {

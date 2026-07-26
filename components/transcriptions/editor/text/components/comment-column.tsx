@@ -33,6 +33,7 @@ export function CommentColumn({
           <button
             key={pos.anchorId}
             type="button"
+            data-comment-gutter=""
             title={t("comments.indicator")}
             aria-label={t("comments.indicator")}
             onClick={() => onOpenThread(pos.anchorId)}

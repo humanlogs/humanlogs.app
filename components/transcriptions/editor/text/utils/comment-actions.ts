@@ -93,3 +93,101 @@ export function commentIdsInDoc(editor: Editor): Set<string> {
   });
   return ids;
 }
+
+/** The document range covered by a comment thread, plus its anchored text. */
+export type CommentRange = {
+  anchorId: string;
+  from: number;
+  to: number;
+  text: string;
+};
+
+/**
+ * One range per comment thread in the document: the span from its first to its last
+ * marked character (a thread split by a later overlapping comment is reported as the
+ * outer envelope) together with the anchored text.
+ */
+export function getCommentRanges(editor: Editor): CommentRange[] {
+  const markType = editor.state.schema.marks.comment;
+  if (!markType) return [];
+
+  const bounds = new Map<string, { from: number; to: number }>();
+  editor.state.doc.descendants((node, pos) => {
+    if (!node.isText) return;
+    for (const m of node.marks) {
+      if (m.type !== markType || !m.attrs.commentId) continue;
+      const id = m.attrs.commentId as string;
+      const from = pos;
+      const to = pos + node.nodeSize;
+      const cur = bounds.get(id);
+      bounds.set(
+        id,
+        cur
+          ? { from: Math.min(cur.from, from), to: Math.max(cur.to, to) }
+          : { from, to },
+      );
+    }
+  });
+
+  return Array.from(bounds.entries()).map(([anchorId, r]) => ({
+    anchorId,
+    from: r.from,
+    to: r.to,
+    text: editor.state.doc.textBetween(r.from, r.to, "\n", " "),
+  }));
+}
+
+/**
+ * Threads whose anchored range touches `anchorId`'s: overlapping, or separated only by
+ * whitespace within the same block. These are shown alongside the active thread so a
+ * comment made next to (or across) an existing one doesn't hide it.
+ */
+export function getTouchingAnchorIds(
+  editor: Editor,
+  anchorId: string,
+): string[] {
+  const ranges = getCommentRanges(editor);
+  const active = ranges.find((r) => r.anchorId === anchorId);
+  if (!active) return [];
+
+  return ranges
+    .filter((r) => {
+      if (r.anchorId === anchorId) return false;
+      // Overlapping ranges.
+      if (r.from < active.to && active.from < r.to) return true;
+      // Adjacent ranges: nothing but a little whitespace, no block boundary.
+      const gapFrom = r.to <= active.from ? r.to : active.to;
+      const gapTo = r.to <= active.from ? active.from : r.from;
+      if (gapTo < gapFrom) return false;
+      const between = editor.state.doc.textBetween(gapFrom, gapTo, "\n", " ");
+      return (
+        between.length <= 3 && between.trim() === "" && !between.includes("\n")
+      );
+    })
+    .map((r) => r.anchorId);
+}
+
+/** Select a thread's anchored text in the editor and scroll it into view. */
+export function selectCommentRange(editor: Editor, anchorId: string): boolean {
+  const range = getCommentRanges(editor).find((r) => r.anchorId === anchorId);
+  if (!range) return false;
+  editor
+    .chain()
+    .focus()
+    .setTextSelection({ from: range.from, to: range.to })
+    .scrollIntoView()
+    .run();
+  return true;
+}
+
+/**
+ * Condense a quoted phrase to "start […] end" so a thread header stays one or two
+ * lines regardless of how much text was commented.
+ */
+export function excerptText(text: string, max = 70): string {
+  const t = text.replace(/\s+/g, " ").trim();
+  if (t.length <= max) return t;
+  const headLen = Math.ceil((max - 5) / 2);
+  const tailLen = Math.floor((max - 5) / 2);
+  return `${t.slice(0, headLen).trimEnd()} […] ${t.slice(t.length - tailLen).trimStart()}`;
+}

@@ -12,7 +12,7 @@ import { InteractiveAudio } from "./audio";
 import { EditorAPI } from "./text/api";
 import { ActiveSegmentHighlight } from "./text/components/active-segment-highlight";
 import { CommentColumn } from "./text/components/comment-column";
-import { CommentPopover } from "./text/components/comment-popover";
+import { CommentPanel } from "./text/components/comment-panel";
 import { EditorToolbar } from "./text/components/editor-toolbar";
 import { SearchHighlights } from "./text/components/search-highlights";
 import { SpeakerColumn } from "./text/components/speaker-column";
@@ -354,8 +354,9 @@ export function TranscriptEditor({
         </div>
       </div>
 
-      <CommentPopover
+      <CommentPanel
         transcriptionId={transcription.id}
+        editorAPI={editorAPI}
         anchorId={commentThreads.activeAnchorId}
         getAnchorRect={commentThreads.getAnchorRect}
         canWrite={canWrite}
