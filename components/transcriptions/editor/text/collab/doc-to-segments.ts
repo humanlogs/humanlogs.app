@@ -139,10 +139,42 @@ function docToStructureSegments(doc: PMNode): TranscriptionSegment[] {
 const norm = (w: string): string =>
   w.toLowerCase().replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi, "");
 
+/** Longest common subsequence → matched [indexInA, indexInB] pairs. O(m·n). */
+function lcs(a: string[], b: string[]): [number, number][] {
+  const m = a.length;
+  const n = b.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, () =>
+    new Array(n + 1).fill(0),
+  );
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] =
+        a[i - 1] === b[j - 1]
+          ? dp[i - 1][j - 1] + 1
+          : Math.max(dp[i - 1][j], dp[i][j - 1]);
+  const pairs: [number, number][] = [];
+  let i = m;
+  let j = n;
+  while (i > 0 && j > 0) {
+    if (a[i - 1] === b[j - 1]) {
+      pairs.unshift([i - 1, j - 1]);
+      i--;
+      j--;
+    } else if (dp[i - 1][j] >= dp[i][j - 1]) {
+      i--;
+    } else {
+      j--;
+    }
+  }
+  return pairs;
+}
+
 /**
- * Carry start/end from `prev` onto `next` word tokens: unchanged common prefix and
- * suffix keep their exact timestamps; the changed middle is left null and then
- * interpolated by {@link enforceTimestampInvariant}. O(n), deterministic.
+ * Carry start/end from a timing `reference` onto `next` word tokens: common
+ * prefix/suffix keep their exact reference timestamp, the middle is LCS-aligned so
+ * unchanged (even scattered) words keep theirs, and only truly new/changed words are
+ * interpolated by {@link enforceTimestampInvariant}. PURE and DETERMINISTIC — with a
+ * shared reference + the converged doc, every client derives identical timestamps.
  */
 function carryTimestamps(
   next: TranscriptionSegment[],
@@ -169,10 +201,36 @@ function carryTimestamps(
     nextWords[n - 1 - s].end = prevWords[m - 1 - s].end;
     s++;
   }
-  // Middle words (p .. n-s) keep null start/end → interpolated below.
-  for (let i = p; i < n - s; i++) {
-    nextWords[i].start = undefined;
-    nextWords[i].end = undefined;
+  // Middle (p .. n-s): LCS-align the remaining words so unchanged words keep their
+  // exact reference timestamp even when edits are scattered; only truly new/changed
+  // words are left null (interpolated below).
+  const midNextIdx: number[] = [];
+  const midPrevIdx: number[] = [];
+  for (let i = p; i < n - s; i++) midNextIdx.push(i);
+  for (let j = p; j < m - s; j++) midPrevIdx.push(j);
+
+  // LCS is O(mid²) time AND memory — guard against a pathological changed region
+  // (rare: huge scattered edits). Above the cap we skip it and let the whole middle
+  // interpolate; the user accepts minor offsets there. Prefix/suffix stay exact.
+  const LCS_CAP = 4_000_000; // ~2000 × 2000
+  const matchedNext = new Set<number>();
+  if (midNextIdx.length * midPrevIdx.length <= LCS_CAP) {
+    for (const [a, b] of lcs(
+      midNextIdx.map((i) => norm(nextWords[i].text)),
+      midPrevIdx.map((j) => norm(prevWords[j].text)),
+    )) {
+      const ni = midNextIdx[a];
+      const pj = midPrevIdx[b];
+      nextWords[ni].start = prevWords[pj].start;
+      nextWords[ni].end = prevWords[pj].end;
+      matchedNext.add(ni);
+    }
+  }
+  for (const i of midNextIdx) {
+    if (!matchedNext.has(i)) {
+      nextWords[i].start = undefined;
+      nextWords[i].end = undefined;
+    }
   }
 
   // Interpolate the gaps and enforce monotonicity across all words.
@@ -188,15 +246,17 @@ function carryTimestamps(
 }
 
 /**
- * Full derivation: structure from the doc + timestamps carried from `prev`, then
- * normalized to the canonical word/spacing shape the rest of the editor expects.
+ * Full derivation: structure from the doc + timestamps carried from the shared timing
+ * `reference` (pinned once in the Y.Doc, identical on every client), then normalized.
+ * Because it is a pure function of (converged doc, shared reference), all clients
+ * derive the SAME per-word timestamps → they converge without per-word CRDT storage.
  */
 export function docToSegments(
   doc: PMNode,
-  prev: TranscriptionSegment[] | null | undefined,
+  reference: TranscriptionSegment[] | null | undefined,
 ): TranscriptionSegment[] {
   const structure = docToStructureSegments(doc);
-  if (prev && prev.length) carryTimestamps(structure, prev);
+  if (reference && reference.length) carryTimestamps(structure, reference);
   // Canonicalize (merge spacings, spacing start/end from neighbours) WITHOUT the
   // initialFormatting paragraph-splitting pass (that runs only at seed time).
   return normalizeEditorSegments(structure);

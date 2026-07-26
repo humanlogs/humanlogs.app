@@ -150,6 +150,16 @@ export function useTiptapEditor({
   // corrupt the stored utterances JSON. Non-leaders never save.
   const isCollabSaverRef = useRef(false);
 
+  // Shared timing reference (word → audio start/end), pinned once in the Y.Doc so it
+  // is identical on every client (incl. late joiners). Deriving against THIS instead
+  // of the local previous segments makes docToSegments a pure function of (converged
+  // doc, shared reference) → all clients derive identical timestamps → convergence.
+  const timingRefRef = useRef<TranscriptionSegment[] | null>(null);
+  // Save leader refreshes the shared timing reference (debounced) so it tracks the
+  // doc — keeps the derivation's LCS "middle" small → exact + fast over long sessions.
+  const refreshTimingRefFnRef = useRef<() => void>(() => {});
+  const refreshDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
   // Derive the flat projection from the (converged) doc, then update consumers and
   // (save-leader only) persist. Kept in a ref so once-created closures call the
   // latest version.
@@ -157,10 +167,22 @@ export function useTiptapEditor({
   collabDeriveRef.current = () => {
     const ed = editorRef.current;
     if (!ed) return;
-    segmentsRef.current = docToSegments(ed.state.doc, segmentsRef.current);
+    segmentsRef.current = docToSegments(
+      ed.state.doc,
+      timingRefRef.current ?? segmentsRef.current,
+    );
     editorAPI.emit("speakersOffsets");
-    if (isCollabSaverRef.current && onChange) onChange(segmentsRef.current);
-    else editorAPI.emit("change");
+    if (isCollabSaverRef.current && onChange) {
+      onChange(segmentsRef.current);
+      // Refresh the shared timing reference (debounced, leader only).
+      if (refreshDebounceRef.current) clearTimeout(refreshDebounceRef.current);
+      refreshDebounceRef.current = setTimeout(() => {
+        refreshTimingRefFnRef.current();
+        refreshDebounceRef.current = null;
+      }, 5000);
+    } else {
+      editorAPI.emit("change");
+    }
   };
 
   // Detect client-side rendering - only mount after hydration
@@ -351,10 +373,53 @@ export function useTiptapEditor({
     };
     editorAPI.addListener("speakersChange", onLocalSpeakersChange);
 
+    // --- Shared timing reference (word → audio start/end). Seeded from the initial
+    // segments and REFRESHED by the save leader so it tracks the doc; read by every
+    // client so docToSegments derives per-word timestamps deterministically → they
+    // converge. (Refresh keeps the derivation's LCS "middle" small on long sessions.)
+    const timingMap = ydoc.getMap<TranscriptionSegment[]>("timing");
+    const extractTimingWords = (segs: TranscriptionSegment[] | null) =>
+      (segs ?? [])
+        .filter((s) => s.type === "word")
+        .map((w) => ({
+          type: "word" as const,
+          text: w.text,
+          start: w.start,
+          end: w.end,
+        }));
+
+    const writeTimingRef = (words: TranscriptionSegment[]) => {
+      ydoc.transact(() => timingMap.set("ref", words), "timing-local");
+      timingRefRef.current = words;
+    };
+    const seedTimingRef = () => {
+      if (!timingMap.has("ref"))
+        writeTimingRef(extractTimingWords(segmentsRef.current));
+      else timingRefRef.current = timingMap.get("ref") ?? null;
+    };
+    const adoptTimingRef = () => {
+      timingRefRef.current = timingMap.get("ref") ?? timingRefRef.current;
+    };
+
+    // A remote refresh (from the save leader) → adopt it for our next derivation.
+    const onTimingMapChange = (
+      _e: Y.YMapEvent<TranscriptionSegment[]>,
+      txn: Y.Transaction,
+    ) => {
+      if (txn.origin === "timing-local") return; // our own write
+      adoptTimingRef();
+    };
+    timingMap.observe(onTimingMapChange);
+
+    // Exposed to collabDeriveRef (leader path) to refresh the shared reference.
+    refreshTimingRefFnRef.current = () =>
+      writeTimingRef(extractTimingWords(segmentsRef.current));
+
     const seedNow = () => {
       const frag = ydoc.getXmlFragment("default");
       if (frag.length === 0) editor.commands.setContent(segmentsHtmlRef.current);
       seedSpeakersMap();
+      seedTimingRef();
       speakersReady = true;
     };
 
@@ -378,6 +443,7 @@ export function useTiptapEditor({
             onSeed: seedNow,
             onSynced: () => {
               adoptSpeakersFromMap();
+              adoptTimingRef();
               speakersReady = true;
             },
             awareness: awarenessRef.current ?? undefined,
@@ -424,6 +490,8 @@ export function useTiptapEditor({
       cancelled = true;
       offTranscriptionReverted(onReverted);
       speakersMap.unobserve(onSpeakersMapChange);
+      timingMap.unobserve(onTimingMapChange);
+      if (refreshDebounceRef.current) clearTimeout(refreshDebounceRef.current);
       editorAPI.removeListener("speakersChange", onLocalSpeakersChange);
       providerRef.current?.destroy();
       providerRef.current = null;
