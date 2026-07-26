@@ -14,7 +14,8 @@ export interface AudioControls {
   play: () => void;
   seekTo: (time: number) => void;
   setPlaybackSpeed: (speed: number) => void;
-  onTimeUpdate: (callback: (currentTime: number) => void) => void;
+  /** Subscribe to time updates (play + seek). Returns an unsubscribe function. */
+  onTimeUpdate: (callback: (currentTime: number) => void) => () => void;
 }
 
 // Extract speaker segments from transcription

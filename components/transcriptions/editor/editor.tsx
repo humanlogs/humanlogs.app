@@ -71,9 +71,8 @@ export function TranscriptEditor({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const editorAPIRef = useRef(new EditorAPI());
   const editorAPI = editorAPIRef.current;
-  const { cursors, updateCursorPosition } = useTranscriptionCursors(
-    transcription.id,
-  );
+  const { cursors, updateCursorPosition, updateAudioPosition } =
+    useTranscriptionCursors(transcription.id);
   const [audioControls, setAudioControls] = useState<AudioControls | null>(
     null,
   );
@@ -194,6 +193,13 @@ export function TranscriptEditor({
       editorAPI.removeListener("becameSaver", onBecameSaver);
     };
   }, [collabEnabled, editorAPI, flushSave]);
+
+  // Collab: broadcast our audio playback/scrub position so peers' waveform ticks
+  // follow us while listening (not only when the edit caret moves).
+  useEffect(() => {
+    if (!collabEnabled || !audioControls) return;
+    return audioControls.onTimeUpdate((time) => updateAudioPosition(time));
+  }, [collabEnabled, audioControls, updateAudioPosition]);
 
   // Notify parent when editor is ready
   useEffect(() => {

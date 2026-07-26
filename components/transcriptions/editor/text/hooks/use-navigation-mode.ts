@@ -55,8 +55,8 @@ export function useNavigationMode(
   }, [isModalOpen, audioControls]);
 
   useEffect(() => {
-    if (audioControls)
-      audioControls.onTimeUpdate((currentTime) => {
+    if (!audioControls) return;
+    const unsubscribe = audioControls.onTimeUpdate((currentTime) => {
         if (Date.now() - lastNavigationTime.current < 500) return;
         // Update the current index based on the current time
         const currentSegmentIndex = editorAPI
@@ -76,6 +76,7 @@ export function useNavigationMode(
           );
         }
       });
+    return unsubscribe;
   }, [audioControls, state]);
 
   // Show the currently selected segment in the editor

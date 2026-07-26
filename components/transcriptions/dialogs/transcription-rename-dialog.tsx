@@ -88,7 +88,7 @@ export function TranscriptionRenameDialog() {
       // Invalidate queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ["transcriptions"] });
       queryClient.invalidateQueries({
-        queryKey: ["transcription", data.transcriptionId],
+        queryKey: ["transcriptions", data.transcriptionId],
       });
 
       close();

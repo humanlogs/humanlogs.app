@@ -257,10 +257,17 @@ export const PATCH = withAuthRateLimit(
         data: updateData,
       });
 
-      // Notify client of transcription update
-      notifyDatabaseChange(user.id, "transcription", "update", {
-        id: updated.id,
-      });
+      // Notify the owner AND every collaborator so their sidebar/header/detail
+      // queries refetch (the acting user is always one of them). This does NOT
+      // clobber a live collaborative editor: the editor seeds once and ignores
+      // later `segments` prop changes.
+      const recipients = new Set<string>([updated.userId]);
+      const sharedUsers =
+        (updated.shared as { userId?: string }[] | null) ?? [];
+      for (const s of sharedUsers) if (s?.userId) recipients.add(s.userId);
+      for (const uid of recipients) {
+        notifyDatabaseChange(uid, "transcription", "update", { id: updated.id });
+      }
 
       return NextResponse.json(mapTransactionDetails(updated));
     } catch (error) {

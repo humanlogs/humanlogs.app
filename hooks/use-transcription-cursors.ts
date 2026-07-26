@@ -28,6 +28,8 @@ export type UserCursor = {
   endOffset: number;
   lastUpdate: number;
   hasWriteAccess: boolean;
+  /** Audio position (seconds) while listening; null → tick follows the edit caret. */
+  audioTime?: number | null;
 };
 
 export function useTranscriptionCursors(transcriptionId: string) {
@@ -35,12 +37,15 @@ export function useTranscriptionCursors(transcriptionId: string) {
   const [cursors, setCursors] = useState<Map<string, UserCursor>>(new Map());
   const [isLeader, setIsLeader] = useState(false);
   const lastEmitRef = useRef<number>(0);
+  const lastAudioEmitRef = useRef<number>(0);
   const lastPositionRef = useRef<{
     startOffset: number;
     endOffset: number;
     hasWriteAccess: boolean;
+    audioTime?: number | null;
   } | null>(null);
   const EMIT_THROTTLE = 100; // Throttle cursor updates to 100ms
+  const AUDIO_EMIT_THROTTLE = 150; // Throttle audio-position updates
 
   // Join/leave transcription room
   useEffect(() => {
@@ -68,6 +73,7 @@ export function useTranscriptionCursors(transcriptionId: string) {
           endOffset: position.endOffset,
           lastUpdate: position.timestamp,
           hasWriteAccess: position.hasWriteAccess,
+          audioTime: position.audioTime ?? null,
         });
         return updated;
       });
@@ -115,8 +121,13 @@ export function useTranscriptionCursors(transcriptionId: string) {
 
       const now = Date.now();
 
-      // Save the last position for keepalive
-      lastPositionRef.current = { startOffset, endOffset, hasWriteAccess };
+      // Edit-caret movement → clear any audio position (tick follows the caret).
+      lastPositionRef.current = {
+        startOffset,
+        endOffset,
+        hasWriteAccess,
+        audioTime: null,
+      };
 
       if (now - lastEmitRef.current < EMIT_THROTTLE) {
         return;
@@ -131,6 +142,42 @@ export function useTranscriptionCursors(transcriptionId: string) {
         endOffset,
         timestamp: now,
         hasWriteAccess,
+        audioTime: null,
+      });
+    },
+    [transcriptionId, userProfile?.id, userProfile?.name],
+  );
+
+  // Emit the current audio playback/scrub position so peers' waveform ticks follow
+  // this user while listening (not just when the edit caret moves). Throttled.
+  const updateAudioPosition = useCallback(
+    (audioTime: number) => {
+      if (!userProfile?.id || !userProfile?.name) return;
+
+      const prev = lastPositionRef.current;
+      const startOffset = prev?.startOffset ?? 0;
+      const endOffset = prev?.endOffset ?? 0;
+      const hasWriteAccess = prev?.hasWriteAccess ?? false;
+
+      const now = Date.now();
+      lastPositionRef.current = {
+        startOffset,
+        endOffset,
+        hasWriteAccess,
+        audioTime,
+      };
+
+      if (now - lastAudioEmitRef.current < AUDIO_EMIT_THROTTLE) return;
+      lastAudioEmitRef.current = now;
+
+      emitCursorPosition(transcriptionId, {
+        userId: userProfile.id,
+        userName: userProfile.name,
+        startOffset,
+        endOffset,
+        timestamp: now,
+        hasWriteAccess,
+        audioTime,
       });
     },
     [transcriptionId, userProfile?.id, userProfile?.name],
@@ -202,6 +249,7 @@ export function useTranscriptionCursors(transcriptionId: string) {
           endOffset: lastPositionRef.current.endOffset,
           timestamp: now,
           hasWriteAccess: lastPositionRef.current.hasWriteAccess,
+          audioTime: lastPositionRef.current.audioTime ?? null,
         });
       }
 
@@ -230,6 +278,7 @@ export function useTranscriptionCursors(transcriptionId: string) {
     cursors: Array.from(cursors.values()),
     updateCursorPosition,
     updateCursorPositionImmediate,
+    updateAudioPosition,
     // Leader-based locking
     isEditLocked: !isLeader, // Locked if we are not the leader
     isLeader,

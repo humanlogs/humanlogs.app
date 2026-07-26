@@ -19,6 +19,9 @@ export type CursorPosition = {
   endOffset: number;
   timestamp: number;
   hasWriteAccess: boolean;
+  /** Audio playback/scrub position (seconds) while listening; null when driven by
+   *  the edit caret. Lets peers see where a user is on the waveform during playback. */
+  audioTime?: number | null;
 };
 
 export type CursorPositionWithSocket = CursorPosition & {
@@ -140,19 +143,19 @@ export function useSocket() {
       socket.on("db:change", (event: DatabaseChangeEvent) => {
         console.log("Database change event:", event);
 
-        // Invalidate queries based on the table that changed
+        // Invalidate queries whose key references the changed table. The server
+        // emits the singular Prisma model name (e.g. "transcription") while query
+        // keys use the plural (["transcriptions", ...]) — tolerate both directions.
+        const table = event.table.toLowerCase();
         queryClient.invalidateQueries({
           predicate: (query) => {
-            // Check if query key contains the table name
             const queryKey = query.queryKey;
-            if (Array.isArray(queryKey)) {
-              return queryKey.some(
-                (key) =>
-                  typeof key === "string" &&
-                  key.toLowerCase() === event.table.toLowerCase(),
-              );
-            }
-            return false;
+            if (!Array.isArray(queryKey)) return false;
+            return queryKey.some((key) => {
+              if (typeof key !== "string") return false;
+              const k = key.toLowerCase();
+              return k === table || `${k}s` === table || k === `${table}s`;
+            });
           },
         });
       });

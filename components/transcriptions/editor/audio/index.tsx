@@ -33,7 +33,9 @@ export const InteractiveAudio = ({
   const audioMediaRef = useRef<HTMLAudioElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
-  const onTimeUpdateRef = useRef<(currentTime: number) => void>(() => {});
+  const onTimeUpdateCallbacks = useRef<Set<(currentTime: number) => void>>(
+    new Set(),
+  );
   const timeUpdateIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const speakerSegmentsRef = useRef<
     (Partial<TranscriptionSegment> & { color: string })[]
@@ -240,7 +242,7 @@ export const InteractiveAudio = ({
       audioMediaRef.current?.addEventListener("seeking", () => {
         const currentTime = audioMediaRef.current?.currentTime || 0;
         setCurrentTime(currentTime);
-        if (onTimeUpdateRef.current) onTimeUpdateRef.current(currentTime);
+        onTimeUpdateCallbacks.current.forEach((cb) => cb(currentTime));
       });
 
       // Keep the total duration in sync with the actual media element. The
@@ -270,7 +272,7 @@ export const InteractiveAudio = ({
           // Update time as audio plays
           const currentTime = audioMediaRef.current?.currentTime || 0;
           setCurrentTime(currentTime);
-          if (onTimeUpdateRef.current) onTimeUpdateRef.current(currentTime);
+          onTimeUpdateCallbacks.current.forEach((cb) => cb(currentTime));
           if (wavesurferRef.current)
             wavesurferRef.current.seekTo(
               currentTime / (audioMediaRef.current?.duration || 1),
@@ -383,7 +385,8 @@ export const InteractiveAudio = ({
         seekTo,
         setPlaybackSpeed,
         onTimeUpdate: (callback) => {
-          onTimeUpdateRef.current = callback;
+          onTimeUpdateCallbacks.current.add(callback);
+          return () => onTimeUpdateCallbacks.current.delete(callback);
         },
       });
     }

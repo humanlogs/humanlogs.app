@@ -120,7 +120,7 @@ export function EditorToolbar({
   );
 
   useHotkeys(
-    ["mod+shift+s", "ctrl+shift+s", "cmd+shift+s"],
+    ["mod+shift+x", "ctrl+shift+x", "cmd+shift+x"],
     (e) => {
       e.preventDefault();
       applyFormat("s");

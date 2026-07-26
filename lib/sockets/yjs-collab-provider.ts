@@ -97,6 +97,8 @@ export class YjsCollabProvider {
       onSeed: () => void;
       /** Called whenever the save-leader role changes (isSaver). */
       onRole?: (isSaver: boolean) => void;
+      /** Called once the full state from a peer has been applied (sync clients). */
+      onSynced?: () => void;
       /** Awareness instance to relay (for CollaborationCursor). */
       awareness?: Awareness;
       /** Enable verbose console diagnostics. */
@@ -173,6 +175,7 @@ export class YjsCollabProvider {
       this.log("recv full state", data.d.length, "b");
       Y.applyUpdate(this.doc, this.codec.decode(data.d), this);
       this.synced = true;
+      this.opts.onSynced?.();
     };
     socket.on("yjs:state", this.handleState);
 

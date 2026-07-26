@@ -23,6 +23,7 @@ import * as awarenessProtocol from "y-protocols/awareness";
 import * as Y from "yjs";
 import { EditorAPI } from "../api";
 import { CollabCaret } from "../collab/collab-caret";
+import { getUserColor } from "../components/remote-cursors";
 import { docToSegments } from "../collab/doc-to-segments";
 import { AutoWrapExtension } from "../extensions/auto-wrap-extension";
 import { segmentsToHtml } from "../utils/html";
@@ -261,6 +262,32 @@ export function useTiptapEditor({
             "text-base leading-relaxed focus:outline-none relative w-full max-w-full min-w-0 break-words",
           spellcheck: "true",
         },
+        // Format shortcuts while editing. We own them here (ProseMirror) rather
+        // than only via the toolbar's document-level useHotkeys because:
+        //  - Cmd/Ctrl+U triggers the browser's NATIVE contentEditable underline;
+        //    handling it here (before the default action) lets us override it.
+        //  - Cmd/Ctrl+Shift+X (strikethrough) is the advertised shortcut (⌘⇧X).
+        // We stopPropagation so the event never bubbles to the toolbar's
+        // document-level hotkey (bubble phase) — otherwise it would toggle twice
+        // and cancel out. When the editor is NOT focused (navigate mode), this
+        // handler doesn't run and the toolbar hotkey applies to the current
+        // segment instead.
+        handleKeyDown: (_view, event) => {
+          if (!(event.metaKey || event.ctrlKey) || event.altKey) return false;
+          const key = event.key.toLowerCase();
+          let toggle: "toggleUnderline" | "toggleStrike" | null = null;
+          if (key === "u" && !event.shiftKey) toggle = "toggleUnderline";
+          else if (key === "x" && event.shiftKey) toggle = "toggleStrike";
+          if (!toggle) return false;
+
+          const ed = editorRef.current;
+          if (!ed || !ed.isEditable) return false;
+
+          event.preventDefault();
+          event.stopPropagation();
+          toggleMarkExpandingWord(ed, toggle);
+          return true;
+        },
       },
       onTransaction: ({ editor, transaction }) => {
         if (collabEnabled) {
@@ -367,10 +394,66 @@ export function useTiptapEditor({
     if (!collabEnabled || !editor || !isMounted || !yjsDoc.current) return;
     const ydoc = yjsDoc.current;
 
+    // --- Speaker names: shared "content" metadata that isn't in the XmlFragment.
+    // The fragment carries speakerId per paragraph; the id->name mapping lives in a
+    // Y.Map so renames sync live. The save leader persists it into
+    // transcription.speakers, which refreshes sidebars via db:change on real saves.
+    const speakersMap = ydoc.getMap<string>("speakers");
+    let speakersReady = false; // gate local->map writes until seeded/synced
+    let applyingRemoteSpeakers = false;
+
+    const seedSpeakersMap = () => {
+      if (speakersMap.size > 0) return;
+      ydoc.transact(() => {
+        for (const s of editorAPI.getSpeakers())
+          if (s.name != null) speakersMap.set(s.id, s.name);
+      }, "sp-seed");
+    };
+
+    const adoptSpeakersFromMap = () => {
+      if (speakersMap.size === 0) return;
+      applyingRemoteSpeakers = true;
+      try {
+        const current = editorAPI.getSpeakers();
+        const seen = new Set(current.map((s) => s.id));
+        const merged = current.map((s) => {
+          const name = speakersMap.get(s.id);
+          return name != null ? { ...s, name } : s;
+        });
+        speakersMap.forEach((name, id) => {
+          if (!seen.has(id)) merged.push({ id, name });
+        });
+        editorAPI.setSpeakers(merged);
+      } finally {
+        applyingRemoteSpeakers = false;
+      }
+    };
+
+    const onSpeakersMapChange = (
+      _e: Y.YMapEvent<string>,
+      txn: Y.Transaction,
+    ) => {
+      if (txn.origin === "sp-local" || txn.origin === "sp-seed") return;
+      adoptSpeakersFromMap(); // remote rename → reflect into the speaker column
+    };
+    speakersMap.observe(onSpeakersMapChange);
+
+    const onLocalSpeakersChange = () => {
+      if (!speakersReady || applyingRemoteSpeakers) return;
+      ydoc.transact(() => {
+        for (const s of editorAPI.getSpeakers()) {
+          if (s.name != null && speakersMap.get(s.id) !== s.name)
+            speakersMap.set(s.id, s.name);
+        }
+      }, "sp-local");
+    };
+    editorAPI.addListener("speakersChange", onLocalSpeakersChange);
+
     const seedNow = () => {
       const frag = ydoc.getXmlFragment("default");
-      if (frag.length > 0) return; // already seeded / synced
-      editor.commands.setContent(segmentsHtmlRef.current);
+      if (frag.length === 0) editor.commands.setContent(segmentsHtmlRef.current);
+      seedSpeakersMap();
+      speakersReady = true;
     };
 
     const debug =
@@ -391,6 +474,10 @@ export function useTiptapEditor({
           plaintextCodec,
           {
             onSeed: seedNow,
+            onSynced: () => {
+              adoptSpeakersFromMap();
+              speakersReady = true;
+            },
             awareness: awarenessRef.current ?? undefined,
             debug,
             onRole: (isSaver) => {
@@ -420,6 +507,8 @@ export function useTiptapEditor({
 
     return () => {
       cancelled = true;
+      speakersMap.unobserve(onSpeakersMapChange);
+      editorAPI.removeListener("speakersChange", onLocalSpeakersChange);
       providerRef.current?.destroy();
       providerRef.current = null;
     };
@@ -431,7 +520,11 @@ export function useTiptapEditor({
     if (!collabEnabled || !awarenessRef.current) return;
     awarenessRef.current.setLocalStateField("user", {
       name: userProfile?.name || userProfile?.email || "Anonymous",
-      color: cursorColorRef.current,
+      // Deterministic per-user color so the remote caret matches this user's audio
+      // waveform tick color (both go through getUserColor(userId)).
+      color: userProfile?.id
+        ? getUserColor(userProfile.id)
+        : cursorColorRef.current,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userProfile]);
@@ -439,6 +532,43 @@ export function useTiptapEditor({
   editorRef.current = editor;
 
   return { editor, segmentsRef };
+}
+
+/**
+ * Toggle a mark from a keyboard shortcut while editing. Mirrors the toolbar's
+ * `applyFormat` focused behavior: with an empty selection (just a caret) it first
+ * expands to the surrounding word so the whole word is (un)formatted, matching
+ * what the toolbar buttons do.
+ */
+function toggleMarkExpandingWord(
+  editor: Editor,
+  toggle: "toggleUnderline" | "toggleStrike",
+): void {
+  const { from, to } = editor.state.selection;
+
+  if (from === to) {
+    const $pos = editor.state.doc.resolve(from);
+    const textContent = $pos.parent.textContent;
+    const posInParent = $pos.parentOffset;
+
+    let start = posInParent;
+    let end = posInParent;
+    while (start > 0 && /[\w']/.test(textContent[start - 1])) start--;
+    while (end < textContent.length && /[\w']/.test(textContent[end])) end++;
+
+    if (start < end) {
+      const absStart = from - posInParent + start;
+      const absEnd = from - posInParent + end;
+      editor
+        .chain()
+        .setTextSelection({ from: absStart, to: absEnd })
+        [toggle]()
+        .run();
+      return;
+    }
+  }
+
+  editor.chain()[toggle]().run();
 }
 
 // Generate a random color for collaboration cursors
