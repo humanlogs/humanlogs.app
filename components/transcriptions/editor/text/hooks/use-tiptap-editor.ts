@@ -2,7 +2,11 @@
 
 import { useUserProfile } from "@/hooks/use-api";
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
-import { getSocket } from "@/lib/sockets/socket-client";
+import {
+  getSocket,
+  offTranscriptionReverted,
+  onTranscriptionReverted,
+} from "@/lib/sockets/socket-client";
 import {
   YjsCollabProvider,
   aesCodec,
@@ -403,8 +407,22 @@ export function useTiptapEditor({
     };
     trySetupProvider();
 
+    // A revert happened somewhere: leave the collab room IMMEDIATELY (drop the stale
+    // in-memory doc so we never serve pre-revert state to a reloading peer), then let
+    // the UI show a blocking "reload" prompt. The fresh session re-seeds from the
+    // reverted DB row.
+    const onReverted = (data: { transcriptionId: string; byName: string }) => {
+      if (data.transcriptionId !== transcriptionId) return;
+      cancelled = true;
+      providerRef.current?.destroy();
+      providerRef.current = null;
+      editorAPI.emit("reverted", data);
+    };
+    onTranscriptionReverted(onReverted);
+
     return () => {
       cancelled = true;
+      offTranscriptionReverted(onReverted);
       speakersMap.unobserve(onSpeakersMapChange);
       editorAPI.removeListener("speakersChange", onLocalSpeakersChange);
       providerRef.current?.destroy();

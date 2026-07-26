@@ -95,7 +95,10 @@ export function TranscriptionHistorySheet() {
     if (revertMutation.isSuccess) {
       toast.success(t("revertSuccess"));
       setSelectedVersionIndex(null);
-      window.location.reload();
+      // Do NOT reload here: the server broadcasts `transcription:reverted` to every
+      // participant (including us), which makes each client leave the collab room and
+      // show a blocking reload prompt — so the reload happens uniformly for everyone
+      // and no peer serves the stale (pre-revert) doc first.
     }
     if (revertMutation.isError) {
       toast.error(t("revertError"));

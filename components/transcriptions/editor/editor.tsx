@@ -191,6 +191,18 @@ export function TranscriptEditor({
     };
   }, [editorAPI, flushSave]);
 
+  // A version revert requires a full reload (the editor hook already left the collab
+  // room). Show a blocking prompt so no stale edit is made before reloading.
+  const [revertedBy, setRevertedBy] = useState<string | null>(null);
+  useEffect(() => {
+    const onReverted = (data: { byName: string }) =>
+      setRevertedBy(data?.byName || "A collaborator");
+    editorAPI.addListener("reverted", onReverted);
+    return () => {
+      editorAPI.removeListener("reverted", onReverted);
+    };
+  }, [editorAPI]);
+
   // Broadcast our audio playback/scrub position so peers' waveform ticks follow us
   // while listening (not only when the edit caret moves).
   useEffect(() => {
@@ -210,6 +222,24 @@ export function TranscriptEditor({
 
   return (
     <div ref={containerRef} className="h-full min-w-0 overflow-x-hidden">
+      {revertedBy && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="mx-4 max-w-sm rounded-lg border bg-background p-6 text-center shadow-lg">
+            <p className="text-base font-semibold">Version restored</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              <span className="font-medium">{revertedBy}</span> restored an
+              earlier version of this transcription. Reload to continue with the
+              restored content.
+            </p>
+            <button
+              className="mt-4 inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              onClick={() => window.location.reload()}
+            >
+              Reload
+            </button>
+          </div>
+        </div>
+      )}
       <SpeakerRenameDialog />
       <div className="flex flex-col h-full">
         {/* Sticky top section */}

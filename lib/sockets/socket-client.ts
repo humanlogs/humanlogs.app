@@ -281,3 +281,23 @@ export function offUserDisconnected(
 ) {
   detachListener("transcription:user-disconnected", callback);
 }
+
+// A transcription was reverted to a past version → all clients must leave the collab
+// room and reload so the fresh session re-seeds from the reverted DB row.
+export type RevertedEvent = {
+  transcriptionId: string;
+  byUserId: string;
+  byName: string;
+};
+
+export function onTranscriptionReverted(
+  callback: (data: RevertedEvent) => void,
+) {
+  attachListener("transcription:reverted", callback);
+}
+
+export function offTranscriptionReverted(
+  callback?: (data: RevertedEvent) => void,
+) {
+  detachListener("transcription:reverted", callback);
+}

@@ -3,13 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 import { notifyDatabaseChange } from "@/lib/sockets/socket-helpers";
 import { Transcription } from "@prisma/client";
-import crypto from "crypto";
 import _ from "lodash";
 import { NextResponse } from "next/server";
-import {
-  EncryptedDataEntity,
-  EncryptionUtils,
-} from "../../../../lib/encryption/encryption-entities";
+import { EncryptedDataEntity } from "../../../../lib/encryption/encryption-entities";
 import { getStorage } from "../../../../lib/storage";
 import {
   completeTranscription,
@@ -233,19 +229,42 @@ export const PATCH = withAuthRateLimit(
           }
         }
 
-        // Create a history entry before updating
+        // Create a history entry (snapshot of the PRE-save state) before updating.
+        // Coalesce rapid saves: collaborative autosave debounces every few seconds,
+        // which would otherwise create a history row per tick. Skip the snapshot when
+        // the last one is very recent AND the change is minor — keeping the pre-burst
+        // checkpoint instead of every quickly-overwritten intermediate. A significant
+        // change always gets its own checkpoint so it stays revertable.
         if (transcription.transcription !== null) {
-          await prisma.transcriptionHistory.create({
-            data: {
-              transcriptionId: id,
-              userId: user.id,
-              transcription: transcription.transcription as never,
-              updatedBy: user.id,
-              additions: changeStats.additions || 0,
-              removals: changeStats.removals || 0,
-              changed: changeStats.changed || 0,
-            },
+          const HISTORY_COALESCE_MS = 2 * 60 * 1000; // 2 min
+          const SIGNIFICANT_CHANGE = 40; // words added + removed + changed
+          const changeMagnitude =
+            (changeStats.additions || 0) +
+            (changeStats.removals || 0) +
+            (changeStats.changed || 0);
+
+          const lastEntry = await prisma.transcriptionHistory.findFirst({
+            where: { transcriptionId: id, userId: user.id },
+            orderBy: { updatedAt: "desc" },
+            select: { updatedAt: true },
           });
+          const recentlyCheckpointed =
+            !!lastEntry &&
+            Date.now() - lastEntry.updatedAt.getTime() < HISTORY_COALESCE_MS;
+
+          if (!recentlyCheckpointed || changeMagnitude >= SIGNIFICANT_CHANGE) {
+            await prisma.transcriptionHistory.create({
+              data: {
+                transcriptionId: id,
+                userId: user.id,
+                transcription: transcription.transcription as never,
+                updatedBy: user.id,
+                additions: changeStats.additions || 0,
+                removals: changeStats.removals || 0,
+                changed: changeStats.changed || 0,
+              },
+            });
+          }
         }
 
         updateData.transcription = body.transcription as never;
