@@ -133,6 +133,19 @@ export function useSocket() {
         }
       });
 
+      // The server authenticates in a Socket.io middleware, so a rejected
+      // handshake surfaces here (the connection is never established) rather
+      // than as a post-connect `error` event.
+      socket.on("connect_error", (error: Error) => {
+        if (error.message === "Authentication required") {
+          console.error(
+            "Socket authentication failed - token may be invalid or expired",
+          );
+          return;
+        }
+        console.error("Socket connection error:", error.message);
+      });
+
       socket.on("db:change", (event: DatabaseChangeEvent) => {
         console.log("Database change event:", event);
 

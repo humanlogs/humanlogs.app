@@ -261,7 +261,14 @@ export class YjsCollabProvider {
     } satisfies SyncMsg);
   }
 
-  destroy() {
+  /**
+   * Tear down listeners and tell peers to drop our caret.
+   *
+   * Returns a promise that resolves once the farewell awareness message has been
+   * emitted — callers that also close the socket should await it, otherwise the
+   * message (encoded asynchronously by the codec) is dropped with the socket.
+   */
+  destroy(): Promise<void> {
     this.doc.off("update", this.onDocUpdate);
     this.socket.off("yjs:msg", this.handleMsg);
     this.socket.off("yjs:role", this.handleRole);
@@ -269,13 +276,22 @@ export class YjsCollabProvider {
     this.socket.off("yjs:state", this.handleState);
     this.socket.off("connect", this.handleConnect);
     const awareness = this.opts.awareness;
+    let farewell = Promise.resolve();
     if (awareness && this.onAwarenessUpdate) {
       awareness.off("update", this.onAwarenessUpdate);
-      // Tell peers to drop our cursor.
+      // Tell peers to drop our cursor. The state must be REMOVED FIRST: encoding
+      // beforehand would re-announce our (still present) cursor instead of its
+      // removal, leaving a ghost caret on every peer until y-protocols' 30s
+      // outdated-state timeout kicks in. removeAwarenessStates bumps the clock,
+      // so the encode below carries a null state peers apply immediately.
       const clientId = awareness.doc.clientID;
-      void this.emitMsg("awareness", encodeAwarenessUpdate(awareness, [clientId]));
       removeAwarenessStates(awareness, [clientId], this);
+      farewell = this.emitMsg(
+        "awareness",
+        encodeAwarenessUpdate(awareness, [clientId]),
+      );
     }
     this.socket.emit("yjs:leave", { transcriptionId: this.transcriptionId });
+    return farewell;
   }
 }

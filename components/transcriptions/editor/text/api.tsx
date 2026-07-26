@@ -360,6 +360,14 @@ export class EditorAPI extends EventEmitter {
   execCommand(command: string, value?: string) {
     if (!this.editorRef.current) return;
 
+    // Every command below MUTATES the document, and they are reached from
+    // document-level keyboard shortcuts (navigate mode, the format hotkeys) that
+    // dispatch straight into ProseMirror — bypassing the `editable` guard that
+    // protects normal typing. Without this check a participant shared with a
+    // "read" or "read+listen" role could type or delete text, and the change
+    // would sync to everyone else and be persisted.
+    if (!this.editorRef.current.isEditable) return;
+
     // Map generic commands to Tiptap commands
     switch (command) {
       case "bold":

@@ -1,0 +1,93 @@
+name: CI
+
+# Quality gate for every change: lint, types, the Vitest suites (unit + the
+# collaboration protocol integration tests) and the Playwright end-to-end suite.
+#
+# No external services are required — the tests that need a database boot an
+# ephemeral PostgreSQL in-process (PGlite), so there is no `services:` block and
+# nothing to keep in sync with production credentials.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, types & tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The Prisma client is generated into node_modules/.prisma, so it must be
+      # built before anything type-checks or imports it.
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      # Blocking on the collaboration code and the tests, which are clean today.
+      - name: Lint (collaboration & tests)
+        run: >-
+          npx eslint --max-warnings 2 tests lib/sockets lib/transcriptions
+          components/transcriptions/editor/text/collab
+
+      # Advisory for now: the rest of the repo has a pre-existing lint backlog
+      # (~250 errors, mostly unused vars). Drop `continue-on-error` once it is
+      # cleared, and this becomes the real gate.
+      - name: Lint (whole repo, advisory)
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit & integration tests
+        run: npm test
+
+  e2e:
+    name: End-to-end (Playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      # Boots PGlite + the app's custom server (see tests/e2e/serve.ts) and drives
+      # two browser contexts through a shared transcript.
+      - name: Run end-to-end tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

@@ -1,6 +1,6 @@
 import { Server as HTTPServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
-import { verifySocketAuth } from "./socket-auth";
+import { verifySocketAuth, type SocketAuthResult } from "./socket-auth";
 
 let io: SocketIOServer | null = null;
 
@@ -67,21 +67,25 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
     },
   });
 
-  io.on("connection", async (socket) => {
-    log("Client connected:", socket.id);
-
-    // Verify authentication and extract user info
+  // Authenticate in a MIDDLEWARE, not inside the connection handler. Socket.io
+  // buffers a connection's packets until its middlewares resolve, but NOT while
+  // an async `connection` handler awaits: a client emits `yjs:join` the instant
+  // it connects, so awaiting the token verification + user lookup there dropped
+  // that packet whenever the database was slower than the round-trip — the client
+  // then never received a role and its editor never seeded or synced.
+  io.use(async (socket, next) => {
     const authResult = await verifySocketAuth(socket);
-
     if (!authResult) {
-      log("Unauthorized connection attempt, disconnecting:", socket.id);
-      socket.emit("error", { message: "Authentication required" });
-      socket.disconnect();
-      return;
+      log("Unauthorized connection attempt, rejecting:", socket.id);
+      return next(new Error("Authentication required"));
     }
+    socket.data.auth = authResult;
+    next();
+  });
 
-    const { userId, email } = authResult;
-    log(`Authenticated user: ${userId} (${email})`);
+  io.on("connection", (socket) => {
+    const { userId, email } = socket.data.auth as SocketAuthResult;
+    log(`Client connected: ${socket.id} — user ${userId} (${email})`);
 
     // Join user-specific room (targeted by db:change cache-invalidation events)
     socket.join(`user:${userId}`);

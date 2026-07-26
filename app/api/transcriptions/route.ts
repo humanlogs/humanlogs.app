@@ -1,10 +1,11 @@
 import { getSTTService } from "@/lib/stt/stt-service";
 import { prisma } from "@/lib/prisma";
-import { Prisma, Transcription } from "@prisma/client";
+import { Transcription } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { EncryptedDataEntity } from "../../../lib/encryption/encryption-entities";
 import { pollPendingTranscriptions } from "./[id]/route";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
+import { findTranscriptionsSharedWith } from "@/lib/transcriptions/access";
 
 export const GET = withAuthRateLimit(async (request, user) => {
   try {
@@ -22,13 +23,7 @@ export const GET = withAuthRateLimit(async (request, user) => {
         take: 1000,
       }),
       // Transcriptions shared with the user
-      prisma.$queryRaw<Transcription[]>`
-        SELECT * FROM "Transcription"
-        WHERE "shared" IS NOT NULL
-          AND "shared"::jsonb @> ${Prisma.sql`${JSON.stringify([{ userId: user.id }])}::jsonb`}
-        ORDER BY "updatedAt" DESC
-        LIMIT 1000
-      `,
+      findTranscriptionsSharedWith(user.id),
     ]);
 
     // Combine and deduplicate (in case a transcription is both owned and shared)
@@ -65,13 +60,7 @@ export const GET = withAuthRateLimit(async (request, user) => {
             },
             take: 1000,
           }),
-          prisma.$queryRaw<Transcription[]>`
-            SELECT * FROM "Transcription"
-            WHERE "shared" IS NOT NULL
-              AND "shared"::jsonb @> ${JSON.stringify([{ userId: user.id }])}::jsonb
-            ORDER BY "updatedAt" DESC
-            LIMIT 1000
-          `,
+          findTranscriptionsSharedWith(user.id),
         ]);
 
         // Combine and deduplicate
