@@ -10,7 +10,7 @@
  */
 
 import "dotenv/config";
-import { mkdir, writeFile, readFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import {
@@ -22,7 +22,6 @@ import { selectTopic, publishedKeywords } from "./select-topic.js";
 import { redditInsightReport } from "./reddit.js";
 import { quickWins, topQueries } from "./gsc.js";
 import seeds from "./seeds/fr.json" with { type: "json" };
-import type { Candidate } from "./keywords.js";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const outDir = join(__dir, "out");

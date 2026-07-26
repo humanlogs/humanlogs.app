@@ -114,6 +114,9 @@ export const EncryptionSection = () => {
         ...segment,
         text: encryptText(segment.text, 50),
       }));
+      // This IS an animation: each frame is scheduled by the previous one, so the
+      // cascading render the rule warns about is the intended behaviour.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDisplayTranscript(fullyEncrypted);
     }
   }, [animationProgress, location]);

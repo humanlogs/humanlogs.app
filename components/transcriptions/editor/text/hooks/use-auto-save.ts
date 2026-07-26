@@ -58,7 +58,6 @@ export function useAutoSave({
       segments: editorAPI.getSegments(),
       speakers: editorAPI.getSpeakers(),
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Manual save function
@@ -137,7 +136,6 @@ export function useAutoSave({
       maxDebounceTimeoutRef.current = null;
     }
     void performSaveRef.current(false, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Handle Ctrl+S / Cmd+S keyboard shortcut
@@ -159,7 +157,6 @@ export function useAutoSave({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onChange = useCallback(() => {

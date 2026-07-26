@@ -601,7 +601,10 @@ export class EncryptionUtils {
 // Server-side instance (Node.js crypto)
 let serverEncryption: EncryptionUtils | null = null;
 if (typeof window === "undefined") {
-   
+  // Deliberate require: a static import would pull node:crypto into the browser
+  // bundle, where this same module is imported for its types and for the browser
+  // implementation.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const crypto = require("crypto");
   serverEncryption = new EncryptionUtils(crypto);
 }

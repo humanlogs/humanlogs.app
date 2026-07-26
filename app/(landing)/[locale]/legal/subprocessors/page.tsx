@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AnimatedSectionTitle } from "../../components/animated-section-title";
 import { DocumentLayout } from "../layout";
 
@@ -19,7 +20,7 @@ export default function Page() {
         <p>This list was last updated on March 30, 2026.</p>
         <p>
           If you have any questions or comments regarding data subprocessors,
-          please <a href="/contact">contact us</a>.
+          please <Link href="/contact">contact us</Link>.
         </p>
 
         <h2>First Tier Subprocessors</h2>
@@ -63,8 +64,8 @@ export default function Page() {
             deleted from ElevenLabs after the transcription, meaning no data is
             stored after processing.
             <br />
-            For On-Premise plans, we offer enabling ElevenLabs "Zero Retention
-            Mode", as well as data residency which ensures that no data is
+            For On-Premise plans, we offer enabling ElevenLabs &quot;Zero Retention
+            Mode&quot;, as well as data residency which ensures that no data is
             persisted on ElevenLabs servers at all and let you choose the
             servers regions. Contact us for more details.
             <br />

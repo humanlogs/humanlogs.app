@@ -13,6 +13,17 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { EN_SEO_SLUGS, FR_SEO_SLUGS } from "@/lib/seo-research-slugs";
 
+import seoResearchContentEn from "@/messages/en/seo-research-content.json";
+import seoResearchContentFr from "@/messages/fr/seo-research-content.json";
+
+// Statically mapped rather than `require(\`@/messages/${locale}/…\`)`: these are
+// client components, so a dynamic require pulls the whole messages directory into
+// the bundle and defeats type checking. Only en/fr have SEO research content.
+const SEO_RESEARCH_CONTENT: Record<string, Record<string, any>> = {
+  en: seoResearchContentEn,
+  fr: seoResearchContentFr,
+};
+
 export default function ResearchUseCasePage() {
   return (
     <>
@@ -217,7 +228,7 @@ function SeoResourcesSection() {
   const tier1Slugs = slugs.filter((s) => s.tier === 1).slice(0, 6);
 
   // Load content for display
-  const seoContent = require(`@/messages/${locale}/seo-research-content.json`);
+  const seoContent = SEO_RESEARCH_CONTENT[locale] ?? SEO_RESEARCH_CONTENT.en;
 
   return (
     <section className="bg-gray-50 border-y py-24">

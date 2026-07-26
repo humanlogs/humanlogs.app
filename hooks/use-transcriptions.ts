@@ -316,6 +316,8 @@ export function useTranscriptionAesKey(transcriptionId: string): {
     const isEncrypted = !!rawEntity?.privateKeys?.length;
 
     if (!isEncrypted) {
+      // Result of an async decryption; there is no synchronous value to derive.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setState({ aesKey: null, isEncrypted: false, ready: true });
       return;
     }

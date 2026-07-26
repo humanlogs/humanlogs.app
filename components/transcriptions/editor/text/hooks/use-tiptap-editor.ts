@@ -514,7 +514,6 @@ export function useTiptapEditor({
         ? getUserColor(userProfile.id)
         : cursorColorRef.current,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userProfile]);
 
   editorRef.current = editor;

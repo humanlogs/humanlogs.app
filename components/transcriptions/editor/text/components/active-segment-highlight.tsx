@@ -38,6 +38,9 @@ export function ActiveSegmentHighlight({
 
     // If changing within 200ms, disable transition
     if (timeSinceLastChange < 200) {
+      // Depends on elapsed wall-clock time between two changes, not on renderable
+      // state — it cannot be derived during render.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEnableTransition(false);
 
       // Clear any pending timeout
@@ -60,6 +63,8 @@ export function ActiveSegmentHighlight({
 
   useEffect(() => {
     if (!visible || segmentIndex < 0 || !editorAPI.ready()) {
+      // Measures the live DOM (segment bounds), which is only valid after layout.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPosition(null);
       return;
     }

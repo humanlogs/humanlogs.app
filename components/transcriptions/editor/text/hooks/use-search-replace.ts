@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { EditorAPI } from "../api";
 import { useSearchHighlights } from "./use-search-highlights";
 
@@ -56,7 +56,7 @@ export function useSearchReplace(editorAPI: EditorAPI) {
 
       return matches;
     },
-    [],
+    [editorAPI],
   );
 
   // Get all matches
@@ -69,30 +69,26 @@ export function useSearchReplace(editorAPI: EditorAPI) {
   );
   const matchCount = matches.length;
 
-  // Reset current match index when matches change or become empty
-  useEffect(() => {
-    if (matchCount === 0) {
-      setCurrentMatchIndex(0);
-    } else if (currentMatchIndex >= matchCount) {
-      setCurrentMatchIndex(0);
-    }
-  }, [matchCount, currentMatchIndex]);
+  // Clamped by derivation rather than corrected from an effect: when the match
+  // list shrinks (the user typed one more character), an out-of-range index simply
+  // reads as the first match. Nothing consumes the raw state.
+  const safeMatchIndex = currentMatchIndex < matchCount ? currentMatchIndex : 0;
 
   // Navigate to next match
   const nextMatch = useCallback(() => {
     if (matchCount === 0) return;
 
-    const newIndex = (currentMatchIndex + 1) % matchCount;
+    const newIndex = (safeMatchIndex + 1) % matchCount;
     setCurrentMatchIndex(newIndex);
-  }, [matchCount, currentMatchIndex, matches]);
+  }, [matchCount, safeMatchIndex]);
 
   // Navigate to previous match
   const previousMatch = useCallback(() => {
     if (matchCount === 0) return;
 
-    const newIndex = (currentMatchIndex - 1 + matchCount) % matchCount;
+    const newIndex = (safeMatchIndex - 1 + matchCount) % matchCount;
     setCurrentMatchIndex(newIndex);
-  }, [matchCount, currentMatchIndex, matches]);
+  }, [matchCount, safeMatchIndex]);
 
   // Replace all occurrences
   const replaceAll = useCallback(() => {
@@ -128,6 +124,7 @@ export function useSearchReplace(editorAPI: EditorAPI) {
         .run();
     });
   }, [
+    editorAPI,
     searchTerm,
     replaceTerm,
     caseSensitive,
@@ -143,7 +140,7 @@ export function useSearchReplace(editorAPI: EditorAPI) {
     const editor = editorAPI.getEditor();
     if (!editor) return;
 
-    const match = matches[currentMatchIndex];
+    const match = matches[safeMatchIndex];
 
     // Tiptap uses 1-based indexing
     const from = match.position + 1;
@@ -157,10 +154,10 @@ export function useSearchReplace(editorAPI: EditorAPI) {
       .run();
 
     // After replace, go to next match (or stay at 0 if it was the last one)
-    if (currentMatchIndex >= matches.length - 1) {
+    if (safeMatchIndex >= matches.length - 1) {
       setCurrentMatchIndex(0);
     }
-  }, [searchTerm, replaceTerm, matches, currentMatchIndex]);
+  }, [editorAPI, searchTerm, replaceTerm, matches, safeMatchIndex]);
 
   const open = useCallback(() => setIsOpen(true), []);
   const close = useCallback(() => setIsOpen(false), []);
@@ -169,10 +166,7 @@ export function useSearchReplace(editorAPI: EditorAPI) {
     [],
   );
 
-  // Reset current match index when search or case sensitivity changes
-  const effectiveCurrentIndex = matchCount > 0 ? currentMatchIndex : 0;
-
-  const highlights = useSearchHighlights(editorAPI, matches, currentMatchIndex);
+  const highlights = useSearchHighlights(editorAPI, matches, safeMatchIndex);
 
   return {
     highlights,
@@ -192,7 +186,7 @@ export function useSearchReplace(editorAPI: EditorAPI) {
     setIgnoreAccents,
     matches,
     matchCount,
-    currentMatchIndex: effectiveCurrentIndex,
+    currentMatchIndex: safeMatchIndex,
     nextMatch,
     previousMatch,
     replaceCurrent,

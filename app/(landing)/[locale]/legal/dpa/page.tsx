@@ -71,7 +71,7 @@ export default function Page() {
           The HumanLogs DPA outlines our strongest privacy and security
           commitments. You remain the full owner and controller of your files,
           and we maintain full transparency about all{" "}
-          <a href="/legal/subprocessors">subprocessors</a>. If a data breach
+          <Link href="/legal/subprocessors">subprocessors</Link>. If a data breach
           ever occurs, you will be notified promptly.
         </p>
         <p>
@@ -80,7 +80,7 @@ export default function Page() {
           requirements.
         </p>
         <p>
-          Learn more about our <a href="/resources">security practices</a>.
+          Learn more about our <Link href="/resources">security practices</Link>.
         </p>
 
         <h2>Who Needs a DPA?</h2>
@@ -108,7 +108,7 @@ export default function Page() {
         </ul>
 
         <p>
-          Read our <a href="/legal/privacy">privacy policy</a> for more
+          Read our <Link href="/legal/privacy">privacy policy</Link> for more
           information.
         </p>
 

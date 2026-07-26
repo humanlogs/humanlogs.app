@@ -24,6 +24,11 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 import { twMerge } from "tailwind-merge";
 
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+// Read once at module load: "is this account new" only needs day granularity, and
+// calling Date.now() during render would make the render impure.
+const PAGE_LOADED_AT = Date.now();
+
 export default function HomePage() {
   const t = useTranslations("home");
   const router = useRouter();
@@ -85,9 +90,8 @@ export default function HomePage() {
   // The onboarding shortcuts (create a study / launch the tutorial) are only
   // useful early on. Keep them while the user still has nothing set up, or for
   // the first week after signup; hide them for established accounts.
-  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
   const isNewAccount = user?.createdAt
-    ? Date.now() - new Date(user.createdAt).getTime() < SEVEN_DAYS_MS
+    ? PAGE_LOADED_AT - new Date(user.createdAt).getTime() < SEVEN_DAYS_MS
     : false;
   const showOnboardingActions =
     hasNoStudies || transcriptions.length === 0 || isNewAccount;

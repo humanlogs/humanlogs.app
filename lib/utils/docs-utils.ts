@@ -107,7 +107,7 @@ export function getDocContent(
 export function getAllDocPaths(): string[] {
   const paths: string[] = [];
 
-  function traverse(items: DocItem[], prefix: string = "") {
+  function traverse(items: DocItem[], _prefix: string = "") {
     for (const item of items) {
       if (item.type === "file") {
         paths.push(item.path);

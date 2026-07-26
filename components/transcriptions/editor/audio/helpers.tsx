@@ -112,14 +112,18 @@ function getWaveformDB(): Promise<IDBDatabase> {
   });
 }
 
-// Loading placeholder with animated bars
+// Loading placeholder with animated bars. The irregular heights/delays are
+// generated ONCE at module load, not per render: rendering must stay pure, and
+// re-rolling 600 random numbers on every render made the bars jitter.
+const WAVEFORM_LOADER_BARS = Array.from({ length: 300 }, () => ({
+  height: Math.random() * 10 + 5, // 10-40% height
+  delay: Math.random() * 2, // 0-2s
+}));
+
 export const WaveformLoader = () => {
-  const bars = 300; // Number of bars to show (4x more since they're smaller)
   return (
     <div className="w-full h-full flex items-center justify-between gap-px px-2">
-      {Array.from({ length: bars }).map((_, i) => {
-        const randomHeight = Math.random() * 10 + 5; // 10-40% height (2x smaller)
-        const randomDelay = Math.random() * 2; // 0-2s delay
+      {WAVEFORM_LOADER_BARS.map(({ height: randomHeight, delay: randomDelay }, i) => {
         return (
           <div
             key={i}

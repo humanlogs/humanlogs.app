@@ -139,7 +139,7 @@ export const POST = withAuthRateLimit(
       }
 
       // Update the transcription
-      const updated = await prisma.transcription.update({
+      const _updated = await prisma.transcription.update({
         where: { id },
         data: updateData,
       });

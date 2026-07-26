@@ -6,7 +6,7 @@ import { authConfig } from "@/lib/config";
  * GET /api/local-auth/me
  * Get current user session
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   // Only allow local auth if mode is set to "local"
   if (authConfig.mode !== "local") {
     return NextResponse.json(

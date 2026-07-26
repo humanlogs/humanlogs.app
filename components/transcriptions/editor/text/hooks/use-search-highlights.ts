@@ -21,6 +21,8 @@ export function useSearchHighlights(
 
   useEffect(() => {
     if (!editorAPI?.ready() || matches.length === 0) {
+      // Measures the live DOM (client rects per match), only valid after layout.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHighlights([]);
       return;
     }

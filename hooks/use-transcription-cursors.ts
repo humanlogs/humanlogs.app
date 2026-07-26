@@ -141,7 +141,7 @@ export function useTranscriptionCursors(transcriptionId: string) {
         audioTime: null,
       });
     },
-    [transcriptionId, userProfile?.id, userProfile?.name],
+    [transcriptionId, userProfile],
   );
 
   // Emit the current audio playback/scrub position so peers' waveform ticks follow
@@ -176,7 +176,7 @@ export function useTranscriptionCursors(transcriptionId: string) {
         audioTime,
       });
     },
-    [transcriptionId, userProfile?.id, userProfile?.name],
+    [transcriptionId, userProfile],
   );
 
   // Function to emit cursor position immediately (bypasses throttle)
@@ -202,7 +202,7 @@ export function useTranscriptionCursors(transcriptionId: string) {
         hasWriteAccess,
       });
     },
-    [transcriptionId, userProfile?.id, userProfile?.name],
+    [transcriptionId, userProfile],
   );
 
   // Clean up stale cursors (older than 30 seconds)

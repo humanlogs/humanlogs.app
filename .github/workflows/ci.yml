@@ -40,18 +40,8 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
-      # Blocking on the collaboration code and the tests, which are clean today.
-      - name: Lint (collaboration & tests)
-        run: >-
-          npx eslint --max-warnings 2 tests lib/sockets lib/transcriptions
-          components/transcriptions/editor/text/collab
-
-      # Advisory for now: the rest of the repo has a pre-existing lint backlog
-      # (~250 errors, mostly unused vars). Drop `continue-on-error` once it is
-      # cleared, and this becomes the real gate.
-      - name: Lint (whole repo, advisory)
+      - name: Lint
         run: npm run lint
-        continue-on-error: true
 
       - name: Typecheck
         run: npm run typecheck

@@ -6,7 +6,13 @@ import {
 } from "@/hooks/use-notifications";
 import { useTranscriptionCursors } from "@/hooks/use-transcription-cursors";
 import { cn } from "@/lib/utils/utils";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { createPortal } from "react-dom";
 import {
   TranscriptionDetail,
@@ -65,6 +71,9 @@ function SegmentsHtmlDebugPanel({ editorAPI }: { editorAPI: EditorAPI }) {
   );
 }
 
+/** The `?dev` flag never changes without a reload, so there is nothing to subscribe to. */
+const subscribeToNothing = () => () => {};
+
 export function TranscriptEditor({
   hasWriteAccess,
   hasListenAccess,
@@ -79,8 +88,9 @@ export function TranscriptEditor({
   onSaveStatusChange?: (status: SaveStatus) => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const editorAPIRef = useRef(new EditorAPI());
-  const editorAPI = editorAPIRef.current;
+  // Lazy initialiser: constructed once, stable identity, and never re-created
+  // on re-render (which `useRef(new EditorAPI())` would do, then discard).
+  const [editorAPI] = useState(() => new EditorAPI());
   const { cursors, updateCursorPosition, updateAudioPosition } =
     useTranscriptionCursors(transcription.id);
   const [audioControls, setAudioControls] = useState<AudioControls | null>(
@@ -94,12 +104,13 @@ export function TranscriptEditor({
     selectionUpdate: formatSelectionUpdate,
   } = useFormat(editorAPI, currentIndex);
   const searchReplace = useSearchReplace(editorAPI);
-  const [showSegmentsHtmlDebug, setShowSegmentsHtmlDebug] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    setShowSegmentsHtmlDebug(window.location.search.includes("dev"));
-  }, []);
+  // Client-only URL flag, read without a state-setting effect (server snapshot
+  // is `false`, so hydration matches).
+  const showSegmentsHtmlDebug = useSyncExternalStore(
+    subscribeToNothing,
+    () => window.location.search.includes("dev"),
+    () => false,
+  );
 
   useEffect(() => {
     if (!showSegmentsHtmlDebug || !containerRef.current) return;
