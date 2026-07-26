@@ -5,7 +5,7 @@ import {
   type EncryptedDataEntity,
 } from "@/lib/encryption/encryption-entities";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { browserCrypto } from "../lib/encryption/encryption-entities.browser";
 import { fetchGateway } from "./fetch";
 import {
@@ -280,9 +280,75 @@ export function calculateWordChanges(
 }
 
 // Save transcription mutation
-export function useSaveTranscription(transcriptionId: string) {
+/**
+ * Resolve the transcription's stable session AES key for the collab transport,
+ * WITHOUT decrypting the payload. Returns:
+ *  - `{ isEncrypted: false, aesKey: null, ready: true }` for plaintext transcriptions,
+ *  - `{ isEncrypted: true, aesKey, ready: true }` once the key is unwrapped,
+ *  - `{ ready: false }` while loading (the collab provider must not start yet, so E2E
+ *    content is never relayed in the clear).
+ */
+export function useTranscriptionAesKey(transcriptionId: string): {
+  aesKey: string | null;
+  isEncrypted: boolean;
+  ready: boolean;
+} {
+  const { data: transcription } = useTranscription(transcriptionId);
+  const { data: encState } = useEncryptionStatus();
+  const [state, setState] = useState<{
+    aesKey: string | null;
+    isEncrypted: boolean;
+    ready: boolean;
+  }>({ aesKey: null, isEncrypted: false, ready: false });
+
+  useEffect(() => {
+    if (!transcription) return; // query not loaded yet → not ready
+    const rawEntity = (
+      transcription as unknown as {
+        _raw?: { transcription?: EncryptedDataEntity };
+      }
+    )._raw?.transcription;
+    const isEncrypted = !!rawEntity?.privateKeys?.length;
+
+    if (!isEncrypted) {
+      setState({ aesKey: null, isEncrypted: false, ready: true });
+      return;
+    }
+    const privateKey = encState?.privateKey;
+    const publicKey = encState?.publicKey;
+    if (!privateKey || !publicKey) {
+      setState({ aesKey: null, isEncrypted: true, ready: false });
+      return;
+    }
+
+    let cancelled = false;
+    new EncryptionUtils(browserCrypto)
+      .resolveAesKey(rawEntity as EncryptedDataEntity, privateKey, publicKey)
+      .then((k) => {
+        if (!cancelled)
+          setState({ aesKey: k, isEncrypted: true, ready: true });
+      })
+      .catch(() => {
+        if (!cancelled)
+          setState({ aesKey: null, isEncrypted: true, ready: false });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [transcription, encState?.privateKey, encState?.publicKey]);
+
+  return state;
+}
+
+export function useSaveTranscription(
+  transcriptionId: string,
+  // In collab, the stable session AES key. When provided, encrypted saves REUSE it
+  // (keeping `privateKeys` untouched) instead of rotating — otherwise late joiners,
+  // who resolve the key from the stored entity, would get a key the current peers no
+  // longer use. Non-collab saves (undefined) keep rotating (supports revocation).
+  sessionAesKey?: string | null,
+) {
   const queryClient = useQueryClient();
-  const { data: encryptionStatus } = useEncryptionStatus();
 
   return useMutation({
     mutationFn: async (data: {
@@ -314,15 +380,26 @@ export function useSaveTranscription(transcriptionId: string) {
       const currentData = (currentTranscription?._raw as any)
         ?.transcription as EncryptedDataEntity;
       if (currentData?.privateKeys && currentData?.payload) {
-        // Encrypt the new transcription data using the existing entity template
-        const encryptedEntity = currentData as EncryptedDataEntity;
-        transcriptionData = await new EncryptionUtils(browserCrypto).encrypt(
-          encryptedEntity,
-          {
+        const utils = new EncryptionUtils(browserCrypto);
+        if (sessionAesKey) {
+          // Collab: reuse the stable session key. `privateKeys` already wrap it, so
+          // every collaborator (and any late joiner resolving the key from the stored
+          // entity) keeps decrypting. No key rotation, no re-wrap.
+          transcriptionData = {
+            version: "v1",
+            privateKeys: currentData.privateKeys,
+            payload: await utils.encryptWithAESKeySync(
+              JSON.stringify({ words: data.words, speakers: data.speakers }),
+              sessionAesKey,
+            ),
+          };
+        } else {
+          // Non-collab: rotate the AES key and re-wrap for all authorized users.
+          transcriptionData = await utils.encrypt(currentData, {
             words: data.words,
             speakers: data.speakers,
-          },
-        );
+          });
+        }
       }
 
       const response = await fetchGateway(

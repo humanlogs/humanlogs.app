@@ -19,6 +19,8 @@ type UseAutoSaveOptions = {
   editorAPI: EditorAPI;
   debounceMs?: number;
   maxDebounceMs?: number;
+  /** Collab session AES key — encrypted saves reuse it instead of rotating. */
+  sessionAesKey?: string | null;
   onSaveStart?: () => void;
   onSaveComplete?: () => void;
   onSaveError?: (error: Error) => void;
@@ -29,6 +31,7 @@ export function useAutoSave({
   editorAPI,
   debounceMs = 3000,
   maxDebounceMs = 60000,
+  sessionAesKey,
   onSaveStart,
   onSaveComplete,
   onSaveError,
@@ -44,7 +47,7 @@ export function useAutoSave({
     (isManual?: boolean, forceSave?: boolean) => Promise<void>
   >(async () => {});
   const queryClient = useQueryClient();
-  const saveTranscription = useSaveTranscription(transcriptionId);
+  const saveTranscription = useSaveTranscription(transcriptionId, sessionAesKey);
 
   // Track if this is the first render
   // Initialize as mounted on first render

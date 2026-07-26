@@ -11,6 +11,9 @@ interface TranscriptEditorContentProps {
   editorAPI: EditorAPI;
   segments: TranscriptionSegment[];
   speakers: Array<{ id: string; name?: string }>;
+  isEncrypted?: boolean;
+  aesKey?: string | null;
+  aesKeyReady?: boolean;
   onChange: (segments: TranscriptionSegment[]) => void;
   hasWriteAccess: boolean;
   onSelectionUpdate: (editor: Editor) => void;
@@ -22,6 +25,9 @@ export function TranscriptEditorContentTipTap({
   editorAPI,
   segments,
   speakers,
+  isEncrypted,
+  aesKey,
+  aesKeyReady,
   onChange,
   hasWriteAccess,
   onSelectionUpdate,
@@ -32,6 +38,9 @@ export function TranscriptEditorContentTipTap({
     transcriptionId,
     segments, // Replace \n\n with space for better handling in Tiptap
     speakers,
+    isEncrypted,
+    aesKey,
+    aesKeyReady,
     onChange,
     editorAPI,
     editable: hasWriteAccess,

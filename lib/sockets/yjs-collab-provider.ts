@@ -6,17 +6,20 @@ import {
   encodeAwarenessUpdate,
   removeAwarenessStates,
 } from "y-protocols/awareness";
+import { EncryptionUtils } from "@/lib/encryption/encryption-entities";
+import { browserCrypto } from "@/lib/encryption/encryption-entities.browser";
 
 /**
- * Pluggable transport codec. Stage 2 uses the identity/base64 codec (plaintext);
- * Stage 3 swaps in an AES-GCM codec keyed by the transcription master key so the
- * server only ever relays ciphertext (`enc: true`).
+ * Pluggable transport codec. Non-E2E transcriptions use the plaintext (base64)
+ * codec; E2E ones use {@link aesCodec} keyed by the transcription's master key so
+ * the blind-relay server only ever sees ciphertext (`enc: true`). Async because Web
+ * Crypto is async.
  */
 export type YjsCodec = {
   /** Whether payloads are encrypted (surfaced as `enc` on the wire for the E2E proof). */
   enc: boolean;
-  encode: (bytes: Uint8Array) => string;
-  decode: (payload: string) => Uint8Array;
+  encode: (bytes: Uint8Array) => Promise<string>;
+  decode: (payload: string) => Promise<Uint8Array>;
 };
 
 function bytesToBase64(bytes: Uint8Array): string {
@@ -35,12 +38,29 @@ function base64ToBytes(b64: string): Uint8Array {
   return out;
 }
 
-/** Plaintext transport (no E2E) — the default until a master key is resolved. */
+/** Plaintext transport (non-E2E transcriptions) — base64, no encryption. */
 export const plaintextCodec: YjsCodec = {
   enc: false,
-  encode: bytesToBase64,
-  decode: base64ToBytes,
+  encode: async (bytes) => bytesToBase64(bytes),
+  decode: async (payload) => base64ToBytes(payload),
 };
+
+/**
+ * E2E transport codec: AES-256-GCM with the transcription's stable session key
+ * (base64). Yjs updates are binary; the underlying primitive is UTF-8-string based,
+ * so we base64 the bytes before encrypting and reverse on decrypt. The server relays
+ * only the resulting ciphertext.
+ */
+export function aesCodec(aesKeyBase64: string): YjsCodec {
+  const utils = new EncryptionUtils(browserCrypto);
+  return {
+    enc: true,
+    encode: async (bytes) =>
+      utils.encryptWithAESKeySync(bytesToBase64(bytes), aesKeyBase64),
+    decode: async (payload) =>
+      base64ToBytes(await utils.decryptWithAESKeySync(payload, aesKeyBase64)),
+  };
+}
 
 type SyncMsg = {
   transcriptionId: string;
@@ -112,18 +132,25 @@ export class YjsCollabProvider {
       // The initial seed is huge (whole doc) and never needed by peers over the
       // wire: late joiners pull full state via yjs:state on join. Skip it.
       if (origin === "seed") return;
-      this.emitMsg("sync", update);
+      void this.emitMsg("sync", update);
     };
     doc.on("update", this.onDocUpdate);
 
-    // Remote doc / awareness messages -> apply with origin=this.
+    // Remote doc / awareness messages -> decode (async, E2E) then apply origin=this.
+    // Applies can land out of order under async decrypt — fine, Yjs updates converge.
     this.handleMsg = (data) => {
       if (data.transcriptionId !== this.transcriptionId) return;
       if (data.t === "sync") {
         this.log("recv sync", data.d.length, "b");
-        Y.applyUpdate(this.doc, this.codec.decode(data.d), this);
+        void this.codec
+          .decode(data.d)
+          .then((bytes) => Y.applyUpdate(this.doc, bytes, this))
+          .catch((e) => this.log("decode sync failed", e));
       } else if (data.t === "awareness" && awareness) {
-        applyAwarenessUpdate(awareness, this.codec.decode(data.d), this);
+        void this.codec
+          .decode(data.d)
+          .then((bytes) => applyAwarenessUpdate(awareness, bytes, this))
+          .catch((e) => this.log("decode awareness failed", e));
       }
     };
     socket.on("yjs:msg", this.handleMsg);
@@ -133,7 +160,7 @@ export class YjsCollabProvider {
       this.onAwarenessUpdate = ({ added, updated, removed }, origin) => {
         if (origin === this) return; // came from a remote apply — don't echo
         const changed = [...added, ...updated, ...removed];
-        this.emitMsg("awareness", encodeAwarenessUpdate(awareness, changed));
+        void this.emitMsg("awareness", encodeAwarenessUpdate(awareness, changed));
       };
       awareness.on("update", this.onAwarenessUpdate);
     }
@@ -160,12 +187,14 @@ export class YjsCollabProvider {
       if (data.transcriptionId !== this.transcriptionId) return;
       this.log("serving state to", data.requester);
       const full = Y.encodeStateAsUpdate(this.doc);
-      socket.emit("yjs:state", {
-        transcriptionId: this.transcriptionId,
-        requester: data.requester,
-        enc: this.codec.enc,
-        d: this.codec.encode(full),
-      });
+      void this.codec.encode(full).then((d) =>
+        this.socket.emit("yjs:state", {
+          transcriptionId: this.transcriptionId,
+          requester: data.requester,
+          enc: this.codec.enc,
+          d,
+        }),
+      );
     };
     socket.on("yjs:state-request", this.handleStateRequest);
 
@@ -173,9 +202,14 @@ export class YjsCollabProvider {
     this.handleState = (data) => {
       if (data.transcriptionId !== this.transcriptionId) return;
       this.log("recv full state", data.d.length, "b");
-      Y.applyUpdate(this.doc, this.codec.decode(data.d), this);
-      this.synced = true;
-      this.opts.onSynced?.();
+      void this.codec
+        .decode(data.d)
+        .then((bytes) => {
+          Y.applyUpdate(this.doc, bytes, this);
+          this.synced = true;
+          this.opts.onSynced?.();
+        })
+        .catch((e) => this.log("decode state failed", e));
     };
     socket.on("yjs:state", this.handleState);
 
@@ -200,7 +234,7 @@ export class YjsCollabProvider {
   private broadcastLocalAwareness() {
     const awareness = this.opts.awareness;
     if (!awareness) return;
-    this.emitMsg(
+    void this.emitMsg(
       "awareness",
       encodeAwarenessUpdate(awareness, [awareness.doc.clientID]),
     );
@@ -216,13 +250,14 @@ export class YjsCollabProvider {
     if (this.opts.debug) console.log("[collab-provider]", ...args);
   }
 
-  private emitMsg(t: "sync" | "awareness", bytes: Uint8Array) {
+  private async emitMsg(t: "sync" | "awareness", bytes: Uint8Array) {
     this.log("send yjs:msg", t, bytes.length, "b");
+    const d = await this.codec.encode(bytes);
     this.socket.emit("yjs:msg", {
       transcriptionId: this.transcriptionId,
       t,
       enc: this.codec.enc,
-      d: this.codec.encode(bytes),
+      d,
     } satisfies SyncMsg);
   }
 
@@ -238,7 +273,7 @@ export class YjsCollabProvider {
       awareness.off("update", this.onAwarenessUpdate);
       // Tell peers to drop our cursor.
       const clientId = awareness.doc.clientID;
-      this.emitMsg("awareness", encodeAwarenessUpdate(awareness, [clientId]));
+      void this.emitMsg("awareness", encodeAwarenessUpdate(awareness, [clientId]));
       removeAwarenessStates(awareness, [clientId], this);
     }
     this.socket.emit("yjs:leave", { transcriptionId: this.transcriptionId });

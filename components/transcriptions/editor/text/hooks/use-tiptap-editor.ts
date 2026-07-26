@@ -6,6 +6,7 @@ import { getSocket } from "@/lib/sockets/socket-client";
 import { YjsSocketIOProvider } from "@/lib/sockets/yjs-socket-provider";
 import {
   YjsCollabProvider,
+  aesCodec,
   plaintextCodec,
 } from "@/lib/sockets/yjs-collab-provider";
 import Bold from "@tiptap/extension-bold";
@@ -82,6 +83,10 @@ interface UseTiptapEditorOptions {
   transcriptionId: string;
   segments: TranscriptionSegment[];
   speakers?: Array<{ id: string; name?: string }>;
+  /** E2E: whether the transcription is encrypted, and its resolved session key. */
+  isEncrypted?: boolean;
+  aesKey?: string | null;
+  aesKeyReady?: boolean;
   onChange: (segments: TranscriptionSegment[]) => void;
   editable: boolean;
   onTransaction?: (editor: any) => void;
@@ -104,6 +109,8 @@ interface UseTiptapEditorOptions {
 export function useTiptapEditor({
   transcriptionId,
   segments,
+  isEncrypted,
+  aesKey,
   onChange,
   editorAPI,
   editable,
@@ -392,6 +399,10 @@ export function useTiptapEditor({
   // state. Standard Collaboration handles doc↔PM; we don't touch the editor here.
   useEffect(() => {
     if (!collabEnabled || !editor || !isMounted || !yjsDoc.current) return;
+    // E2E: do not start the transport until the session key is resolved for an
+    // encrypted transcription — otherwise content would be relayed in the clear.
+    if (isEncrypted && !aesKey) return;
+    const codec = isEncrypted && aesKey ? aesCodec(aesKey) : plaintextCodec;
     const ydoc = yjsDoc.current;
 
     // --- Speaker names: shared "content" metadata that isn't in the XmlFragment.
@@ -471,7 +482,7 @@ export function useTiptapEditor({
           socket,
           transcriptionId,
           ydoc,
-          plaintextCodec,
+          codec,
           {
             onSeed: seedNow,
             onSynced: () => {
@@ -512,7 +523,9 @@ export function useTiptapEditor({
       providerRef.current?.destroy();
       providerRef.current = null;
     };
-  }, [editor, isMounted]);
+    // Re-runs once the E2E session key resolves (isEncrypted/aesKey).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor, isMounted, isEncrypted, aesKey]);
 
   // Collab: publish our identity (name/color) into awareness so peers can label our
   // remote caret. yCursorPlugin writes our selection into awareness automatically.

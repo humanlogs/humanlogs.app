@@ -4,7 +4,10 @@ import { useTranscriptionCursors } from "@/hooks/use-transcription-cursors";
 import { cn } from "@/lib/utils/utils";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { TranscriptionDetail } from "../../../hooks/use-transcriptions";
+import {
+  TranscriptionDetail,
+  useTranscriptionAesKey,
+} from "../../../hooks/use-transcriptions";
 import { InteractiveAudio } from "./audio";
 import { EditorAPI } from "./text/api";
 import { ActiveSegmentHighlight } from "./text/components/active-segment-highlight";
@@ -173,6 +176,12 @@ export function TranscriptEditor({
     ? hasWriteAccess
     : isLockedByMe && hasWriteAccess;
 
+  // Stable session AES key (E2E). The collab provider must not start until this is
+  // resolved for an encrypted transcription, so content is never relayed in clear.
+  const { aesKey, isEncrypted, ready: aesKeyReady } = useTranscriptionAesKey(
+    transcription.id,
+  );
+
   // Auto-save with debounce. In collab the Y.Doc is the live source of truth and
   // Postgres is just a checkpoint, so we save less aggressively (and only the save
   // leader persists — gated in the editor hook).
@@ -181,6 +190,9 @@ export function TranscriptEditor({
       transcriptionId: transcription.id,
       editorAPI,
       debounceMs: collabEnabled ? 5000 : 3000,
+      // Collab saves reuse the stable session key (no rotation) so late joiners keep
+      // decrypting; non-collab keeps rotating.
+      sessionAesKey: collabEnabled ? aesKey : undefined,
     });
 
   // Collab: when this client becomes the save leader (authority handoff), persist
@@ -277,6 +289,9 @@ export function TranscriptEditor({
                   transcriptionId={transcription.id}
                   speakers={transcription.transcription?.speakers || []}
                   segments={transcription.transcription?.words || []}
+                  isEncrypted={isEncrypted}
+                  aesKey={aesKey}
+                  aesKeyReady={aesKeyReady}
                   editorAPI={editorAPI}
                   onChange={() => {
                     editorAPI.emit("change");
