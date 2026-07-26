@@ -1,24 +1,15 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 /**
- * The socket server authenticates every connection against the database. Tests
- * stub only the database — the JWT socket token is created and verified for real
- * by `lib/auth/utils`, so the auth path itself is under test.
+ * The socket server reads two things from the database: the user behind a socket
+ * token, and the transcription a client asks to join. Both come from an in-memory
+ * fixture here — the JWT verification and the authorization rules themselves run
+ * for real.
  */
-const KNOWN_USERS: Record<string, { id: string; email: string; name: string }> = {
-  "user-alice": { id: "user-alice", email: "alice@example.com", name: "Alice" },
-  "user-bob": { id: "user-bob", email: "bob@example.com", name: "Bob" },
-  "user-carol": { id: "user-carol", email: "carol@example.com", name: "Carol" },
-};
-
-vi.mock("@/lib/prisma", () => ({
-  prisma: {
-    user: {
-      findUnique: async ({ where }: { where: { id: string } }) =>
-        KNOWN_USERS[where.id] ?? null,
-    },
-  },
-}));
+vi.mock("@/lib/prisma", async () => {
+  const { fakePrisma } = await import("./helpers/prisma-mock");
+  return { prisma: fakePrisma };
+});
 
 import { io as ioClient, type Socket } from "socket.io-client";
 import * as Y from "yjs";
@@ -30,6 +21,7 @@ import {
   connectSocket,
   joinCollab,
   nextTranscriptionId,
+  registerTestUsers,
   settle,
   sleep,
   startCollabServer,
@@ -53,6 +45,7 @@ const join = async (
 };
 
 beforeAll(async () => {
+  registerTestUsers();
   server = await startCollabServer();
 });
 

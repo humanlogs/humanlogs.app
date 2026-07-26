@@ -220,6 +220,13 @@ export class YjsCollabProvider {
       this.log("(re)connect → join", transcriptionId);
       socket.emit("yjs:join", { transcriptionId });
       this.broadcastLocalAwareness();
+      // Re-announce everything we hold. A reconnect gives us a fresh server-side
+      // session that knows nothing about this client, and anything typed while
+      // the socket was down never reached the room — without this, work done
+      // offline (a tunnel, a closed laptop lid) would be silently lost to peers.
+      // For a first connection the document is still empty, so this is a couple
+      // of bytes; Yjs merges the duplicate state on the receiving side.
+      void this.emitMsg("sync", Y.encodeStateAsUpdate(this.doc));
     };
     socket.on("connect", this.handleConnect);
     // If already connected, join now (handleConnect only fires on future connects).
@@ -291,7 +298,11 @@ export class YjsCollabProvider {
         encodeAwarenessUpdate(awareness, [clientId]),
       );
     }
-    this.socket.emit("yjs:leave", { transcriptionId: this.transcriptionId });
-    return farewell;
+    // Leave AFTER the farewell has gone out: the server drops this socket's
+    // membership on `yjs:leave`, and would then refuse to relay the very message
+    // telling peers to remove our caret.
+    return farewell.then(() => {
+      this.socket.emit("yjs:leave", { transcriptionId: this.transcriptionId });
+    });
   }
 }

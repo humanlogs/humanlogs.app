@@ -1,16 +1,9 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/prisma", () => ({
-  prisma: {
-    user: {
-      findUnique: async ({ where }: { where: { id: string } }) => ({
-        id: where.id,
-        email: `${where.id}@example.com`,
-        name: where.id,
-      }),
-    },
-  },
-}));
+vi.mock("@/lib/prisma", async () => {
+  const { fakePrisma } = await import("./helpers/prisma-mock");
+  return { prisma: fakePrisma };
+});
 
 import { serverEncryption } from "@/lib/encryption/encryption-entities";
 import { aesCodec, plaintextCodec } from "@/lib/sockets/yjs-collab-provider";
@@ -20,6 +13,7 @@ import {
   connectSocket,
   joinCollab,
   nextTranscriptionId,
+  registerTestUsers,
   settle,
   startCollabServer,
   waitFor,
@@ -54,6 +48,7 @@ const join = async (
 };
 
 beforeAll(async () => {
+  registerTestUsers();
   server = await startCollabServer();
 });
 

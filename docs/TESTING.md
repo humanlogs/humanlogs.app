@@ -4,8 +4,8 @@ Two runners, deliberately split by what they can protect:
 
 | Command             | Runner     | Covers                                                                 | Duration |
 | ------------------- | ---------- | ---------------------------------------------------------------------- | -------- |
-| `npm test`          | Vitest     | pure logic + the collaboration protocol (real Socket.io, real Y.Docs)  | ~15 s    |
-| `npm run test:e2e`  | Playwright | two real browsers editing one transcript through the whole app         | ~1.5 min |
+| `npm test`          | Vitest     | pure logic + the collaboration protocol (real Socket.io, real Y.Docs)  | ~20 s    |
+| `npm run test:e2e`  | Playwright | real browsers editing one transcript through the whole app             | ~5 min   |
 
 Both run in CI on every pull request (`.github/workflows/ci.yml`), alongside
 `npm run lint` and `npm run typecheck`. Neither needs Docker, a database server
@@ -53,6 +53,19 @@ Y.Docs** through the app's own provider. Only the database is stubbed.
 - **`collab-e2e-encryption.test.ts`** — with an encrypted transcript, an
   eavesdropping socket in the same room must only ever observe ciphertext, and a
   peer holding the wrong key (or none) must be unable to read the document.
+- **`collab-authorization.test.ts`** — the tests act as the attacker: a fully
+  authenticated user emitting the protocol's own events for someone else's
+  transcript. Joining, pulling the state, injecting an update and pushing a
+  cursor must all be refused, a read-only collaborator's document updates must be
+  dropped while their caret still gets through, and a newly granted collaborator
+  must get in.
+- **`collab-adversarial.test.ts`** — the awkward schedule: five clients opening
+  the same empty room in the same tick (exactly one may seed), the authority
+  vanishing before answering a state request, a duplicate join from a socket that
+  is already the authority, an edit made while the state transfer is in flight,
+  messages delivered out of order, edits typed while disconnected, two clients
+  editing the same word, one deleting the paragraph another is typing into,
+  join/leave churn, and a multi-megabyte transfer.
 - **`shared-transcriptions.db.test.ts`** — runs against a real PostgreSQL for the
   raw JSONB containment query behind "shared with me".
 
@@ -69,11 +82,24 @@ npx playwright show-report  # last HTML report
 for it and then drives two browser contexts. Accounts and transcripts are created
 through the app's own public API, so the setup path is covered too.
 
-`tests/e2e/collaboration.spec.ts` covers: both participants seeing a shared
-transcript, edits flowing each way, concurrent typing converging character for
-character, a late joiner receiving edits that were never saved, remote carets,
-persistence through the save leader, a read-only participant being unable to type
-or delete (locally *or* for anyone else), and a stranger getting a 403.
+`tests/e2e/collaboration.spec.ts` covers the happy path: both participants seeing
+a shared transcript, edits flowing each way, concurrent typing converging
+character for character, a late joiner receiving edits that were never saved,
+remote carets, persistence through the save leader, a read-only participant being
+unable to type or delete (locally *or* for anyone else), and a stranger getting a
+403.
+
+`tests/e2e/collaboration-edge-cases.spec.ts` covers what actually goes wrong: the
+save leader closing their tab mid-session (the survivor must take over
+persistence), a reload keeping edits that were never saved, edits typed while
+offline reaching the others on reconnect, undo reverting your own edit and not
+your colleague's, three participants converging, a speaker rename crossing the
+Y.Map, and a stranger speaking the socket protocol directly with valid
+credentials.
+
+Note the two suites use different attack surfaces on purpose: the REST route and
+the socket are separate doors, and only testing the first one is how the second
+stayed unlocked.
 
 If your environment ships its own Chromium instead of the build Playwright
 downloads:
@@ -113,3 +139,18 @@ zero-setup ergonomics without that trade-off (~5 s to boot and push the schema).
 
 Prefer waiting on a condition (`waitFor`, `expect.poll`) over sleeping: the collab
 tests are timing-sensitive by nature and fixed delays make them flaky.
+
+**Check that a new test can fail.** Every security- or convergence-critical test
+here was verified by breaking the code it protects and watching it go red — a
+test that passes against a deliberately broken build is protecting nothing.
+
+## Known gaps
+
+- A read-only participant publishes presence (the server relays it) but no caret
+  is drawn for them, because a non-editable ProseMirror has no selection to
+  broadcast. `collaboration-edge-cases.spec.ts` documents this where it would be
+  asserted if it changes.
+- Access revoked mid-session only takes effect on the collaborator's next join:
+  authorization is resolved once per socket per room.
+- Everything outside collaboration (billing, STT providers, imports, the landing
+  pages) still has no coverage.

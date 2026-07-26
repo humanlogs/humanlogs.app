@@ -9,6 +9,11 @@ import {
   YjsCollabProvider,
   type YjsCodec,
 } from "@/lib/sockets/yjs-collab-provider";
+import {
+  registerTranscription,
+  registerUser,
+  type FixtureShare,
+} from "./prisma-mock";
 
 /**
  * Harness for the collaboration integration tests: a REAL Socket.io server
@@ -205,7 +210,46 @@ export async function settle(clients: CollabClient[], quiet = 250) {
   }
 }
 
+/**
+ * The regular cast. Registering them as real accounts is what lets the socket
+ * server authenticate their tokens; the transcription fixtures below decide what
+ * each of them is actually allowed to do.
+ */
+export const TEST_USERS = [
+  "user-alice",
+  "user-bob",
+  "user-carol",
+  "user-eve",
+  "user-mallory",
+] as const;
+
+export function registerTestUsers(ids: readonly string[] = TEST_USERS) {
+  for (const id of ids) registerUser(id);
+}
+
 let counter = 0;
-/** A fresh transcription id per test, so the server's room map never leaks state. */
-export const nextTranscriptionId = () =>
-  `transcription-${process.pid}-${++counter}`;
+
+/**
+ * A fresh transcription per test (so the server's room map never leaks state),
+ * registered in the fixture database because the server now authorizes every
+ * room join against the owner / shared list.
+ *
+ * By default the whole cast has write access — tests about *permissions* pass an
+ * explicit owner and share list instead.
+ */
+export const nextTranscriptionId = (opts?: {
+  owner?: string;
+  shared?: FixtureShare[];
+}): string => {
+  const id = `transcription-${process.pid}-${++counter}`;
+  registerTranscription({
+    id,
+    userId: opts?.owner ?? "user-alice",
+    shared:
+      opts?.shared ??
+      TEST_USERS.filter((u) => u !== (opts?.owner ?? "user-alice")).map(
+        (userId) => ({ userId, role: "write" as const }),
+      ),
+  });
+  return id;
+};
