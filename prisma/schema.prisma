@@ -52,6 +52,7 @@ model User {
   // Referral program: extra monthly credits earned from referred users who registered
   referralBonusCredits  Int             @default(0)
   referralsSent         Referral[]
+  comments              Comment[]
 }
 
 enum ReferralStatus {
@@ -122,6 +123,7 @@ model Transcription {
   completedAt               DateTime?
   user                      User               @relation(fields: [userId], references: [id])
   project                   Project?           @relation(fields: [projectId], references: [id])
+  comments                  Comment[]
 
   @@index([id])
   @@index([userId, id])
@@ -148,6 +150,47 @@ model TranscriptionHistory {
   changed         Int      @default(0)
 
   @@index([userId, transcriptionId, updatedAt])
+}
+
+/// A comment thread anchor lives in the transcript as a `comment` mark (serialized
+/// into segment `comments`), so the anchored range is CRDT-synced, versioned with the
+/// transcript, and survives reseed. The note bodies live here, one row per note, so a
+/// single anchor (`anchorId`) can hold a multi-user thread. `body` is an
+/// EncryptedDataEntity (AES-GCM payload + per-authorized-user RSA-wrapped key) when the
+/// transcription is encrypted, or plain `{ text }` otherwise. Edits snapshot the prior
+/// body into CommentHistory for versioning.
+model Comment {
+  id              String           @id @default(uuid())
+  transcriptionId String
+  // Groups notes into a thread; equals the `commentId` attribute of the mark in the doc.
+  anchorId        String
+  // Author of this note.
+  userId          String
+  // EncryptedDataEntity (encrypted) or { text: string } (plaintext).
+  body            Json
+  resolved        Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?
+  transcription   Transcription    @relation(fields: [transcriptionId], references: [id], onDelete: Cascade)
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  history         CommentHistory[]
+
+  @@index([transcriptionId])
+  @@index([transcriptionId, anchorId])
+}
+
+/// Version history for a comment: each edit snapshots the pre-edit `body` here.
+model CommentHistory {
+  id        String   @id @default(uuid())
+  commentId String
+  // Who made the edit that produced this snapshot's successor.
+  userId    String
+  body      Json
+  createdAt DateTime @default(now())
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([commentId, createdAt])
 }
 
 model Feedback {

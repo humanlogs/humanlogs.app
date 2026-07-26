@@ -74,6 +74,11 @@ export type TranscriptionSegment = {
   end?: number;
   speakerId?: string;
   modifiers?: ("b" | "i" | "u" | "s")[];
+  // Comment thread ids anchored on this token (the `commentId` of any `comment`
+  // marks covering it). Note bodies live in the Comment table; this only records
+  // which range is anchored so it survives save → reseed and is versioned with the
+  // transcript. A token normally has at most one (a mark type is unique per position).
+  comments?: string[];
 };
 
 export type HistoryEntry = {

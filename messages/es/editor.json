@@ -6,7 +6,8 @@
             "bold": "Negrita (⌘B)",
             "italic": "Cursiva (⌘I)",
             "underline": "Subrayado (⌘U)",
-            "strikethrough": "Tachado (⌘⇧X)"
+            "strikethrough": "Tachado (⌘⇧X)",
+            "comment": "Comentario (⌘⇧M)"
         },
         "search": {
             "findPlaceholder": "Buscar...",
@@ -139,6 +140,18 @@
                 "cancel": "Cancelar",
                 "confirm": "Transferir propiedad"
             }
+        },
+        "comments": {
+            "title": "Comentarios",
+            "placeholder": "Escribe un comentario…",
+            "add": "Comentar",
+            "save": "Guardar",
+            "cancel": "Cancelar",
+            "edit": "Editar",
+            "delete": "Eliminar",
+            "empty": "Aún no hay comentarios",
+            "you": "Tú",
+            "indicator": "Esta línea tiene comentarios"
         }
     }
 }

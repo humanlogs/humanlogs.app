@@ -6,7 +6,8 @@
             "bold": "Fett (⌘B)",
             "italic": "Kursiv (⌘I)",
             "underline": "Unterstrichen (⌘U)",
-            "strikethrough": "Durchgestrichen (⌘⇧X)"
+            "strikethrough": "Durchgestrichen (⌘⇧X)",
+            "comment": "Kommentar (⌘⇧M)"
         },
         "search": {
             "findPlaceholder": "Suchen...",
@@ -139,6 +140,18 @@
                 "cancel": "Abbrechen",
                 "confirm": "Eigentum übertragen"
             }
+        },
+        "comments": {
+            "title": "Kommentare",
+            "placeholder": "Kommentar schreiben…",
+            "add": "Kommentieren",
+            "save": "Speichern",
+            "cancel": "Abbrechen",
+            "edit": "Bearbeiten",
+            "delete": "Löschen",
+            "empty": "Noch keine Kommentare",
+            "you": "Du",
+            "indicator": "Diese Zeile enthält Kommentare"
         }
     }
 }

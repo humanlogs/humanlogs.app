@@ -29,6 +29,7 @@ import { EditorAPI } from "../api";
 import { CollabCaret } from "../collab/collab-caret";
 import { docToSegments } from "../collab/doc-to-segments";
 import { AutoWrapExtension } from "../extensions/auto-wrap-extension";
+import { CommentMark } from "../extensions/comment-mark";
 import { segmentsToHtml } from "../utils/html";
 import { normalizeEditorSegments } from "./use-normalize-editor-segments";
 
@@ -192,6 +193,7 @@ export function useTiptapEditor({
         ItalicNoShortcut,
         StrikeNoShortcut,
         UnderlineNoShortcut,
+        CommentMark,
         SpeakerParagraph,
         Placeholder.configure({
           placeholder: "Start typing…",

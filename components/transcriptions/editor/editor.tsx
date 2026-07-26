@@ -11,11 +11,14 @@ import {
 import { InteractiveAudio } from "./audio";
 import { EditorAPI } from "./text/api";
 import { ActiveSegmentHighlight } from "./text/components/active-segment-highlight";
+import { CommentColumn } from "./text/components/comment-column";
+import { CommentPopover } from "./text/components/comment-popover";
 import { EditorToolbar } from "./text/components/editor-toolbar";
 import { SearchHighlights } from "./text/components/search-highlights";
 import { SpeakerColumn } from "./text/components/speaker-column";
 import { SpeakerRenameDialog } from "./text/components/speaker-rename-dialog";
 import { useAudioSync } from "./text/hooks/use-audio-sync";
+import { useCommentThreads } from "./text/hooks/use-comment-threads";
 import { SaveStatus, useAutoSave } from "./text/hooks/use-auto-save";
 import { useFormat } from "./text/hooks/use-format";
 import { useNavigationMode } from "./text/hooks/use-navigation-mode";
@@ -162,6 +165,34 @@ export function TranscriptEditor({
   // concurrently — no single-writer lock.
   const canWrite = hasWriteAccess;
 
+  // Comment threads: creating/opening the popover, and dropping abandoned anchors.
+  const commentThreads = useCommentThreads({ editorAPI, canWrite });
+
+  // Open a thread's popover when its highlighted text is clicked in the editor.
+  useEffect(() => {
+    let bound: HTMLElement | null = null;
+    const onClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      const span = target?.closest?.("span[data-comment-id]");
+      const anchorId = span?.getAttribute("data-comment-id");
+      if (anchorId) commentThreads.openThread(anchorId);
+    };
+    const bind = () => {
+      const el = editorAPI.getEditorElement();
+      if (!el || el === bound) return;
+      bound?.removeEventListener("click", onClick);
+      el.addEventListener("click", onClick);
+      bound = el;
+    };
+    bind();
+    editorAPI.addListener("ready", bind);
+    return () => {
+      editorAPI.removeListener("ready", bind);
+      bound?.removeEventListener("click", onClick);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editorAPI, commentThreads.openThread]);
+
   // Stable session AES key (E2E). The collab provider must not start until this is
   // resolved for an encrypted transcription, so content is never relayed in clear.
   const { aesKey, isEncrypted, ready: aesKeyReady } = useTranscriptionAesKey(
@@ -264,6 +295,7 @@ export function TranscriptEditor({
                 audioControls={audioControls}
                 hasWriteAccess={canWrite}
                 hasListenAccess={hasListenAccess}
+                onComment={commentThreads.startNewComment}
               />
             </div>
           </div>,
@@ -310,12 +342,27 @@ export function TranscriptEditor({
                 />
               </div>
             </div>
+            <CommentColumn
+              editorAPI={editorAPI}
+              activeAnchorId={commentThreads.activeAnchorId}
+              onOpenThread={commentThreads.openThread}
+            />
             {showSegmentsHtmlDebug && (
               <SegmentsHtmlDebugPanel editorAPI={editorAPI} />
             )}
           </div>
         </div>
       </div>
+
+      <CommentPopover
+        transcriptionId={transcription.id}
+        anchorId={commentThreads.activeAnchorId}
+        getAnchorRect={commentThreads.getAnchorRect}
+        canWrite={canWrite}
+        onClose={commentThreads.close}
+        onSaved={commentThreads.markSaved}
+        onEmptied={commentThreads.emptied}
+      />
     </div>
   );
 }

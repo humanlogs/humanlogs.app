@@ -242,6 +242,35 @@ export const DELETE = withAuthRateLimit(
         data: updateData,
       });
 
+      // Revoke the removed user's access to encrypted comment bodies too, by dropping
+      // their wrapped-key entry from each comment. Plaintext comments are left as-is.
+      if (serverEncryption) {
+        const comments = await prisma.comment.findMany({
+          where: { transcriptionId: id },
+          select: { id: true, body: true },
+        });
+        for (const c of comments) {
+          const body = c.body as {
+            privateKeys?: unknown[];
+            payload?: string;
+          } | null;
+          if (Array.isArray(body?.privateKeys) && body.privateKeys.length > 1) {
+            try {
+              const next = await serverEncryption.unshare(
+                body as never,
+                userIdToRemove,
+              );
+              await prisma.comment.update({
+                where: { id: c.id },
+                data: { body: next as never },
+              });
+            } catch (e) {
+              console.error("Failed to unshare comment", c.id, e);
+            }
+          }
+        }
+      }
+
       // Notify both owner and removed user of the change
       notifyDatabaseChange(user.id, "transcription", "update", { id });
       notifyDatabaseChange(userIdToRemove, "transcription", "update", { id });

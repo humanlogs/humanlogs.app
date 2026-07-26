@@ -40,6 +40,21 @@
     text-decoration: underline;
 }
 
+/* Comment anchors: subtly underline the commented text in orange. The right-gutter
+   indicator (CommentColumn) is the primary affordance; this is the inline hint. */
+.hl-comment {
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, var(--color-orange-500) 70%, transparent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    transition: background-color 0.15s ease-out;
+}
+
+.hl-comment:hover {
+    background-color: color-mix(in oklab, var(--color-orange-500) 15%, transparent);
+}
+
 /* Word span styles for audio sync */
 .word-span, .spacing-span {
     display: inline;

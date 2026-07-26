@@ -6,7 +6,8 @@
             "bold": "Gras (⌘B)",
             "italic": "Italique (⌘I)",
             "underline": "Souligné (⌘U)",
-            "strikethrough": "Barré (⌘⇧X)"
+            "strikethrough": "Barré (⌘⇧X)",
+            "comment": "Commentaire (⌘⇧M)"
         },
         "search": {
             "findPlaceholder": "Rechercher...",
@@ -139,6 +140,18 @@
                 "cancel": "Annuler",
                 "confirm": "Transférer la propriété"
             }
+        },
+        "comments": {
+            "title": "Commentaires",
+            "placeholder": "Écrire un commentaire…",
+            "add": "Commenter",
+            "save": "Enregistrer",
+            "cancel": "Annuler",
+            "edit": "Modifier",
+            "delete": "Supprimer",
+            "empty": "Aucun commentaire",
+            "you": "Vous",
+            "indicator": "Cette ligne comporte des commentaires"
         }
     }
 }

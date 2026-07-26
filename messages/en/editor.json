@@ -6,7 +6,8 @@
             "bold": "Bold (⌘B)",
             "italic": "Italic (⌘I)",
             "underline": "Underline (⌘U)",
-            "strikethrough": "Strikethrough (⌘⇧X)"
+            "strikethrough": "Strikethrough (⌘⇧X)",
+            "comment": "Comment (⌘⇧M)"
         },
         "search": {
             "findPlaceholder": "Find...",
@@ -139,6 +140,18 @@
                 "cancel": "Cancel",
                 "confirm": "Transfer Ownership"
             }
+        },
+        "comments": {
+            "title": "Comments",
+            "placeholder": "Write a comment…",
+            "add": "Comment",
+            "save": "Save",
+            "cancel": "Cancel",
+            "edit": "Edit",
+            "delete": "Delete",
+            "empty": "No comments yet",
+            "you": "You",
+            "indicator": "This line has comments"
         }
     }
 }

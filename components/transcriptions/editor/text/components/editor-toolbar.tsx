@@ -6,6 +6,7 @@ import { Separator } from "@base-ui/react";
 import {
   Bold,
   Italic,
+  MessageSquarePlus,
   PauseIcon,
   PlayIcon,
   Strikethrough,
@@ -44,6 +45,8 @@ interface EditorToolbarProps {
   audioControls: AudioControls | null;
   hasWriteAccess: boolean;
   hasListenAccess: boolean;
+  /** Anchor a comment on the current selection (expands to the whole word). */
+  onComment?: () => void;
 }
 
 export function EditorToolbar({
@@ -53,6 +56,7 @@ export function EditorToolbar({
   audioControls,
   hasWriteAccess,
   hasListenAccess,
+  onComment,
 }: EditorToolbarProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const t = useTranslations("editor");
@@ -126,6 +130,18 @@ export function EditorToolbar({
       applyFormat("s");
     },
     [applyFormat],
+    {
+      enableOnContentEditable: true,
+    },
+  );
+
+  useHotkeys(
+    ["mod+shift+m", "ctrl+shift+m", "cmd+shift+m"],
+    (e) => {
+      e.preventDefault();
+      onComment?.();
+    },
+    [onComment],
     {
       enableOnContentEditable: true,
     },
@@ -242,6 +258,24 @@ export function EditorToolbar({
             title={t("toolbar.strikethrough")}
           >
             <Strikethrough className="h-3.5 w-3.5" />
+          </Button>
+
+          <Separator
+            orientation="vertical"
+            className="mx-2 h-4 w-px bg-slate-500/20"
+          />
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onMouseDown={(e) => {
+              e.preventDefault(); // keep focus/selection in editor
+              onComment?.();
+            }}
+            className="h-7 w-7 p-0"
+            title={t("toolbar.comment")}
+          >
+            <MessageSquarePlus className="h-3.5 w-3.5" />
           </Button>
         </>
       )}
