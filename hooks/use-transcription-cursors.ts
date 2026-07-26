@@ -1,11 +1,9 @@
 "use client";
 
 import {
-  claimLeadership,
   CursorPositionWithSocket,
   emitCursorPosition,
   joinTranscriptionRoom,
-  leaderKeepalive,
   leaveTranscriptionRoom,
   offCursorPosition,
   offUserDisconnected,
@@ -15,7 +13,6 @@ import {
   onUserDisconnected,
   onUserJoined,
   onUserLeft,
-  releaseLeadership,
 } from "@/lib/sockets/socket-client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useUserProfile } from "./use-api";
@@ -35,7 +32,6 @@ export type UserCursor = {
 export function useTranscriptionCursors(transcriptionId: string) {
   const { data: userProfile } = useUserProfile();
   const [cursors, setCursors] = useState<Map<string, UserCursor>>(new Map());
-  const [isLeader, setIsLeader] = useState(false);
   const lastEmitRef = useRef<number>(0);
   const lastAudioEmitRef = useRef<number>(0);
   const lastPositionRef = useRef<{
@@ -233,56 +229,29 @@ export function useTranscriptionCursors(transcriptionId: string) {
     return () => clearInterval(interval);
   }, []);
 
-  // Keepalive: Periodically re-emit cursor position and leader keepalive
+  // Keepalive: periodically re-emit our cursor position so peers don't stale it out.
   useEffect(() => {
     const interval = setInterval(() => {
       if (!userProfile?.id || !userProfile?.name) return;
-
-      const now = Date.now();
-
-      // Send cursor position keepalive if we have a position
-      if (lastPositionRef.current) {
-        emitCursorPosition(transcriptionId, {
-          userId: userProfile.id,
-          userName: userProfile.name,
-          startOffset: lastPositionRef.current.startOffset,
-          endOffset: lastPositionRef.current.endOffset,
-          timestamp: now,
-          hasWriteAccess: lastPositionRef.current.hasWriteAccess,
-          audioTime: lastPositionRef.current.audioTime ?? null,
-        });
-      }
-
-      // Send leader keepalive if we are the leader
-      if (isLeader) {
-        leaderKeepalive(transcriptionId);
-      }
+      if (!lastPositionRef.current) return;
+      emitCursorPosition(transcriptionId, {
+        userId: userProfile.id,
+        userName: userProfile.name,
+        startOffset: lastPositionRef.current.startOffset,
+        endOffset: lastPositionRef.current.endOffset,
+        timestamp: Date.now(),
+        hasWriteAccess: lastPositionRef.current.hasWriteAccess,
+        audioTime: lastPositionRef.current.audioTime ?? null,
+      });
     }, 15000); // Send keepalive every 15 seconds
 
     return () => clearInterval(interval);
-  }, [transcriptionId, userProfile?.id, userProfile?.name, isLeader]);
-
-  // Functions to claim and release leadership
-  const claimLeader = useCallback(() => {
-    if (!userProfile?.id || !userProfile?.name) return;
-    claimLeadership(transcriptionId, userProfile.id, userProfile.name);
   }, [transcriptionId, userProfile?.id, userProfile?.name]);
-
-  const releaseLeader = useCallback(() => {
-    if (!isLeader) return;
-    releaseLeadership(transcriptionId);
-    setIsLeader(false);
-  }, [transcriptionId, isLeader]);
 
   return {
     cursors: Array.from(cursors.values()),
     updateCursorPosition,
     updateCursorPositionImmediate,
     updateAudioPosition,
-    // Leader-based locking
-    isEditLocked: !isLeader, // Locked if we are not the leader
-    isLeader,
-    claimLeader,
-    releaseLeader,
   };
 }

@@ -1,7 +1,61 @@
 import type { Node as PMNode } from "@tiptap/pm/model";
 import type { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { normalizeEditorSegments } from "../hooks/use-normalize-editor-segments";
-import { enforceTimestampInvariant } from "./ydoc-schema";
+
+/**
+ * Deterministic, idempotent, order-independent repair of a token sequence's
+ * timestamps: make `start`/`end` monotonic non-decreasing and interpolate any `null`
+ * timestamps between the nearest bounded neighbours. Pure function of the (already
+ * converged) sequence, so every client computes the same result.
+ */
+function enforceTimestampInvariant(
+  tokens: { start: number | null; end: number | null }[],
+): void {
+  const n = tokens.length;
+  if (n === 0) return;
+
+  // Pass 1 — interpolate nulls between nearest bounded neighbours.
+  for (let i = 0; i < n; i++) {
+    if (tokens[i].start != null && tokens[i].end != null) continue;
+    let before: number | null = null;
+    for (let j = i - 1; j >= 0; j--) {
+      if (tokens[j].end != null) {
+        before = tokens[j].end;
+        break;
+      }
+      if (tokens[j].start != null) {
+        before = tokens[j].start;
+        break;
+      }
+    }
+    let after: number | null = null;
+    for (let j = i + 1; j < n; j++) {
+      if (tokens[j].start != null) {
+        after = tokens[j].start;
+        break;
+      }
+      if (tokens[j].end != null) {
+        after = tokens[j].end;
+        break;
+      }
+    }
+    const lo = before ?? after;
+    const hi = after ?? before;
+    if (lo == null || hi == null) continue;
+    if (tokens[i].start == null) tokens[i].start = lo;
+    if (tokens[i].end == null) tokens[i].end = hi;
+  }
+
+  // Pass 2 — forward monotonicity: start >= previous end, end >= start.
+  let lastEnd: number | null = null;
+  for (let i = 0; i < n; i++) {
+    const t = tokens[i];
+    if (t.start != null && lastEnd != null && t.start < lastEnd) t.start = lastEnd;
+    if (t.start != null && t.end != null && t.end < t.start) t.end = t.start;
+    if (t.end != null) lastEnd = t.end;
+    else if (t.start != null) lastEnd = t.start;
+  }
+}
 
 /**
  * Derive the flat `TranscriptionSegment[]` projection from a ProseMirror document.

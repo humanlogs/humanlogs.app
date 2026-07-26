@@ -1,6 +1,6 @@
 import { UserCursor } from "@/hooks/use-transcription-cursors";
 import { EditorAPI } from "../text/api";
-import { getUserColor } from "../text/components/remote-cursors";
+import { getUserColor } from "@/lib/utils/utils";
 import { offsetToTime } from "./helpers";
 import { useAudio } from "./audio-context";
 

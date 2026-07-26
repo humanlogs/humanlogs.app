@@ -12,13 +12,11 @@ import { InteractiveAudio } from "./audio";
 import { EditorAPI } from "./text/api";
 import { ActiveSegmentHighlight } from "./text/components/active-segment-highlight";
 import { EditorToolbar } from "./text/components/editor-toolbar";
-import { RemoteCursors } from "./text/components/remote-cursors";
 import { SearchHighlights } from "./text/components/search-highlights";
 import { SpeakerColumn } from "./text/components/speaker-column";
 import { SpeakerRenameDialog } from "./text/components/speaker-rename-dialog";
 import { useAudioSync } from "./text/hooks/use-audio-sync";
 import { SaveStatus, useAutoSave } from "./text/hooks/use-auto-save";
-import { useCollaborationLock } from "./text/hooks/use-collaboration-lock";
 import { useFormat } from "./text/hooks/use-format";
 import { useNavigationMode } from "./text/hooks/use-navigation-mode";
 import { useSearchReplace } from "./text/hooks/use-search-replace";
@@ -160,21 +158,9 @@ export function TranscriptEditor({
     };
   }, [showSegmentsHtmlDebug]);
 
-  // Collaboration lock
-  const { isLocked, lockedBy, isLockedByMe } = useCollaborationLock(
-    transcription.id,
-  );
-
-  // In real-time collab (`?collab`) the single-writer lock is bypassed: every user
-  // with write access edits concurrently (CRDT). Otherwise the legacy lock stands.
-  const [collabEnabled, setCollabEnabled] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    setCollabEnabled(new URLSearchParams(window.location.search).has("collab"));
-  }, []);
-  const canWrite = collabEnabled
-    ? hasWriteAccess
-    : isLockedByMe && hasWriteAccess;
+  // Real-time collaborative editing (CRDT): every user with write access edits
+  // concurrently — no single-writer lock.
+  const canWrite = hasWriteAccess;
 
   // Stable session AES key (E2E). The collab provider must not start until this is
   // resolved for an encrypted transcription, so content is never relayed in clear.
@@ -182,36 +168,35 @@ export function TranscriptEditor({
     transcription.id,
   );
 
-  // Auto-save with debounce. In collab the Y.Doc is the live source of truth and
-  // Postgres is just a checkpoint, so we save less aggressively (and only the save
-  // leader persists — gated in the editor hook).
+  // Auto-save with debounce. The Y.Doc is the live source of truth and Postgres is
+  // just a checkpoint, so we save less aggressively (and only the save leader
+  // persists — gated in the editor hook).
   const { onChange: autoSaveOnChange, saveStatus, flush: flushSave } =
     useAutoSave({
       transcriptionId: transcription.id,
       editorAPI,
-      debounceMs: collabEnabled ? 5000 : 3000,
-      // Collab saves reuse the stable session key (no rotation) so late joiners keep
-      // decrypting; non-collab keeps rotating.
-      sessionAesKey: collabEnabled ? aesKey : undefined,
+      debounceMs: 5000,
+      // Saves reuse the stable session key (no rotation) so late joiners keep
+      // decrypting the shared content.
+      sessionAesKey: aesKey,
     });
 
-  // Collab: when this client becomes the save leader (authority handoff), persist
-  // the current state immediately so no edits sit in an unsaved window.
+  // When this client becomes the save leader (authority handoff), persist the
+  // current state immediately so no edits sit in an unsaved window.
   useEffect(() => {
-    if (!collabEnabled) return;
     const onBecameSaver = () => flushSave();
     editorAPI.addListener("becameSaver", onBecameSaver);
     return () => {
       editorAPI.removeListener("becameSaver", onBecameSaver);
     };
-  }, [collabEnabled, editorAPI, flushSave]);
+  }, [editorAPI, flushSave]);
 
-  // Collab: broadcast our audio playback/scrub position so peers' waveform ticks
-  // follow us while listening (not only when the edit caret moves).
+  // Broadcast our audio playback/scrub position so peers' waveform ticks follow us
+  // while listening (not only when the edit caret moves).
   useEffect(() => {
-    if (!collabEnabled || !audioControls) return;
+    if (!audioControls) return;
     return audioControls.onTimeUpdate((time) => updateAudioPosition(time));
-  }, [collabEnabled, audioControls, updateAudioPosition]);
+  }, [audioControls, updateAudioPosition]);
 
   // Notify parent when editor is ready
   useEffect(() => {
@@ -227,19 +212,6 @@ export function TranscriptEditor({
     <div ref={containerRef} className="h-full min-w-0 overflow-x-hidden">
       <SpeakerRenameDialog />
       <div className="flex flex-col h-full">
-        {!collabEnabled && isLocked && !isLockedByMe && (
-          <>
-            <div className="mb-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 border-y border-yellow-300 dark:border-yellow-700 text-sm text-yellow-800 dark:text-yellow-200 fixed w-full z-10">
-              <span className="font-semibold">
-                {lockedBy?.userName || "Someone"}
-              </span>{" "}
-              is currently editing this transcription
-            </div>
-            <div className="h-8" />{" "}
-            {/* Spacer to prevent content jump due to fixed banner */}
-          </>
-        )}
-
         {/* Sticky top section */}
         {createPortal(
           <div id="header-sub-portal-container" className={cn("space-y-2")}>
@@ -273,11 +245,8 @@ export function TranscriptEditor({
           <SpeakerColumn editorAPI={editorAPI} readOnly={!canWrite} />
           <div className="flex-[1_1_0%] px-2 min-w-0 flex gap-4 overflow-hidden">
             <div className="relative flex-[1_1_0%] min-w-0 overflow-visible">
-              {/* Text carets come from CollaborationCursor in collab mode; the
-                  custom socket cursors still drive the audio waveform ticks. */}
-              {!collabEnabled && (
-                <RemoteCursors editorAPI={editorAPI} cursors={cursors} />
-              )}
+              {/* Text carets come from CollabCaret (awareness); the custom socket
+                  cursors drive only the audio waveform ticks. */}
               <SearchHighlights highlights={searchReplace.highlights} />
               <ActiveSegmentHighlight
                 editorAPI={editorAPI}

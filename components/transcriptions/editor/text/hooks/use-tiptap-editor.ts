@@ -3,12 +3,12 @@
 import { useUserProfile } from "@/hooks/use-api";
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { getSocket } from "@/lib/sockets/socket-client";
-import { YjsSocketIOProvider } from "@/lib/sockets/yjs-socket-provider";
 import {
   YjsCollabProvider,
   aesCodec,
   plaintextCodec,
 } from "@/lib/sockets/yjs-collab-provider";
+import { getUserColor } from "@/lib/utils/utils";
 import Bold from "@tiptap/extension-bold";
 import Collaboration from "@tiptap/extension-collaboration";
 import Italic from "@tiptap/extension-italic";
@@ -16,7 +16,6 @@ import Paragraph from "@tiptap/extension-paragraph";
 import Placeholder from "@tiptap/extension-placeholder";
 import Strike from "@tiptap/extension-strike";
 import Underline from "@tiptap/extension-underline";
-import { ReplaceStep } from "@tiptap/pm/transform";
 import { Editor, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useRef, useState } from "react";
@@ -24,18 +23,10 @@ import * as awarenessProtocol from "y-protocols/awareness";
 import * as Y from "yjs";
 import { EditorAPI } from "../api";
 import { CollabCaret } from "../collab/collab-caret";
-import { getUserColor } from "../components/remote-cursors";
 import { docToSegments } from "../collab/doc-to-segments";
 import { AutoWrapExtension } from "../extensions/auto-wrap-extension";
 import { segmentsToHtml } from "../utils/html";
-import { applyTransactionOnSegments } from "../utils/transaction-on-segments";
 import { normalizeEditorSegments } from "./use-normalize-editor-segments";
-
-/** `?collab` opt-in (client only). */
-function isCollabEnabled(): boolean {
-  if (typeof window === "undefined") return false;
-  return new URLSearchParams(window.location.search).has("collab");
-}
 
 const SpeakerParagraph = Paragraph.extend({
   addAttributes() {
@@ -96,15 +87,15 @@ interface UseTiptapEditorOptions {
 }
 
 /**
- * Creates a Tiptap editor instance configured for transcription editing.
+ * Creates the real-time collaborative transcript editor.
  *
- * In `?collab` mode the editor uses the STANDARD TipTap Collaboration binding
- * (Y.XmlFragment ↔ ProseMirror via @tiptap/y-tiptap) for robust text/structure/
- * cursor/undo sync, plus CollaborationCursor for remote carets. The flat
- * `TranscriptionSegment[]` projection (timestamps for audio, autosave, speaker UI)
- * is DERIVED from the converged doc via {@link docToSegments}, debounced.
- * Persistence is gated to a single save leader. Transport is our blind-relay
- * provider. Non-collab keeps the original behavior.
+ * Text / structure / cursors / undo use the STANDARD TipTap Collaboration binding
+ * (Y.XmlFragment ↔ ProseMirror via @tiptap/y-tiptap) + CollabCaret for remote carets.
+ * The flat `TranscriptionSegment[]` projection (per-word timestamps for audio,
+ * autosave, speaker UI) is DERIVED from the converged doc via {@link docToSegments},
+ * debounced. Speaker names sync via a Y.Map. Persistence is gated to a single save
+ * leader. Transport is the blind-relay provider (E2E-encrypted when the transcription
+ * is encrypted — the provider does not start until the session key resolves).
  */
 export function useTiptapEditor({
   transcriptionId,
@@ -116,26 +107,23 @@ export function useTiptapEditor({
   editable,
   onSelectionUpdate,
 }: UseTiptapEditorOptions) {
-  // `?collab` opt-in — resolved once, stable for the editor's lifetime.
-  const [collabEnabled] = useState(isCollabEnabled);
-
-  // Create Y.js document + awareness immediately (must exist before the editor is
-  // created, so the Collaboration / CollaborationCursor extensions can bind them).
+  // Y.Doc + awareness must exist before the editor is created (the Collaboration and
+  // CollabCaret extensions bind them synchronously).
   const yjsDoc = useRef<Y.Doc | null>(null);
   if (!yjsDoc.current && typeof window !== "undefined") {
     yjsDoc.current = new Y.Doc();
   }
   const awarenessRef = useRef<awarenessProtocol.Awareness | null>(null);
-  if (collabEnabled && yjsDoc.current && !awarenessRef.current) {
+  if (yjsDoc.current && !awarenessRef.current) {
     awarenessRef.current = new awarenessProtocol.Awareness(yjsDoc.current);
   }
   const providerRef = useRef<YjsCollabProvider | null>(null);
   const cursorColorRef = useRef<string>("");
   if (!cursorColorRef.current) cursorColorRef.current = getRandomColor();
 
-  // The flat projection. In collab it is DERIVED from the doc on each change, but is
-  // seeded here with the normalized initial segments so the first derivation has a
-  // timestamp reference to carry from (the doc itself holds no timestamps).
+  // The flat projection is DERIVED from the doc on each change, but is seeded here
+  // with the normalized initial segments so the first derivation has a timestamp
+  // reference to carry from (the doc itself holds no timestamps).
   const segmentsRef = useRef<TranscriptionSegment[] | null>(null);
   if (segmentsRef.current === null) {
     segmentsRef.current = normalizeEditorSegments(segments, {
@@ -143,19 +131,17 @@ export function useTiptapEditor({
     });
   }
 
-  // Initial HTML — used as the seed content the authority writes into the fragment
-  // (collab), or as the editor's initial content (non-collab).
+  // Initial HTML the seed authority writes into the Yjs fragment.
   const segmentsHtmlRef = useRef<any>("");
   if (!segmentsHtmlRef.current)
     segmentsHtmlRef.current = segmentsToHtml(segmentsRef.current);
 
   const editorRef = useRef<Editor>(null);
-  const isUpdatingFromSegmentsRef = useRef(false);
   const normalizeDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const { data: userProfile } = useUserProfile();
   const [isMounted, setIsMounted] = useState(false);
 
-  // Collab persistence is gated to a single "save leader" (the seed authority, or a
+  // Persistence is gated to a single "save leader" (the seed authority, or a
   // standalone client with no working transport) so multiple writers don't race and
   // corrupt the stored utterances JSON. Non-leaders never save.
   const isCollabSaverRef = useRef(false);
@@ -173,47 +159,10 @@ export function useTiptapEditor({
     else editorAPI.emit("change");
   };
 
-  // Legacy (non-collab) provider (kept for the non-collab path only).
-  const yjsProvider = useRef<YjsSocketIOProvider | null>(null);
-
   // Detect client-side rendering - only mount after hydration
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  // Legacy awareness/provider — non-collab only (collab uses the blind-relay
-  // provider + standard Collaboration wired below).
-  useEffect(() => {
-    if (!isMounted || collabEnabled) return;
-
-    const socket = getSocket();
-    if (!socket || !transcriptionId || !yjsDoc.current) return;
-
-    if (!awarenessRef.current) {
-      awarenessRef.current = new awarenessProtocol.Awareness(yjsDoc.current);
-    }
-    if (userProfile && awarenessRef.current) {
-      awarenessRef.current.setLocalStateField("user", {
-        name: userProfile.name || userProfile.email || "Anonymous",
-        color: cursorColorRef.current,
-      });
-    }
-    if (!yjsProvider.current && awarenessRef.current) {
-      yjsProvider.current = new YjsSocketIOProvider(
-        socket,
-        transcriptionId,
-        yjsDoc.current,
-        awarenessRef.current,
-      );
-    }
-
-    return () => {
-      if (yjsProvider.current) {
-        yjsProvider.current.destroy();
-        yjsProvider.current = null;
-      }
-    };
-  }, [transcriptionId, userProfile, isMounted]);
 
   const editor = useEditor(
     {
@@ -232,7 +181,7 @@ export function useTiptapEditor({
           orderedList: false,
           paragraph: false, // We'll use our custom SpeakerParagraph instead
           // Collaboration provides its own CRDT-aware undo/redo (Mod-z).
-          ...(collabEnabled ? { undoRedo: false as const } : {}),
+          undoRedo: false,
         }),
         // Add custom marks without keyboard shortcuts
         BoldNoShortcut,
@@ -247,7 +196,7 @@ export function useTiptapEditor({
         AutoWrapExtension,
         // Real-time collaboration (standard Yjs binding) + remote carets (built on
         // the same y-tiptap package, so plugin keys match).
-        ...(collabEnabled && yjsDoc.current
+        ...(yjsDoc.current
           ? [
               Collaboration.configure({ document: yjsDoc.current }),
               CollabCaret.configure({ awareness: awarenessRef.current }),
@@ -255,13 +204,8 @@ export function useTiptapEditor({
           : []),
       ],
       editable,
-      // Collab content comes from the Yjs fragment (do NOT pass content). Non-collab
-      // keeps the original behavior.
-      content: collabEnabled
-        ? undefined
-        : isMounted && yjsDoc.current
-          ? ""
-          : segmentsHtmlRef.current,
+      // Content comes from the Yjs fragment (do NOT pass content).
+      content: undefined,
       immediatelyRender: false,
       editorProps: {
         attributes: {
@@ -296,67 +240,21 @@ export function useTiptapEditor({
           return true;
         },
       },
-      onTransaction: ({ editor, transaction }) => {
-        if (collabEnabled) {
-          // Standard Collaboration keeps text/structure/cursors in sync natively.
-          if (!transaction.docChanged) return;
-          // Reposition/relabel the speaker column IMMEDIATELY on every doc change
-          // (local AND remote) — the DOM is already updated by Collaboration, and
-          // useSpeakerPositions coalesces the recompute via requestAnimationFrame.
-          editorAPI.emit("speakersOffsets");
-          // The heavier flat-projection derivation (audio sync / autosave) stays
-          // debounced — it doesn't need to run on every keystroke.
-          if (normalizeDebounceRef.current)
-            clearTimeout(normalizeDebounceRef.current);
-          normalizeDebounceRef.current = setTimeout(() => {
-            collabDeriveRef.current();
-            normalizeDebounceRef.current = null;
-          }, 300);
-          return;
-        }
-
-        if (
-          transaction.steps.length === 0 ||
-          !segmentsRef.current ||
-          !segmentsRef.current.length ||
-          isUpdatingFromSegmentsRef.current
-        ) {
-          return;
-        }
-
-        if (
-          transaction.steps.length === 1 &&
-          transaction.steps[0] instanceof ReplaceStep &&
-          transaction.steps[0].from === 0 &&
-          transaction.steps[0].to >= editor.getText().length - 1
-        ) {
-          // This is a full replacement coming from a segmentReplaces
-          return;
-        }
-
-        // Edit segments based on transactions steps
-        segmentsRef.current = applyTransactionOnSegments(
-          segmentsRef.current ?? [],
-          transaction,
-        );
-
+      onTransaction: ({ transaction }) => {
+        // Standard Collaboration keeps text/structure/cursors in sync natively.
+        if (!transaction.docChanged) return;
+        // Reposition/relabel the speaker column IMMEDIATELY on every doc change
+        // (local AND remote) — the DOM is already updated by Collaboration, and
+        // useSpeakerPositions coalesces the recompute via requestAnimationFrame.
         editorAPI.emit("speakersOffsets");
-
-        // Debounce normalize and onChange call
-        if (onChange) {
-          if (normalizeDebounceRef.current) {
-            clearTimeout(normalizeDebounceRef.current);
-          }
-          normalizeDebounceRef.current = setTimeout(() => {
-            if (segmentsRef.current) {
-              segmentsRef.current = normalizeEditorSegments(
-                segmentsRef.current,
-              );
-              onChange(segmentsRef.current ?? []);
-            }
-            normalizeDebounceRef.current = null;
-          }, 300);
-        }
+        // The heavier flat-projection derivation (audio sync / autosave) stays
+        // debounced — it doesn't need to run on every keystroke.
+        if (normalizeDebounceRef.current)
+          clearTimeout(normalizeDebounceRef.current);
+        normalizeDebounceRef.current = setTimeout(() => {
+          collabDeriveRef.current();
+          normalizeDebounceRef.current = null;
+        }, 300);
       },
       onSelectionUpdate: ({ editor }) => {
         if (onSelectionUpdate) {
@@ -383,22 +281,11 @@ export function useTiptapEditor({
     };
   }, []);
 
-  // Legacy (non-collab): load initial content via the XmlFragment-empty check.
+  // Transport: wire the blind-relay provider (doc + awareness). The seed authority
+  // writes the initial content into the fragment; late joiners pull full state.
+  // Standard Collaboration handles doc↔PM; we don't touch the editor here.
   useEffect(() => {
-    if (collabEnabled || !editor || !isMounted || !yjsDoc.current) return;
-
-    const yjsFragment = yjsDoc.current.getXmlFragment("default");
-    const isEmpty = yjsFragment.length === 0;
-    if (isEmpty && segmentsHtmlRef.current) {
-      editor.commands.setContent(segmentsHtmlRef.current);
-    }
-  }, [editor, isMounted]);
-
-  // Collab transport: wire the blind-relay provider (doc + awareness). The seed
-  // authority writes the initial content into the fragment; late joiners pull full
-  // state. Standard Collaboration handles doc↔PM; we don't touch the editor here.
-  useEffect(() => {
-    if (!collabEnabled || !editor || !isMounted || !yjsDoc.current) return;
+    if (!editor || !isMounted || !yjsDoc.current) return;
     // E2E: do not start the transport until the session key is resolved for an
     // encrypted transcription — otherwise content would be relayed in the clear.
     if (isEncrypted && !aesKey) return;
@@ -527,10 +414,10 @@ export function useTiptapEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor, isMounted, isEncrypted, aesKey]);
 
-  // Collab: publish our identity (name/color) into awareness so peers can label our
-  // remote caret. yCursorPlugin writes our selection into awareness automatically.
+  // Publish our identity (name/color) into awareness so peers can label our remote
+  // caret. yCursorPlugin writes our selection into awareness automatically.
   useEffect(() => {
-    if (!collabEnabled || !awarenessRef.current) return;
+    if (!awarenessRef.current) return;
     awarenessRef.current.setLocalStateField("user", {
       name: userProfile?.name || userProfile?.email || "Anonymous",
       // Deterministic per-user color so the remote caret matches this user's audio
@@ -584,7 +471,8 @@ function toggleMarkExpandingWord(
   editor.chain()[toggle]().run();
 }
 
-// Generate a random color for collaboration cursors
+// Fallback cursor color used only until the user profile (and its deterministic
+// getUserColor) is available.
 function getRandomColor(): string {
   const colors = [
     "#958DF1",
