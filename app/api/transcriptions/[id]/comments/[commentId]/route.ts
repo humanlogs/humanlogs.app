@@ -8,8 +8,7 @@ type RouteParams = {
   params: Promise<{ id: string; commentId: string }>;
 };
 
-// Edit a comment body. Only the author may edit; the pre-edit body is snapshotted
-// into CommentHistory for versioning.
+// Edit a comment body. Only the author may edit.
 export const PATCH = withAuthRateLimit(
   async (request, user, { params }: RouteParams) => {
     const { id, commentId } = await params;
@@ -42,19 +41,10 @@ export const PATCH = withAuthRateLimit(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const updated = await prisma.$transaction(async (tx) => {
-      await tx.commentHistory.create({
-        data: {
-          commentId: comment.id,
-          userId: user.id,
-          body: comment.body as never,
-        },
-      });
-      return tx.comment.update({
-        where: { id: comment.id },
-        data: { body: payload.body },
-        include: { user: { select: { id: true, name: true, email: true } } },
-      });
+    const updated = await prisma.comment.update({
+      where: { id: comment.id },
+      data: { body: payload.body },
+      include: { user: { select: { id: true, name: true, email: true } } },
     });
 
     for (const uid of participantIds(transcription)) {
