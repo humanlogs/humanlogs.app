@@ -1,0 +1,377 @@
+"use client";
+
+import { useTranslations } from "@/components/locale-provider";
+import { UserAvatar } from "@/components/ui/user-avatar";
+import { useUserProfile } from "@/hooks/use-api";
+import {
+  DecryptedComment,
+  useAddComment,
+  useComments,
+  useDeleteComment,
+  useEditComment,
+  useTranscriptionParticipants,
+} from "@/hooks/use-comments";
+import { MessageSquare } from "lucide-react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { EditorAPI } from "../api";
+import { useCommentPositions } from "../hooks/use-comment-positions";
+import {
+  excerptText,
+  getCommentRanges,
+  selectCommentRange,
+} from "../utils/comment-actions";
+import { layoutRail } from "../utils/comment-rail-layout";
+import { CommentComposer } from "./comment-composer";
+import { CommentText } from "./comment-text";
+
+const RAIL_WIDTH = 288;
+
+interface CommentRailProps {
+  transcriptionId: string;
+  editorAPI: EditorAPI;
+  canWrite: boolean;
+  /** Rail visible? When closed only the slim indicator column is shown. */
+  open: boolean;
+  activeAnchorId: string | null;
+  onOpenThread: (anchorId: string) => void;
+  onCloseRail: () => void;
+  onSaved: () => void;
+  onEmptied: (anchorId: string) => void;
+}
+
+function formatDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleString(undefined, {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * The comment rail: one card per thread, each sitting level with the text it annotates.
+ *
+ * Cards are laid out by {@link layoutRail}, which pushes them apart so they never
+ * overlap — as the document scrolls the whole rail moves with it (it is an ordinary
+ * column in the editor row, like the speaker column), so cards visibly stack up against
+ * each other. The rail takes real width, so unlike a floating panel it never covers the
+ * transcript.
+ *
+ * Closed, it collapses to a slim column of dots — one per commented line — so the
+ * default reading view stays quiet.
+ */
+export function CommentRail({
+  transcriptionId,
+  editorAPI,
+  canWrite,
+  open,
+  activeAnchorId,
+  onOpenThread,
+  onCloseRail,
+  onSaved,
+  onEmptied,
+}: CommentRailProps) {
+  const t = useTranslations("editor");
+  const { positions } = useCommentPositions(editorAPI);
+  const { data: comments } = useComments(transcriptionId);
+
+  // Measured card heights, needed to push cards apart.
+  const [heights, setHeights] = useState<Record<string, number>>({});
+  const cardRefs = useRef(new Map<string, HTMLDivElement>());
+
+  // Threads present in the document, in anchor order.
+  const anchors = positions.map((p) => ({
+    anchorId: p.anchorId,
+    anchorTop: p.top,
+  }));
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const measure = () => {
+      setHeights((prev) => {
+        let changed = false;
+        const next = { ...prev };
+        for (const [id, el] of cardRefs.current) {
+          const h = el.offsetHeight;
+          if (next[id] !== h) {
+            next[id] = h;
+            changed = true;
+          }
+        }
+        return changed ? next : prev;
+      });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    for (const el of cardRefs.current.values()) ro.observe(el);
+    return () => ro.disconnect();
+  });
+
+  const tops = layoutRail(
+    anchors.map((a) => ({ ...a, height: heights[a.anchorId] ?? 96 })),
+    activeAnchorId,
+  );
+
+  // Escape collapses the rail (the composer swallows it first when editing a note).
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCloseRail();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open, onCloseRail]);
+
+  if (!open) {
+    // Collapsed: one dot per commented line (several threads can share a line).
+    const lines = new Map<number, { top: number; anchorIds: string[] }>();
+    for (const pos of positions) {
+      const line = Math.round(pos.top / 4) * 4;
+      const entry = lines.get(line);
+      if (entry) entry.anchorIds.push(pos.anchorId);
+      else lines.set(line, { top: pos.top, anchorIds: [pos.anchorId] });
+    }
+
+    return (
+      <div className="relative w-6 shrink-0">
+        {Array.from(lines.values()).map((line) => (
+          <button
+            key={line.anchorIds[0]}
+            type="button"
+            data-comment-gutter=""
+            title={t("comments.indicator")}
+            aria-label={t("comments.indicator")}
+            onClick={() => onOpenThread(line.anchorIds[0])}
+            className="absolute left-0 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400/25 text-yellow-700 transition-colors hover:bg-yellow-400/40 dark:text-yellow-500"
+            style={{ top: line.top }}
+          >
+            <MessageSquare className="h-3 w-3" />
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="relative shrink-0"
+      style={{ width: RAIL_WIDTH }}
+      data-comment-rail=""
+    >
+      {/* No header here on purpose: cards are positioned from the top of this column so
+          they line up with the text, and anything in normal flow would sit under them.
+          The rail is closed from the toolbar toggle or with Escape. */}
+      {anchors.map((anchor) => (
+        <div
+          key={anchor.anchorId}
+          ref={(el) => {
+            if (el) cardRefs.current.set(anchor.anchorId, el);
+            else cardRefs.current.delete(anchor.anchorId);
+          }}
+          className="absolute left-0 w-full transition-[top] duration-150 ease-out"
+          style={{ top: tops.get(anchor.anchorId) ?? anchor.anchorTop }}
+        >
+          <CommentCard
+            transcriptionId={transcriptionId}
+            editorAPI={editorAPI}
+            anchorId={anchor.anchorId}
+            notes={(comments ?? [])
+              .filter((c) => c.anchorId === anchor.anchorId)
+              .sort((a, b) => a.createdAt.localeCompare(b.createdAt))}
+            active={anchor.anchorId === activeAnchorId}
+            canWrite={canWrite}
+            onOpenThread={onOpenThread}
+            onSaved={onSaved}
+            onEmptied={onEmptied}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CommentCard({
+  transcriptionId,
+  editorAPI,
+  anchorId,
+  notes,
+  active,
+  canWrite,
+  onOpenThread,
+  onSaved,
+  onEmptied,
+}: {
+  transcriptionId: string;
+  editorAPI: EditorAPI;
+  anchorId: string;
+  notes: DecryptedComment[];
+  active: boolean;
+  canWrite: boolean;
+  onOpenThread: (anchorId: string) => void;
+  onSaved: () => void;
+  onEmptied: (anchorId: string) => void;
+}) {
+  const t = useTranslations("editor");
+  const { data: profile } = useUserProfile();
+  const { data: participants } = useTranscriptionParticipants(transcriptionId);
+  const addComment = useAddComment(transcriptionId);
+  const editComment = useEditComment(transcriptionId);
+  const deleteComment = useDeleteComment(transcriptionId);
+
+  const [draft, setDraft] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
+  const [quote, setQuote] = useState<string | null>(null);
+
+  // The quoted phrase, refreshed as the document changes.
+  useEffect(() => {
+    const read = () => {
+      const ed = editorAPI.getEditor();
+      if (!ed) return;
+      const range = getCommentRanges(ed).find((r) => r.anchorId === anchorId);
+      setQuote(range ? range.text : null);
+    };
+    read();
+    editorAPI.addListener("change", read);
+    editorAPI.addListener("commentsChange", read);
+    return () => {
+      editorAPI.removeListener("change", read);
+      editorAPI.removeListener("commentsChange", read);
+    };
+  }, [editorAPI, anchorId]);
+
+  const submitNew = async () => {
+    const text = draft.trim();
+    if (!text) return;
+    await addComment.mutateAsync({ anchorId, text });
+    setDraft("");
+    onSaved();
+  };
+
+  const submitEdit = async (commentId: string) => {
+    const text = editingText.trim();
+    if (!text) return;
+    await editComment.mutateAsync({ commentId, text });
+    setEditingId(null);
+  };
+
+  const remove = async (c: DecryptedComment) => {
+    const res = await deleteComment.mutateAsync({
+      commentId: c.id,
+      anchorId: c.anchorId,
+    });
+    if (res.threadEmpty) onEmptied(c.anchorId);
+  };
+
+  const focusThread = () => {
+    onOpenThread(anchorId);
+    const ed = editorAPI.getEditor();
+    if (ed) selectCommentRange(ed, anchorId);
+  };
+
+  return (
+    <div
+      onClick={focusThread}
+      className={`bg-card cursor-default rounded-lg border p-2.5 transition-shadow ${
+        active ? "border-yellow-400/70 shadow-sm" : "hover:border-foreground/20"
+      }`}
+    >
+      {quote && (
+        <p className="text-muted-foreground mb-1.5 border-l-2 border-yellow-400/70 pl-2 text-[11px] leading-snug italic">
+          {excerptText(quote, 60)}
+        </p>
+      )}
+
+      {notes.map((c) => {
+        const isMine = c.userId === profile?.id;
+        return (
+          <div key={c.id} className="mt-1.5 first:mt-0">
+            <div className="flex items-center gap-1.5">
+              <UserAvatar
+                size="sm"
+                user={{
+                  name: c.author?.name ?? null,
+                  email: c.author?.email ?? null,
+                }}
+              />
+              <span className="truncate text-xs font-medium">
+                {isMine
+                  ? t("comments.you")
+                  : c.author?.name || c.author?.email || ""}
+              </span>
+              <span className="text-muted-foreground ml-auto shrink-0 text-[10px]">
+                {formatDate(c.createdAt)}
+              </span>
+            </div>
+
+            {editingId === c.id ? (
+              <div className="mt-1" onClick={(e) => e.stopPropagation()}>
+                <CommentComposer
+                  value={editingText}
+                  onChange={setEditingText}
+                  onSubmit={() => submitEdit(c.id)}
+                  onCancel={() => setEditingId(null)}
+                  participants={participants ?? []}
+                  placeholder={t("comments.placeholder")}
+                  submitLabel={t("comments.save")}
+                  pending={editComment.isPending}
+                  autoFocus
+                />
+              </div>
+            ) : (
+              <CommentText text={c.text} currentUserId={profile?.id} />
+            )}
+
+            {isMine && editingId !== c.id && (
+              <div className="mt-0.5 flex gap-2" onClick={(e) => e.stopPropagation()}>
+                <button
+                  type="button"
+                  className="text-muted-foreground hover:text-foreground text-[10px]"
+                  onClick={() => {
+                    setEditingId(c.id);
+                    setEditingText(c.text);
+                  }}
+                >
+                  {t("comments.edit")}
+                </button>
+                <button
+                  type="button"
+                  className="text-muted-foreground hover:text-destructive text-[10px]"
+                  onClick={() => remove(c)}
+                >
+                  {t("comments.delete")}
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {canWrite && (active || notes.length === 0) && (
+        <div
+          className="mt-2 border-t border-foreground/10 pt-2"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <CommentComposer
+            value={draft}
+            onChange={setDraft}
+            onSubmit={submitNew}
+            participants={participants ?? []}
+            placeholder={
+              notes.length === 0
+                ? t("comments.placeholder")
+                : t("comments.replyPlaceholder")
+            }
+            submitLabel={t("comments.add")}
+            pending={addComment.isPending}
+            autoFocus={notes.length === 0}
+          />
+        </div>
+      )}
+    </div>
+  );
+}

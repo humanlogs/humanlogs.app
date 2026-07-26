@@ -7,7 +7,8 @@
             "italic": "Cursiva (⌘I)",
             "underline": "Subrayado (⌘U)",
             "strikethrough": "Tachado (⌘⇧X)",
-            "comment": "Comentario (⌘⇧M)"
+            "comment": "Comentario (⌘⇧M)",
+            "toggleComments": "Mostrar comentarios"
         },
         "search": {
             "findPlaceholder": "Buscar...",
@@ -151,7 +152,9 @@
             "delete": "Eliminar",
             "empty": "Aún no hay comentarios",
             "you": "Tú",
-            "indicator": "Esta línea tiene comentarios"
+            "indicator": "Esta línea tiene comentarios",
+            "replyPlaceholder": "Responder…",
+            "mentionHint": "@ para mencionar"
         }
     }
 }

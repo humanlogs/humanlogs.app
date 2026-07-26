@@ -2,15 +2,12 @@
 
 import { useCallback, useRef, useState } from "react";
 import { EditorAPI } from "../api";
-import {
-  applyCommentMark,
-  removeCommentMark,
-} from "../utils/comment-actions";
+import { applyCommentMark, removeCommentMark } from "../utils/comment-actions";
 
 /**
- * Controller for the comment thread popover. Owns which thread is open, creates the
- * anchor mark for a brand-new comment, and cleans up the anchor when a new thread is
- * abandoned before its first note is saved or when a thread's last note is deleted.
+ * Controller for the comment rail: which thread is focused, whether the rail is open,
+ * creating the anchor mark for a new comment, and cleaning up the anchor when a new
+ * thread is abandoned before its first note is saved or when its last note is deleted.
  */
 export function useCommentThreads({
   editorAPI,
@@ -20,9 +17,10 @@ export function useCommentThreads({
   canWrite: boolean;
 }) {
   const [activeAnchorId, setActiveAnchorId] = useState<string | null>(null);
-  // The anchor of a just-created thread whose first note hasn't been saved yet. If the
-  // popover closes while this still matches the active thread, the dangling mark is
-  // removed so we never leave an orphan highlight.
+  const [railOpen, setRailOpen] = useState(false);
+  // The anchor of a just-created thread whose first note hasn't been saved yet. If we
+  // navigate away while this is still pending, the dangling mark is removed so we never
+  // leave an orphan highlight.
   const pendingNewRef = useRef<string | null>(null);
 
   const getEditor = () => editorAPI.getEditor();
@@ -52,28 +50,43 @@ export function useCommentThreads({
     editorAPI.emit("commentsChange");
     pendingNewRef.current = id;
     setActiveAnchorId(id);
+    setRailOpen(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canWrite, discardPending]);
 
+  /** Focus a thread — from a highlight, a gutter dot, or a card. Opens the rail. */
   const openThread = useCallback(
     (anchorId: string) => {
       discardPending(anchorId);
       setActiveAnchorId(anchorId);
+      setRailOpen(true);
     },
     [discardPending],
   );
 
-  // A note was saved into the active thread → it's no longer a throwaway.
+  /** A note was saved into the active thread → it's no longer a throwaway. */
   const markSaved = useCallback(() => {
     pendingNewRef.current = null;
   }, []);
 
-  const close = useCallback(() => {
+  /** Collapse the rail back to the slim indicator column. */
+  const closeRail = useCallback(() => {
     discardPending();
     setActiveAnchorId(null);
+    setRailOpen(false);
   }, [discardPending]);
 
-  // The last note in a thread was deleted → drop the anchor mark and close.
+  const toggleRail = useCallback(() => {
+    setRailOpen((wasOpen) => {
+      if (wasOpen) {
+        discardPending();
+        setActiveAnchorId(null);
+      }
+      return !wasOpen;
+    });
+  }, [discardPending]);
+
+  /** The last note in a thread was deleted → drop the anchor mark. */
   const emptied = useCallback((anchorId: string) => {
     const editor = getEditor();
     if (editor) {
@@ -85,19 +98,14 @@ export function useCommentThreads({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const getAnchorRect = useCallback(
-    () => (activeAnchorId ? editorAPI.getCommentAnchorRect(activeAnchorId) : null),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [activeAnchorId],
-  );
-
   return {
     activeAnchorId,
+    railOpen,
     startNewComment,
     openThread,
-    close,
+    closeRail,
+    toggleRail,
     markSaved,
     emptied,
-    getAnchorRect,
   };
 }

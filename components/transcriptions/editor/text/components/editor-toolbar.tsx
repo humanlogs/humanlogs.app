@@ -6,6 +6,7 @@ import { Separator } from "@base-ui/react";
 import {
   Bold,
   Italic,
+  MessageSquare,
   MessageSquarePlus,
   PauseIcon,
   PlayIcon,
@@ -47,6 +48,10 @@ interface EditorToolbarProps {
   hasListenAccess: boolean;
   /** Anchor a comment on the current selection (expands to the whole word). */
   onComment?: () => void;
+  /** Show/hide the comment rail. */
+  onToggleComments?: () => void;
+  commentsOpen?: boolean;
+  commentCount?: number;
 }
 
 export function EditorToolbar({
@@ -57,6 +62,9 @@ export function EditorToolbar({
   hasWriteAccess,
   hasListenAccess,
   onComment,
+  onToggleComments,
+  commentsOpen,
+  commentCount = 0,
 }: EditorToolbarProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const t = useTranslations("editor");
@@ -279,6 +287,23 @@ export function EditorToolbar({
           </Button>
         </>
       )}
+
+      {/* Show/hide the comment rail — available to readers too. */}
+      <Button
+        variant={commentsOpen ? "default" : "ghost"}
+        size="sm"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          onToggleComments?.();
+        }}
+        className="h-7 gap-1 px-1.5"
+        title={t("toolbar.toggleComments")}
+      >
+        <MessageSquare className="h-3.5 w-3.5" />
+        {commentCount > 0 && (
+          <span className="text-[11px] tabular-nums">{commentCount}</span>
+        )}
+      </Button>
 
       <SearchReplaceToolbar
         searchTerm={searchReplace.searchTerm}

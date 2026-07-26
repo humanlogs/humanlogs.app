@@ -7,7 +7,8 @@
             "italic": "Italique (⌘I)",
             "underline": "Souligné (⌘U)",
             "strikethrough": "Barré (⌘⇧X)",
-            "comment": "Commentaire (⌘⇧M)"
+            "comment": "Commentaire (⌘⇧M)",
+            "toggleComments": "Afficher les commentaires"
         },
         "search": {
             "findPlaceholder": "Rechercher...",
@@ -151,7 +152,9 @@
             "delete": "Supprimer",
             "empty": "Aucun commentaire",
             "you": "Vous",
-            "indicator": "Cette ligne comporte des commentaires"
+            "indicator": "Cette ligne comporte des commentaires",
+            "replyPlaceholder": "Répondre…",
+            "mentionHint": "@ pour mentionner"
         }
     }
 }

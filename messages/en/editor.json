@@ -7,7 +7,8 @@
             "italic": "Italic (⌘I)",
             "underline": "Underline (⌘U)",
             "strikethrough": "Strikethrough (⌘⇧X)",
-            "comment": "Comment (⌘⇧M)"
+            "comment": "Comment (⌘⇧M)",
+            "toggleComments": "Show comments"
         },
         "search": {
             "findPlaceholder": "Find...",
@@ -151,7 +152,9 @@
             "delete": "Delete",
             "empty": "No comments yet",
             "you": "You",
-            "indicator": "This line has comments"
+            "indicator": "This line has comments",
+            "replyPlaceholder": "Reply…",
+            "mentionHint": "@ to mention"
         }
     }
 }

@@ -51,6 +51,33 @@ function commentAccessors(
   }));
 }
 
+/** Someone with access to the transcription — the pool @-mentions can pick from. */
+export type Participant = {
+  id: string;
+  name: string | null;
+  email: string;
+  picture: string | null;
+  role?: string;
+};
+
+/** Everyone with access to a transcription, with display names. */
+export function useTranscriptionParticipants(transcriptionId: string | undefined) {
+  return useQuery({
+    queryKey: ["transcriptions", transcriptionId, "participants"],
+    enabled: !!transcriptionId,
+    queryFn: async (): Promise<Participant[]> => {
+      const response = await fetchGateway(
+        `/api/transcriptions/${transcriptionId}/participants`,
+      );
+      if (!response.ok) throw new Error("Failed to fetch participants");
+      const { participants } = (await response.json()) as {
+        participants: Participant[];
+      };
+      return participants;
+    },
+  });
+}
+
 /** Fetch + decrypt all comments for a transcription. */
 export function useComments(transcriptionId: string | undefined) {
   const decrypt = useDecryptData();

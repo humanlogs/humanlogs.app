@@ -7,7 +7,8 @@
             "italic": "Kursiv (⌘I)",
             "underline": "Unterstrichen (⌘U)",
             "strikethrough": "Durchgestrichen (⌘⇧X)",
-            "comment": "Kommentar (⌘⇧M)"
+            "comment": "Kommentar (⌘⇧M)",
+            "toggleComments": "Kommentare anzeigen"
         },
         "search": {
             "findPlaceholder": "Suchen...",
@@ -151,7 +152,9 @@
             "delete": "Löschen",
             "empty": "Noch keine Kommentare",
             "you": "Du",
-            "indicator": "Diese Zeile enthält Kommentare"
+            "indicator": "Diese Zeile enthält Kommentare",
+            "replyPlaceholder": "Antworten…",
+            "mentionHint": "@ zum Erwähnen"
         }
     }
 }

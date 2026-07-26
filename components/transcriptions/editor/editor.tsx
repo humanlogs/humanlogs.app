@@ -1,5 +1,6 @@
 "use client";
 
+import { useComments } from "@/hooks/use-comments";
 import { useTranscriptionCursors } from "@/hooks/use-transcription-cursors";
 import { cn } from "@/lib/utils/utils";
 import { useEffect, useRef, useState } from "react";
@@ -11,8 +12,7 @@ import {
 import { InteractiveAudio } from "./audio";
 import { EditorAPI } from "./text/api";
 import { ActiveSegmentHighlight } from "./text/components/active-segment-highlight";
-import { CommentColumn } from "./text/components/comment-column";
-import { CommentPanel } from "./text/components/comment-panel";
+import { CommentRail } from "./text/components/comment-rail";
 import { EditorToolbar } from "./text/components/editor-toolbar";
 import { SearchHighlights } from "./text/components/search-highlights";
 import { SpeakerColumn } from "./text/components/speaker-column";
@@ -165,10 +165,27 @@ export function TranscriptEditor({
   // concurrently — no single-writer lock.
   const canWrite = hasWriteAccess;
 
-  // Comment threads: creating/opening the popover, and dropping abandoned anchors.
+  // Comment threads: creating/focusing threads, and dropping abandoned anchors.
   const commentThreads = useCommentThreads({ editorAPI, canWrite });
+  const { data: commentList } = useComments(transcription.id);
+  const threadCount = new Set((commentList ?? []).map((c) => c.anchorId)).size;
 
-  // Open a thread's popover when its highlighted text is clicked in the editor.
+  // Emphasise the focused thread's highlight in the text.
+  useEffect(() => {
+    const el = editorAPI.getEditorElement();
+    if (!el) return;
+    const active = commentThreads.activeAnchorId;
+    for (const span of el.querySelectorAll<HTMLElement>(
+      "span[data-comment-id]",
+    )) {
+      span.classList.toggle(
+        "hl-comment-active",
+        !!active && span.getAttribute("data-comment-id") === active,
+      );
+    }
+  }, [editorAPI, commentThreads.activeAnchorId]);
+
+  // Focus a thread when its highlighted text is clicked in the editor.
   useEffect(() => {
     let bound: HTMLElement | null = null;
     const onClick = (e: MouseEvent) => {
@@ -296,6 +313,9 @@ export function TranscriptEditor({
                 hasWriteAccess={canWrite}
                 hasListenAccess={hasListenAccess}
                 onComment={commentThreads.startNewComment}
+                onToggleComments={commentThreads.toggleRail}
+                commentsOpen={commentThreads.railOpen}
+                commentCount={threadCount}
               />
             </div>
           </div>,
@@ -342,10 +362,16 @@ export function TranscriptEditor({
                 />
               </div>
             </div>
-            <CommentColumn
+            <CommentRail
+              transcriptionId={transcription.id}
               editorAPI={editorAPI}
+              canWrite={canWrite}
+              open={commentThreads.railOpen}
               activeAnchorId={commentThreads.activeAnchorId}
               onOpenThread={commentThreads.openThread}
+              onCloseRail={commentThreads.closeRail}
+              onSaved={commentThreads.markSaved}
+              onEmptied={commentThreads.emptied}
             />
             {showSegmentsHtmlDebug && (
               <SegmentsHtmlDebugPanel editorAPI={editorAPI} />
@@ -353,17 +379,6 @@ export function TranscriptEditor({
           </div>
         </div>
       </div>
-
-      <CommentPanel
-        transcriptionId={transcription.id}
-        editorAPI={editorAPI}
-        anchorId={commentThreads.activeAnchorId}
-        getAnchorRect={commentThreads.getAnchorRect}
-        canWrite={canWrite}
-        onClose={commentThreads.close}
-        onSaved={commentThreads.markSaved}
-        onEmptied={commentThreads.emptied}
-      />
     </div>
   );
 }

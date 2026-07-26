@@ -48,18 +48,36 @@ export function useSpeakerPositions(editorAPI: EditorAPI): {
     // Initial measure after commit.
     schedule();
 
+    // The editor reflows whenever its width changes (opening/collapsing the comment
+    // rail or the sidebar) without firing any window event, which would leave every
+    // badge at a stale offset — so watch the element itself too.
+    const observer = new ResizeObserver(schedule);
+    let observed: HTMLElement | null = null;
+    const observe = () => {
+      const el = editorAPI.getEditorElement();
+      if (!el || el === observed) return;
+      if (observed) observer.unobserve(observed);
+      observer.observe(el);
+      observed = el;
+      schedule();
+    };
+    observe();
+
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule, { passive: true });
     editorAPI.addListener("speakersOffsets", schedule);
     editorAPI.addListener("change", schedule);
+    editorAPI.addListener("ready", observe);
 
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
+      observer.disconnect();
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
       editorAPI.removeListener("speakersOffsets", schedule);
       editorAPI.removeListener("change", schedule);
+      editorAPI.removeListener("ready", observe);
     };
     // editorAPI is a stable ref
     // eslint-disable-next-line react-hooks/exhaustive-deps

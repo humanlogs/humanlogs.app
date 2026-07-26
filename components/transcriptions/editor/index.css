@@ -40,19 +40,31 @@
     text-decoration: underline;
 }
 
-/* Comment anchors: subtly underline the commented text in orange. The right-gutter
-   indicator (CommentColumn) is the primary affordance; this is the inline hint. */
+/* Comment anchors: a soft yellow highlight behind the commented text — the same
+   treatment as search hits and the collaboration highlights, with the rounded padding
+   used by .word-span so every highlight sits on the text identically. The thread whose
+   panel is open is emphasised via .hl-comment-active. */
 .hl-comment {
-    text-decoration: underline;
-    text-decoration-color: color-mix(in oklab, var(--color-orange-500) 70%, transparent);
-    text-decoration-thickness: 2px;
-    text-underline-offset: 2px;
+    background-color: color-mix(in oklab, var(--color-yellow-300) 45%, transparent);
+    border-radius: 5px;
+    padding: 0 1px;
+    margin: 0 -1px;
     cursor: pointer;
     transition: background-color 0.15s ease-out;
 }
 
-.hl-comment:hover {
-    background-color: color-mix(in oklab, var(--color-orange-500) 15%, transparent);
+.hl-comment:hover,
+.hl-comment.hl-comment-active {
+    background-color: color-mix(in oklab, var(--color-yellow-400) 70%, transparent);
+}
+
+.dark .hl-comment {
+    background-color: color-mix(in oklab, var(--color-yellow-500) 30%, transparent);
+}
+
+.dark .hl-comment:hover,
+.dark .hl-comment.hl-comment-active {
+    background-color: color-mix(in oklab, var(--color-yellow-500) 50%, transparent);
 }
 
 /* Word span styles for audio sync */
