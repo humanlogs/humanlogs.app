@@ -4,6 +4,7 @@ import {
   EncryptedDataEntity,
   EncryptionUtils,
 } from "@/lib/encryption/encryption-entities";
+import { mentionedUserIds } from "@/components/transcriptions/editor/text/utils/mentions";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { browserCrypto } from "../lib/encryption/encryption-entities.browser";
 import { fetchGateway } from "./fetch";
@@ -155,7 +156,14 @@ export function useAddComment(transcriptionId: string) {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ anchorId, body }),
+          // Mentioned ids travel next to the ciphertext: the mention token is inside
+          // the encrypted body, so this is the only way the server can notify them.
+          // Ids only — the note itself stays end-to-end encrypted.
+          body: JSON.stringify({
+            anchorId,
+            body,
+            mentions: mentionedUserIds(text),
+          }),
         },
       );
       if (!response.ok) {
@@ -167,6 +175,64 @@ export function useAddComment(transcriptionId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["comments", transcriptionId],
+      });
+      // Posting subscribes the author to the thread server-side.
+      queryClient.invalidateQueries({
+        queryKey: ["transcriptions", transcriptionId, "subscriptions"],
+      });
+    },
+  });
+}
+
+/**
+ * Which threads of this transcription the current user follows. Posting in a thread or
+ * being mentioned subscribes them server-side, so this is refetched after commenting.
+ */
+export function useThreadSubscriptions(transcriptionId: string | undefined) {
+  return useQuery({
+    queryKey: ["transcriptions", transcriptionId, "subscriptions"],
+    enabled: !!transcriptionId,
+    queryFn: async (): Promise<Record<string, boolean>> => {
+      const response = await fetchGateway(
+        `/api/transcriptions/${transcriptionId}/comments/subscriptions`,
+      );
+      if (!response.ok) throw new Error("Failed to fetch subscriptions");
+      const { subscriptions } = (await response.json()) as {
+        subscriptions: { anchorId: string; subscribed: boolean }[];
+      };
+      return Object.fromEntries(
+        subscriptions.map((s) => [s.anchorId, s.subscribed]),
+      );
+    },
+  });
+}
+
+/** Follow or unfollow a thread. */
+export function useToggleThreadSubscription(transcriptionId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      anchorId,
+      subscribed,
+    }: {
+      anchorId: string;
+      subscribed: boolean;
+    }) => {
+      const response = await fetchGateway(
+        `/api/transcriptions/${transcriptionId}/comments/subscriptions`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ anchorId, subscribed }),
+        },
+      );
+      if (!response.ok) throw new Error("Failed to update subscription");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["transcriptions", transcriptionId, "subscriptions"],
       });
     },
   });

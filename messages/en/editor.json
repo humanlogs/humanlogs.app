@@ -154,7 +154,9 @@
             "you": "You",
             "indicator": "This line has comments",
             "replyPlaceholder": "Reply…",
-            "mentionHint": "@ to mention"
+            "mentionHint": "@ to mention",
+            "subscribe": "Follow this thread",
+            "unsubscribe": "Stop following this thread"
         }
     }
 }

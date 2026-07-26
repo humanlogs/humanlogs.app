@@ -3,7 +3,7 @@
 import { useComments } from "@/hooks/use-comments";
 import { useTranscriptionCursors } from "@/hooks/use-transcription-cursors";
 import { cn } from "@/lib/utils/utils";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   TranscriptionDetail,
@@ -26,6 +26,9 @@ import { useSearchReplace } from "./text/hooks/use-search-replace";
 import { TranscriptEditorContentTipTap } from "./text/tiptap";
 import { segmentsToHtml } from "./text/utils/html";
 import { AudioControls } from "./audio/helpers";
+
+/** Roughly where the sticky header ends, used to probe the first visible line. */
+const HEADER_SAFE_TOP = 140;
 
 function SegmentsHtmlDebugPanel({ editorAPI }: { editorAPI: EditorAPI }) {
   const [html, setHtml] = useState("");
@@ -175,6 +178,52 @@ export function TranscriptEditor({
   // rail, otherwise the focused one.
   const [hoveredAnchorId, setHoveredAnchorId] = useState<string | null>(null);
   const emphasisedAnchorId = hoveredAnchorId ?? commentThreads.activeAnchorId;
+
+  /**
+   * Keep the reader in place when the rail opens or closes.
+   *
+   * The rail takes real width, so showing it re-wraps the transcript into a narrower
+   * column and every line below moves — measured at ~130px of drift mid-document, which
+   * reads as the page jumping under you. So we note which line sits at the top of the
+   * view beforehand and, once the new layout is in place but before it is painted,
+   * scroll by however far that line moved.
+   */
+  const readingAnchorRef = useRef<{ pos: number; y: number } | null>(null);
+  const captureReadingAnchor = () => {
+    const view = editorAPI.getEditor()?.view;
+    const el = editorAPI.getEditorElement();
+    if (!view || !el) return;
+    const rect = el.getBoundingClientRect();
+    // Probe just inside the visible top of the transcript, clear of the sticky header.
+    const top = Math.min(
+      Math.max(rect.top, HEADER_SAFE_TOP) + 4,
+      window.innerHeight - 4,
+    );
+    const hit = view.posAtCoords({ left: rect.left + 24, top });
+    if (!hit) return;
+    try {
+      readingAnchorRef.current = {
+        pos: hit.pos,
+        y: view.coordsAtPos(hit.pos).top,
+      };
+    } catch {
+      readingAnchorRef.current = null;
+    }
+  };
+
+  useLayoutEffect(() => {
+    const anchor = readingAnchorRef.current;
+    readingAnchorRef.current = null;
+    if (!anchor) return;
+    const view = editorAPI.getEditor()?.view;
+    if (!view) return;
+    try {
+      const delta = view.coordsAtPos(anchor.pos).top - anchor.y;
+      if (Math.abs(delta) > 1) window.scrollBy(0, delta);
+    } catch {
+      // The anchored position no longer exists — nothing sensible to restore.
+    }
+  }, [commentThreads.railOpen, editorAPI]);
 
   // Focus a thread when its highlighted text is clicked in the editor.
   useEffect(() => {
@@ -331,7 +380,10 @@ export function TranscriptEditor({
                 hasWriteAccess={canWrite}
                 hasListenAccess={hasListenAccess}
                 onComment={commentThreads.startNewComment}
-                onToggleComments={commentThreads.toggleRail}
+                onToggleComments={() => {
+                  captureReadingAnchor();
+                  commentThreads.toggleRail();
+                }}
                 commentsOpen={commentThreads.railOpen}
                 commentCount={threadCount}
               />
@@ -386,9 +438,15 @@ export function TranscriptEditor({
               canWrite={canWrite}
               open={commentThreads.railOpen}
               activeAnchorId={commentThreads.activeAnchorId}
-              onOpenThread={commentThreads.openThread}
+              onOpenThread={(anchorId) => {
+                captureReadingAnchor();
+                commentThreads.openThread(anchorId);
+              }}
               onHoverThread={setHoveredAnchorId}
-              onCloseRail={commentThreads.closeRail}
+              onCloseRail={() => {
+                captureReadingAnchor();
+                commentThreads.closeRail();
+              }}
               onSaved={() => {
                 commentThreads.markSaved();
                 flushAnchors();

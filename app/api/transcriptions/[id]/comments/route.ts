@@ -1,3 +1,7 @@
+import {
+  NOTIFICATION_TYPES,
+  createNotifications,
+} from "@/lib/notifications/notifications";
 import { prisma } from "@/lib/prisma";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 import { notifyDatabaseChange } from "@/lib/sockets/socket-helpers";
@@ -114,9 +118,93 @@ export const POST = withAuthRateLimit(
       notifyDatabaseChange(uid, "comment", "create", { transcriptionId: id });
     }
 
+    // Mentions arrive as a plain list of user ids alongside the encrypted body: the
+    // mention token itself lives inside the ciphertext, so the server could not
+    // otherwise know who to notify. Only the ids are exposed, never the text — and
+    // only for people who already have access to the transcription.
+    const mentioned = (
+      Array.isArray(body.mentions) ? (body.mentions as unknown[]) : []
+    ).filter((m): m is string => typeof m === "string");
+    const allowed = new Set(participantIds(transcription));
+    const mentionedWithAccess = Array.from(new Set(mentioned)).filter((m) =>
+      allowed.has(m),
+    );
+
+    await notifyThread({
+      transcriptionId: id,
+      anchorId: body.anchorId,
+      commentId: created.id,
+      actorId: user.id,
+      mentioned: mentionedWithAccess,
+    });
+
     return NextResponse.json({ comment: toDTO(created) });
   },
 );
+
+/**
+ * Subscribe the author (and anyone they mentioned) to the thread, then notify:
+ * mentioned people get a mention notification, the thread's other subscribers get a
+ * reply. Best-effort — a notification failure must never fail posting the comment.
+ */
+async function notifyThread({
+  transcriptionId,
+  anchorId,
+  commentId,
+  actorId,
+  mentioned,
+}: {
+  transcriptionId: string;
+  anchorId: string;
+  commentId: string;
+  actorId: string;
+  mentioned: string[];
+}): Promise<void> {
+  try {
+    // Posting in a thread, or being mentioned in it, subscribes you — unless you
+    // previously opted out, which `subscribed: false` records.
+    for (const userId of new Set([actorId, ...mentioned])) {
+      await prisma.threadSubscription.upsert({
+        where: {
+          userId_transcriptionId_anchorId: { userId, transcriptionId, anchorId },
+        },
+        create: { userId, transcriptionId, anchorId, subscribed: true },
+        update: {},
+      });
+    }
+
+    const subscribers = await prisma.threadSubscription.findMany({
+      where: { transcriptionId, anchorId, subscribed: true },
+      select: { userId: true },
+    });
+
+    const mentionedSet = new Set(mentioned);
+    const payload = { transcriptionId, anchorId, commentId };
+
+    await createNotifications({
+      recipients: mentioned,
+      type: NOTIFICATION_TYPES.commentMention,
+      actorId,
+      entityType: "transcription",
+      entityId: transcriptionId,
+      data: payload,
+    });
+
+    // A mention already notified them; don't send a reply notification as well.
+    await createNotifications({
+      recipients: subscribers
+        .map((s) => s.userId)
+        .filter((uid) => !mentionedSet.has(uid)),
+      type: NOTIFICATION_TYPES.commentReply,
+      actorId,
+      entityType: "transcription",
+      entityId: transcriptionId,
+      data: payload,
+    });
+  } catch (error) {
+    console.error("[comments] notification step failed", error);
+  }
+}
 
 // Bulk-replace comment bodies. Used when sharing a transcription with a new user:
 // the owner re-wraps each encrypted comment body's AES key for the new accessor

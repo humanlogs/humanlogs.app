@@ -1,12 +1,10 @@
 /**
- * Timestamp shown on a comment, in the app's locale (not the browser's).
- *
- * Comment threads are read mostly while the conversation is fresh, so the recent past
- * is relative ("2 min ago") and anything older falls back to an absolute date. Uses
- * Intl.RelativeTimeFormat so the wording comes from the locale rather than the app's
- * message catalogue.
+ * A timestamp in the app's locale (not the browser's), for activity feeds — comments,
+ * notifications, anything read mostly while it is fresh. The recent past is relative
+ * ("2 minutes ago"), older entries fall back to an absolute date. Wording comes from
+ * Intl.RelativeTimeFormat rather than the app's message catalogue.
  */
-export function formatCommentDate(iso: string, locale: string): string {
+export function formatRelativeDate(iso: string, locale: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "";
 

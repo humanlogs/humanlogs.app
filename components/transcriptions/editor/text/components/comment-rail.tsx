@@ -9,9 +9,11 @@ import {
   useComments,
   useDeleteComment,
   useEditComment,
+  useThreadSubscriptions,
+  useToggleThreadSubscription,
   useTranscriptionParticipants,
 } from "@/hooks/use-comments";
-import { MessageSquare } from "lucide-react";
+import { Bell, BellOff, MessageSquare } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { EditorAPI } from "../api";
 import { useCommentPositions } from "../hooks/use-comment-positions";
@@ -20,7 +22,7 @@ import {
   getCommentRanges,
   selectCommentRange,
 } from "../utils/comment-actions";
-import { formatCommentDate } from "../utils/comment-date";
+import { formatRelativeDate } from "@/lib/utils/relative-date";
 import { layoutRail } from "../utils/comment-rail-layout";
 import { CommentComposer } from "./comment-composer";
 import { CommentText } from "./comment-text";
@@ -221,6 +223,11 @@ function CommentCard({
   const addComment = useAddComment(transcriptionId);
   const editComment = useEditComment(transcriptionId);
   const deleteComment = useDeleteComment(transcriptionId);
+  const { data: subscriptions } = useThreadSubscriptions(transcriptionId);
+  const toggleSubscription = useToggleThreadSubscription(transcriptionId);
+  // Following is implicit once you take part: posting or being mentioned subscribes
+  // you server-side. Until then the control reads as "not following".
+  const subscribed = subscriptions?.[anchorId] ?? false;
 
   const [draft, setDraft] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -284,11 +291,42 @@ function CommentCard({
         active ? "border-yellow-400/70 shadow-sm" : "hover:border-foreground/20"
       }`}
     >
-      {quote && (
-        <p className="text-muted-foreground mb-1.5 border-l-2 border-yellow-400/70 pl-2 text-[11px] leading-snug italic">
-          {excerptText(quote, 60)}
-        </p>
-      )}
+      <div className="mb-1.5 flex items-start gap-1">
+        {quote && (
+          <p className="text-muted-foreground min-w-0 flex-1 border-l-2 border-yellow-400/70 pl-2 text-[11px] leading-snug italic">
+            {excerptText(quote, 52)}
+          </p>
+        )}
+        {/* Follow/unfollow this thread. Only shown once the thread exists, since an
+            unsaved one has nothing to follow yet. */}
+        {notes.length > 0 && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleSubscription.mutate({ anchorId, subscribed: !subscribed });
+            }}
+            title={
+              subscribed ? t("comments.unsubscribe") : t("comments.subscribe")
+            }
+            aria-label={
+              subscribed ? t("comments.unsubscribe") : t("comments.subscribe")
+            }
+            aria-pressed={subscribed}
+            className={`shrink-0 rounded p-0.5 transition-colors ${
+              subscribed
+                ? "text-yellow-600 dark:text-yellow-500"
+                : "text-muted-foreground/50 hover:text-foreground"
+            }`}
+          >
+            {subscribed ? (
+              <Bell className="h-3 w-3" />
+            ) : (
+              <BellOff className="h-3 w-3" />
+            )}
+          </button>
+        )}
+      </div>
 
       {notes.map((c) => {
         const isMine = c.userId === profile?.id;
@@ -308,7 +346,7 @@ function CommentCard({
                   : c.author?.name || c.author?.email || ""}
               </span>
               <span className="text-muted-foreground ml-auto shrink-0 text-[10px]">
-                {formatCommentDate(c.createdAt, locale)}
+                {formatRelativeDate(c.createdAt, locale)}
               </span>
             </div>
 

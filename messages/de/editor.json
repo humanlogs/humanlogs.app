@@ -154,7 +154,9 @@
             "you": "Du",
             "indicator": "Diese Zeile enthält Kommentare",
             "replyPlaceholder": "Antworten…",
-            "mentionHint": "@ zum Erwähnen"
+            "mentionHint": "@ zum Erwähnen",
+            "subscribe": "Diesem Thread folgen",
+            "unsubscribe": "Thread nicht mehr folgen"
         }
     }
 }

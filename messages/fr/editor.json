@@ -154,7 +154,9 @@
             "you": "Vous",
             "indicator": "Cette ligne comporte des commentaires",
             "replyPlaceholder": "Répondre…",
-            "mentionHint": "@ pour mentionner"
+            "mentionHint": "@ pour mentionner",
+            "subscribe": "Suivre cette discussion",
+            "unsubscribe": "Ne plus suivre cette discussion"
         }
     }
 }

@@ -418,5 +418,13 @@
       "back": "Retour à l'accueil"
     },
     "settings": "Paramètres"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "Aucune notification",
+    "markAllRead": "Tout marquer comme lu",
+    "someone": "Quelqu'un",
+    "mentionedYou": "{name} vous a mentionné",
+    "repliedInThread": "{name} a répondu dans une discussion que vous suivez"
   }
 }
