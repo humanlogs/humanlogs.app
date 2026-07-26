@@ -170,20 +170,11 @@ export function TranscriptEditor({
   const { data: commentList } = useComments(transcription.id);
   const threadCount = new Set((commentList ?? []).map((c) => c.anchorId)).size;
 
-  // Emphasise the focused thread's highlight in the text.
-  useEffect(() => {
-    const el = editorAPI.getEditorElement();
-    if (!el) return;
-    const active = commentThreads.activeAnchorId;
-    for (const span of el.querySelectorAll<HTMLElement>(
-      "span[data-comment-id]",
-    )) {
-      span.classList.toggle(
-        "hl-comment-active",
-        !!active && span.getAttribute("data-comment-id") === active,
-      );
-    }
-  }, [editorAPI, commentThreads.activeAnchorId]);
+
+  // Thread whose highlight is emphasised in the transcript: the one hovered in the
+  // rail, otherwise the focused one.
+  const [hoveredAnchorId, setHoveredAnchorId] = useState<string | null>(null);
+  const emphasisedAnchorId = hoveredAnchorId ?? commentThreads.activeAnchorId;
 
   // Focus a thread when its highlighted text is clicked in the editor.
   useEffect(() => {
@@ -228,6 +219,17 @@ export function TranscriptEditor({
       // decrypting the shared content.
       sessionAesKey: aesKey,
     });
+
+  /**
+   * A note is stored the moment it is sent, but its anchor lives in the transcript,
+   * which only autosaves after a debounce — closing the tab in between would leave the
+   * note with nothing to attach to. So persist the transcript as soon as an anchor
+   * appears or disappears, after letting the (debounced) segment projection catch up
+   * with the mark that was just added or removed.
+   */
+  const flushAnchors = () => {
+    setTimeout(() => flushSave(), 500);
+  };
 
   // When this client becomes the save leader (authority handoff), persist the
   // current state immediately so no edits sit in an unsaved window.
@@ -289,6 +291,22 @@ export function TranscriptEditor({
         </div>
       )}
       <SpeakerRenameDialog />
+
+      {/* Emphasising the hovered/focused thread as a CSS rule rather than a class on the
+          spans: those are ProseMirror-managed, so any class set imperatively is dropped
+          the next time it redraws them. A rule keyed on the id always matches, however
+          often the spans are recreated. */}
+      {emphasisedAnchorId && /^[\w-]+$/.test(emphasisedAnchorId) && (
+        <style>{`
+          span[data-comment-id="${emphasisedAnchorId}"] {
+            background-color: color-mix(in oklab, var(--color-yellow-400) 70%, transparent);
+          }
+          .dark span[data-comment-id="${emphasisedAnchorId}"] {
+            background-color: color-mix(in oklab, var(--color-yellow-500) 50%, transparent);
+          }
+        `}</style>
+      )}
+
       <div className="flex flex-col h-full">
         {/* Sticky top section */}
         {createPortal(
@@ -369,9 +387,16 @@ export function TranscriptEditor({
               open={commentThreads.railOpen}
               activeAnchorId={commentThreads.activeAnchorId}
               onOpenThread={commentThreads.openThread}
+              onHoverThread={setHoveredAnchorId}
               onCloseRail={commentThreads.closeRail}
-              onSaved={commentThreads.markSaved}
-              onEmptied={commentThreads.emptied}
+              onSaved={() => {
+                commentThreads.markSaved();
+                flushAnchors();
+              }}
+              onEmptied={(anchorId) => {
+                commentThreads.emptied(anchorId);
+                flushAnchors();
+              }}
             />
             {showSegmentsHtmlDebug && (
               <SegmentsHtmlDebugPanel editorAPI={editorAPI} />

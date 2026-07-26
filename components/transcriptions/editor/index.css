@@ -53,8 +53,7 @@
     transition: background-color 0.15s ease-out;
 }
 
-.hl-comment:hover,
-.hl-comment.hl-comment-active {
+.hl-comment:hover {
     background-color: color-mix(in oklab, var(--color-yellow-400) 70%, transparent);
 }
 
@@ -62,8 +61,7 @@
     background-color: color-mix(in oklab, var(--color-yellow-500) 30%, transparent);
 }
 
-.dark .hl-comment:hover,
-.dark .hl-comment.hl-comment-active {
+.dark .hl-comment:hover {
     background-color: color-mix(in oklab, var(--color-yellow-500) 50%, transparent);
 }
 

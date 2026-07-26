@@ -6,33 +6,46 @@ import type { Editor } from "@tiptap/react";
  * thread to a range of transcript text.
  */
 
+/** Characters treated as part of a word when snapping a range outwards. */
+const WORD_CHAR = /[\w'’-]/;
+
 /**
- * Expand an empty selection (a bare caret) to the surrounding word, mirroring what
- * the bold/italic buttons do (`useFormat.applyFormat`). A non-empty selection is left
- * as-is. Returns the resulting `{ from, to }` (1-based ProseMirror positions), or null
- * when there is nothing to select.
+ * Grow a range so it covers whole words — a comment should never be anchored to
+ * "…faudr|ait reformuler la conclu|sion". Both ends are pushed out to the nearest word
+ * boundary, after trimming any whitespace the drag picked up; an empty selection
+ * becomes the word under the caret, which is what the bold/italic buttons do.
+ * Returns null when there is no word to anchor to (e.g. an empty line).
  */
 export function expandSelectionToWord(
   editor: Editor,
 ): { from: number; to: number } | null {
-  const { from, to } = editor.state.selection;
-  if (from !== to) return { from, to };
+  const { doc } = editor.state;
+  let { from, to } = editor.state.selection;
 
-  const $pos = editor.state.doc.resolve(from);
-  const textContent = $pos.parent.textContent;
-  const posInParent = $pos.parentOffset;
+  // Drop leading/trailing whitespace so a sloppy drag doesn't pull in the next word.
+  while (to > from && /\s/.test(doc.textBetween(to - 1, to))) to--;
+  while (from < to && /\s/.test(doc.textBetween(from, from + 1))) from++;
 
-  let start = posInParent;
-  let end = posInParent;
-  while (start > 0 && /[\w']/.test(textContent[start - 1])) start--;
-  while (end < textContent.length && /[\w']/.test(textContent[end])) end++;
+  const $from = doc.resolve(from);
+  const fromText = $from.parent.textContent;
+  let fromOffset = $from.parentOffset;
+  while (fromOffset > 0 && WORD_CHAR.test(fromText[fromOffset - 1])) {
+    fromOffset--;
+    from--;
+  }
 
-  if (start >= end) return null;
+  const $to = doc.resolve(to);
+  const toText = $to.parent.textContent;
+  let toOffset = $to.parentOffset;
+  while (toOffset < toText.length && WORD_CHAR.test(toText[toOffset])) {
+    toOffset++;
+    to++;
+  }
 
-  const absStart = from - posInParent + start;
-  const absEnd = from - posInParent + end;
-  editor.commands.setTextSelection({ from: absStart, to: absEnd });
-  return { from: absStart, to: absEnd };
+  if (from >= to) return null;
+
+  editor.commands.setTextSelection({ from, to });
+  return { from, to };
 }
 
 /**
@@ -182,12 +195,27 @@ export function selectCommentRange(editor: Editor, anchorId: string): boolean {
 
 /**
  * Condense a quoted phrase to "start […] end" so a thread header stays one or two
- * lines regardless of how much text was commented.
+ * lines regardless of how much text was commented. Cuts on word boundaries — a quote
+ * chopped mid-word reads as broken text rather than as an ellipsis.
  */
 export function excerptText(text: string, max = 70): string {
   const t = text.replace(/\s+/g, " ").trim();
   if (t.length <= max) return t;
+
   const headLen = Math.ceil((max - 5) / 2);
   const tailLen = Math.floor((max - 5) / 2);
-  return `${t.slice(0, headLen).trimEnd()} […] ${t.slice(t.length - tailLen).trimStart()}`;
+
+  const headCut = t.slice(0, headLen);
+  const lastSpace = headCut.lastIndexOf(" ");
+  const head = (lastSpace > headLen / 2 ? headCut.slice(0, lastSpace) : headCut).trimEnd();
+
+  const tailCut = t.slice(t.length - tailLen);
+  const firstSpace = tailCut.indexOf(" ");
+  const tail = (
+    firstSpace >= 0 && firstSpace < tailLen / 2
+      ? tailCut.slice(firstSpace + 1)
+      : tailCut
+  ).trimStart();
+
+  return `${head} […] ${tail}`;
 }

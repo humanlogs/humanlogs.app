@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "@/components/locale-provider";
+import { useLocale, useTranslations } from "@/components/locale-provider";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useUserProfile } from "@/hooks/use-api";
 import {
@@ -20,6 +20,7 @@ import {
   getCommentRanges,
   selectCommentRange,
 } from "../utils/comment-actions";
+import { formatCommentDate } from "../utils/comment-date";
 import { layoutRail } from "../utils/comment-rail-layout";
 import { CommentComposer } from "./comment-composer";
 import { CommentText } from "./comment-text";
@@ -34,23 +35,13 @@ interface CommentRailProps {
   open: boolean;
   activeAnchorId: string | null;
   onOpenThread: (anchorId: string) => void;
+  /** Thread the pointer is over, so the transcript can emphasise its highlight. */
+  onHoverThread: (anchorId: string | null) => void;
   onCloseRail: () => void;
   onSaved: () => void;
   onEmptied: (anchorId: string) => void;
 }
 
-function formatDate(iso: string): string {
-  try {
-    return new Date(iso).toLocaleString(undefined, {
-      day: "numeric",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return "";
-  }
-}
 
 /**
  * The comment rail: one card per thread, each sitting level with the text it annotates.
@@ -71,6 +62,7 @@ export function CommentRail({
   open,
   activeAnchorId,
   onOpenThread,
+  onHoverThread,
   onCloseRail,
   onSaved,
   onEmptied,
@@ -89,6 +81,10 @@ export function CommentRail({
     anchorTop: p.top,
   }));
 
+  // Re-measure when the set of cards changes (and whenever a card resizes, e.g. a
+  // composer opening). Keyed on the anchor list so the observer isn't rebuilt on every
+  // render; `setHeights` no-ops when nothing moved, so this settles in one pass.
+  const anchorKey = anchors.map((a) => a.anchorId).join("|");
   useLayoutEffect(() => {
     if (!open) return;
     const measure = () => {
@@ -109,7 +105,7 @@ export function CommentRail({
     const ro = new ResizeObserver(measure);
     for (const el of cardRefs.current.values()) ro.observe(el);
     return () => ro.disconnect();
-  });
+  }, [open, anchorKey]);
 
   const tops = layoutRail(
     anchors.map((a) => ({ ...a, height: heights[a.anchorId] ?? 96 })),
@@ -185,6 +181,7 @@ export function CommentRail({
             active={anchor.anchorId === activeAnchorId}
             canWrite={canWrite}
             onOpenThread={onOpenThread}
+            onHover={onHoverThread}
             onSaved={onSaved}
             onEmptied={onEmptied}
           />
@@ -202,6 +199,7 @@ function CommentCard({
   active,
   canWrite,
   onOpenThread,
+  onHover,
   onSaved,
   onEmptied,
 }: {
@@ -212,10 +210,12 @@ function CommentCard({
   active: boolean;
   canWrite: boolean;
   onOpenThread: (anchorId: string) => void;
+  onHover: (anchorId: string | null) => void;
   onSaved: () => void;
   onEmptied: (anchorId: string) => void;
 }) {
   const t = useTranslations("editor");
+  const { locale } = useLocale();
   const { data: profile } = useUserProfile();
   const { data: participants } = useTranscriptionParticipants(transcriptionId);
   const addComment = useAddComment(transcriptionId);
@@ -276,6 +276,10 @@ function CommentCard({
   return (
     <div
       onClick={focusThread}
+      // Cards drift below their anchor when comments are dense, so hovering one lights
+      // up the text it belongs to — the link between the two without a connector line.
+      onMouseEnter={() => onHover(anchorId)}
+      onMouseLeave={() => onHover(null)}
       className={`bg-card cursor-default rounded-lg border p-2.5 transition-shadow ${
         active ? "border-yellow-400/70 shadow-sm" : "hover:border-foreground/20"
       }`}
@@ -304,7 +308,7 @@ function CommentCard({
                   : c.author?.name || c.author?.email || ""}
               </span>
               <span className="text-muted-foreground ml-auto shrink-0 text-[10px]">
-                {formatDate(c.createdAt)}
+                {formatCommentDate(c.createdAt, locale)}
               </span>
             </div>
 

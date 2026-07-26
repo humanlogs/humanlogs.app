@@ -43,15 +43,19 @@ export function CommentComposer({
   const [caret, setCaret] = useState(0);
   const [highlighted, setHighlighted] = useState(0);
   const [focused, setFocused] = useState(false);
+  // Start offset of a mention the user dismissed with Escape, so it stays closed until
+  // they begin a different one.
+  const [dismissedFrom, setDismissedFrom] = useState<number | null>(null);
 
   const mention = activeMentionQuery(value, caret);
-  const suggestions = mention
-    ? participants
-        .filter((p) =>
-          displayName(p).toLowerCase().includes(mention.query.toLowerCase()),
-        )
-        .slice(0, 6)
-    : [];
+  const suggestions =
+    mention && mention.from !== dismissedFrom
+      ? participants
+          .filter((p) =>
+            displayName(p).toLowerCase().includes(mention.query.toLowerCase()),
+          )
+          .slice(0, 6)
+      : [];
   const pickerOpen = suggestions.length > 0;
 
   // Grow the field to fit its content instead of scrolling inside a fixed box.
@@ -106,7 +110,7 @@ export function CommentComposer({
       if (e.key === "Escape") {
         e.preventDefault();
         e.stopPropagation();
-        setCaret(-1); // closes the picker without touching the text
+        setDismissedFrom(mention?.from ?? null);
         return;
       }
     }
