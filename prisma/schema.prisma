@@ -186,7 +186,9 @@ model DeletionToken {
 // signing up again to get a fresh free credit balance, so we keep the credit
 // state behind a one-way HMAC of the (normalized) email address. No personal
 // data is retained: the hash can only be matched, never reversed back to an
-// address. Records are purged after `security.deletedAccountRetentionDays`.
+// address. A match also disqualifies the sign-up from paying a referral bonus,
+// since a returning address is not an acquisition. Records are purged after
+// `security.deletedAccountRetentionDays`.
 model DeletedAccount {
   id             String   @id @default(uuid())
   emailHash      String   @unique

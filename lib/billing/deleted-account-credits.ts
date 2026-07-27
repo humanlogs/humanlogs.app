@@ -96,6 +96,25 @@ export async function recordDeletedAccountCredits(
 }
 
 /**
+ * True when this address already had an account here and deleted it.
+ *
+ * Such a sign-up is a returning user, not an acquisition: it must not pay out
+ * a referral bonus, otherwise the same delete-and-register loop farms referral
+ * credits instead of free credits.
+ */
+export async function isReturningAddress(
+  email: string,
+  client: PrismaClientLike = prisma,
+): Promise<boolean> {
+  const record = await client.deletedAccount.findUnique({
+    where: { emailHash: hashEmail(email) },
+    select: { id: true },
+  });
+
+  return record !== null;
+}
+
+/**
  * Called right after a brand new user row is created. If that address deleted
  * an account before, put back the balance it left with instead of the default
  * free allotment. Returns true when a previous account was matched.
