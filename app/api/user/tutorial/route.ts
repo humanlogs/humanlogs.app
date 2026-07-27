@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createTutorialTranscription } from "./tutorial-helpers";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 

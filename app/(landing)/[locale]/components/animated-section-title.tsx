@@ -75,7 +75,7 @@ export const AnimatedSectionTitle = ({
   }, [hasAnimated, children]);
 
   const words = children.split(" ");
-  const isAnimating = activeWordIndex >= 0 && activeWordIndex < words.length;
+  const _isAnimating = activeWordIndex >= 0 && activeWordIndex < words.length;
   const hasCompleted = activeWordIndex === -1 && hasAnimated;
 
   const BadgeIcon = badge?.icon;

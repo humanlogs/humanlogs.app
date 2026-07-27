@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AnimatedSectionTitle } from "../../components/animated-section-title";
 import { DocumentLayout } from "../layout";
 
@@ -26,7 +27,7 @@ export default function Page() {
         <p>
           HumanLogs is the data controller responsible for the processing of
           your personal data. For any questions or requests related to your
-          personal data, please <a href="/contact">contact us</a>.
+          personal data, please <Link href="/contact">contact us</Link>.
         </p>
 
         <h2>Legal Basis for Processing</h2>
@@ -115,7 +116,7 @@ export default function Page() {
           settings.
         </p>
 
-        <h3>Right to Erasure / "Right to be Forgotten" (Article 17)</h3>
+        <h3>Right to Erasure / &quot;Right to be Forgotten&quot; (Article 17)</h3>
         <p>
           You have the right to request deletion of your personal data. You can
           permanently delete all your data at any time directly from your
@@ -213,15 +214,15 @@ export default function Page() {
           Alternatively, ElevenLabs transcription services may involve data
           transfers outside the EU/EEA, as ElevenLabs operates globally.
           However, audio data is immediately deleted after transcription is
-          complete. For Enterprise plans, we offer ElevenLabs "Zero Retention
-          Mode" and EU data residency options.
+          complete. For Enterprise plans, we offer ElevenLabs &quot;Zero Retention
+          Mode&quot; and EU data residency options.
         </p>
         <p>
           All international data transfers are conducted in compliance with GDPR
           requirements, including appropriate safeguards such as Standard
           Contractual Clauses (SCCs) where applicable. Our subprocessors are
           carefully selected to ensure GDPR compliance. For details, see our{" "}
-          <a href="/legal/subprocessors">Data Subprocessors</a> page.
+          <Link href="/legal/subprocessors">Data Subprocessors</Link> page.
         </p>
 
         <h2>Data Processing by Third Parties</h2>
@@ -229,7 +230,7 @@ export default function Page() {
           We work with carefully selected subprocessors to deliver our services.
           All subprocessors are contractually bound to GDPR compliance
           requirements. For a complete list, see our{" "}
-          <a href="/legal/subprocessors">Data Subprocessors</a> page.
+          <Link href="/legal/subprocessors">Data Subprocessors</Link> page.
         </p>
 
         <h3>Key Subprocessors</h3>
@@ -287,7 +288,7 @@ export default function Page() {
             your explicit consent to improve our service. We do not track your
             activity across other websites or use advertising cookies. You can
             opt out at any time. See our{" "}
-            <a href="/legal/cookies">Cookie Policy</a> for details.
+            <Link href="/legal/cookies">Cookie Policy</Link> for details.
           </li>
           <li>
             <strong>User control:</strong> You have full control over your data
@@ -301,7 +302,7 @@ export default function Page() {
           profiling as defined under Article 22 of the GDPR.
         </p>
 
-        <h2>Children's Privacy</h2>
+        <h2>Children&apos;s Privacy</h2>
         <p>
           Our service is not intended for individuals under 18 years of age. We
           do not knowingly collect personal data from children. If we become
@@ -326,7 +327,7 @@ export default function Page() {
         <h2>Contact and Data Protection Officer</h2>
         <p>
           For any questions, requests, or concerns regarding your personal data
-          or GDPR compliance, please <a href="/contact">contact us</a>.
+          or GDPR compliance, please <Link href="/contact">contact us</Link>.
         </p>
         <p>
           To exercise your rights or for privacy-related inquiries, you may also

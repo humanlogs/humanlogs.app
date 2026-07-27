@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, ChevronUp, ReplaceIcon, SearchIcon } from "lucide-react";
+import { ChevronDown, ChevronUp, SearchIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "../../../../ui/button";
 import { Input } from "../../../../ui/input";

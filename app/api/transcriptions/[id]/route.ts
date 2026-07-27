@@ -11,48 +11,13 @@ import {
   completeTranscription,
   failTranscription,
 } from "@/lib/stt/transcription-completion";
+import { checkAccess } from "@/lib/transcriptions/access";
 
 type RouteParams = {
   params: Promise<{
     id: string;
   }>;
 };
-
-type SharedUser = { userId: string; role: "read" | "read+listen" | "write" };
-
-// Helper function to check user access to a transcription
-function checkAccess(
-  transcription: Transcription,
-  userId: string,
-  requiredRole?: "read" | "read+listen" | "write",
-): { hasAccess: boolean; isOwner: boolean; role: string | null } {
-  const isOwner = transcription.userId === userId;
-  const shared = (transcription.shared as SharedUser[]) || [];
-  const sharedUser = shared.find((s) => s.userId === userId);
-
-  if (isOwner) {
-    return { hasAccess: true, isOwner: true, role: "owner" };
-  }
-
-  if (!sharedUser) {
-    return { hasAccess: false, isOwner: false, role: null };
-  }
-
-  // Check if user's role meets the requirement
-  if (requiredRole) {
-    const roleHierarchy: Record<string, number> = {
-      read: 1,
-      "read+listen": 2,
-      write: 3,
-    };
-
-    const hasAccess =
-      roleHierarchy[sharedUser.role] >= roleHierarchy[requiredRole];
-    return { hasAccess, isOwner: false, role: sharedUser.role };
-  }
-
-  return { hasAccess: true, isOwner: false, role: sharedUser.role };
-}
 
 export const GET = withAuthRateLimit(
   async (request, user, { params }: RouteParams) => {

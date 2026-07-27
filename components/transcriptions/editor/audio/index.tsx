@@ -108,6 +108,9 @@ export const InteractiveAudio = ({
     (window as any).audioMedia = audioMediaRef.current; // Expose for debugging
 
     // Show loading state
+    // Async load: the flag flips on before awaiting the waveform and off when it
+    // resolves. There is nothing to derive from during render.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoadingWaveform(true);
 
     // Initialize speaker segments from current segments

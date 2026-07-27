@@ -17,7 +17,7 @@ import {
   EncryptionUtils,
 } from "../lib/encryption/encryption-entities";
 import { browserCrypto } from "../lib/encryption/encryption-entities.browser";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { fetchGateway } from "./fetch";
 
 export type EncryptionStatus = {
@@ -310,8 +310,12 @@ export function useDownloadCertificate() {
 
 export function useDecryptData() {
   const { data: status } = useEncryptionStatus();
+  // Latest-value ref so the returned function keeps a stable identity while
+  // still seeing fresh status. Written on commit, not during render.
   const statusRef = useRef(status);
-  statusRef.current = status;
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
 
   return async <T>(data: EncryptedDataEntity): Promise<DecryptedWithRaw<T>> => {
     const encryption = new EncryptionUtils(browserCrypto);

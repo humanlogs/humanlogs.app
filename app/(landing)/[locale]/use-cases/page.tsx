@@ -1,6 +1,5 @@
 "use client";
 
-import { useTranslations } from "@/components/locale-provider";
 import { RelatedLinks } from "../components/related-links";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
@@ -8,7 +7,6 @@ import { Layout } from "../../_layout";
 import { BookOpen, FileText, Mic, Users } from "lucide-react";
 
 export default function UseCasesPage() {
-  const t = useTranslations("landing");
 
   const useCases = [
     {

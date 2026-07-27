@@ -57,7 +57,7 @@ export default async function ResearchSeoLayout({
   params: Promise<{ locale: string; slug: string }>;
 }) {
   const { locale, slug } = await params;
-  const config = getSeoSlugConfig(slug, locale as "en" | "fr");
+  const _config = getSeoSlugConfig(slug, locale as "en" | "fr");
   const seoContent = await import(
     `@/messages/${locale}/seo-research-content.json`
   );

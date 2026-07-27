@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 
-export const GET = withAuthRateLimit(async (request, user) => {
+export const GET = withAuthRateLimit(async (request, _user) => {
   try {
     const { searchParams } = new URL(request.url);
     const email = searchParams.get("email");

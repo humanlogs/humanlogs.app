@@ -95,6 +95,9 @@ export function useAudioSync(editorAPI: EditorAPI) {
       }
     });
 
+    // Derived from `editorAPI.getSegments()`, an imperative (non-reactive) source
+    // read on an audio-time signal; reading it during render would be impure.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveSegmentIndices(indicesToHighlight);
   }, [currentTime, editorAPI]);
 

@@ -50,10 +50,13 @@ export function TranscriptEditorContentTipTap({
 
   const tiptapEditorRef = useRef<Editor | null>(null);
 
-  if (!tiptapEditorRef.current && tiptapEditor) {
+  // Wiring the API is a side effect (it emits "ready" to consumers), so it
+  // belongs in an effect rather than in the render pass.
+  useEffect(() => {
+    if (!tiptapEditor || tiptapEditorRef.current) return;
     tiptapEditorRef.current = tiptapEditor;
     editorAPI.init(tiptapEditorRef, segmentsRef as any, speakers);
-  }
+  }, [tiptapEditor, editorAPI, segmentsRef, speakers]);
 
   return (
     <div className="w-full min-w-0 max-w-full overflow-x-hidden">

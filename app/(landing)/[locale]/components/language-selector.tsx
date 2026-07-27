@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale, useTranslations } from "@/components/locale-provider";
+import { useLocale } from "@/components/locale-provider";
 import { useLocaleRouter } from "@/hooks/use-locale-router";
 import type { Locale } from "@/lib/utils/i18n";
 import { languagesNames, locales } from "@/lib/utils/i18n";
@@ -12,10 +12,9 @@ import {
 } from "../../../../components/ui/dropdown-menu";
 
 export const LanguageSelector = () => {
-  const t = useTranslations("header.languageSelector");
-  const { locale: clientLocale, setLocale } = useLocale();
+  const { locale: _clientLocale, setLocale } = useLocale();
   const { locale: urlLocale, changeLocale } = useLocaleRouter();
-  const [isOpen, setIsOpen] = useState(false);
+  const [_isOpen, setIsOpen] = useState(false);
 
   // Use URL-based locale for landing pages
   const locale = urlLocale;

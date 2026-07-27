@@ -6,7 +6,7 @@ import { authConfig } from "@/lib/config";
  * POST /api/local-auth/logout
  * Clear session and log out user
  */
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   // Only allow local auth if mode is set to "local"
   if (authConfig.mode !== "local") {
     return NextResponse.json(

@@ -13,6 +13,9 @@ npm run dev      # Dev server with hot reload (tsx watch server.ts) on :3000
 npm run build    # next build
 npm start        # Prod: runs `prisma migrate deploy` then starts server.ts (NODE_ENV=production)
 npm run lint     # eslint
+npm run typecheck # tsc --noEmit
+npm test         # vitest run (unit + collaboration protocol integration tests)
+npm run test:e2e # playwright (boots PGlite + server.ts, drives two browsers)
 
 # Prisma (uses prisma.config.ts which loads DB url from node-config / DATABASE_URL)
 npx prisma migrate dev --name <name>   # Create + apply a migration in dev
@@ -23,7 +26,9 @@ npx prisma studio                      # Inspect the database
 docker-compose up -d
 ```
 
-There is **no test suite** in this repo — do not invent test commands. Verify changes by running the app.
+Tests live in `tests/` — Vitest (`tests/unit`, `tests/integration`) and Playwright (`tests/e2e`); see **`docs/TESTING.md`**. They need no Docker and no external service: suites that need a database boot an ephemeral PostgreSQL in-process (PGlite) and apply the schema with `prisma db push`. `.github/workflows/ci.yml` runs lint, typecheck, Vitest and Playwright on every pull request.
+
+Coverage is deliberately concentrated on the **collaborative editor** (protocol, convergence, E2E encryption, sharing permissions), which is the part most likely to break silently. Anything touching `lib/sockets/**`, `components/transcriptions/editor/text/collab/**` or the sharing routes should come with a test. For everything else there is still no coverage — verify by running the app.
 
 ## Configuration System (read this before touching anything env-related)
 
@@ -75,7 +80,15 @@ PostgreSQL via Prisma 7 with the **`@prisma/adapter-pg`** driver adapter (see `l
 
 ### Real-time collaborative editor
 
-The transcript editor is **TipTap** (ProseMirror) bound to a **Y.js** CRDT document, synced over Socket.io — there is no third-party collab server. `lib/sockets/socket-server.ts` (server) keeps in-memory `Map`s of `Y.Doc`, awareness, and a "leader" (single-editor lock) per transcription, broadcasting via Socket.io rooms (`transcription:<id>`, `user:<id>`). Sockets authenticate through `lib/sockets/socket-auth.ts` on connect. Client side: `lib/sockets/socket-client.ts`, `yjs-socket-provider.ts`, and hooks `use-transcription-cursors.ts`. Leadership is claimed/released with a 30s stale threshold and keepalives. **Y.js doc state is in-memory only** — persistence is handled separately by saving the transcription JSON to Postgres.
+The transcript editor is **TipTap** (ProseMirror) bound to a **Y.js** CRDT document, synced over Socket.io — there is no third-party collab server.
+
+The server (`lib/sockets/socket-server.ts`) is a **blind relay**: it never holds a `Y.Doc` and never inspects payloads (they may be E2E ciphertext). It only (a) forwards opaque `yjs:msg` between members of a `transcription:<id>` room and (b) tracks which client is the **seeding authority**, so a late joiner pulls full state from a peer (`yjs:state-request` → `yjs:state`) instead of seeding a duplicate. When the authority leaves, a remaining member is promoted. Sockets authenticate in a Socket.io **middleware** (`lib/sockets/socket-auth.ts`, JWT socket token) — not in the connection handler, which would drop the `yjs:join` a client emits on connect.
+
+**Authorization is separate from authentication and lives on the server.** A transcription id is not a secret (it travels in URLs and exports), so every `yjs:join` / `transcription:join` is checked against the owner/shared list via `getTranscriptionAccessFor` (`lib/transcriptions/access.ts`) and the result cached per socket. Relaying then requires membership: `t: "sync"` needs write access, `t: "awareness"` only read — so a read-only collaborator is visible but cannot change the document even with a hand-written client. The editor's `editable` flag is a convenience, never the enforcement point.
+
+Client side: `lib/sockets/socket-client.ts` (shared singleton socket), `yjs-collab-provider.ts` (the provider + its pluggable `plaintextCodec`/`aesCodec` transport), `collab/collab-caret.ts` (remote carets from awareness) and `hooks/use-tiptap-editor.ts` (wiring, speaker-name `Y.Map`, shared timing reference).
+
+**Y.js doc state is in-memory only.** Persistence is gated to the seeding authority acting as **save leader** — only it writes the transcription JSON to Postgres, so N writers cannot race. Per-word audio timestamps are NOT stored in the CRDT: they are *derived* by `collab/doc-to-segments.ts`, a pure function of (converged doc, shared timing reference pinned in the Y.Doc), so every client computes identical values. Keep it pure — that property is what makes clients converge, and `tests/unit/doc-to-segments.test.ts` enforces it.
 
 ### End-to-end encryption
 
@@ -106,5 +119,6 @@ Optional client-side E2E encryption so audio/transcripts never reach the server 
 ## Further docs
 
 - `README.md` — features, self-hosting, and the full STT provider comparison/setup (Gladia / ElevenLabs / Whisper).
+- `docs/TESTING.md` — what the two test suites cover and how to add to them.
 - `config/README.md` — configuration deep dive.
 - `docs/AUTH_SETUP.md`, `docs/LDAP_SETUP.md` — auth provider setup.

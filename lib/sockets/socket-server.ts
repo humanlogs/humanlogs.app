@@ -1,6 +1,7 @@
 import { Server as HTTPServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
-import { verifySocketAuth } from "./socket-auth";
+import { verifySocketAuth, type SocketAuthResult } from "./socket-auth";
+import { getTranscriptionAccessFor } from "../transcriptions/access";
 
 let io: SocketIOServer | null = null;
 
@@ -67,27 +68,66 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
     },
   });
 
-  io.on("connection", async (socket) => {
-    log("Client connected:", socket.id);
-
-    // Verify authentication and extract user info
+  // Authenticate in a MIDDLEWARE, not inside the connection handler. Socket.io
+  // buffers a connection's packets until its middlewares resolve, but NOT while
+  // an async `connection` handler awaits: a client emits `yjs:join` the instant
+  // it connects, so awaiting the token verification + user lookup there dropped
+  // that packet whenever the database was slower than the round-trip — the client
+  // then never received a role and its editor never seeded or synced.
+  io.use(async (socket, next) => {
     const authResult = await verifySocketAuth(socket);
-
     if (!authResult) {
-      log("Unauthorized connection attempt, disconnecting:", socket.id);
-      socket.emit("error", { message: "Authentication required" });
-      socket.disconnect();
-      return;
+      log("Unauthorized connection attempt, rejecting:", socket.id);
+      return next(new Error("Authentication required"));
     }
+    socket.data.auth = authResult;
+    next();
+  });
 
-    const { userId, email } = authResult;
-    log(`Authenticated user: ${userId} (${email})`);
+  io.on("connection", (socket) => {
+    const { userId, email } = socket.data.auth as SocketAuthResult;
+    log(`Client connected: ${socket.id} — user ${userId} (${email})`);
 
-    // Join user-specific room (targeted by db:change cache-invalidation events)
-    socket.join(`user:${userId}`);
+    // Rooms this socket has JOINED, and with what rights. Authentication only
+    // proves who the user is; a transcription id travels in URLs, exports and
+    // emails, so it is no kind of secret — every join is checked against the
+    // transcription's owner/shared list.
+    //
+    // The map holds the in-flight promise, not the resolved value: a client emits
+    // its first document update moments after joining, and that message must wait
+    // for the authorization it races rather than be dropped (a lost Yjs update
+    // never comes back). Only a socket that joined — and has not left — is in here,
+    // so relaying costs no database round-trip after the first check.
+    type Membership = { canWrite: boolean };
+    const memberships = new Map<string, Promise<Membership | null>>();
+
+    const joinRoom = (transcriptionId: string): Promise<Membership | null> => {
+      const pending = memberships.get(transcriptionId);
+      if (pending) return pending;
+      const authorized = getTranscriptionAccessFor(userId, transcriptionId).then(
+        (access) => {
+          if (!access.hasAccess) {
+            log(`Denied ${userId} access to transcription ${transcriptionId}`);
+            socket.emit("transcription:denied", { transcriptionId });
+            memberships.delete(transcriptionId);
+            return null;
+          }
+          return { canWrite: access.isOwner || access.role === "write" };
+        },
+      );
+      memberships.set(transcriptionId, authorized);
+      return authorized;
+    };
+
+    /** Rights in a room this socket has joined; null if it never did, or left. */
+    const membershipOf = (
+      transcriptionId: string,
+    ): Promise<Membership | null> =>
+      memberships.get(transcriptionId) ?? Promise.resolve(null);
 
     // --- Presence + cursor room (drives the custom text/audio cursors) ----------
-    socket.on("transcription:join", (transcriptionId: string) => {
+    socket.on("transcription:join", async (transcriptionId: string) => {
+      if (!(await joinRoom(transcriptionId))) return;
       socket.join(`transcription:${transcriptionId}`);
       socket
         .to(`transcription:${transcriptionId}`)
@@ -96,6 +136,7 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
 
     socket.on("transcription:leave", (transcriptionId: string) => {
       socket.leave(`transcription:${transcriptionId}`);
+      memberships.delete(transcriptionId);
       socket
         .to(`transcription:${transcriptionId}`)
         .emit("transcription:user-left", { userId, socketId: socket.id });
@@ -103,7 +144,10 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
 
     socket.on(
       "transcription:cursor-update",
-      (data: { transcriptionId: string; position: CursorPosition }) => {
+      async (data: { transcriptionId: string; position: CursorPosition }) => {
+        // Presence is visible to every participant, but a cursor may not be
+        // pushed into a room the sender never joined.
+        if (!(await membershipOf(data.transcriptionId))) return;
         socket
           .to(`transcription:${data.transcriptionId}`)
           .emit("transcription:cursor-position", {
@@ -114,26 +158,31 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
     );
 
     // --- Blind Yjs relay — opaque payloads, seeding-authority coordination ------
-    socket.on("yjs:join", (data: { transcriptionId: string }) => {
+    socket.on("yjs:join", async (data: { transcriptionId: string }) => {
       const { transcriptionId } = data;
+      if (!(await joinRoom(transcriptionId))) return;
       socket.join(`transcription:${transcriptionId}`);
       let room = collabRooms.get(transcriptionId);
       if (!room) {
         room = { authority: null, members: new Set() };
         collabRooms.set(transcriptionId, room);
       }
+      const alreadyMember = room.members.has(socket.id);
       room.members.add(socket.id);
       // First member in the room seeds; others pull state from the authority.
-      if (!room.authority) {
+      // A socket that re-joins keeps the role it already holds: telling the
+      // authority to "sync" would make it request state from itself.
+      if (!room.authority || room.authority === socket.id) {
         room.authority = socket.id;
         socket.emit("yjs:role", { transcriptionId, role: "seed" });
-      } else {
+      } else if (!alreadyMember) {
         socket.emit("yjs:role", { transcriptionId, role: "sync" });
       }
     });
 
     // A late joiner asks for full state; route to the authority (which holds it).
-    socket.on("yjs:state-request", (data: { transcriptionId: string }) => {
+    socket.on("yjs:state-request", async (data: { transcriptionId: string }) => {
+      if (!(await membershipOf(data.transcriptionId))) return;
       const room = collabRooms.get(data.transcriptionId);
       if (!room || !room.authority) {
         // No authority available — promote the requester to seed instead.
@@ -153,12 +202,14 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
     // Authority replies with opaque full state → relay to the original requester.
     socket.on(
       "yjs:state",
-      (data: {
+      async (data: {
         transcriptionId: string;
         requester: string;
         enc: boolean;
         d: string;
       }) => {
+        // Only participants may serve a room's state to a late joiner.
+        if (!(await membershipOf(data.transcriptionId))) return;
         io?.to(data.requester).emit("yjs:state", {
           transcriptionId: data.transcriptionId,
           enc: data.enc,
@@ -170,18 +221,26 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
     // Opaque doc/awareness message → broadcast to the rest of the room.
     socket.on(
       "yjs:msg",
-      (data: {
+      async (data: {
         transcriptionId: string;
         t: "sync" | "awareness";
         enc: boolean;
         d: string;
       }) => {
+        const membership = await membershipOf(data.transcriptionId);
+        if (!membership) return;
+        // Document changes need write access; awareness (carets) does not, so a
+        // read-only participant is still visible to the others. Enforcing this
+        // here is what makes the role real — the editor's read-only mode is a
+        // client-side convenience an attacker simply would not run.
+        if (data.t === "sync" && !membership.canWrite) return;
         socket.to(`transcription:${data.transcriptionId}`).emit("yjs:msg", data);
       },
     );
 
     socket.on("yjs:leave", (data: { transcriptionId: string }) => {
       socket.leave(`transcription:${data.transcriptionId}`);
+      memberships.delete(data.transcriptionId);
       collabLeave(socket.id, data.transcriptionId);
     });
 

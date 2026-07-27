@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useRef } from "react";
 import { AnimatedSectionTitle } from "../../components/animated-section-title";
 import { DocumentLayout } from "../layout";
@@ -35,7 +36,7 @@ export default function Page() {
 
     // Extract and format content
     const content = contentRef.current;
-    const elements = content.querySelectorAll(
+    const _elements = content.querySelectorAll(
       "h1, h2, h3, p, li, strong, em, a",
     );
 
@@ -118,7 +119,7 @@ function EnglishContent() {
 
       <h2>Purpose of This Document</h2>
       <p>
-        This document provides detailed information about HumanLogs' data
+        This document provides detailed information about HumanLogs&apos; data
         protection and security practices for researchers and institutions
         seeking IRB approval to use our transcription service in their research
         activities.
@@ -394,7 +395,7 @@ function EnglishContent() {
       </ul>
       <p>
         For a complete and current list of subprocessors, see our{" "}
-        <a href="/legal/subprocessors">Data Subprocessors page</a>.
+        <Link href="/legal/subprocessors">Data Subprocessors page</Link>.
       </p>
 
       <h2>Security Measures</h2>
@@ -430,16 +431,16 @@ function EnglishContent() {
       <p>Additional documentation available for IRB review:</p>
       <ul>
         <li>
-          <a href="/legal/privacy">Privacy Policy</a>
+          <Link href="/legal/privacy">Privacy Policy</Link>
         </li>
         <li>
-          <a href="/legal/terms">Terms of Service</a>
+          <Link href="/legal/terms">Terms of Service</Link>
         </li>
         <li>
-          <a href="/legal/dpa">Data Processing Agreement (DPA)</a>
+          <Link href="/legal/dpa">Data Processing Agreement (DPA)</Link>
         </li>
         <li>
-          <a href="/legal/subprocessors">Data Subprocessors List</a>
+          <Link href="/legal/subprocessors">Data Subprocessors List</Link>
         </li>
       </ul>
 
@@ -451,7 +452,7 @@ function EnglishContent() {
       <ul>
         <li>
           <strong>General inquiries:</strong>{" "}
-          <a href="/contact">Contact Form</a>
+          <Link href="/contact">Contact Form</Link>
         </li>
         <li>
           <strong>Privacy questions:</strong>{" "}
@@ -495,7 +496,7 @@ function EnglishContent() {
         <em>
           This document is provided to assist researchers in preparing IRB
           applications. It does not constitute legal advice. Researchers should
-          consult with their institution's IRB and legal counsel to ensure
+          consult with their institution&apos;s IRB and legal counsel to ensure
           compliance with applicable regulations.
         </em>
       </p>
@@ -506,7 +507,7 @@ function EnglishContent() {
 function FrenchContent() {
   return (
     <>
-      <h1>Informations pour les Comités d'Éthique de la Recherche (CER)</h1>
+      <h1>Informations pour les Comités d&apos;Éthique de la Recherche (CER)</h1>
       <p>
         <strong>Dernière mise à jour :</strong> 27 avril 2026
       </p>
@@ -515,7 +516,7 @@ function FrenchContent() {
       <p>
         Ce document fournit des informations détaillées sur les pratiques de
         protection et de sécurité des données de HumanLogs pour les chercheurs
-        et institutions souhaitant obtenir l'approbation d'un CER pour utiliser
+        et institutions souhaitant obtenir l&apos;approbation d&apos;un CER pour utiliser
         notre service de transcription dans leurs activités de recherche.
       </p>
 
@@ -525,7 +526,7 @@ function FrenchContent() {
         capacités de transcription avec chiffrement de bout en bout. Notre
         service est conçu avec la confidentialité et la sécurité comme principes
         fondamentaux, ce qui le rend adapté aux données de recherche sensibles,
-        y compris les entretiens, les groupes de discussion et d'autres
+        y compris les entretiens, les groupes de discussion et d&apos;autres
         activités de recherche qualitative.
       </p>
 
@@ -549,12 +550,12 @@ function FrenchContent() {
           <ul>
             <li>
               <strong>Serveurs européens uniquement :</strong> Tous les
-              traitements sont effectués sur des serveurs basés dans l'UE,
+              traitements sont effectués sur des serveurs basés dans l&apos;UE,
               garantissant la résidence des données en Europe
             </li>
             <li>
               <strong>Mode sans entraînement :</strong> Vos données ne sont
-              jamais utilisées pour entraîner des modèles d'IA
+              jamais utilisées pour entraîner des modèles d&apos;IA
             </li>
             <li>
               <strong>Mode sans rétention :</strong> Les fichiers audio sont
@@ -591,8 +592,8 @@ function FrenchContent() {
         </li>
         <li>
           <strong>Stockage :</strong> Les données chiffrées sont stockées sur
-          nos serveurs situés dans l'Union européenne. Seul vous pouvez
-          déchiffrer ces données à l'aide de votre clé privée.
+          nos serveurs situés dans l&apos;Union européenne. Seul vous pouvez
+          déchiffrer ces données à l&apos;aide de votre clé privée.
         </li>
       </ol>
 
@@ -609,7 +610,7 @@ function FrenchContent() {
         <li>
           <strong>Mode Zéro Rétention (ZRM) :</strong> ElevenLabs traite les
           transcriptions entièrement en mémoire avec zéro rétention de données -
-          aucune donnée n'est jamais persistée sur les serveurs du sous-traitant
+          aucune donnée n&apos;est jamais persistée sur les serveurs du sous-traitant
         </li>
         <li>
           <strong>Contrôle de la résidence des données :</strong> Choisissez des
@@ -617,7 +618,7 @@ function FrenchContent() {
         </li>
       </ul>
       <p>
-        Contactez-nous pour plus d'informations sur les options On-Premise et
+        Contactez-nous pour plus d&apos;informations sur les options On-Premise et
         Entreprise.
       </p>
 
@@ -626,7 +627,7 @@ function FrenchContent() {
       <h3>Chiffrement de bout en bout (E2E)</h3>
       <p>
         Les données suivantes sont chiffrées avec votre clé publique et ne
-        peuvent être déchiffrées que par vous à l'aide de votre clé privée :
+        peuvent être déchiffrées que par vous à l&apos;aide de votre clé privée :
       </p>
       <ul>
         <li>
@@ -648,12 +649,12 @@ function FrenchContent() {
       <h3>Chiffré au repos et en transit</h3>
       <p>
         Les données suivantes sont chiffrées en utilisant un chiffrement
-        standard de l'industrie mais ne sont pas chiffrées de bout en bout :
+        standard de l&apos;industrie mais ne sont pas chiffrées de bout en bout :
       </p>
       <ul>
         <li>
           <strong>Informations de compte :</strong> Adresse e-mail, nom et
-          identifiants d'authentification
+          identifiants d&apos;authentification
         </li>
         <li>
           <strong>Métadonnées de transcription :</strong> Noms de fichiers,
@@ -672,7 +673,7 @@ function FrenchContent() {
           avec des collaborateurs
         </li>
         <li>
-          Cela permet à plusieurs chercheurs autorisés d'accéder aux mêmes
+          Cela permet à plusieurs chercheurs autorisés d&apos;accéder aux mêmes
           transcriptions chiffrées
         </li>
         <li>
@@ -680,7 +681,7 @@ function FrenchContent() {
           pour déchiffrer le contenu partagé
         </li>
         <li>
-          L'échange de clés publiques se fait via la plateforme HumanLogs,
+          L&apos;échange de clés publiques se fait via la plateforme HumanLogs,
           garantissant une distribution sécurisée des clés
         </li>
       </ul>
@@ -688,13 +689,13 @@ function FrenchContent() {
       <h2>Localisation des données et infrastructure</h2>
       <p>
         <strong>
-          Tous les serveurs HumanLogs sont situés dans l'Union européenne.
+          Tous les serveurs HumanLogs sont situés dans l&apos;Union européenne.
         </strong>
       </p>
       <p>
-        Nous utilisons les centres de données européens d'AWS (Amazon Web
+        Nous utilisons les centres de données européens d&apos;AWS (Amazon Web
         Services) pour notre infrastructure. Les données sont traitées et
-        stockées exclusivement dans les frontières de l'UE, garantissant la
+        stockées exclusivement dans les frontières de l&apos;UE, garantissant la
         conformité aux normes européennes de protection des données.
       </p>
 
@@ -706,7 +707,7 @@ function FrenchContent() {
       </p>
       <ul>
         <li>
-          <strong>Droit d'accès :</strong> Les utilisateurs peuvent demander des
+          <strong>Droit d&apos;accès :</strong> Les utilisateurs peuvent demander des
           copies de leurs données personnelles
         </li>
         <li>
@@ -714,7 +715,7 @@ function FrenchContent() {
           corriger les informations personnelles inexactes
         </li>
         <li>
-          <strong>Droit à l'effacement (droit à l'oubli) :</strong> Les
+          <strong>Droit à l&apos;effacement (droit à l&apos;oubli) :</strong> Les
           utilisateurs peuvent demander la suppression de leurs données
           personnelles
         </li>
@@ -723,8 +724,8 @@ function FrenchContent() {
           peuvent exporter leurs données dans un format lisible par machine
         </li>
         <li>
-          <strong>Droit d'opposition :</strong> Les utilisateurs peuvent
-          s'opposer à certains types de traitement de données
+          <strong>Droit d&apos;opposition :</strong> Les utilisateurs peuvent
+          s&apos;opposer à certains types de traitement de données
         </li>
       </ul>
       <p>
@@ -801,7 +802,7 @@ function FrenchContent() {
             </a>
             :
           </strong>{" "}
-          Authentification et gestion d'identité
+          Authentification et gestion d&apos;identité
         </li>
         <li>
           <strong>OVH (Europe) :</strong> Communications par e-mail
@@ -809,7 +810,7 @@ function FrenchContent() {
       </ul>
       <p>
         Pour une liste complète et actuelle des sous-traitants, consultez notre{" "}
-        <a href="/legal/subprocessors">page des sous-traitants de données</a>.
+        <Link href="/legal/subprocessors">page des sous-traitants de données</Link>.
       </p>
 
       <h2>Mesures de sécurité</h2>
@@ -826,10 +827,10 @@ function FrenchContent() {
         <li>
           <strong>Chiffrement de bout en bout :</strong> Le contenu sensible
           (transcriptions et audio) est chiffré avec des clés contrôlées par
-          l'utilisateur
+          l&apos;utilisateur
         </li>
         <li>
-          <strong>Contrôles d'accès :</strong> Contrôle d'accès basé sur les
+          <strong>Contrôles d&apos;accès :</strong> Contrôle d&apos;accès basé sur les
           rôles et authentification multi-facteurs
         </li>
         <li>
@@ -843,19 +844,19 @@ function FrenchContent() {
       </ul>
 
       <h2>Documentation de conformité</h2>
-      <p>Documentation supplémentaire disponible pour l'examen par le CER :</p>
+      <p>Documentation supplémentaire disponible pour l&apos;examen par le CER :</p>
       <ul>
         <li>
-          <a href="/legal/privacy">Politique de confidentialité</a>
+          <Link href="/legal/privacy">Politique de confidentialité</Link>
         </li>
         <li>
-          <a href="/legal/terms">Conditions d'utilisation</a>
+          <Link href="/legal/terms">Conditions d&apos;utilisation</Link>
         </li>
         <li>
-          <a href="/legal/dpa">Accord de traitement des données (DPA)</a>
+          <Link href="/legal/dpa">Accord de traitement des données (DPA)</Link>
         </li>
         <li>
-          <a href="/legal/subprocessors">Liste des sous-traitants de données</a>
+          <Link href="/legal/subprocessors">Liste des sous-traitants de données</Link>
         </li>
       </ul>
 
@@ -867,7 +868,7 @@ function FrenchContent() {
       <ul>
         <li>
           <strong>Demandes générales :</strong>{" "}
-          <a href="/contact">Formulaire de contact</a>
+          <Link href="/contact">Formulaire de contact</Link>
         </li>
         <li>
           <strong>Questions de confidentialité :</strong>{" "}
@@ -890,12 +891,12 @@ function FrenchContent() {
           utilisant un service tiers avec chiffrement de bout en bout
         </li>
         <li>
-          Expliquer que l'audio est temporairement traité par un sous-traitant
+          Expliquer que l&apos;audio est temporairement traité par un sous-traitant
           mais immédiatement supprimé
         </li>
         <li>
           Maintenir le contrôle de vos clés de chiffrement privées et ne pas les
-          partager au-delà des membres autorisés de l'équipe de recherche
+          partager au-delà des membres autorisés de l&apos;équipe de recherche
         </li>
         <li>
           Utiliser des identifiants de projet uniques plutôt que les noms des
