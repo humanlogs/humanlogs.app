@@ -19,12 +19,14 @@ import {
 } from "@/components/ui/sidebar";
 import { useProjects, useUpdateUser, useUserProfile } from "@/hooks/use-api";
 import {
+  BellIcon,
   FilePlusCornerIcon,
   HomeIcon,
   PencilIcon,
   SearchIcon,
   ShieldIcon,
 } from "lucide-react";
+import { useNotifications } from "@/hooks/use-notifications";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
@@ -46,6 +48,9 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
   const pathname = usePathname();
   const t = useTranslations("sidebar");
   const { setLocale } = useLocale();
+  const tNotifications = useTranslations("notifications");
+  const { data: notificationData } = useNotifications(1);
+  const unreadNotifications = notificationData?.unreadCount ?? 0;
   const [searchQuery, setSearchQuery] = React.useState("");
   const { openRename } = useProjectModal();
   useWelcomeRedirect();
@@ -160,6 +165,23 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
                 <SidebarMenuButton isActive={pathname === "/app"}>
                   <HomeIcon className="h-4 w-4" />
                   {t("home")}
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <Link href="/app/notifications">
+                <SidebarMenuButton
+                  isActive={pathname === "/app/notifications"}
+                  tooltip={tNotifications("title")}
+                >
+                  <BellIcon className="h-4 w-4" />
+                  <span className="flex-1">{tNotifications("title")}</span>
+                  {unreadNotifications > 0 && (
+                    <span className="bg-primary text-primary-foreground flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-medium tabular-nums">
+                      {unreadNotifications > 9 ? "9+" : unreadNotifications}
+                    </span>
+                  )}
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>

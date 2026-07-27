@@ -13,7 +13,7 @@ import {
   useToggleThreadSubscription,
   useTranscriptionParticipants,
 } from "@/hooks/use-comments";
-import { Bell, BellOff, MessageSquare } from "lucide-react";
+import { Bell, BellOff, MessageSquare, X } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { EditorAPI } from "../api";
 import { useCommentPositions } from "../hooks/use-comment-positions";
@@ -156,13 +156,23 @@ export function CommentRail({
 
   return (
     <div
-      className="relative shrink-0"
+      className="group/rail relative shrink-0"
       style={{ width: RAIL_WIDTH }}
       data-comment-rail=""
     >
-      {/* No header here on purpose: cards are positioned from the top of this column so
-          they line up with the text, and anything in normal flow would sit under them.
-          The rail is closed from the toolbar toggle or with Escape. */}
+      {/* Cards are positioned from the top of this column so they line up with the text,
+          so anything in normal flow would sit under them — hence a floating close
+          control, revealed on hover, rather than a header. Escape closes it too. */}
+      <button
+        type="button"
+        onClick={onCloseRail}
+        title={t("comments.hide")}
+        aria-label={t("comments.hide")}
+        className="bg-background/80 text-muted-foreground hover:text-foreground absolute -top-1 right-0 z-20 rounded p-1 opacity-0 backdrop-blur transition-opacity group-hover/rail:opacity-100 focus-visible:opacity-100"
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
+
       {anchors.map((anchor) => (
         <div
           key={anchor.anchorId}

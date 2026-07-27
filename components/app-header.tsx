@@ -1,6 +1,5 @@
 "use client";
 
-import { NotificationBell } from "@/components/notifications/notification-bell";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils/utils";
 import { usePathname } from "next/navigation";
@@ -58,8 +57,6 @@ export function AppHeader() {
           id="header-actions-portal"
           className="flex-1 flex items-center justify-between"
         />
-        {/* Notifications are app-wide, so they live outside the page portals. */}
-        <NotificationBell />
       </div>
       <div id="header-sub-portal" className="w-full" />
     </header>

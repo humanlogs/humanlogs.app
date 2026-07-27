@@ -425,6 +425,8 @@
     "markAllRead": "Tout marquer comme lu",
     "someone": "Quelqu'un",
     "mentionedYou": "{name} vous a mentionné",
-    "repliedInThread": "{name} a répondu dans une discussion que vous suivez"
+    "repliedInThread": "{name} a répondu dans une discussion que vous suivez",
+    "seeAll": "Tout voir",
+    "loading": "Chargement…"
   }
 }

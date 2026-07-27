@@ -1,6 +1,5 @@
 "use client";
 
-import { useComments } from "@/hooks/use-comments";
 import { useTranscriptionCursors } from "@/hooks/use-transcription-cursors";
 import { cn } from "@/lib/utils/utils";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -170,8 +169,6 @@ export function TranscriptEditor({
 
   // Comment threads: creating/focusing threads, and dropping abandoned anchors.
   const commentThreads = useCommentThreads({ editorAPI, canWrite });
-  const { data: commentList } = useComments(transcription.id);
-  const threadCount = new Set((commentList ?? []).map((c) => c.anchorId)).size;
 
 
   // Thread whose highlight is emphasised in the transcript: the one hovered in the
@@ -380,12 +377,6 @@ export function TranscriptEditor({
                 hasWriteAccess={canWrite}
                 hasListenAccess={hasListenAccess}
                 onComment={commentThreads.startNewComment}
-                onToggleComments={() => {
-                  captureReadingAnchor();
-                  commentThreads.toggleRail();
-                }}
-                commentsOpen={commentThreads.railOpen}
-                commentCount={threadCount}
               />
             </div>
           </div>,
