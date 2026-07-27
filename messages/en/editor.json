@@ -6,7 +6,8 @@
             "bold": "Bold (⌘B)",
             "italic": "Italic (⌘I)",
             "underline": "Underline (⌘U)",
-            "strikethrough": "Strikethrough (⌘⇧X)"
+            "strikethrough": "Strikethrough (⌘⇧X)",
+            "comment": "Comment (⌘⇧M)"
         },
         "search": {
             "findPlaceholder": "Find...",
@@ -100,7 +101,8 @@
             "vtt": "WebVTT (Subtitles)",
             "nvivo": "NVivo",
             "maxqda": "MAXQDA",
-            "advanced": "Advanced"
+            "advanced": "Advanced",
+            "history": "Version history"
         },
         "share": {
             "title": "Share transcription",
@@ -139,6 +141,23 @@
                 "cancel": "Cancel",
                 "confirm": "Transfer Ownership"
             }
+        },
+        "comments": {
+            "title": "Comments",
+            "placeholder": "Write a comment…",
+            "add": "Comment",
+            "save": "Save",
+            "cancel": "Cancel",
+            "edit": "Edit",
+            "delete": "Delete",
+            "empty": "No comments yet",
+            "you": "You",
+            "indicator": "This line has comments",
+            "replyPlaceholder": "Reply…",
+            "mentionHint": "@ to mention",
+            "subscribe": "Follow this thread",
+            "unsubscribe": "Stop following this thread",
+            "hide": "Hide comments"
         }
     }
 }

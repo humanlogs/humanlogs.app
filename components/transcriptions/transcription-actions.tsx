@@ -47,6 +47,7 @@ import { useShortcutsModal } from "./dialogs/shortcuts-dialog";
 import { useSpeakerOptionsModal } from "./dialogs/speaker-options-dialog";
 import { useTranscriptionDeleteModal } from "./dialogs/transcription-delete-dialog";
 import { useTranscriptionExportModal } from "./dialogs/transcription-export-dialog";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { useTranscriptionHistoryModal } from "./dialogs/transcription-history-sheet";
 import { useTranscriptionRenameModal } from "./dialogs/transcription-rename-dialog";
 import { useTranscriptionSetProjectModal } from "./dialogs/transcription-set-project-dialog";
@@ -504,17 +505,9 @@ export function TranscriptionActions({
         >
           {downloadMenu}
         </DropdownMenu>
-        {hasWriteAccess && (
-          <>
-            <Button
-              variant={"ghost"}
-              size="icon-sm"
-              onClick={handleOpenHistory}
-            >
-              <HistoryIcon className="h-4 w-4" />
-            </Button>
-          </>
-        )}
+        {/* Notifications sit where version history used to: it is the one action here
+            you may need to react to, while history is a rarely-used menu entry. */}
+        <NotificationBell />
         <DropdownMenu
           trigger={
             <Button variant={"ghost"} size="icon-sm">
@@ -523,6 +516,15 @@ export function TranscriptionActions({
           }
           align="end"
         >
+          {hasWriteAccess && (
+            <>
+              <DropdownMenuItem onClick={handleOpenHistory}>
+                <HistoryIcon className="h-4 w-4 mr-2" />
+                {t("actions.history")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
           {isOwner && (
             <>
               <DropdownMenuItem onClick={handleRename}>

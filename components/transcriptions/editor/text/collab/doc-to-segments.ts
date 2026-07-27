@@ -85,12 +85,25 @@ function marksToMods(node: PMNode): ("b" | "i" | "u" | "s")[] | undefined {
   return mods.length ? mods : undefined;
 }
 
+/** Collect comment thread ids from a node's `comment` marks (usually 0 or 1). */
+function marksToComments(node: PMNode): string[] | undefined {
+  const ids: string[] = [];
+  for (const m of node.marks) {
+    if (m.type.name === "comment") {
+      const id = m.attrs?.commentId as string | undefined;
+      if (id && !ids.includes(id)) ids.push(id);
+    }
+  }
+  return ids.length ? ids : undefined;
+}
+
 /** Split a text run into word / spacing tokens, inheriting speaker + modifiers. */
 function pushTextRun(
   out: TranscriptionSegment[],
   text: string,
   speakerId: string,
   modifiers: ("b" | "i" | "u" | "s")[] | undefined,
+  comments: string[] | undefined,
 ) {
   if (!text) return;
   for (const part of text.split(/(\s+)/)) {
@@ -103,6 +116,7 @@ function pushTextRun(
         text: part,
         speakerId,
         ...(modifiers ? { modifiers } : {}),
+        ...(comments ? { comments } : {}),
       });
     }
   }
@@ -126,7 +140,13 @@ function docToStructureSegments(doc: PMNode): TranscriptionSegment[] {
 
     block.forEach((inline) => {
       if (inline.isText) {
-        pushTextRun(out, inline.text ?? "", speakerId, marksToMods(inline));
+        pushTextRun(
+          out,
+          inline.text ?? "",
+          speakerId,
+          marksToMods(inline),
+          marksToComments(inline),
+        );
       } else if (inline.type.name === "hardBreak") {
         out.push({ type: "spacing", text: "\n", speakerId });
       }

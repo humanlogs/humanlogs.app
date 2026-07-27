@@ -6,7 +6,8 @@
             "bold": "Fett (⌘B)",
             "italic": "Kursiv (⌘I)",
             "underline": "Unterstrichen (⌘U)",
-            "strikethrough": "Durchgestrichen (⌘⇧X)"
+            "strikethrough": "Durchgestrichen (⌘⇧X)",
+            "comment": "Kommentar (⌘⇧M)"
         },
         "search": {
             "findPlaceholder": "Suchen...",
@@ -100,7 +101,8 @@
             "vtt": "WebVTT (Untertitel)",
             "nvivo": "NVivo",
             "maxqda": "MAXQDA",
-            "advanced": "Erweitert"
+            "advanced": "Erweitert",
+            "history": "Versionsverlauf"
         },
         "share": {
             "title": "Transkription teilen",
@@ -139,6 +141,23 @@
                 "cancel": "Abbrechen",
                 "confirm": "Eigentum übertragen"
             }
+        },
+        "comments": {
+            "title": "Kommentare",
+            "placeholder": "Kommentar schreiben…",
+            "add": "Kommentieren",
+            "save": "Speichern",
+            "cancel": "Abbrechen",
+            "edit": "Bearbeiten",
+            "delete": "Löschen",
+            "empty": "Noch keine Kommentare",
+            "you": "Du",
+            "indicator": "Diese Zeile enthält Kommentare",
+            "replyPlaceholder": "Antworten…",
+            "mentionHint": "@ zum Erwähnen",
+            "subscribe": "Diesem Thread folgen",
+            "unsubscribe": "Thread nicht mehr folgen",
+            "hide": "Kommentare ausblenden"
         }
     }
 }

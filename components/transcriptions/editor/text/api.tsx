@@ -167,7 +167,7 @@ export class EditorAPI extends EventEmitter {
     return this.speakersRef.current || [];
   }
 
-  getSegmentNode(segmentIndex?: number) {
+  getSegmentNode(_segmentIndex?: number) {
     // In Tiptap, we don't have individual segment nodes in the same way
     // Return the editor DOM element
     return this.editorRef.current?.view.dom as HTMLElement | null;
@@ -260,7 +260,6 @@ export class EditorAPI extends EventEmitter {
       top: number;
     }> = [];
 
-    let previousSpeakerId: string | null = null;
     let speakerIndex = 0;
 
     paragraphs.forEach((paragraph) => {
@@ -289,7 +288,6 @@ export class EditorAPI extends EventEmitter {
       }
 
       speakerIndex++;
-      previousSpeakerId = speakerId;
     });
 
     return positions;
@@ -297,6 +295,66 @@ export class EditorAPI extends EventEmitter {
 
   getEditorElement() {
     return (this.editorRef.current?.view.dom as HTMLElement) ?? null;
+  }
+
+  /**
+   * One entry per comment thread anchored in the document, positioned by the top of
+   * its first `span[data-comment-id]` relative to the editor content (same coordinate
+   * space as {@link getSpeakerPositions}). Used to place the right-gutter indicators.
+   */
+  getCommentPositions(): Array<{ anchorId: string; top: number }> {
+    if (!this.editorRef.current) return [];
+
+    const editorElement = this.editorRef.current.view.dom;
+    const editorRect = editorElement.getBoundingClientRect();
+    const spans = editorElement.querySelectorAll<HTMLElement>(
+      "span[data-comment-id]",
+    );
+
+    const seen = new Set<string>();
+    const positions: Array<{ anchorId: string; top: number }> = [];
+
+    spans.forEach((span) => {
+      const anchorId = span.getAttribute("data-comment-id");
+      if (!anchorId || seen.has(anchorId)) return;
+      seen.add(anchorId);
+      const rect = span.getBoundingClientRect();
+      const relativeTop =
+        rect.top - editorRect.top + editorElement.scrollTop;
+      positions.push({ anchorId, top: relativeTop });
+    });
+
+    return positions;
+  }
+
+  /**
+   * Viewport bounding rect of a comment thread's anchored text (union of its spans),
+   * used to position the comment popover next to the highlighted range.
+   */
+  getCommentAnchorRect(anchorId: string): DOMRect | null {
+    if (!this.editorRef.current) return null;
+    const editorElement = this.editorRef.current.view.dom;
+    const escaped =
+      typeof CSS !== "undefined" && CSS.escape
+        ? CSS.escape(anchorId)
+        : anchorId.replace(/"/g, '\\"');
+    const spans = editorElement.querySelectorAll<HTMLElement>(
+      `span[data-comment-id="${escaped}"]`,
+    );
+    if (spans.length === 0) return null;
+
+    let top = Infinity;
+    let left = Infinity;
+    let right = -Infinity;
+    let bottom = -Infinity;
+    spans.forEach((span) => {
+      const r = span.getBoundingClientRect();
+      top = Math.min(top, r.top);
+      left = Math.min(left, r.left);
+      right = Math.max(right, r.right);
+      bottom = Math.max(bottom, r.bottom);
+    });
+    return new DOMRect(left, top, right - left, bottom - top);
   }
 
   execCommand(command: string, value?: string) {

@@ -8,6 +8,7 @@ import {
   FileTextIcon,
   LoaderIcon,
 } from "lucide-react";
+import { useNotificationCounts } from "@/hooks/use-notifications";
 import Link from "next/link";
 
 type TranscriptionState = "PENDING" | "COMPLETED" | "ERROR";
@@ -28,6 +29,11 @@ export function TranscriptionMenuItem({
   transcription,
   isActive,
 }: TranscriptionMenuItemProps) {
+  // Unread notifications about this document (a mention, or a reply in a thread the
+  // user follows). Opening the document clears them.
+  const { data: counts } = useNotificationCounts();
+  const unread = counts?.byEntity[`transcription:${transcription.id}`] ?? 0;
+
   const getStatusIcon = () => {
     switch (transcription.state) {
       case "PENDING":
@@ -63,7 +69,12 @@ export function TranscriptionMenuItem({
       <Link href={`/app/transcription/${transcription.id}`}>
         <SidebarMenuButton isActive={isActive}>
           {getStatusIcon()}
-          <span>{transcription.title}</span>
+          <span className="flex-1 truncate">{transcription.title}</span>
+          {unread > 0 && (
+            <span className="bg-primary text-primary-foreground flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full px-1 text-[10px] font-medium tabular-nums">
+              {unread > 9 ? "9+" : unread}
+            </span>
+          )}
         </SidebarMenuButton>
       </Link>
     </SidebarMenuItem>

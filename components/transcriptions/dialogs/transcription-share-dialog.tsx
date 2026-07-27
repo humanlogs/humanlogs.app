@@ -211,6 +211,49 @@ export function TranscriptionShareDialog() {
             encryptionState.publicKey,
           );
         }
+
+        // Re-wrap existing comment bodies so the new user can read them too. New
+        // comments made after this share already include them (they encrypt for the
+        // transcription's current accessor set).
+        try {
+          const commentsRes = await fetch(
+            `/api/transcriptions/${transcription.id}/comments`,
+          );
+          if (commentsRes.ok) {
+            const { comments } = await commentsRes.json();
+            const rewrapped: Array<{ id: string; body: unknown }> = [];
+            for (const c of comments ?? []) {
+              const body = c?.body;
+              if (
+                body &&
+                Array.isArray(body.privateKeys) &&
+                typeof body.payload === "string"
+              ) {
+                rewrapped.push({
+                  id: c.id,
+                  body: await encryptionUtils.share(
+                    body,
+                    newAccessor,
+                    encryptionState.privateKey,
+                    encryptionState.publicKey,
+                  ),
+                });
+              }
+            }
+            if (rewrapped.length > 0) {
+              await fetch(
+                `/api/transcriptions/${transcription.id}/comments`,
+                {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ comments: rewrapped }),
+                },
+              );
+            }
+          }
+        } catch (e) {
+          console.error("Failed to re-encrypt comments for new user:", e);
+        }
       }
 
       const result = await shareMutation.mutateAsync({

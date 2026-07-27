@@ -52,6 +52,9 @@ model User {
   // Referral program: extra monthly credits earned from referred users who registered
   referralBonusCredits  Int             @default(0)
   referralsSent         Referral[]
+  comments              Comment[]
+  notifications         Notification[]      @relation("NotificationRecipient")
+  threadSubscriptions   ThreadSubscription[]
 }
 
 enum ReferralStatus {
@@ -122,6 +125,7 @@ model Transcription {
   completedAt               DateTime?
   user                      User               @relation(fields: [userId], references: [id])
   project                   Project?           @relation(fields: [projectId], references: [id])
+  comments                  Comment[]
 
   @@index([id])
   @@index([userId, id])
@@ -148,6 +152,79 @@ model TranscriptionHistory {
   changed         Int      @default(0)
 
   @@index([userId, transcriptionId, updatedAt])
+}
+
+/// A comment thread anchor lives in the transcript as a `comment` mark (serialized
+/// into segment `comments`), so the anchored range is CRDT-synced, versioned with the
+/// transcript, and survives reseed (a revert restores the anchors, which re-link to
+/// these rows by `anchorId`). The note bodies live here, one row per note, so a single
+/// anchor (`anchorId`) can hold a multi-user thread. `body` is an EncryptedDataEntity
+/// (AES-GCM payload + per-authorized-user RSA-wrapped key) when the transcription is
+/// encrypted, or plain `{ text }` otherwise.
+model Comment {
+  id              String        @id @default(uuid())
+  transcriptionId String
+  // Groups notes into a thread; equals the `commentId` attribute of the mark in the doc.
+  anchorId        String
+  // Author of this note.
+  userId          String
+  // EncryptedDataEntity (encrypted) or { text: string } (plaintext).
+  body            Json
+  resolved        Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+  transcription   Transcription @relation(fields: [transcriptionId], references: [id], onDelete: Cascade)
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([transcriptionId])
+  @@index([transcriptionId, anchorId])
+}
+
+/// Generic in-app notification. Deliberately feature-agnostic: `type` names the event
+/// ("comment.reply", "comment.mention", …) and `entityType`/`entityId` point at whatever
+/// it concerns, so other features can emit notifications without schema changes.
+///
+/// `data` holds only what is needed to render a one-line summary and build a link —
+/// never user content. Comment bodies are end-to-end encrypted, so a notification
+/// references the comment rather than quoting it, and the client renders the wording.
+model Notification {
+  id         String    @id @default(uuid())
+  /// Who receives it.
+  userId     String
+  /// Event name, e.g. "comment.mention". Unknown types render with a generic fallback.
+  type       String
+  /// Who caused it (null for system notifications).
+  actorId    String?
+  /// What it is about, e.g. "transcription".
+  entityType String?
+  entityId   String?
+  data       Json?
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+  user       User      @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+}
+
+/// Opt-in/opt-out of a comment thread. A row exists only once the user has expressed
+/// (or implicitly acquired) an interest: posting in a thread or being mentioned
+/// subscribes them, and `subscribed = false` records an explicit opt-out so it is not
+/// silently re-added.
+model ThreadSubscription {
+  id              String   @id @default(uuid())
+  userId          String
+  transcriptionId String
+  /// The comment thread, matching Comment.anchorId.
+  anchorId        String
+  subscribed      Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, transcriptionId, anchorId])
+  @@index([transcriptionId, anchorId])
 }
 
 model Feedback {

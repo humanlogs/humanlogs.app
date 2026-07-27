@@ -9,6 +9,15 @@ export function escapeHtml(text: string): string {
     .replace(/ /g, "&nbsp;");
 }
 
+/** Escape a value for use inside a double-quoted HTML attribute. */
+function escapeAttr(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 /**
  * Converts segments to plain HTML text with formatting tags.
  * No individual word spans - just the text content with b/i/u/s tags.
@@ -24,40 +33,60 @@ export function segmentsToHtml(
   }
 
   let html = "";
-  let currentModifiers: string[] = []; // Track currently open tags in order
+  // Track currently open tags, outermost → innermost. Entries are either a format
+  // key ("b"|"i"|"u"|"s") or a comment span encoded as `comment:<threadId>`.
+  let currentTags: string[] = [];
 
   segments = normalizeEditorSegments(segments, options);
 
   // Define consistent order for modifiers to ensure proper nesting
   const modifierOrder = ["b", "i", "u", "s"];
 
+  // Comment spans nest INSIDE the format tags (innermost) so a comment can start /
+  // end independently of bold/italic without breaking tag nesting.
+  const tagsForSegment = (seg: TranscriptionSegment): string[] => {
+    const mods = (seg.modifiers ?? [])
+      .filter((m) => modifierOrder.includes(m))
+      .sort((a, b) => modifierOrder.indexOf(a) - modifierOrder.indexOf(b));
+    const comments = (seg.comments ?? []).map((id) => `comment:${id}`);
+    return [...mods, ...comments];
+  };
+
+  const openTag = (tag: string): string => {
+    if (tag.startsWith("comment:")) {
+      const id = tag.slice("comment:".length);
+      return `<span data-comment-id="${escapeAttr(id)}">`;
+    }
+    return `<${tag}>`;
+  };
+  const closeTag = (tag: string): string =>
+    tag.startsWith("comment:") ? "</span>" : `</${tag}>`;
+
   for (let j = 0; j < segments.length; j++) {
     const nextSegment = segments[j + 1];
     const seg = segments[j];
 
-    // Get segment modifiers sorted in consistent order
-    const newModifiers = (seg.modifiers ?? [])
-      .filter((m) => modifierOrder.includes(m))
-      .sort((a, b) => modifierOrder.indexOf(a) - modifierOrder.indexOf(b));
+    // Get the desired open-tag stack for this segment (formats then comment spans)
+    const newTags = tagsForSegment(seg);
 
-    // Find where the modifier stacks diverge
+    // Find where the tag stacks diverge
     let commonLength = 0;
     while (
-      commonLength < currentModifiers.length &&
-      commonLength < newModifiers.length &&
-      currentModifiers[commonLength] === newModifiers[commonLength]
+      commonLength < currentTags.length &&
+      commonLength < newTags.length &&
+      currentTags[commonLength] === newTags[commonLength]
     ) {
       commonLength++;
     }
 
     // Close tags that are no longer needed (in reverse order to respect nesting)
-    for (let i = currentModifiers.length - 1; i >= commonLength; i--) {
-      html += `</${currentModifiers[i]}>`;
+    for (let i = currentTags.length - 1; i >= commonLength; i--) {
+      html += closeTag(currentTags[i]);
     }
 
     // Open new tags
-    for (let i = commonLength; i < newModifiers.length; i++) {
-      html += `<${newModifiers[i]}>`;
+    for (let i = commonLength; i < newTags.length; i++) {
+      html += openTag(newTags[i]);
     }
 
     if (
@@ -79,10 +108,10 @@ export function segmentsToHtml(
       html += content;
 
       // Close any remaining open tags (in reverse order)
-      for (let i = currentModifiers.length - 1; i >= 0; i--) {
-        html += `</${currentModifiers[i]}>`;
+      for (let i = currentTags.length - 1; i >= 0; i--) {
+        html += closeTag(currentTags[i]);
       }
-      currentModifiers = [];
+      currentTags = [];
       html += `</p><p data-speaker-id="${nextSegment?.speakerId || "speaker_0"}">`; // Start new paragraph for new speaker
     } else {
       // Add content
@@ -90,13 +119,13 @@ export function segmentsToHtml(
       content = content.replace(/\n/g, "<br>");
       html += content;
 
-      currentModifiers = newModifiers;
+      currentTags = newTags;
     }
   }
 
   // Close any remaining open tags (in reverse order)
-  for (let i = currentModifiers.length - 1; i >= 0; i--) {
-    html += `</${currentModifiers[i]}>`;
+  for (let i = currentTags.length - 1; i >= 0; i--) {
+    html += closeTag(currentTags[i]);
   }
 
   html = `<p data-speaker-id="${segments[0].speakerId}">${html}</p>`; // Wrap in a paragraph for better structure

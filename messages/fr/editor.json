@@ -6,7 +6,8 @@
             "bold": "Gras (⌘B)",
             "italic": "Italique (⌘I)",
             "underline": "Souligné (⌘U)",
-            "strikethrough": "Barré (⌘⇧X)"
+            "strikethrough": "Barré (⌘⇧X)",
+            "comment": "Commentaire (⌘⇧M)"
         },
         "search": {
             "findPlaceholder": "Rechercher...",
@@ -100,7 +101,8 @@
             "vtt": "WebVTT (sous-titres)",
             "nvivo": "NVivo",
             "maxqda": "MAXQDA",
-            "advanced": "Avancé"
+            "advanced": "Avancé",
+            "history": "Historique des versions"
         },
         "share": {
             "title": "Partager la transcription",
@@ -139,6 +141,23 @@
                 "cancel": "Annuler",
                 "confirm": "Transférer la propriété"
             }
+        },
+        "comments": {
+            "title": "Commentaires",
+            "placeholder": "Écrire un commentaire…",
+            "add": "Commenter",
+            "save": "Enregistrer",
+            "cancel": "Annuler",
+            "edit": "Modifier",
+            "delete": "Supprimer",
+            "empty": "Aucun commentaire",
+            "you": "Vous",
+            "indicator": "Cette ligne comporte des commentaires",
+            "replyPlaceholder": "Répondre…",
+            "mentionHint": "@ pour mentionner",
+            "subscribe": "Suivre cette discussion",
+            "unsubscribe": "Ne plus suivre cette discussion",
+            "hide": "Masquer les commentaires"
         }
     }
 }

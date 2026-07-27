@@ -3,54 +3,46 @@
 import { useEffect, useRef, useState } from "react";
 import { EditorAPI } from "../api";
 
-export interface SpeakerPosition {
-  speakerId: string;
-  /** Index of this speaker turn (0-based, used for color cycling) */
-  index: number;
+export interface CommentPosition {
+  anchorId: string;
   /** px from the top of the editor's content area */
   top: number;
 }
 
-const signature = (positions: SpeakerPosition[]): string =>
-  positions.map((p) => `${p.speakerId}:${p.index}:${Math.round(p.top)}`).join("|");
+const signature = (positions: CommentPosition[]): string =>
+  positions.map((p) => `${p.anchorId}:${Math.round(p.top)}`).join("|");
 
 /**
- * Returns one position entry per speaker turn in the editor. Re-measures on segment
- * changes, editor scroll, resize, and DOM mutations.
- *
- * Perf: all triggers are coalesced into a single pending `requestAnimationFrame`
- * (so a burst of edits / a remote sync recomputes at most once per frame), and the
- * measured positions are diffed against the previous set — an unchanged result skips
- * the `setState`, avoiding a needless re-render of the speaker column.
+ * One position per comment thread anchored in the document, for the right-gutter
+ * indicators. Mirrors {@link import("./use-speaker-positions").useSpeakerPositions}:
+ * recomputes on doc/comment changes, scroll and resize, coalesced into a single rAF,
+ * and skips the setState when nothing moved.
  */
-export function useSpeakerPositions(editorAPI: EditorAPI): {
-  positions: SpeakerPosition[];
-  recalculate: () => void;
+export function useCommentPositions(editorAPI: EditorAPI): {
+  positions: CommentPosition[];
 } {
-  const [positions, setPositions] = useState<SpeakerPosition[]>([]);
+  const [positions, setPositions] = useState<CommentPosition[]>([]);
   const rafRef = useRef<number | null>(null);
   const sigRef = useRef<string>("");
 
   useEffect(() => {
-    // Coalesce every trigger into one rAF; skip the setState when nothing changed.
     const schedule = () => {
-      if (rafRef.current !== null) return; // already pending this frame
+      if (rafRef.current !== null) return;
       rafRef.current = requestAnimationFrame(() => {
         rafRef.current = null;
-        const next = editorAPI.getSpeakerPositions();
+        const next = editorAPI.getCommentPositions();
         const sig = signature(next);
-        if (sig === sigRef.current) return; // identical → no re-render
+        if (sig === sigRef.current) return;
         sigRef.current = sig;
         setPositions(next);
       });
     };
 
-    // Initial measure after commit.
     schedule();
 
     // The editor reflows whenever its width changes (opening/collapsing the comment
-    // rail or the sidebar) without firing any window event, which would leave every
-    // badge at a stale offset — so watch the element itself too.
+    // rail, the sidebar, a window resize), which moves every anchor. Window events
+    // don't cover that, so watch the element itself.
     const observer = new ResizeObserver(schedule);
     let observed: HTMLElement | null = null;
     const observe = () => {
@@ -67,6 +59,7 @@ export function useSpeakerPositions(editorAPI: EditorAPI): {
     window.addEventListener("resize", schedule, { passive: true });
     editorAPI.addListener("speakersOffsets", schedule);
     editorAPI.addListener("change", schedule);
+    editorAPI.addListener("commentsChange", schedule);
     editorAPI.addListener("ready", observe);
 
     return () => {
@@ -77,17 +70,12 @@ export function useSpeakerPositions(editorAPI: EditorAPI): {
       window.removeEventListener("resize", schedule);
       editorAPI.removeListener("speakersOffsets", schedule);
       editorAPI.removeListener("change", schedule);
+      editorAPI.removeListener("commentsChange", schedule);
       editorAPI.removeListener("ready", observe);
     };
     // editorAPI is a stable ref
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Force an immediate recompute (bypasses the diff) — used by imperative callers.
-  const recalculate = () => {
-    sigRef.current = "";
-    setPositions(editorAPI.getSpeakerPositions());
-  };
-
-  return { positions, recalculate };
+  return { positions };
 }
