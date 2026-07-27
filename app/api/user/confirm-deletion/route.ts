@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getStorage } from "@/lib/storage";
 import { reconcileReferralsForDeletedUser } from "@/lib/referral";
+import { recordDeletedAccountCredits } from "@/lib/billing/deleted-account-credits";
 
 export async function POST(request: Request) {
   try {
@@ -64,6 +65,11 @@ export async function POST(request: Request) {
 
     // Delete user data in transaction
     await prisma.$transaction(async (tx) => {
+      // Remember the credit balance behind a one-way hash of the email so a
+      // fresh sign-up with the same address gets that balance back instead of
+      // a new free allotment.
+      await recordDeletedAccountCredits(deletionToken.user, tx);
+
       // Reconcile referral bonuses for anyone who referred this user, then drop
       // the referral rows that recorded them (referrals where this user is the
       // referrer cascade-delete with the user below).

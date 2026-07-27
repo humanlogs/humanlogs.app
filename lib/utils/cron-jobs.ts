@@ -2,6 +2,7 @@ import cron from "node-cron";
 import { refillUserCredits } from "../billing/credits-refill-service";
 import { processMarketingEmails } from "../email/marketing-email-service";
 import { cleanupStaleTranscriptions } from "./stale-transcription-cleanup";
+import { purgeExpiredDeletedAccounts } from "../billing/deleted-account-credits";
 
 export function initializeCronJobs() {
   // Run credits refill daily at 2:00 AM
@@ -34,6 +35,17 @@ export function initializeCronJobs() {
       console.log("[CRON] Stale transcription cleanup completed:", result);
     } catch (error) {
       console.error("[CRON] Error during stale transcription cleanup:", error);
+    }
+  });
+
+  // Forget deleted-account credit records past the retention window, weekly.
+  cron.schedule("30 3 * * 0", async () => {
+    console.log("[CRON] Running deleted account purge...");
+    try {
+      const result = await purgeExpiredDeletedAccounts();
+      console.log("[CRON] Deleted account purge completed:", result);
+    } catch (error) {
+      console.error("[CRON] Error during deleted account purge:", error);
     }
   });
 

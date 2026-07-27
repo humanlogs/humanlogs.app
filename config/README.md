@@ -98,3 +98,13 @@ See `config/default.json` for the full configuration structure:
   Set a token to enable the token-protected `GET /api/stats` JSON export used
   by the marketing pipeline (`pipeline/stats-report.ts`). Leave it empty and
   the endpoint stays disabled (404).
+- `security` - Anti-abuse settings for the free credit balance.
+  - `security.emailHashSecret` / `EMAIL_HASH_SECRET`: pepper used to hash the
+    email address of deleted accounts, so a user who deletes their account and
+    signs up again gets their old credit balance back instead of a fresh one
+    (see `lib/billing/deleted-account-credits.ts`). Defaults to
+    `auth.sessionSecret` when empty; changing it invalidates existing hashes,
+    which simply means past deletions stop being recognized.
+  - `security.deletedAccountRetentionDays` / `DELETED_ACCOUNT_RETENTION_DAYS`:
+    how long those hashes are kept (default `365`). A weekly cron job deletes
+    older records; set to `0` to keep them forever.

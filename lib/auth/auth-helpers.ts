@@ -3,6 +3,7 @@ import { getAuth0Client } from "./auth0";
 import { getLocalSession } from "./local-auth";
 import { authConfig } from "../config";
 import { processReferralOnSignup } from "../referral";
+import { restoreCreditsForReturningUser } from "../billing/deleted-account-credits";
 
 export interface UserSession {
   id: string;
@@ -60,6 +61,9 @@ export async function getCurrentUser(): Promise<UserSession | null> {
   const emailForCreate = auth0User.email ?? `${auth0User.sub}@noemail.invalid`;
 
   let dbUser: Awaited<ReturnType<typeof prisma.user.upsert>>;
+  // A sign-up, as opposed to a login or an account being linked to a new
+  // identity provider below.
+  let isNewSignup = !existingUser;
   try {
     dbUser = await prisma.user.upsert({
       where: { auth0Id: auth0User.sub },
@@ -86,13 +90,22 @@ export async function getCurrentUser(): Promise<UserSession | null> {
         where: { email: auth0User.email },
         data: { auth0Id: auth0User.sub, ...profileUpdate },
       });
+      // The account already existed under another provider — not a sign-up.
+      isNewSignup = false;
     } else {
       throw err;
     }
   }
 
-  // Grant referral bonus to whoever invited this email (only on first login/signup)
-  if (!existingUser && dbUser.email) {
+  if (isNewSignup && dbUser.email) {
+    // If this address deleted an account before, give back the balance it left
+    // with instead of a brand new one.
+    await restoreCreditsForReturningUser({
+      id: dbUser.id,
+      email: dbUser.email,
+    });
+
+    // Grant referral bonus to whoever invited this email
     await processReferralOnSignup({ id: dbUser.id, email: dbUser.email });
   }
 

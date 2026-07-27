@@ -81,5 +81,9 @@
     },
     "stats": {
         "apiToken": "STATS_API_TOKEN"
+    },
+    "security": {
+        "emailHashSecret": "EMAIL_HASH_SECRET",
+        "deletedAccountRetentionDays": "DELETED_ACCOUNT_RETENTION_DAYS"
     }
 }
