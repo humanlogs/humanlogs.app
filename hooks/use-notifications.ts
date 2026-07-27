@@ -38,12 +38,44 @@ export function useNotifications(limit = 20) {
   });
 }
 
-/** Mark specific notifications, or all of them, as read. */
+/**
+ * Unread counts per entity, for badges in lists. Keyed `"<entityType>:<entityId>"`.
+ * Cheap enough to keep alongside any list without fetching the notifications.
+ */
+export function useNotificationCounts() {
+  return useQuery({
+    queryKey: ["notifications", "counts"],
+    queryFn: async (): Promise<{
+      total: number;
+      byEntity: Record<string, number>;
+    }> => {
+      const response = await fetchGateway("/api/notifications/counts");
+      if (!response.ok) throw new Error("Failed to fetch notification counts");
+      const data = (await response.json()) as {
+        total: number;
+        byEntity: { entityType: string; entityId: string; count: number }[];
+      };
+      return {
+        total: data.total,
+        byEntity: Object.fromEntries(
+          data.byEntity.map((e) => [`${e.entityType}:${e.entityId}`, e.count]),
+        ),
+      };
+    },
+  });
+}
+
+/** Mark notifications read: specific ids, everything, or everything about one entity. */
 export function useMarkNotificationsRead() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: { ids?: string[]; all?: boolean }) => {
+    mutationFn: async (input: {
+      ids?: string[];
+      all?: boolean;
+      entityType?: string;
+      entityId?: string;
+    }) => {
       const response = await fetchGateway("/api/notifications", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

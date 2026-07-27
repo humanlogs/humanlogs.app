@@ -66,7 +66,9 @@ export const GET = withAuthRateLimit(async (request, user) => {
 });
 
 /**
- * Mark notifications as read: `{ ids: [...] }` for specific ones, or `{ all: true }`.
+ * Mark notifications as read: `{ ids: [...] }` for specific ones, `{ all: true }` for
+ * everything, or `{ entityType, entityId }` for everything about one entity — which is
+ * how opening a document clears its badge.
  */
 export const PATCH = withAuthRateLimit(async (request, user) => {
   const body = await request.json().catch(() => ({}));
@@ -82,9 +84,22 @@ export const PATCH = withAuthRateLimit(async (request, user) => {
       where: { id: { in: body.ids as string[] }, userId: user.id },
       data: { readAt: new Date() },
     });
+  } else if (
+    typeof body?.entityType === "string" &&
+    typeof body?.entityId === "string"
+  ) {
+    await prisma.notification.updateMany({
+      where: {
+        userId: user.id,
+        readAt: null,
+        entityType: body.entityType,
+        entityId: body.entityId,
+      },
+      data: { readAt: new Date() },
+    });
   } else {
     return NextResponse.json(
-      { error: "Provide ids[] or all=true" },
+      { error: "Provide ids[], all=true, or entityType + entityId" },
       { status: 400 },
     );
   }

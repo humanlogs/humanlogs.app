@@ -425,8 +425,6 @@
     "markAllRead": "Mark all as read",
     "someone": "Someone",
     "mentionedYou": "{name} mentioned you",
-    "repliedInThread": "{name} replied in a thread you follow",
-    "seeAll": "See all",
-    "loading": "Loading…"
+    "repliedInThread": "{name} replied in a thread you follow"
   }
 }

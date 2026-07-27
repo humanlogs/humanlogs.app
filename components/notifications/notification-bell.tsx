@@ -8,14 +8,13 @@ import {
   useNotifications,
 } from "@/hooks/use-notifications";
 import { BellIcon } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Notification bell: unread badge plus a dropdown of the most recent entries.
+ * Notification bell: unread badge plus a dropdown of the recent entries.
  *
- * The full history lives at /app/notifications, which is also how the sidebar reaches
- * it; this is the in-place shortcut for wherever the user already is.
+ * Per-document badges in the sidebar carry the same information at a glance; this is
+ * the detail view, for when you want to know what actually happened.
  */
 export function NotificationBell() {
   const t = useTranslations("notifications");
@@ -84,14 +83,6 @@ export function NotificationBell() {
               onNavigate={() => setOpen(false)}
             />
           </div>
-
-          <Link
-            href="/app/notifications"
-            onClick={() => setOpen(false)}
-            className="text-muted-foreground hover:text-foreground border-t px-3 py-2 text-center text-[11px]"
-          >
-            {t("seeAll")}
-          </Link>
         </div>
       )}
     </div>

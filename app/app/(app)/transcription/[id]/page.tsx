@@ -8,6 +8,7 @@ import { TranscriptionLoading } from "@/components/transcriptions/transcription-
 import { ProjectBadge } from "@/components/projects/project-badge";
 import { useProjects } from "@/hooks/use-api";
 import { useEncryptionStatus } from "@/hooks/use-encryption";
+import { useMarkNotificationsRead } from "@/hooks/use-notifications";
 import { useTranscription, useTranscriptions } from "@/hooks/use-transcriptions";
 import { useTranscriptionDeleteModal } from "@/components/transcriptions/dialogs/transcription-delete-dialog";
 import { PencilIcon } from "lucide-react";
@@ -46,6 +47,13 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
   const router = useRouter();
 
   const isEncryptionError = error?.message === "error_encrypted";
+
+  // Opening a document is reading its news: clear its sidebar badge. Runs once per
+  // document; the request is a no-op when there is nothing unread.
+  const { mutate: markNotificationsRead } = useMarkNotificationsRead();
+  useEffect(() => {
+    markNotificationsRead({ entityType: "transcription", entityId: id });
+  }, [id, markNotificationsRead]);
 
   useEffect(() => {
     if (error && !isEncryptionError) {
