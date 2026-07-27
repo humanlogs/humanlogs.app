@@ -182,6 +182,27 @@ model DeletionToken {
   @@index([userId])
 }
 
+// Anti-abuse memory of deleted accounts. Users were deleting their account and
+// signing up again to get a fresh free credit balance, so we keep the credit
+// state behind a one-way HMAC of the (normalized) email address. No personal
+// data is retained: the hash can only be matched, never reversed back to an
+// address. A match also disqualifies the sign-up from paying a referral bonus,
+// since a returning address is not an acquisition. Records are purged after
+// `security.deletedAccountRetentionDays`.
+model DeletedAccount {
+  id             String   @id @default(uuid())
+  emailHash      String   @unique
+  // Credit balance and usage at the moment the account was deleted. Restored
+  // as-is when the same address registers again.
+  credits        Int      @default(0)
+  creditsUsed    Int      @default(0)
+  deletionCount  Int      @default(1)
+  firstDeletedAt DateTime @default(now())
+  lastDeletedAt  DateTime @default(now())
+
+  @@index([lastDeletedAt])
+}
+
 model RateLimit {
   id        String   @id @default(uuid())
   key       String   @unique

@@ -2,6 +2,7 @@ import { prisma } from "./prisma";
 import { Prisma } from "@prisma/client";
 import { sendEmail } from "./email/mailer";
 import { getReferralInviteEmailTemplate } from "./email/email-templates-account";
+import { isReturningAddress } from "./billing/deleted-account-credits";
 
 /** Either the global client or a transaction client. */
 type PrismaClientLike = Prisma.TransactionClient | typeof prisma;
@@ -161,6 +162,12 @@ export async function addReferralEmails(
  * Called when a brand new user registers. If their email matches any pending
  * invitation, mark it as registered and grant the referrer their monthly bonus
  * credits (capped at MAX_REFERRALS registered referrals).
+ *
+ * Addresses that already had an account here are ignored: deleting an account
+ * and registering again is not an acquisition, and paying for it would turn the
+ * referral program into another way to farm credits on repeat. Their pending
+ * invitations stay INVITED, so the referrer's bonus — which is always recomputed
+ * from the number of REGISTERED referrals — cannot pick them up later either.
  */
 export async function processReferralOnSignup(newUser: {
   id: string;
@@ -168,6 +175,14 @@ export async function processReferralOnSignup(newUser: {
 }): Promise<void> {
   try {
     const email = newUser.email.toLowerCase();
+
+    if (await isReturningAddress(email)) {
+      console.log(
+        "[Referral] Skipping bonus: this address previously had an account",
+      );
+      return;
+    }
+
     const pending = await prisma.referral.findMany({
       where: { email, status: "INVITED" },
     });

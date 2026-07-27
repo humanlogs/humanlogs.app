@@ -5,6 +5,7 @@ import { authConfig, ldapConfig } from "../config";
 import { prisma } from "../prisma";
 import { sendWelcomeMarketingEmail } from "../email/marketing-email-service";
 import { processReferralOnSignup } from "../referral";
+import { restoreCreditsForReturningUser } from "../billing/deleted-account-credits";
 
 const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days
 
@@ -179,6 +180,13 @@ export async function authenticateLocal(
     const ldapUser = await authenticateLDAP(email, password);
 
     if (ldapUser) {
+      // Detect a first login so a returning (previously deleted) account gets
+      // its old credit balance back rather than a fresh one.
+      const existingUser = await prisma.user.findUnique({
+        where: { email: ldapUser.email },
+        select: { id: true },
+      });
+
       // Create or update user in database
       const dbUser = await prisma.user.upsert({
         where: { email: ldapUser.email },
@@ -193,6 +201,13 @@ export async function authenticateLocal(
           language: "en",
         },
       });
+
+      if (!existingUser) {
+        await restoreCreditsForReturningUser({
+          id: dbUser.id,
+          email: dbUser.email,
+        });
+      }
 
       return {
         id: dbUser.id,
@@ -251,6 +266,10 @@ export async function registerLocal(
       language: "en",
     },
   });
+
+  // If this address deleted an account before, give back the balance it left
+  // with instead of a brand new one.
+  await restoreCreditsForReturningUser({ id: user.id, email: user.email });
 
   // Send welcome email asynchronously (don't wait for it)
   sendWelcomeMarketingEmail(
