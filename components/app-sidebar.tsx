@@ -24,6 +24,8 @@ import { useDocumentViewPrefs } from "@/hooks/use-document-view-prefs";
 import { groupableCodebooks } from "@/lib/codebooks/codebook";
 import { cn } from "@/lib/utils/utils";
 import {
+  codebookIdFromGroupBy,
+  DEFAULT_GROUP_BY,
   groupDocuments,
   sortDocuments,
   type GroupLabel,
@@ -90,6 +92,17 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
     [codebooks],
   );
 
+  // A stored `codebook:<id>` grouping outlives the codebook it points at —
+  // leaving the beta, or losing access to it, must fall back to the default
+  // axis rather than lumping every document under "uncoded".
+  const groupBy = React.useMemo(() => {
+    const codebookId = codebookIdFromGroupBy(prefs.groupBy);
+    if (!codebookId) return prefs.groupBy;
+    return groupingCodebooks.some((codebook) => codebook.id === codebookId)
+      ? prefs.groupBy
+      : DEFAULT_GROUP_BY;
+  }, [prefs.groupBy, groupingCodebooks]);
+
   // Sync language with locale provider when user profile loads
   React.useEffect(() => {
     if (userProfile?.language && locales.includes(userProfile.language)) {
@@ -140,10 +153,10 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
         documents: filteredOwned,
         projects,
         codebooks: groupingCodebooks,
-        groupBy: prefs.groupBy,
+        groupBy,
         sortBy: prefs.sortBy,
       }),
-    [filteredOwned, projects, groupingCodebooks, prefs.groupBy, prefs.sortBy],
+    [filteredOwned, projects, groupingCodebooks, groupBy, prefs.sortBy],
   );
 
   const filteredShared = React.useMemo(() => {
@@ -164,13 +177,13 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
   // Outside of the "by study" grouping the study is no longer implied by the
   // header, so each row carries it as a prefix.
   const studyFor = (projectId?: string | null) =>
-    prefs.groupBy === "study" || !projectId
+    groupBy === "study" || !projectId
       ? null
       : (projectsById.get(projectId) ?? null);
 
   const viewSettings = (
     <DocumentViewSettings
-      groupBy={prefs.groupBy}
+      groupBy={groupBy}
       sortBy={prefs.sortBy}
       codebooks={groupingCodebooks}
       onChange={update}

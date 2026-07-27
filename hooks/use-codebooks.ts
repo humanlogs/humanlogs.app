@@ -16,6 +16,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { browserCrypto } from "../lib/encryption/encryption-entities.browser";
 import { fetchGateway } from "./fetch";
+import { useBetaFeatures } from "./use-api";
 import { useDecryptData, useEncryptionStatus } from "./use-encryption";
 
 type Accessor = { userId: string; publicKey: string };
@@ -61,11 +62,19 @@ async function buildContent(
   return utils.createEncryptedDataEntity(content, accessors);
 }
 
-/** Fetch every codebook of the user, with names and codes decrypted. */
+/**
+ * Fetch every codebook of the user, with names and codes decrypted.
+ *
+ * Codebooks are a beta feature: without the opt-in the query never runs, so
+ * every consumer (study section, sidebar grouping, editor dialog) sees an empty
+ * list instead of each having to check the flag.
+ */
 export function useCodebooks() {
   const decrypt = useDecryptData();
+  const betaFeatures = useBetaFeatures();
 
   return useQuery({
+    enabled: betaFeatures,
     queryKey: ["codebooks"],
     queryFn: async (): Promise<DecryptedCodebook[]> => {
       const response = await fetchGateway("/api/codebooks");

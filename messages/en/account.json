@@ -302,6 +302,16 @@
                 }
             }
         },
+        "preferences": {
+            "title": "Preferences",
+            "description": "Choose what humanlogs shows you",
+            "betaBadge": "Beta",
+            "betaFeatures": {
+                "label": "Show beta features",
+                "description": "Turn on the features we are still polishing, such as codebooks. They work, but they can change or move without notice.",
+                "error": "Failed to update your preferences"
+            }
+        },
         "referralCardTitle": "Referral",
         "referralCardDescription": "Invite friends and earn free transcription minutes",
         "referralCardButton": "Open Referrals"

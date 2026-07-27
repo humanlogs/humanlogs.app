@@ -51,6 +51,8 @@ export type UserProfile = {
   profession?: string | null;
   monthlyUsage?: string | null;
   dataResidency: DataResidency;
+  /** Opt-in to features still in beta (codebooks). */
+  betaFeatures: boolean;
   referralBonusCredits: number;
   availableSttProviders: AvailableSttProviders;
 };
@@ -105,6 +107,16 @@ export function useUserProfile() {
   });
 }
 
+/**
+ * Whether the current user opted into beta features (toggle in /app/account).
+ * Defaults to false while the profile is still loading, so beta surfaces never
+ * flash in for users who don't have them.
+ */
+export function useBetaFeatures(): boolean {
+  const { data: userProfile } = useUserProfile();
+  return userProfile?.betaFeatures === true;
+}
+
 // Update user profile (language, onboarding profile, data residency, ...)
 export function useUpdateUser() {
   const queryClient = useQueryClient();
@@ -120,6 +132,7 @@ export function useUpdateUser() {
           | "profession"
           | "monthlyUsage"
           | "dataResidency"
+          | "betaFeatures"
         >
       >,
     ) => {

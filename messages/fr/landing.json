@@ -108,9 +108,10 @@
                     "Plus de 100 langues, précision de premier plan",
                     "Identification automatique des locuteurs",
                     "Éditeur synchronisé à l'audio, corrections 4x plus rapides",
+                    "Édition simultanée avec curseurs en direct",
+                    "Fils de commentaires et mentions @",
                     "Chiffrement de bout en bout",
-                    "Export vers Word, PDF, CSV et TXT",
-                    "Collaboration en temps réel"
+                    "Export vers Word, PDF, CSV et TXT"
                 ]
             },
             "coding": {
@@ -320,8 +321,14 @@
             "description": "Exports basiques en PDF, Word, CSV et TXT. Exports avancés pour les logiciels d'analyse de texte, extraction de locuteurs spécifiques et options de formatage personnalisées."
         },
         "collaboration": {
-            "title": "Collaboration",
-            "description": "Partagez vos transcriptions et travaillez ensemble sur leur amélioration. Parfait pour les équipes de recherche, les rédactions et les projets collaboratifs."
+            "title": "Collaboration en temps réel",
+            "description": "Invitez votre équipe et travaillez à plusieurs sur la même transcription, en voyant les curseurs de chacun en direct. Accès en lecture seule ou en écriture, personne par personne, et tout reste chiffré de bout en bout.",
+            "badge": "Édition simultanée"
+        },
+        "comments": {
+            "title": "Commentaires & discussions",
+            "description": "Surlignez un passage et ouvrez-y un fil de discussion. Répondez, mentionnez un collègue avec @, recevez une notification : vos notes d'analyse vivent à côté des mots, pas dans un document à part.",
+            "badge": "Mentions @"
         },
         "privacy": {
             "title": "Conçu pour la confidentialité",

@@ -302,6 +302,16 @@
                 }
             }
         },
+        "preferences": {
+            "title": "Einstellungen",
+            "description": "Legen Sie fest, was humanlogs Ihnen anzeigt",
+            "betaBadge": "Beta",
+            "betaFeatures": {
+                "label": "Beta-Funktionen anzeigen",
+                "description": "Aktivieren Sie Funktionen, an denen wir noch feilen, etwa Codebücher. Sie funktionieren, können sich aber ohne Ankündigung ändern oder verschieben.",
+                "error": "Ihre Einstellungen konnten nicht aktualisiert werden"
+            }
+        },
         "referralCardTitle": "Empfehlungen",
         "referralCardDescription": "Laden Sie Freunde ein und verdienen Sie Gratisminuten",
         "referralCardButton": "Empfehlungen öffnen"

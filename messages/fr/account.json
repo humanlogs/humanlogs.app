@@ -302,6 +302,16 @@
                 }
             }
         },
+        "preferences": {
+            "title": "Préférences",
+            "description": "Choisissez ce que humanlogs vous affiche",
+            "betaBadge": "Bêta",
+            "betaFeatures": {
+                "label": "Afficher les fonctionnalités bêta",
+                "description": "Activez les fonctionnalités que nous peaufinons encore, comme les codebooks. Elles fonctionnent, mais peuvent évoluer ou changer de place sans préavis.",
+                "error": "Impossible de mettre à jour vos préférences"
+            }
+        },
         "referralCardTitle": "Parrainage",
         "referralCardDescription": "Invitez des amis et gagnez des minutes de transcription gratuites",
         "referralCardButton": "Ouvrir le parrainage"

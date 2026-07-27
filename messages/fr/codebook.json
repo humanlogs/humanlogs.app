@@ -2,6 +2,7 @@
   "codebook": {
     "section": {
       "title": "Codebooks ({count})",
+      "beta": "Bêta",
       "create": "Nouveau codebook",
       "empty": {
         "title": "Aucun codebook",

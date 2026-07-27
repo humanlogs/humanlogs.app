@@ -49,6 +49,9 @@ model User {
   monthlyUsage          String?
   // Speech-to-text data residency preference: "eu" (Gladia) or "us" (ElevenLabs)
   dataResidency         String               @default("eu")
+  // Opt-in to features that are still in beta (currently: codebooks). Off by
+  // default — beta surfaces stay hidden until the user asks for them.
+  betaFeatures          Boolean              @default(false)
   // Referral program: extra monthly credits earned from referred users who registered
   referralBonusCredits  Int                  @default(0)
   referralsSent         Referral[]

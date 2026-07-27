@@ -60,9 +60,10 @@
                     "Über 100 Sprachen, erstklassige Genauigkeit",
                     "Automatische Sprecherkennung",
                     "Audio-synchronisierter Editor, 4x schnellere Korrekturen",
+                    "Gleichzeitiges Bearbeiten mit Live-Cursorn",
+                    "Kommentar-Threads und @-Erwähnungen",
                     "Ende-zu-Ende-Verschlüsselung",
-                    "Export nach Word, PDF, CSV und TXT",
-                    "Zusammenarbeit in Echtzeit"
+                    "Export nach Word, PDF, CSV und TXT"
                 ]
             },
             "coding": {
@@ -272,8 +273,14 @@
             "description": "Basis-Exporte als PDF, Word, CSV und TXT. Erweiterte Exporte für Textanalysesoftware, Extraktion bestimmter Sprecher und benutzerdefinierte Formatierungsoptionen."
         },
         "collaboration": {
-            "title": "Zusammenarbeit",
-            "description": "Teilen Sie Ihre Transkripte und arbeiten Sie gemeinsam an deren Verfeinerung. Perfekt für Forschungsteams, Redaktionen und kollaborative Projekte."
+            "title": "Zusammenarbeit in Echtzeit",
+            "description": "Laden Sie Ihr Team ein und bearbeiten Sie dasselbe Transkript gleichzeitig — die Cursor der anderen sehen Sie live. Lese- oder Schreibrechte pro Person, und alles bleibt Ende-zu-Ende-verschlüsselt.",
+            "badge": "Gleichzeitiges Bearbeiten"
+        },
+        "comments": {
+            "title": "Kommentare & Diskussionen",
+            "description": "Markieren Sie eine Passage und eröffnen Sie dort einen Diskussionsstrang. Antworten, Kolleginnen und Kollegen mit @ erwähnen, benachrichtigt werden: Ihre Analysenotizen stehen direkt bei den Worten, nicht in einem separaten Dokument.",
+            "badge": "@-Erwähnungen"
         },
         "privacy": {
             "title": "Datenschutz by Design",

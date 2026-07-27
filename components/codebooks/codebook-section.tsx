@@ -3,6 +3,7 @@
 import { useCodebookModal } from "@/components/codebooks/codebook-editor-dialog";
 import { GuideCallout } from "@/components/guidance/guide-callout";
 import { useTranslations } from "@/components/locale-provider";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useCodebooks } from "@/hooks/use-codebooks";
 import {
@@ -54,8 +55,11 @@ export function CodebookSection({ projectId }: { projectId: string }) {
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-medium text-muted-foreground">
+        <h2 className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           {t("section.title", { count: inScope.length })}
+          {/* Only opted-in users get here, but the badge keeps expectations
+              honest: this part still moves. */}
+          <Badge variant="outline">{t("section.beta")}</Badge>
         </h2>
         {/* Presets live inside the creation dialog, as cards — no separate entry
             point here. */}
