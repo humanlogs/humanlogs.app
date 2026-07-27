@@ -5,6 +5,17 @@ import { getTranscriptionAccessFor } from "../transcriptions/access";
 
 let io: SocketIOServer | null = null;
 
+// The custom server (server.ts, run by tsx) and Next-compiled API routes resolve
+// this module to DIFFERENT instances, so a plain module-level `io` set by the server
+// is invisible to routes calling getSocketServer() (they'd silently skip every
+// notify — db:change, revert, …). Mirror the instance on globalThis, which IS shared
+// across both instances in the same Node process.
+const IO_GLOBAL_KEY = "__humanlogsSocketIO__";
+type GlobalWithIO = typeof globalThis & {
+  [IO_GLOBAL_KEY]?: SocketIOServer | null;
+};
+const globalWithIo = globalThis as GlobalWithIO;
+
 // ---------------------------------------------------------------------------
 // Blind Yjs relay
 // ---------------------------------------------------------------------------
@@ -254,9 +265,11 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
     });
   });
 
+  // Share across module instances (see IO_GLOBAL_KEY note) so API routes can emit.
+  globalWithIo[IO_GLOBAL_KEY] = io;
   return io;
 }
 
 export function getSocketServer(): SocketIOServer | null {
-  return io;
+  return globalWithIo[IO_GLOBAL_KEY] ?? io;
 }

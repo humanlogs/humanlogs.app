@@ -179,32 +179,6 @@ export function useTranscriptionCursors(transcriptionId: string) {
     [transcriptionId, userProfile],
   );
 
-  // Function to emit cursor position immediately (bypasses throttle)
-  // Used for focus events to lock editing quickly
-  const updateCursorPositionImmediate = useCallback(
-    (startOffset: number, endOffset: number, hasWriteAccess: boolean) => {
-      if (!userProfile?.id || !userProfile?.name) return;
-
-      const now = Date.now();
-
-      // Save the last position for keepalive
-      lastPositionRef.current = { startOffset, endOffset, hasWriteAccess };
-
-      // Update throttle timestamp to prevent immediate re-emit
-      lastEmitRef.current = now;
-
-      emitCursorPosition(transcriptionId, {
-        userId: userProfile.id,
-        userName: userProfile.name,
-        startOffset,
-        endOffset,
-        timestamp: now,
-        hasWriteAccess,
-      });
-    },
-    [transcriptionId, userProfile],
-  );
-
   // Clean up stale cursors (older than 30 seconds)
   useEffect(() => {
     const interval = setInterval(() => {
@@ -251,7 +225,6 @@ export function useTranscriptionCursors(transcriptionId: string) {
   return {
     cursors: Array.from(cursors.values()),
     updateCursorPosition,
-    updateCursorPositionImmediate,
     updateAudioPosition,
   };
 }

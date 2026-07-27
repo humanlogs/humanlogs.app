@@ -285,9 +285,7 @@ export function TranscriptEditor({
 
   // Stable session AES key (E2E). The collab provider must not start until this is
   // resolved for an encrypted transcription, so content is never relayed in clear.
-  const { aesKey, isEncrypted, ready: aesKeyReady } = useTranscriptionAesKey(
-    transcription.id,
-  );
+  const { aesKey, isEncrypted } = useTranscriptionAesKey(transcription.id);
 
   // Auto-save with debounce. The Y.Doc is the live source of truth and Postgres is
   // just a checkpoint, so we save less aggressively (and only the save leader
@@ -439,7 +437,6 @@ export function TranscriptEditor({
                   segments={transcription.transcription?.words || []}
                   isEncrypted={isEncrypted}
                   aesKey={aesKey}
-                  aesKeyReady={aesKeyReady}
                   editorAPI={editorAPI}
                   onChange={() => {
                     editorAPI.emit("change");
@@ -454,7 +451,6 @@ export function TranscriptEditor({
                     selectionUpdate();
                     formatSelectionUpdate(editor);
                   }}
-                  onUpdate={() => {}}
                   hasWriteAccess={canWrite}
                 />
               </div>

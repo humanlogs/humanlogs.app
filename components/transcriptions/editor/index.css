@@ -90,7 +90,7 @@
 .tiptap p {
     margin-bottom: 1.5em;
 }
-/* Remote collaboration cursors (CollaborationCursor, `?collab`) */
+/* Remote collaboration carets (CollabCaret) */
 .collaboration-cursor__caret {
     border-left: 1px solid currentColor;
     border-right: 1px solid currentColor;

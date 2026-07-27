@@ -90,37 +90,20 @@ export function useSocket() {
       });
 
       socket.on("connect", () => {
-        console.log("Socket connected:", socket?.id);
-
-        // Attach all pending event listeners
+        // Attach listeners and run operations queued before the socket connected.
         pendingListeners.forEach((callbacks, event) => {
-          callbacks.forEach((callback) => {
-            socket?.on(event, callback);
-            console.log("Attached cached listener for:", event);
-          });
+          callbacks.forEach((callback) => socket?.on(event, callback));
         });
         pendingListeners.clear();
 
-        // Execute all pending operations
         pendingOperations.forEach((operation) => {
           if (operation.type === "join") {
             socket?.emit("transcription:join", operation.transcriptionId);
-            console.log("Executed cached join for:", operation.transcriptionId);
           } else if (operation.type === "leave") {
             socket?.emit("transcription:leave", operation.transcriptionId);
-            console.log(
-              "Executed cached leave for:",
-              operation.transcriptionId,
-            );
           }
         });
-
-        // Clear pending operations after execution
         pendingOperations.clear();
-      });
-
-      socket.on("disconnect", () => {
-        console.log("Socket disconnected");
       });
 
       socket.on("error", (error: any) => {
@@ -147,8 +130,6 @@ export function useSocket() {
       });
 
       socket.on("db:change", (event: DatabaseChangeEvent) => {
-        console.log("Database change event:", event);
-
         // Invalidate queries whose key references the changed table. The server
         // emits the singular Prisma model name (e.g. "transcription") while query
         // keys use the plural (["transcriptions", ...]) — tolerate both directions.
@@ -198,11 +179,7 @@ export function joinTranscriptionRoom(transcriptionId: string) {
     pendingOperations.delete(transcriptionId);
   } else {
     // Cache the join operation to execute when socket connects
-    pendingOperations.set(transcriptionId, {
-      type: "join",
-      transcriptionId,
-    });
-    console.log("Cached join operation for:", transcriptionId);
+    pendingOperations.set(transcriptionId, { type: "join", transcriptionId });
   }
 }
 
@@ -215,16 +192,10 @@ export function leaveTranscriptionRoom(transcriptionId: string) {
     // Check if there's a pending join operation
     const pendingOp = pendingOperations.get(transcriptionId);
     if (pendingOp?.type === "join") {
-      // Cancel the pending join operation
+      // A queued join never ran — just cancel it.
       pendingOperations.delete(transcriptionId);
-      console.log("Cancelled cached join operation for:", transcriptionId);
     } else {
-      // Cache the leave operation to execute when socket connects
-      pendingOperations.set(transcriptionId, {
-        type: "leave",
-        transcriptionId,
-      });
-      console.log("Cached leave operation for:", transcriptionId);
+      pendingOperations.set(transcriptionId, { type: "leave", transcriptionId });
     }
   }
 }

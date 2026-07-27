@@ -78,15 +78,11 @@ const UnderlineNoShortcut = Underline.extend({
 interface UseTiptapEditorOptions {
   transcriptionId: string;
   segments: TranscriptionSegment[];
-  speakers?: Array<{ id: string; name?: string }>;
   /** E2E: whether the transcription is encrypted, and its resolved session key. */
   isEncrypted?: boolean;
   aesKey?: string | null;
-  aesKeyReady?: boolean;
   onChange: (segments: TranscriptionSegment[]) => void;
   editable: boolean;
-  onTransaction?: (editor: any) => void;
-  onUpdate?: (editor: any) => void;
   onSelectionUpdate?: (editor: any) => void;
   editorAPI: EditorAPI;
 }
