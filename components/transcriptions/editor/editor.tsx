@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  useMarkNotificationsRead,
+  useNotificationCounts,
+} from "@/hooks/use-notifications";
 import { useTranscriptionCursors } from "@/hooks/use-transcription-cursors";
 import { cn } from "@/lib/utils/utils";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -169,6 +173,27 @@ export function TranscriptEditor({
 
   // Comment threads: creating/focusing threads, and dropping abandoned anchors.
   const commentThreads = useCommentThreads({ editorAPI, canWrite });
+
+  // Notifications about this document are about its comments, so they are cleared when
+  // the rail is actually opened — not merely by landing on the page, which would wipe
+  // the sidebar badge before the user has seen what it was pointing at. Guarded on the
+  // count so opening the rail again sends nothing.
+  const { data: notificationCounts } = useNotificationCounts();
+  const { mutate: markNotificationsRead } = useMarkNotificationsRead();
+  const unreadHere =
+    notificationCounts?.byEntity[`transcription:${transcription.id}`] ?? 0;
+  useEffect(() => {
+    if (!commentThreads.railOpen || unreadHere === 0) return;
+    markNotificationsRead({
+      entityType: "transcription",
+      entityId: transcription.id,
+    });
+  }, [
+    commentThreads.railOpen,
+    unreadHere,
+    transcription.id,
+    markNotificationsRead,
+  ]);
 
 
   // Thread whose highlight is emphasised in the transcript: the one hovered in the
