@@ -5,9 +5,15 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import type { Participant } from "@/hooks/use-comments";
 import { getUserColor } from "@/lib/utils/utils";
 import { useEffect, useRef, useState } from "react";
-import { activeMentionQuery, encodeMention } from "../utils/mentions";
+import {
+  activeMentionQuery,
+  decodeMentions,
+  encodeMentions,
+  sanitizeMentionLabel,
+} from "../utils/mentions";
 
 interface CommentComposerProps {
+  /** Raw note text, mentions included as tokens. */
   value: string;
   onChange: (value: string) => void;
   onSubmit: () => void;
@@ -25,7 +31,10 @@ const displayName = (p: Participant) => p.name || p.email;
  * Comment input: a borderless field that grows with the text and only reveals its
  * actions once there is something to send, so a card at rest stays quiet. Typing "@"
  * opens a picker of everyone with access; the choice is inserted as a mention token
- * (see utils/mentions.ts) which renders as a chip and stays inside the encrypted body.
+ * (see utils/mentions.ts) which stays inside the encrypted body.
+ *
+ * The field edits the *display* form (`@Ada Lovelace`) and encodes back to tokens on
+ * every change — the stored `@[Ada Lovelace](usr_123)` never shows up as you type.
  */
 export function CommentComposer({
   value,
@@ -47,7 +56,12 @@ export function CommentComposer({
   // they begin a different one.
   const [dismissedFrom, setDismissedFrom] = useState<number | null>(null);
 
-  const mention = activeMentionQuery(value, caret);
+  // What the user sees and edits, and the mentions already committed to the note.
+  const { display, mentions } = decodeMentions(value);
+  const emit = (nextDisplay: string, refs = mentions) =>
+    onChange(encodeMentions(nextDisplay, refs));
+
+  const mention = activeMentionQuery(display, caret);
   const suggestions =
     mention && mention.from !== dismissedFrom
       ? participants
@@ -63,8 +77,8 @@ export function CommentComposer({
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
-  }, [value]);
+    el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+  }, [display]);
 
   useEffect(() => {
     if (!autoFocus) return;
@@ -74,10 +88,10 @@ export function CommentComposer({
 
   const insertMention = (p: Participant) => {
     if (!mention) return;
-    const token = encodeMention(p.id, displayName(p));
-    const next = `${value.slice(0, mention.from)}${token} ${value.slice(mention.to)}`;
-    onChange(next);
-    const nextCaret = mention.from + token.length + 1;
+    const label = sanitizeMentionLabel(displayName(p));
+    const next = `${display.slice(0, mention.from)}@${label} ${display.slice(mention.to)}`;
+    emit(next, [...mentions, { userId: p.id, label }]);
+    const nextCaret = mention.from + label.length + 2; // "@" + label + trailing space
     requestAnimationFrame(() => {
       const el = textareaRef.current;
       if (!el) return;
@@ -115,7 +129,9 @@ export function CommentComposer({
       }
     }
 
-    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+    // Send on Shift+Enter (and still on Cmd/Ctrl+Enter); plain Enter keeps making a
+    // new line, which is what a multi-line note needs.
+    if (e.key === "Enter" && (e.shiftKey || e.metaKey || e.ctrlKey)) {
       e.preventDefault();
       onSubmit();
       return;
@@ -127,17 +143,17 @@ export function CommentComposer({
     }
   };
 
-  const showActions = focused || value.trim().length > 0;
+  const showActions = focused || display.trim().length > 0;
 
   return (
     <div className="relative">
       <textarea
         ref={textareaRef}
-        value={value}
+        value={display}
         rows={1}
         placeholder={placeholder}
         onChange={(e) => {
-          onChange(e.target.value);
+          emit(e.target.value);
           setCaret(e.target.selectionStart);
           setHighlighted(0);
         }}
@@ -146,7 +162,7 @@ export function CommentComposer({
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         onKeyDown={onKeyDown}
-        className="placeholder:text-muted-foreground w-full resize-none bg-transparent text-xs leading-snug outline-hidden"
+        className="placeholder:text-muted-foreground w-full resize-none bg-transparent text-sm leading-normal outline-hidden"
       />
 
       {pickerOpen && (
@@ -161,7 +177,7 @@ export function CommentComposer({
                 insertMention(p);
               }}
               onMouseEnter={() => setHighlighted(i)}
-              className={`flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-xs ${
+              className={`flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm ${
                 i === highlighted ? "bg-muted text-foreground" : ""
               }`}
             >
@@ -181,13 +197,13 @@ export function CommentComposer({
 
       {showActions && (
         <div className="mt-1.5 flex items-center justify-end gap-2">
-          <span className="text-muted-foreground mr-auto text-[10px]">
+          <span className="text-muted-foreground mr-auto text-[11px]">
             {t("comments.mentionHint")}
           </span>
           {onCancel && (
             <button
               type="button"
-              className="text-muted-foreground hover:text-foreground text-[11px]"
+              className="text-muted-foreground hover:text-foreground text-xs"
               onMouseDown={(e) => e.preventDefault()}
               onClick={onCancel}
             >
@@ -196,10 +212,11 @@ export function CommentComposer({
           )}
           <button
             type="button"
-            disabled={!value.trim() || pending}
+            disabled={!display.trim() || pending}
+            title={t("comments.submitHint")}
             onMouseDown={(e) => e.preventDefault()}
             onClick={onSubmit}
-            className="text-[11px] font-medium text-yellow-700 disabled:opacity-40 dark:text-yellow-500"
+            className="text-xs font-medium text-yellow-700 disabled:opacity-40 dark:text-yellow-500"
           >
             {submitLabel}
           </button>

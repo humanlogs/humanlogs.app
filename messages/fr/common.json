@@ -30,7 +30,25 @@
       "de": "Deutsch"
     },
     "home": "Accueil",
-    "unassigned": "Sans étude"
+    "unassigned": "Sans étude",
+    "view": {
+      "settings": "Options d'affichage",
+      "groupBy": "Grouper par",
+      "sortBy": "Trier par",
+      "updatedAt": "Dernière modification",
+      "createdAt": "Date de création",
+      "alphabetical": "Alphabétique",
+      "study": "Étude",
+      "uncoded": "Non codé",
+      "untitledCodebook": "Codebook sans nom",
+      "buckets": {
+        "today": "Aujourd'hui",
+        "yesterday": "Hier",
+        "thisWeek": "Cette semaine",
+        "thisMonth": "Ce mois-ci",
+        "before": "Avant"
+      }
+    }
   },
   "newTranscription": {
     "title": "Nouvelle Transcription",

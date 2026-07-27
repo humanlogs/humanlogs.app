@@ -8,23 +8,23 @@ datasource db {
 }
 
 model User {
-  id                    String          @id @default(uuid())
-  auth0Id               String          @unique
-  email                 String          @unique
+  id                    String               @id @default(uuid())
+  auth0Id               String               @unique
+  email                 String               @unique
   name                  String?
   picture               String?
   passwordHash          String?
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
-  credits               Int             @default(100)
-  language              String          @default("en")
-  plan                  String          @default("free")
-  creditsRefill         Int             @default(100)
-  creditsUsed           Int             @default(0)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  credits               Int                  @default(100)
+  language              String               @default("en")
+  plan                  String               @default("free")
+  creditsRefill         Int                  @default(100)
+  creditsUsed           Int                  @default(0)
   publicKey             String?
   trustedDeviceSecret   String?
-  stripeCustomerId      String?         @unique
-  stripeSubscriptionId  String?         @unique
+  stripeCustomerId      String?              @unique
+  stripeSubscriptionId  String?              @unique
   subscriptionPeriodEnd DateTime?
   subscriptionStatus    String?
   lastCreditsRefill     DateTime?
@@ -33,27 +33,28 @@ model User {
   // "latest paying customers" list.
   lastPaymentAt         DateTime?
   shortcuts             Json?
-  isAdmin               Boolean         @default(false)
-  marketingEmailStep    Int             @default(0)
+  isAdmin               Boolean              @default(false)
+  marketingEmailStep    Int                  @default(0)
   lastMarketingEmailAt  DateTime?
   projects              Project[]
   transcriptions        Transcription[]
   feedbacks             Feedback[]
   deletionTokens        DeletionToken[]
-  isWelcomeDone         Boolean         @default(false)
+  isWelcomeDone         Boolean              @default(false)
   // Furthest onboarding step the user reached, so we can see exactly where
   // people drop off. "profile" | "security" | "referral" | "ready" | "done".
-  onboardingStep        String          @default("profile")
+  onboardingStep        String               @default("profile")
   // Onboarding profile
   profession            String?
   monthlyUsage          String?
   // Speech-to-text data residency preference: "eu" (Gladia) or "us" (ElevenLabs)
-  dataResidency         String          @default("eu")
+  dataResidency         String               @default("eu")
   // Referral program: extra monthly credits earned from referred users who registered
-  referralBonusCredits  Int             @default(0)
+  referralBonusCredits  Int                  @default(0)
   referralsSent         Referral[]
   comments              Comment[]
-  notifications         Notification[]      @relation("NotificationRecipient")
+  codebooks             Codebook[]
+  notifications         Notification[]       @relation("NotificationRecipient")
   threadSubscriptions   ThreadSubscription[]
 }
 
@@ -92,9 +93,54 @@ model Project {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   transcriptions Transcription[]
+  codebooks      CodebookStudy[]
   user           User            @relation(fields: [userId], references: [id])
 
   @@index([userId])
+}
+
+/// A set of codes used to tag documents. Attached to specific studies or to all
+/// of them, optionally nested under a parent codebook to build sub-themes.
+///
+/// Only `content` is end-to-end encrypted (an EncryptedDataEntity holding
+/// `{ name, codes }`), exactly like `Comment.body`. The structure around it —
+/// parent, studies, target, and the code uuids stored on documents — stays in
+/// clear so the server can scope, cascade and filter without ever learning what
+/// a code means.
+model Codebook {
+  id         String          @id @default(uuid())
+  userId     String
+  parentId   String?
+  /// True when the codebook applies to every study of the user; otherwise the
+  /// `studies` links decide.
+  allStudies Boolean         @default(false)
+  /// Smallest unit this codebook is meant to tag:
+  /// "document" | "sentence" | "subsentence" | "word".
+  target     String          @default("document")
+  /// Key of the preset it was created from, null for a hand-made codebook.
+  preset     String?
+  /// EncryptedDataEntity, or `{ name, codes }` in clear when the user has no
+  /// encryption key.
+  content    Json
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  parent     Codebook?       @relation("CodebookTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children   Codebook[]      @relation("CodebookTree")
+  studies    CodebookStudy[]
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([parentId])
+}
+
+model CodebookStudy {
+  codebookId String
+  projectId  String
+  codebook   Codebook @relation(fields: [codebookId], references: [id], onDelete: Cascade)
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@id([codebookId, projectId])
+  @@index([projectId])
 }
 
 model Transcription {
@@ -119,6 +165,10 @@ model Transcription {
   sttProvider               String?
   elevenLabsTranscriptionId String?
   shared                    Json?
+  // Codes applied to this document: [{ codebookId, codeId }]. Both are opaque
+  // uuids — the labels live inside the codebook's encrypted content, so this
+  // stays readable by the server without leaking what the codes mean.
+  codes                     Json?
   createdAt                 DateTime           @default(now())
   updatedAt                 DateTime           @updatedAt
   updatedBy                 String             @default("system")

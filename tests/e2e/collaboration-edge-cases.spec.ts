@@ -100,6 +100,35 @@ test.describe("collaboration edge cases", () => {
     expect(await storedWords(transcriptionId)).toContain("AVANT_FERMETURE");
   });
 
+  test("undo cannot swallow the transcript it was loaded with", async ({
+    browser,
+    request,
+  }) => {
+    // Filling the empty document on load is a local edit like any other, so the
+    // collaborative undo stack used to hold it as one enormous step: a few Ctrl+Z
+    // too many and the whole interview vanished — then got saved that way.
+    const { owner, transcriptionId } = await setup(request);
+    const ownerPage = await signIn(browser, owner);
+    const editor = await openEditor(ownerPage, transcriptionId);
+    await expect(editor).toContainText("Bonjour tout le monde");
+
+    await typeAtEnd(ownerPage, " UN DEUX TROIS");
+    await expect(editor).toContainText("UN DEUX TROIS");
+
+    // Undo far past the user's own edits, into where the load used to sit.
+    for (let i = 0; i < 12; i++) {
+      await ownerPage.keyboard.press("ControlOrMeta+z");
+      await ownerPage.waitForTimeout(60);
+    }
+
+    await expect(editor).toContainText("Bonjour tout le monde");
+    expect(await editorText(ownerPage)).toContain("Ceci est un entretien");
+
+    // …and the database is not emptied behind it either.
+    await ownerPage.waitForTimeout(8000);
+    expect(await storedWords(transcriptionId)).toContain("entretien");
+  });
+
   test("a reload keeps edits that were never saved", async ({
     browser,
     request,

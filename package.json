@@ -6,6 +6,7 @@
     "dev": "tsx watch server.ts",
     "build": "next build",
     "start": "npx prisma migrate deploy && NODE_ENV=production tsx server.ts",
+    "migrate": "npx prisma generate && npx prisma db push",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

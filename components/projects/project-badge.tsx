@@ -64,9 +64,14 @@ export const PROJECT_ICON_COMPONENTS: Record<ProjectIconKey, LucideIcon> = {
   leaf: LeafIcon,
 };
 
-type Size = "sm" | "md" | "lg";
+type Size = "xs" | "sm" | "md" | "lg";
 
 const SIZES: Record<Size, { box: string; icon: string; emoji: string }> = {
+  xs: {
+    box: "h-4 w-4 rounded-[4px]",
+    icon: "h-2.5 w-2.5",
+    emoji: "text-[10px]",
+  },
   sm: { box: "h-6 w-6 rounded-md", icon: "h-3.5 w-3.5", emoji: "text-sm" },
   md: { box: "h-10 w-10 rounded-lg", icon: "h-5 w-5", emoji: "text-xl" },
   lg: { box: "h-12 w-12 rounded-xl", icon: "h-6 w-6", emoji: "text-2xl" },

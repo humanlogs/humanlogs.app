@@ -1,0 +1,57 @@
+{
+  "codebook": {
+    "section": {
+      "title": "Codebooks ({count})",
+      "create": "New codebook",
+      "fromPreset": "From a preset",
+      "empty": {
+        "title": "No codebook yet",
+        "description": "A codebook is a set of codes you apply to your documents. Start from a preset or build your own.",
+        "action": "Create a codebook"
+      },
+      "allStudies": "All studies",
+      "studyCount": "{count} studies",
+      "codeCount": "{count} codes",
+      "locked": "Encrypted — no key on this device"
+    },
+    "editor": {
+      "createTitle": "New codebook",
+      "editTitle": "Edit codebook",
+      "description": "Codes are encrypted like your documents: only you and the people your documents are shared with can read them.",
+      "name": "Name",
+      "namePlaceholder": "Themes, sentiment, discourse markers…",
+      "scope": "Studies",
+      "scopeAll": "All studies",
+      "scopeSelected": "Selected studies",
+      "parent": "Parent codebook",
+      "noParent": "None (top level)",
+      "target": "Applies to",
+      "targets": {
+        "document": "Whole document",
+        "sentence": "Sentence",
+        "subsentence": "Part of a sentence",
+        "word": "Word"
+      },
+      "codes": "Codes",
+      "addCode": "Add a code",
+      "codePlaceholder": "Code label",
+      "removeCode": "Remove this code",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete codebook",
+      "deleteConfirm": "Delete this codebook and its sub-codebooks? Documents keep their other codes.",
+      "errors": {
+        "nameRequired": "A name is required",
+        "scopeRequired": "Pick at least one study",
+        "codeRequired": "Add at least one code",
+        "failed": "Could not save the codebook"
+      }
+    },
+    "presets": {
+      "title": "Start from a preset",
+      "description": "Presets are created for all studies and can be edited afterwards.",
+      "draft": "Draft — review the codes",
+      "create": "Create"
+    }
+  }
+}

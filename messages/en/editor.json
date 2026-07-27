@@ -7,7 +7,7 @@
             "italic": "Italic (⌘I)",
             "underline": "Underline (⌘U)",
             "strikethrough": "Strikethrough (⌘⇧X)",
-            "comment": "Comment (⌘⇧M)"
+            "comment": "Comment (⌘⌥M)"
         },
         "search": {
             "findPlaceholder": "Find...",
@@ -93,16 +93,21 @@
             "keyboardShortcuts": "Keyboard Shortcuts",
             "delete": "Delete",
             "csv": "CSV",
-            "txt": "TXT",
-            "srt": "SRT (Subtitles)",
+            "txt": "Text (.txt)",
+            "srt": "SRT",
             "word": "Word",
             "pdf": "PDF",
             "json": "JSON",
-            "vtt": "WebVTT (Subtitles)",
+            "vtt": "WebVTT",
             "nvivo": "NVivo",
             "maxqda": "MAXQDA",
-            "advanced": "Advanced",
-            "history": "Version history"
+            "history": "Version history",
+            "txtOptions": "Text (options…)",
+            "groupQualitative": "Qualitative analysis",
+            "groupSubtitles": "Subtitles",
+            "groupData": "Data",
+            "groupAudio": "Audio",
+            "exportAgain": "Export again as {format}"
         },
         "share": {
             "title": "Share transcription",
@@ -155,6 +160,7 @@
             "indicator": "This line has comments",
             "replyPlaceholder": "Reply…",
             "mentionHint": "@ to mention",
+            "submitHint": "Shift + Enter to send",
             "subscribe": "Follow this thread",
             "unsubscribe": "Stop following this thread",
             "hide": "Hide comments"

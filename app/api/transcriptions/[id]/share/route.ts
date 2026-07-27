@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 import { notifyDatabaseChange } from "@/lib/sockets/socket-helpers";
 import { serverEncryption } from "@/lib/encryption/encryption-entities";
+import { revokeCodebookAccess } from "@/lib/codebooks/server";
 
 type RouteParams = {
   params: Promise<{
@@ -269,6 +270,18 @@ export const DELETE = withAuthRateLimit(
             }
           }
         }
+      }
+
+      // Losing a document can also mean losing the codebooks that covered its
+      // study — but only if no other document still grants that access.
+      try {
+        await revokeCodebookAccess(
+          transcription.userId,
+          transcription.projectId,
+          userIdToRemove,
+        );
+      } catch (e) {
+        console.error("Failed to revoke codebook access", e);
       }
 
       // Notify both owner and removed user of the change

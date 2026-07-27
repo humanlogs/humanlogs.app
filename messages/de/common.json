@@ -30,7 +30,25 @@
       "de": "Deutsch"
     },
     "home": "Startseite",
-    "unassigned": "Ohne Studie"
+    "unassigned": "Ohne Studie",
+    "view": {
+      "settings": "Anzeigeoptionen",
+      "groupBy": "Gruppieren nach",
+      "sortBy": "Sortieren nach",
+      "updatedAt": "Letzte Änderung",
+      "createdAt": "Erstellt am",
+      "alphabetical": "Alphabetisch",
+      "study": "Studie",
+      "uncoded": "Nicht codiert",
+      "untitledCodebook": "Unbenanntes Codebuch",
+      "buckets": {
+        "today": "Heute",
+        "yesterday": "Gestern",
+        "thisWeek": "Diese Woche",
+        "thisMonth": "Diesen Monat",
+        "before": "Früher"
+      }
+    }
   },
   "newTranscription": {
     "title": "Neue Transkription",

@@ -1,5 +1,6 @@
 "use client";
 
+import { CodebookSection } from "@/components/codebooks/codebook-section";
 import { useProjectModal } from "@/components/dialogs/project-create-modal";
 import { GuideCallout } from "@/components/guidance/guide-callout";
 import { useTranslations } from "@/components/locale-provider";
@@ -128,6 +129,9 @@ export default function StudyPage() {
           <DocumentList documents={documents} />
         )}
       </section>
+
+      {/* Codebooks available from this study */}
+      <CodebookSection projectId={projectId} />
     </PageLayout>
   );
 }

@@ -9,6 +9,7 @@
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { Editor } from "@tiptap/react";
 import EventEmitter from "events";
+import { parseCommentIds } from "./extensions/comment-mark";
 
 /**
  * Creates an EditorAPI instance backed by a Tiptap editorRef.current.
@@ -315,13 +316,16 @@ export class EditorAPI extends EventEmitter {
     const positions: Array<{ anchorId: string; top: number }> = [];
 
     spans.forEach((span) => {
-      const anchorId = span.getAttribute("data-comment-id");
-      if (!anchorId || seen.has(anchorId)) return;
-      seen.add(anchorId);
+      // A span carries every thread covering it, so one span can introduce several.
+      const anchorIds = parseCommentIds(span.getAttribute("data-comment-id"));
+      if (anchorIds.length === 0) return;
       const rect = span.getBoundingClientRect();
-      const relativeTop =
-        rect.top - editorRect.top + editorElement.scrollTop;
-      positions.push({ anchorId, top: relativeTop });
+      const relativeTop = rect.top - editorRect.top + editorElement.scrollTop;
+      for (const anchorId of anchorIds) {
+        if (seen.has(anchorId)) continue;
+        seen.add(anchorId);
+        positions.push({ anchorId, top: relativeTop });
+      }
     });
 
     return positions;
@@ -338,8 +342,9 @@ export class EditorAPI extends EventEmitter {
       typeof CSS !== "undefined" && CSS.escape
         ? CSS.escape(anchorId)
         : anchorId.replace(/"/g, '\\"');
+    // `~=` matches one entry of the space-separated thread set, not the whole value.
     const spans = editorElement.querySelectorAll<HTMLElement>(
-      `span[data-comment-id="${escaped}"]`,
+      `span[data-comment-id~="${escaped}"]`,
     );
     if (spans.length === 0) return null;
 

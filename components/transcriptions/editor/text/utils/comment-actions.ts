@@ -1,4 +1,8 @@
 import type { Editor } from "@tiptap/react";
+import {
+  formatCommentIds,
+  parseCommentIds,
+} from "../extensions/comment-mark";
 
 /**
  * Editor-side helpers for the comment anchor mark. The note bodies live in the
@@ -51,44 +55,98 @@ export function expandSelectionToWord(
 /**
  * Anchor a comment thread to the current selection (expanding to the whole word when
  * the selection is empty). Returns true if a range was marked.
+ *
+ * Applied run by run, UNIONing the new thread into whatever is already there, because
+ * a mark type can sit only once on a character: a plain `setMark` over the range would
+ * replace the mark of any thread inside it, silently orphaning its notes. Runs already
+ * carrying other threads therefore end up with a mark listing all of them.
  */
 export function applyCommentMark(editor: Editor, commentId: string): boolean {
   const range = expandSelectionToWord(editor);
   if (!range) return false;
-  editor
-    .chain()
-    .setTextSelection(range)
-    .setMark("comment", { commentId })
-    .run();
+
+  const { state, view } = editor;
+  const markType = state.schema.marks.comment;
+  if (!markType) return false;
+
+  // Marking never moves anything, so positions read from the original doc stay valid
+  // for every step in the transaction.
+  let tr = state.tr;
+  state.doc.nodesBetween(range.from, range.to, (node, pos) => {
+    if (!node.isText) return;
+    const from = Math.max(pos, range.from);
+    const to = Math.min(pos + node.nodeSize, range.to);
+    if (from >= to) return;
+    const existing = node.marks.find((m) => m.type === markType);
+    const ids = formatCommentIds([
+      ...parseCommentIds(existing?.attrs.commentIds),
+      commentId,
+    ]);
+    tr = tr.addMark(from, to, markType.create({ commentIds: ids }));
+  });
+
+  if (!tr.docChanged) return false;
+  view.dispatch(tr);
   return true;
 }
 
-/** Remove every `comment` mark carrying `commentId` from the document. */
+/**
+ * Drop `commentId` from the document, leaving every other thread untouched — a run
+ * shared with another thread keeps its mark minus this one id, and only a run left
+ * with no thread at all loses the mark.
+ */
 export function removeCommentMark(editor: Editor, commentId: string): void {
   const { state, view } = editor;
   const markType = state.schema.marks.comment;
   if (!markType) return;
 
-  const ranges: Array<{ from: number; to: number }> = [];
+  const edits: Array<{ from: number; to: number; remaining: string[] }> = [];
   state.doc.descendants((node, pos) => {
     if (!node.isText) return;
-    const has = node.marks.some(
-      (m) => m.type === markType && m.attrs.commentId === commentId,
-    );
-    if (has) ranges.push({ from: pos, to: pos + node.nodeSize });
+    const mark = node.marks.find((m) => m.type === markType);
+    if (!mark) return;
+    const ids = parseCommentIds(mark.attrs.commentIds);
+    if (!ids.includes(commentId)) return;
+    edits.push({
+      from: pos,
+      to: pos + node.nodeSize,
+      remaining: ids.filter((id) => id !== commentId),
+    });
   });
-  if (ranges.length === 0) return;
+  if (edits.length === 0) return;
 
   let tr = state.tr;
-  for (const r of ranges) tr = tr.removeMark(r.from, r.to, markType);
+  for (const e of edits) {
+    tr = e.remaining.length
+      ? tr.addMark(
+          e.from,
+          e.to,
+          markType.create({ commentIds: formatCommentIds(e.remaining) }),
+        )
+      : tr.removeMark(e.from, e.to, markType);
+  }
   view.dispatch(tr);
 }
 
-/** The comment thread id at the current selection, if the caret sits inside one. */
-export function commentIdAtSelection(editor: Editor): string | null {
-  if (!editor.isActive("comment")) return null;
-  const id = editor.getAttributes("comment").commentId as string | undefined;
-  return id || null;
+/** Every thread covering the current selection, innermost (shortest range) first. */
+export function commentIdsAtSelection(editor: Editor): string[] {
+  if (!editor.isActive("comment")) return [];
+  const ids = parseCommentIds(editor.getAttributes("comment").commentIds);
+  return sortByInnermost(editor, ids);
+}
+
+/**
+ * Order thread ids so the most tightly scoped comes first. With overlapping threads a
+ * click lands on several at once, and the one the user meant is the narrowest.
+ */
+export function sortByInnermost(editor: Editor, ids: string[]): string[] {
+  if (ids.length < 2) return ids;
+  const width = new Map(
+    getCommentRanges(editor).map((r) => [r.anchorId, r.to - r.from]),
+  );
+  return [...ids].sort(
+    (a, b) => (width.get(a) ?? Infinity) - (width.get(b) ?? Infinity),
+  );
 }
 
 /** All distinct comment thread ids currently present in the document. */
@@ -99,9 +157,8 @@ export function commentIdsInDoc(editor: Editor): Set<string> {
   editor.state.doc.descendants((node) => {
     if (!node.isText) return;
     for (const m of node.marks) {
-      if (m.type === markType && m.attrs.commentId) {
-        ids.add(m.attrs.commentId as string);
-      }
+      if (m.type !== markType) continue;
+      for (const id of parseCommentIds(m.attrs.commentIds)) ids.add(id);
     }
   });
   return ids;
@@ -128,17 +185,19 @@ export function getCommentRanges(editor: Editor): CommentRange[] {
   editor.state.doc.descendants((node, pos) => {
     if (!node.isText) return;
     for (const m of node.marks) {
-      if (m.type !== markType || !m.attrs.commentId) continue;
-      const id = m.attrs.commentId as string;
+      if (m.type !== markType) continue;
       const from = pos;
       const to = pos + node.nodeSize;
-      const cur = bounds.get(id);
-      bounds.set(
-        id,
-        cur
-          ? { from: Math.min(cur.from, from), to: Math.max(cur.to, to) }
-          : { from, to },
-      );
+      // One run can belong to several threads at once — widen each of them.
+      for (const id of parseCommentIds(m.attrs.commentIds)) {
+        const cur = bounds.get(id);
+        bounds.set(
+          id,
+          cur
+            ? { from: Math.min(cur.from, from), to: Math.max(cur.to, to) }
+            : { from, to },
+        );
+      }
     }
   });
 

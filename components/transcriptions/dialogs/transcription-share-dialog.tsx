@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { useShareCodebooksForStudy } from "@/hooks/use-codebooks";
 import { useEncryptionStatus } from "@/hooks/use-encryption";
 import {
   SharedUser,
@@ -94,6 +95,7 @@ export function TranscriptionShareDialog() {
   const [userCache, setUserCache] = useState<Map<string, UserInfo>>(new Map());
   const [loadingUsers, setLoadingUsers] = useState<Set<string>>(new Set());
 
+  const shareCodebooks = useShareCodebooksForStudy();
   const shareMutation = useShareTranscription(transcriptionId);
   const removeMutation = useRemoveShare(transcriptionId);
   const transferOwnershipMutation = useTransferOwnership(transcriptionId);
@@ -266,6 +268,15 @@ export function TranscriptionShareDialog() {
       });
 
       if (result.exists) {
+        // The codebooks covering this document's study are encrypted for the
+        // same people; give the new collaborator their wrapped key too.
+        if (targetUser.publicKey) {
+          await shareCodebooks(transcription?.projectId, {
+            userId: targetUser.id,
+            publicKey: targetUser.publicKey,
+          });
+        }
+
         toast.success(t("share.success.shared", { email: newEmail }));
         setNewEmail("");
         setNewRole("read");

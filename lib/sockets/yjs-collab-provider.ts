@@ -70,6 +70,18 @@ type SyncMsg = {
 };
 
 /**
+ * Identifies a provider INSTANCE (not the socket, which is a shared singleton and
+ * outlives it). Sent with join/leave so the server can tell a live client from the
+ * goodbye of an instance it already replaced — see `joinSessions` in socket-server.
+ */
+let sessionCounter = 0;
+
+/** How long to wait for the authority's state before asking again. */
+const STATE_RETRY_MS = 4000;
+/** Give up re-asking after this many tries (~20s) and let the UI stay as it is. */
+const STATE_MAX_ATTEMPTS = 5;
+
+/**
  * Blind-relay Yjs provider over Socket.io. The server never sees a Y.Doc — it
  * relays opaque `yjs:msg` and coordinates a seeding authority. This provider:
  *   - forwards local doc updates as `yjs:msg { t: "sync" }`
@@ -107,6 +119,13 @@ export class YjsCollabProvider {
     changes: { added: number[]; updated: number[]; removed: number[] },
     origin: unknown,
   ) => void;
+
+  /** This provider instance's identity on the wire (see {@link sessionCounter}). */
+  private readonly session = `s${++sessionCounter}-${Math.random().toString(36).slice(2, 8)}`;
+  private stateTimer: ReturnType<typeof setTimeout> | null = null;
+  private stateAttempts = 0;
+  private awaitingState = false;
+  private destroyed = false;
 
   constructor(
     private readonly socket: Socket,
@@ -172,12 +191,11 @@ export class YjsCollabProvider {
       if (data.role === "seed") {
         this.opts.onSeed();
         this.synced = true;
+        this.stateSettled();
         this.setSaver(true); // seed authority == save leader
       } else {
         this.setSaver(false);
-        socket.emit("yjs:state-request", {
-          transcriptionId: this.transcriptionId,
-        });
+        this.requestState();
       }
     };
     socket.on("yjs:role", this.handleRole);
@@ -207,6 +225,7 @@ export class YjsCollabProvider {
         .then((bytes) => {
           Y.applyUpdate(this.doc, bytes, this);
           this.synced = true;
+          this.stateSettled();
           this.opts.onSynced?.();
         })
         .catch((e) => this.log("decode state failed", e));
@@ -218,7 +237,7 @@ export class YjsCollabProvider {
     // joined. Rejoining is idempotent (Yjs merges any re-synced state).
     this.handleConnect = () => {
       this.log("(re)connect → join", transcriptionId);
-      socket.emit("yjs:join", { transcriptionId });
+      socket.emit("yjs:join", { transcriptionId, session: this.session });
       this.broadcastLocalAwareness();
       // Re-announce everything we hold. A reconnect gives us a fresh server-side
       // session that knows nothing about this client, and anything typed while
@@ -232,9 +251,57 @@ export class YjsCollabProvider {
     // If already connected, join now (handleConnect only fires on future connects).
     if (socket.connected) {
       this.log("join", transcriptionId, "(already connected)");
-      socket.emit("yjs:join", { transcriptionId });
+      socket.emit("yjs:join", { transcriptionId, session: this.session });
       this.broadcastLocalAwareness();
     }
+  }
+
+  /**
+   * Ask the authority for the full document, and keep asking.
+   *
+   * A single request is one packet away from a permanently blank editor: the
+   * authority may be a socket the server has not yet noticed leaving, its reply
+   * may fail to decode, or our seat in the room may have been lost. Re-joining
+   * along the way is what repairs the last case — the server answers a join with
+   * a role, and promotes us to seed if nobody else can serve the document.
+   */
+  private requestState() {
+    if (this.destroyed) return;
+    this.awaitingState = true;
+    this.socket.emit("yjs:state-request", {
+      transcriptionId: this.transcriptionId,
+    });
+    this.clearStateTimer();
+    if (this.stateAttempts >= STATE_MAX_ATTEMPTS) return;
+    this.stateTimer = setTimeout(() => {
+      this.stateTimer = null;
+      if (this.destroyed || !this.awaitingState) return;
+      this.stateAttempts++;
+      this.log(
+        "no state after",
+        STATE_RETRY_MS,
+        "ms — retry",
+        this.stateAttempts,
+      );
+      this.socket.emit("yjs:join", {
+        transcriptionId: this.transcriptionId,
+        session: this.session,
+      });
+      this.requestState();
+    }, STATE_RETRY_MS);
+  }
+
+  /** A state reply landed (or is no longer needed): stop the retry loop. */
+  private stateSettled() {
+    this.awaitingState = false;
+    this.stateAttempts = 0;
+    if (this.stateTimer) clearTimeout(this.stateTimer);
+    this.stateTimer = null;
+  }
+
+  private clearStateTimer() {
+    if (this.stateTimer) clearTimeout(this.stateTimer);
+    this.stateTimer = null;
   }
 
   /** Push our local awareness state so (re)joined peers see our cursor. */
@@ -276,6 +343,8 @@ export class YjsCollabProvider {
    * message (encoded asynchronously by the codec) is dropped with the socket.
    */
   destroy(): Promise<void> {
+    this.destroyed = true;
+    this.clearStateTimer();
     this.doc.off("update", this.onDocUpdate);
     this.socket.off("yjs:msg", this.handleMsg);
     this.socket.off("yjs:role", this.handleRole);
@@ -302,7 +371,10 @@ export class YjsCollabProvider {
     // membership on `yjs:leave`, and would then refuse to relay the very message
     // telling peers to remove our caret.
     return farewell.then(() => {
-      this.socket.emit("yjs:leave", { transcriptionId: this.transcriptionId });
+      this.socket.emit("yjs:leave", {
+        transcriptionId: this.transcriptionId,
+        session: this.session,
+      });
     });
   }
 }

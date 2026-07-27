@@ -7,7 +7,7 @@
             "italic": "Italique (⌘I)",
             "underline": "Souligné (⌘U)",
             "strikethrough": "Barré (⌘⇧X)",
-            "comment": "Commentaire (⌘⇧M)"
+            "comment": "Commentaire (⌘⌥M)"
         },
         "search": {
             "findPlaceholder": "Rechercher...",
@@ -93,16 +93,21 @@
             "keyboardShortcuts": "Raccourcis clavier",
             "delete": "Supprimer",
             "csv": "CSV",
-            "txt": "TXT",
-            "srt": "SRT (Sous-titres)",
+            "txt": "Texte (.txt)",
+            "srt": "SRT",
             "word": "Word",
             "pdf": "PDF",
             "json": "JSON",
-            "vtt": "WebVTT (sous-titres)",
+            "vtt": "WebVTT",
             "nvivo": "NVivo",
             "maxqda": "MAXQDA",
-            "advanced": "Avancé",
-            "history": "Historique des versions"
+            "history": "Historique des versions",
+            "txtOptions": "Texte (options…)",
+            "groupQualitative": "Analyse qualitative",
+            "groupSubtitles": "Sous-titres",
+            "groupData": "Données",
+            "groupAudio": "Audio",
+            "exportAgain": "Réexporter en {format}"
         },
         "share": {
             "title": "Partager la transcription",
@@ -155,6 +160,7 @@
             "indicator": "Cette ligne comporte des commentaires",
             "replyPlaceholder": "Répondre…",
             "mentionHint": "@ pour mentionner",
+            "submitHint": "Maj + Entrée pour envoyer",
             "subscribe": "Suivre cette discussion",
             "unsubscribe": "Ne plus suivre cette discussion",
             "hide": "Masquer les commentaires"

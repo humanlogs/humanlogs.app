@@ -12,7 +12,7 @@ import {
   Strikethrough,
   Underline,
 } from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Button } from "../../../../ui/button";
 import { useAudio } from "../../audio/audio-context";
@@ -135,17 +135,45 @@ export function EditorToolbar({
     },
   );
 
-  useHotkeys(
-    ["mod+shift+m", "ctrl+shift+m", "cmd+shift+m"],
-    (e) => {
+  // Comment: ⌘⌥M / Ctrl+Alt+M — the Google Docs binding. Owned here as a plain
+  // listener instead of going through react-hotkeys-hook, which cannot express it
+  // correctly for two independent reasons:
+  //
+  //  - The hook matches `event.code`, i.e. the key's PHYSICAL position named after
+  //    QWERTY. On a French AZERTY keyboard the key labelled M sits where QWERTY has
+  //    ";" and reports code "Semicolon", so any "…+m" binding silently never fires —
+  //    the keystroke then falls through to the browser, and a ⌘ chord ends up on
+  //    macOS's Minimize. (B/I/U/F/X are unaffected: only A/Q, Z/W and M move between
+  //    the two layouts.)
+  //  - Its `useKey: true` escape hatch is worse: for a single-key hotkey it matches on
+  //    `event.key` alone and skips the modifier check entirely, so a bare "m" would
+  //    trigger this.
+  //
+  // So accept the key by either identity: the physical M of both common layouts, or
+  // the produced character. macOS rewrites `event.key` when Option is held (⌥M yields
+  // "µ"), which is why the code check has to carry macOS while `key` carries
+  // Windows/Linux.
+  useEffect(() => {
+    if (!onComment) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || !e.altKey || e.shiftKey) return;
+      const isM =
+        e.code === "KeyM" || // QWERTY / QWERTZ
+        e.code === "Semicolon" || // AZERTY
+        e.key.toLowerCase() === "m";
+      if (!isM) return;
+      // Never hijack real form typing — the comment composer is a textarea.
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
       e.preventDefault();
-      onComment?.();
-    },
-    [onComment],
-    {
-      enableOnContentEditable: true,
-    },
-  );
+      e.stopPropagation();
+      onComment();
+    };
+    document.addEventListener("keydown", onKeyDown, { capture: true });
+    return () =>
+      document.removeEventListener("keydown", onKeyDown, { capture: true });
+  }, [onComment]);
 
   return (
     <div className="flex items-center gap-0 shrink-0">

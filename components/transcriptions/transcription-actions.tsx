@@ -24,6 +24,8 @@ import {
   exportAsWord,
 } from "@/lib/utils/export-utils";
 import {
+  BracesIcon,
+  CaptionsIcon,
   DownloadIcon,
   FileAudio2Icon,
   FileIcon,
@@ -33,14 +35,19 @@ import {
   HistoryIcon,
   KeyboardIcon,
   KeyIcon,
+  type LucideIcon,
+  MicroscopeIcon,
   MoreVerticalIcon,
   PencilIcon,
+  RotateCcwIcon,
   Settings2Icon,
+  TableIcon,
   TrashIcon,
   UserCogIcon,
   Users2Icon,
   XCircleIcon,
 } from "lucide-react";
+import * as React from "react";
 import { toast } from "sonner";
 import { usePauseConfigurationModal } from "./dialogs/pause-configuration-dialog";
 import { useShortcutsModal } from "./dialogs/shortcuts-dialog";
@@ -54,6 +61,93 @@ import { useTranscriptionSetProjectModal } from "./dialogs/transcription-set-pro
 import { useTranscriptionShareDialog } from "./dialogs/transcription-share-dialog";
 import { SaveStatus } from "./editor/text/hooks/use-auto-save";
 import { EditorAPI } from "./editor/text/api";
+
+type ExportFormatId =
+  | "word"
+  | "pdf"
+  | "txt"
+  | "nvivo"
+  | "maxqda"
+  | "csv"
+  | "srt"
+  | "vtt"
+  | "json";
+
+type ExportFormat = {
+  icon: LucideIcon;
+  /** Suffix of the `exported*` / `failedExport*` toast keys in editor.json. */
+  toast: string;
+  run: (
+    content: TranscriptionContent,
+    fileName: string,
+  ) => void | Promise<void>;
+};
+
+const EXPORT_FORMATS: Record<ExportFormatId, ExportFormat> = {
+  word: { icon: FileIcon, toast: "Word", run: exportAsWord },
+  pdf: { icon: FileIcon, toast: "PDF", run: exportAsPDF },
+  txt: {
+    icon: FileTextIcon,
+    toast: "TXT",
+    run: (content, fileName) =>
+      exportAsTXTWithOptions(content, fileName, {
+        speakerIds: content.speakers.map((s) => s.id),
+        toLowerCase: false,
+        removeAccents: false,
+        removePunctuation: false,
+        showSpeakerNames: true,
+        keepLineBreaks: true,
+      }),
+  },
+  nvivo: { icon: MicroscopeIcon, toast: "NVivo", run: exportAsNVivo },
+  maxqda: { icon: MicroscopeIcon, toast: "MAXQDA", run: exportAsMAXQDA },
+  csv: { icon: TableIcon, toast: "CSV", run: exportAsCSV },
+  srt: { icon: CaptionsIcon, toast: "SRT", run: exportAsSRT },
+  vtt: { icon: CaptionsIcon, toast: "VTT", run: exportAsVTT },
+  json: { icon: FileJsonIcon, toast: "JSON", run: exportAsJSON },
+};
+
+/** Listed flat at the top of the menu: the formats most people actually want. */
+const PRIMARY_FORMATS: ExportFormatId[] = ["word", "pdf", "txt"];
+
+/** The rest, grouped by what the user intends to do with the file, not by extension. */
+const FORMAT_GROUPS: {
+  labelKey: string;
+  icon: LucideIcon;
+  formats: ExportFormatId[];
+}[] = [
+  {
+    labelKey: "groupQualitative",
+    icon: MicroscopeIcon,
+    formats: ["nvivo", "maxqda", "csv"],
+  },
+  { labelKey: "groupSubtitles", icon: CaptionsIcon, formats: ["srt", "vtt"] },
+  { labelKey: "groupData", icon: BracesIcon, formats: ["json"] },
+];
+
+const LAST_EXPORT_FORMAT_KEY = "transcription_export_format";
+
+/**
+ * localStorage read as an external store: it keeps the value out of React state
+ * (no setState-in-effect) while still re-rendering the menu after an export.
+ */
+const lastFormatListeners = new Set<() => void>();
+
+function subscribeLastFormat(onChange: () => void) {
+  lastFormatListeners.add(onChange);
+  return () => {
+    lastFormatListeners.delete(onChange);
+  };
+}
+
+function readLastFormat() {
+  return localStorage.getItem(LAST_EXPORT_FORMAT_KEY);
+}
+
+function rememberLastFormat(id: ExportFormatId) {
+  localStorage.setItem(LAST_EXPORT_FORMAT_KEY, id);
+  lastFormatListeners.forEach((onChange) => onChange());
+}
 
 type TranscriptionActionsProps = {
   transcriptionId: string;
@@ -93,6 +187,17 @@ export function TranscriptionActions({
   const { open: openShortcuts } = useShortcutsModal();
   const { openShare } = useTranscriptionShareDialog();
 
+  // `null` on the server: localStorage only exists once mounted in the browser.
+  const storedFormat = React.useSyncExternalStore(
+    subscribeLastFormat,
+    readLastFormat,
+    () => null,
+  );
+  const lastFormat =
+    storedFormat && storedFormat in EXPORT_FORMATS
+      ? (storedFormat as ExportFormatId)
+      : null;
+
   /**
    * Get the current transcription content to export.
    * Prefers live editor state if available, falls back to original transcription.
@@ -123,56 +228,22 @@ export function TranscriptionActions({
     openHistory(transcriptionId);
   };
 
-  const handleExportCSV = () => {
+  const handleExport = async (id: ExportFormatId) => {
     const content = getTranscriptionContent();
     if (!content) {
       toast.error(t("actions.noDataAvailable"));
       return;
     }
+    const format = EXPORT_FORMATS[id];
     try {
-      exportAsCSV(content, transcriptionName);
-      toast.success(t("actions.exportedCSV"));
+      await format.run(content, transcriptionName);
+      toast.success(t(`actions.exported${format.toast}`));
+      // Remembered so a heavy NVivo/MAXQDA user gets their format back at the
+      // top of the menu instead of digging through a submenu every time.
+      rememberLastFormat(id);
     } catch (error) {
-      toast.error(t("actions.failedExportCSV"));
-      console.error("Export CSV error:", error);
-    }
-  };
-
-  const handleExportSRT = () => {
-    const content = getTranscriptionContent();
-    if (!content) {
-      toast.error(t("actions.noDataAvailable"));
-      return;
-    }
-    try {
-      exportAsSRT(content, transcriptionName);
-      toast.success(t("actions.exportedSRT"));
-    } catch (error) {
-      toast.error(t("actions.failedExportSRT"));
-      console.error("Export SRT error:", error);
-    }
-  };
-
-  const handleExportTXT = () => {
-    const content = getTranscriptionContent();
-    if (!content) {
-      toast.error(t("actions.noDataAvailable"));
-      return;
-    }
-    try {
-      // Use basic export with default options
-      exportAsTXTWithOptions(content, transcriptionName, {
-        speakerIds: content.speakers.map((s) => s.id),
-        toLowerCase: false,
-        removeAccents: false,
-        removePunctuation: false,
-        showSpeakerNames: true,
-        keepLineBreaks: true,
-      });
-      toast.success(t("actions.exportedTXT"));
-    } catch (error) {
-      toast.error(t("actions.failedExportTXT"));
-      console.error("Export TXT error:", error);
+      toast.error(t(`actions.failedExport${format.toast}`));
+      console.error(`Export ${id} error:`, error);
     }
   };
 
@@ -184,96 +255,6 @@ export function TranscriptionActions({
     }
     // Open the advanced export dialog
     openExport(content, transcriptionName);
-  };
-
-  const handleExportWord = async () => {
-    const content = getTranscriptionContent();
-    if (!content) {
-      toast.error(t("actions.noDataAvailable"));
-      return;
-    }
-    try {
-      await exportAsWord(content, transcriptionName);
-      toast.success(t("actions.exportedWord"));
-    } catch (error) {
-      toast.error(t("actions.failedExportWord"));
-      console.error("Export Word error:", error);
-    }
-  };
-
-  const handleExportJSON = () => {
-    const content = getTranscriptionContent();
-    if (!content) {
-      toast.error(t("actions.noDataAvailable"));
-      return;
-    }
-    try {
-      exportAsJSON(content, transcriptionName);
-      toast.success(t("actions.exportedJSON"));
-    } catch (error) {
-      toast.error(t("actions.failedExportJSON"));
-      console.error("Export JSON error:", error);
-    }
-  };
-
-  const handleExportVTT = () => {
-    const content = getTranscriptionContent();
-    if (!content) {
-      toast.error(t("actions.noDataAvailable"));
-      return;
-    }
-    try {
-      exportAsVTT(content, transcriptionName);
-      toast.success(t("actions.exportedVTT"));
-    } catch (error) {
-      toast.error(t("actions.failedExportVTT"));
-      console.error("Export VTT error:", error);
-    }
-  };
-
-  const handleExportNVivo = () => {
-    const content = getTranscriptionContent();
-    if (!content) {
-      toast.error(t("actions.noDataAvailable"));
-      return;
-    }
-    try {
-      exportAsNVivo(content, transcriptionName);
-      toast.success(t("actions.exportedNVivo"));
-    } catch (error) {
-      toast.error(t("actions.failedExportNVivo"));
-      console.error("Export NVivo error:", error);
-    }
-  };
-
-  const handleExportMAXQDA = () => {
-    const content = getTranscriptionContent();
-    if (!content) {
-      toast.error(t("actions.noDataAvailable"));
-      return;
-    }
-    try {
-      exportAsMAXQDA(content, transcriptionName);
-      toast.success(t("actions.exportedMAXQDA"));
-    } catch (error) {
-      toast.error(t("actions.failedExportMAXQDA"));
-      console.error("Export MAXQDA error:", error);
-    }
-  };
-
-  const handleExportPDF = async () => {
-    const content = getTranscriptionContent();
-    if (!content) {
-      toast.error(t("actions.noDataAvailable"));
-      return;
-    }
-    try {
-      await exportAsPDF(content, transcriptionName);
-      toast.success(t("actions.exportedPDF"));
-    } catch (error) {
-      toast.error(t("actions.failedExportPDF"));
-      console.error("Export PDF error:", error);
-    }
   };
 
   const handleDownloadAudio = async () => {
@@ -388,60 +369,76 @@ export function TranscriptionActions({
     });
   };
 
+  const formatItem = (id: ExportFormatId) => {
+    const Icon = EXPORT_FORMATS[id].icon;
+    return (
+      <DropdownMenuItem key={id} onClick={() => handleExport(id)}>
+        <Icon className="h-4 w-4 mr-2" />
+        {t(`actions.${id}`)}
+      </DropdownMenuItem>
+    );
+  };
+
+  // Only worth pinning when it is not already one of the primary formats.
+  const pinnedFormat =
+    lastFormat && !PRIMARY_FORMATS.includes(lastFormat) ? lastFormat : null;
+
   const downloadMenu = (
     <>
-      <DropdownMenuItem onClick={handleExportCSV}>
-        <FileTextIcon className="h-4 w-4 mr-2" />
-        {t("actions.csv")}
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={handleExportTXT}>
-        <FileTextIcon className="h-4 w-4 mr-2" />
-        {t("actions.txt")}
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={handleExportSRT}>
-        <FileTextIcon className="h-4 w-4 mr-2" />
-        {t("actions.srt")}
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={handleExportVTT}>
-        <FileTextIcon className="h-4 w-4 mr-2" />
-        {t("actions.vtt")}
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={handleExportNVivo}>
-        <FileTextIcon className="h-4 w-4 mr-2" />
-        {t("actions.nvivo")}
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={handleExportMAXQDA}>
-        <FileTextIcon className="h-4 w-4 mr-2" />
-        {t("actions.maxqda")}
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={handleExportWord}>
-        <FileIcon className="h-4 w-4 mr-2" />
-        {t("actions.word")}
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={handleExportPDF}>
-        <FileIcon className="h-4 w-4 mr-2" />
-        {t("actions.pdf")}
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={handleExportJSON}>
-        <FileJsonIcon className="h-4 w-4 mr-2" />
-        {t("actions.json")}
-      </DropdownMenuItem>
+      {pinnedFormat && (
+        <>
+          <DropdownMenuItem onClick={() => handleExport(pinnedFormat)}>
+            <RotateCcwIcon className="h-4 w-4 mr-2" />
+            {t("actions.exportAgain", { format: t(`actions.${pinnedFormat}`) })}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+        </>
+      )}
+
+      {PRIMARY_FORMATS.map(formatItem)}
       <DropdownMenuItem onClick={handleExportAdvanced}>
         <Settings2Icon className="h-4 w-4 mr-2" />
-        {t("actions.advanced")}
+        {t("actions.txtOptions")}
       </DropdownMenuItem>
+
+      <DropdownMenuSeparator />
+      {FORMAT_GROUPS.map((group) => {
+        const Icon = group.icon;
+        return (
+          <DropdownMenuSub
+            key={group.labelKey}
+            trigger={
+              <>
+                <Icon className="h-4 w-4 mr-2" />
+                {t(`actions.${group.labelKey}`)}
+              </>
+            }
+          >
+            {group.formats.map(formatItem)}
+          </DropdownMenuSub>
+        );
+      })}
 
       {hasListenAccess && (
         <>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleDownloadAudio}>
-            <FileAudio2Icon className="h-4 w-4 mr-2" />
-            {t("actions.downloadOriginalAudio")}
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleDownloadAudioAsMP3}>
-            <FileAudio2Icon className="h-4 w-4 mr-2" />
-            {t("actions.downloadAsMP3")}
-          </DropdownMenuItem>
+          <DropdownMenuSub
+            trigger={
+              <>
+                <FileAudio2Icon className="h-4 w-4 mr-2" />
+                {t("actions.groupAudio")}
+              </>
+            }
+          >
+            <DropdownMenuItem onClick={handleDownloadAudio}>
+              <FileAudio2Icon className="h-4 w-4 mr-2" />
+              {t("actions.downloadOriginalAudio")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleDownloadAudioAsMP3}>
+              <FileAudio2Icon className="h-4 w-4 mr-2" />
+              {t("actions.downloadAsMP3")}
+            </DropdownMenuItem>
+          </DropdownMenuSub>
         </>
       )}
     </>

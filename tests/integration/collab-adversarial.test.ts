@@ -106,6 +106,49 @@ describe("join races", () => {
     await bob.ready;
     expect(bob.paragraphs()).toEqual(["Contenu"]);
   });
+  it("gives the document to a provider rebuilt on a socket already in the room", async () => {
+    // The editor does not always keep the provider it first created: React
+    // re-runs the effect, and an encrypted transcript replaces the provider the
+    // moment its session key resolves. The socket underneath is a singleton, so
+    // the room sees the SAME client joining twice — and the replaced instance
+    // says goodbye afterwards, its farewell being asynchronous.
+    //
+    // Both halves of that used to be fatal: the second join went unanswered (the
+    // room took the client for a member that already knew everything) and the
+    // late goodbye then cancelled its membership. The result was a blank editor
+    // that no amount of waiting would fill.
+    const id = nextTranscriptionId();
+    const alice = await join(id, "user-alice", ["Contenu"]);
+    await alice.ready;
+
+    const bobSocket = await connectSocket(server, "user-bob");
+    const first = await joinCollab(server, id, "user-bob", {
+      codec: plaintextCodec,
+      socket: bobSocket,
+    });
+    await first.ready;
+
+    // Tear down and rebuild in the same tick, exactly as the effect does.
+    const farewell = first.provider.destroy();
+    const rebuilding = joinCollab(server, id, "user-bob", {
+      codec: plaintextCodec,
+      socket: bobSocket,
+    });
+    await farewell;
+    const second = await rebuilding;
+    open.push(second);
+
+    await waitFor(() => second.paragraphs().length > 0, {
+      label: "the rebuilt provider to receive the document",
+    });
+    expect(second.paragraphs()).toEqual(["Contenu"]);
+
+    // Still a full member: what Alice types afterwards must reach it.
+    alice.append(" modifié");
+    await waitFor(() => second.paragraphs()[0] === "Contenu modifié", {
+      label: "the rebuilt provider to keep receiving edits",
+    });
+  });
 });
 
 describe("losing the authority at the worst moment", () => {
@@ -131,6 +174,27 @@ describe("losing the authority at the worst moment", () => {
     // from he is promoted and seeds from the database copy he already holds.
     await bob.ready;
     expect(bob.paragraphs().join("")).not.toBe("");
+    expect(bob.provider.isSaver).toBe(true);
+  });
+
+  it("asks again when the authority takes the state request to the grave", async () => {
+    // The authority is still listed in the room but no longer answering — a
+    // frozen tab, a half-closed socket. One unanswered request is all it takes
+    // to leave a client staring at a blank document forever, so the provider
+    // keeps asking, and re-joins as it does: that is what lets the room hand it
+    // the seed once the ghost is finally reaped.
+    const id = nextTranscriptionId();
+    const alice = await join(id, "user-alice", ["Contenu original"]);
+    await alice.ready;
+    alice.socket.off("yjs:state-request");
+
+    const bob = await join(id, "user-bob", ["Contenu de secours"]);
+    await sleep(500);
+    expect(bob.paragraphs(), "nobody answered, so nothing arrived").toEqual([]);
+
+    alice.socket.disconnect();
+    await bob.ready; // the retry finds an empty room and Bob is promoted
+    expect(bob.paragraphs()).toEqual(["Contenu de secours"]);
     expect(bob.provider.isSaver).toBe(true);
   });
 

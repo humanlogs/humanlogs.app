@@ -1,0 +1,57 @@
+{
+  "codebook": {
+    "section": {
+      "title": "Codebooks ({count})",
+      "create": "Nouveau codebook",
+      "fromPreset": "À partir d'un preset",
+      "empty": {
+        "title": "Aucun codebook",
+        "description": "Un codebook est un ensemble de codes que vous appliquez à vos documents. Partez d'un preset ou créez le vôtre.",
+        "action": "Créer un codebook"
+      },
+      "allStudies": "Toutes les études",
+      "studyCount": "{count} études",
+      "codeCount": "{count} codes",
+      "locked": "Chiffré — aucune clé sur cet appareil"
+    },
+    "editor": {
+      "createTitle": "Nouveau codebook",
+      "editTitle": "Modifier le codebook",
+      "description": "Les codes sont chiffrés comme vos documents : seuls vous et les personnes avec qui vos documents sont partagés peuvent les lire.",
+      "name": "Nom",
+      "namePlaceholder": "Thèmes, sentiment, marqueurs de discours…",
+      "scope": "Études",
+      "scopeAll": "Toutes les études",
+      "scopeSelected": "Études sélectionnées",
+      "parent": "Codebook parent",
+      "noParent": "Aucun (premier niveau)",
+      "target": "S'applique à",
+      "targets": {
+        "document": "Document entier",
+        "sentence": "Phrase",
+        "subsentence": "Partie de phrase",
+        "word": "Mot"
+      },
+      "codes": "Codes",
+      "addCode": "Ajouter un code",
+      "codePlaceholder": "Intitulé du code",
+      "removeCode": "Supprimer ce code",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "delete": "Supprimer le codebook",
+      "deleteConfirm": "Supprimer ce codebook et ses sous-codebooks ? Les documents conservent leurs autres codes.",
+      "errors": {
+        "nameRequired": "Un nom est requis",
+        "scopeRequired": "Sélectionnez au moins une étude",
+        "codeRequired": "Ajoutez au moins un code",
+        "failed": "Impossible d'enregistrer le codebook"
+      }
+    },
+    "presets": {
+      "title": "Partir d'un preset",
+      "description": "Les presets sont créés pour toutes les études et restent modifiables ensuite.",
+      "draft": "Brouillon — à relire",
+      "create": "Créer"
+    }
+  }
+}

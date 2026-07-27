@@ -30,7 +30,25 @@
       "de": "Deutsch"
     },
     "home": "Home",
-    "unassigned": "Unassigned"
+    "unassigned": "Unassigned",
+    "view": {
+      "settings": "Display options",
+      "groupBy": "Group by",
+      "sortBy": "Sort by",
+      "updatedAt": "Last update",
+      "createdAt": "Created at",
+      "alphabetical": "Alphabetically",
+      "study": "Study",
+      "uncoded": "Uncoded",
+      "untitledCodebook": "Untitled codebook",
+      "buckets": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "thisWeek": "This week",
+        "thisMonth": "This month",
+        "before": "Before"
+      }
+    }
   },
   "newTranscription": {
     "title": "New Transcription",

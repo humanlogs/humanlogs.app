@@ -12,6 +12,7 @@ import {
   failTranscription,
 } from "@/lib/stt/transcription-completion";
 import { checkAccess } from "@/lib/transcriptions/access";
+import { validateCodeRefs } from "@/lib/codebooks/codebook";
 
 type RouteParams = {
   params: Promise<{
@@ -99,6 +100,7 @@ export const PATCH = withAuthRateLimit(
         title?: string;
         projectId?: string | null;
         transcription?: never;
+        codes?: never;
         updatedBy?: string;
       } = {};
 
@@ -155,6 +157,36 @@ export const PATCH = withAuthRateLimit(
             { status: 400 },
           );
         }
+      }
+
+      // Codes applied to the document. Any writer may code, but the codes must
+      // come from the *owner's* codebooks — those are the ones scoped to the
+      // study this document sits in.
+      if (body.codes !== undefined) {
+        const projectId =
+          updateData.projectId !== undefined
+            ? updateData.projectId
+            : transcription.projectId;
+
+        const codebooks = await prisma.codebook.findMany({
+          where: {
+            userId: transcription.userId,
+            OR: [
+              { allStudies: true },
+              ...(projectId ? [{ studies: { some: { projectId } } }] : []),
+            ],
+          },
+          select: { id: true },
+        });
+
+        const parsed = validateCodeRefs(
+          body.codes,
+          new Set(codebooks.map((c) => c.id)),
+        );
+        if ("error" in parsed) {
+          return NextResponse.json({ error: parsed.error }, { status: 400 });
+        }
+        updateData.codes = parsed.codes as never;
       }
 
       // Handle transcription content updates
@@ -402,5 +434,6 @@ export const mapTransactionDetails = (transcription: Transcription) =>
     "completedAt",
     "isTutorial",
     "shared",
+    "codes",
     "userId",
   ]);

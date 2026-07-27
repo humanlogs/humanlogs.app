@@ -2,7 +2,7 @@
 
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { Editor, EditorContent } from "@tiptap/react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { EditorAPI } from "./api";
 import { useTiptapEditor } from "./hooks/use-tiptap-editor";
 
@@ -13,6 +13,8 @@ interface TranscriptEditorContentProps {
   speakers: Array<{ id: string; name?: string }>;
   isEncrypted?: boolean;
   aesKey?: string | null;
+  /** Whether the two fields above are settled (see useTiptapEditor). */
+  encryptionReady?: boolean;
   onChange: (segments: TranscriptionSegment[]) => void;
   hasWriteAccess: boolean;
   onSelectionUpdate: (editor: Editor) => void;
@@ -25,6 +27,7 @@ export function TranscriptEditorContentTipTap({
   speakers,
   isEncrypted,
   aesKey,
+  encryptionReady,
   onChange,
   hasWriteAccess,
   onSelectionUpdate,
@@ -34,6 +37,7 @@ export function TranscriptEditorContentTipTap({
     segments,
     isEncrypted,
     aesKey,
+    encryptionReady,
     onChange,
     editorAPI,
     editable: hasWriteAccess,

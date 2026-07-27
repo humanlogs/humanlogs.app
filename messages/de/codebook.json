@@ -1,0 +1,57 @@
+{
+  "codebook": {
+    "section": {
+      "title": "Codebücher ({count})",
+      "create": "Neues Codebuch",
+      "fromPreset": "Aus einer Vorlage",
+      "empty": {
+        "title": "Noch kein Codebuch",
+        "description": "Ein Codebuch ist eine Sammlung von Codes, die Sie auf Ihre Dokumente anwenden. Beginnen Sie mit einer Vorlage oder erstellen Sie ein eigenes.",
+        "action": "Codebuch erstellen"
+      },
+      "allStudies": "Alle Studien",
+      "studyCount": "{count} Studien",
+      "codeCount": "{count} Codes",
+      "locked": "Verschlüsselt — kein Schlüssel auf diesem Gerät"
+    },
+    "editor": {
+      "createTitle": "Neues Codebuch",
+      "editTitle": "Codebuch bearbeiten",
+      "description": "Codes werden wie Ihre Dokumente verschlüsselt: nur Sie und die Personen, mit denen Ihre Dokumente geteilt sind, können sie lesen.",
+      "name": "Name",
+      "namePlaceholder": "Themen, Sentiment, Diskursmarker…",
+      "scope": "Studien",
+      "scopeAll": "Alle Studien",
+      "scopeSelected": "Ausgewählte Studien",
+      "parent": "Übergeordnetes Codebuch",
+      "noParent": "Keines (oberste Ebene)",
+      "target": "Gilt für",
+      "targets": {
+        "document": "Ganzes Dokument",
+        "sentence": "Satz",
+        "subsentence": "Satzteil",
+        "word": "Wort"
+      },
+      "codes": "Codes",
+      "addCode": "Code hinzufügen",
+      "codePlaceholder": "Bezeichnung des Codes",
+      "removeCode": "Diesen Code entfernen",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "delete": "Codebuch löschen",
+      "deleteConfirm": "Dieses Codebuch und seine Unter-Codebücher löschen? Dokumente behalten ihre übrigen Codes.",
+      "errors": {
+        "nameRequired": "Ein Name ist erforderlich",
+        "scopeRequired": "Wählen Sie mindestens eine Studie",
+        "codeRequired": "Fügen Sie mindestens einen Code hinzu",
+        "failed": "Codebuch konnte nicht gespeichert werden"
+      }
+    },
+    "presets": {
+      "title": "Mit einer Vorlage beginnen",
+      "description": "Vorlagen werden für alle Studien erstellt und können danach bearbeitet werden.",
+      "draft": "Entwurf — Codes prüfen",
+      "create": "Erstellen"
+    }
+  }
+}

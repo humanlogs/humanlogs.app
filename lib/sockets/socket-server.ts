@@ -112,6 +112,17 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
     type Membership = { canWrite: boolean };
     const memberships = new Map<string, Promise<Membership | null>>();
 
+    // The provider instance currently holding this socket's seat in a room.
+    //
+    // The socket is a long-lived singleton but the provider is not: the editor
+    // recreates it (React re-mounting an effect, the E2E session key resolving),
+    // and the old instance says goodbye AFTER an asynchronous farewell — so its
+    // `yjs:leave` reliably arrives once the new instance has already re-joined.
+    // Without this, that stale goodbye evicted the live client: its membership
+    // was gone, so every later message from it was dropped and it never received
+    // the document. A leave is honoured only for the session that is still in.
+    const joinSessions = new Map<string, string>();
+
     const joinRoom = (transcriptionId: string): Promise<Membership | null> => {
       const pending = memberships.get(transcriptionId);
       if (pending) return pending;
@@ -130,6 +141,25 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
       return authorized;
     };
 
+    /**
+     * Authorize a join and make sure the seat SURVIVES it.
+     *
+     * Authorization is a round-trip to the database, and messages keep arriving
+     * while it is in flight — including the goodbye of the provider instance this
+     * join replaces, which erases the very entry `joinRoom` just registered. The
+     * join is the newer intent, so it puts its seat back.
+     */
+    const joinRoomAndHold = async (
+      transcriptionId: string,
+    ): Promise<Membership | null> => {
+      const membership = await joinRoom(transcriptionId);
+      if (!membership) return null;
+      if (!memberships.has(transcriptionId)) {
+        memberships.set(transcriptionId, Promise.resolve(membership));
+      }
+      return membership;
+    };
+
     /** Rights in a room this socket has joined; null if it never did, or left. */
     const membershipOf = (
       transcriptionId: string,
@@ -138,7 +168,7 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
 
     // --- Presence + cursor room (drives the custom text/audio cursors) ----------
     socket.on("transcription:join", async (transcriptionId: string) => {
-      if (!(await joinRoom(transcriptionId))) return;
+      if (!(await joinRoomAndHold(transcriptionId))) return;
       socket.join(`transcription:${transcriptionId}`);
       socket
         .to(`transcription:${transcriptionId}`)
@@ -169,27 +199,40 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
     );
 
     // --- Blind Yjs relay — opaque payloads, seeding-authority coordination ------
-    socket.on("yjs:join", async (data: { transcriptionId: string }) => {
-      const { transcriptionId } = data;
-      if (!(await joinRoom(transcriptionId))) return;
-      socket.join(`transcription:${transcriptionId}`);
-      let room = collabRooms.get(transcriptionId);
-      if (!room) {
-        room = { authority: null, members: new Set() };
-        collabRooms.set(transcriptionId, room);
-      }
-      const alreadyMember = room.members.has(socket.id);
-      room.members.add(socket.id);
-      // First member in the room seeds; others pull state from the authority.
-      // A socket that re-joins keeps the role it already holds: telling the
-      // authority to "sync" would make it request state from itself.
-      if (!room.authority || room.authority === socket.id) {
-        room.authority = socket.id;
-        socket.emit("yjs:role", { transcriptionId, role: "seed" });
-      } else if (!alreadyMember) {
-        socket.emit("yjs:role", { transcriptionId, role: "sync" });
-      }
-    });
+    socket.on(
+      "yjs:join",
+      async (data: { transcriptionId: string; session?: string }) => {
+        const { transcriptionId } = data;
+        // Claim the seat BEFORE authorizing: a goodbye that lands while we wait
+        // belongs to the instance this join replaces, and must be recognised as
+        // stale by the time it arrives.
+        if (data.session) joinSessions.set(transcriptionId, data.session);
+        if (!(await joinRoomAndHold(transcriptionId))) return;
+        socket.join(`transcription:${transcriptionId}`);
+        let room = collabRooms.get(transcriptionId);
+        if (!room) {
+          room = { authority: null, members: new Set() };
+          collabRooms.set(transcriptionId, room);
+        }
+        room.members.add(socket.id);
+        // First member in the room seeds; others pull state from the authority.
+        // A socket that re-joins keeps the role it already holds: telling the
+        // authority to "sync" would make it request state from itself.
+        //
+        // Every other join IS answered, re-joins included. A join is how a client
+        // asks where to get the document from, and a client re-joins precisely
+        // when it has nothing (a fresh provider on the same socket, a reconnect):
+        // staying silent left it waiting for a document that was never coming —
+        // the blank editor. Re-answering costs one duplicate state transfer,
+        // which Yjs merges into a no-op.
+        if (!room.authority || room.authority === socket.id) {
+          room.authority = socket.id;
+          socket.emit("yjs:role", { transcriptionId, role: "seed" });
+        } else {
+          socket.emit("yjs:role", { transcriptionId, role: "sync" });
+        }
+      },
+    );
 
     // A late joiner asks for full state; route to the authority (which holds it).
     socket.on("yjs:state-request", async (data: { transcriptionId: string }) => {
@@ -249,11 +292,19 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
       },
     );
 
-    socket.on("yjs:leave", (data: { transcriptionId: string }) => {
-      socket.leave(`transcription:${data.transcriptionId}`);
-      memberships.delete(data.transcriptionId);
-      collabLeave(socket.id, data.transcriptionId);
-    });
+    socket.on(
+      "yjs:leave",
+      (data: { transcriptionId: string; session?: string }) => {
+        // A goodbye from a provider instance that has already been replaced on
+        // this socket (see joinSessions) is not this client leaving the room.
+        const current = joinSessions.get(data.transcriptionId);
+        if (data.session && current && data.session !== current) return;
+        joinSessions.delete(data.transcriptionId);
+        socket.leave(`transcription:${data.transcriptionId}`);
+        memberships.delete(data.transcriptionId);
+        collabLeave(socket.id, data.transcriptionId);
+      },
+    );
 
     socket.on("disconnect", () => {
       log("Client disconnected:", socket.id);

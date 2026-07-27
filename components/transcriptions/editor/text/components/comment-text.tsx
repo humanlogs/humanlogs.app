@@ -16,7 +16,7 @@ export function CommentText({
   const parts = parseMentions(text);
 
   return (
-    <p className="text-foreground/90 mt-0.5 text-xs leading-snug break-words whitespace-pre-wrap">
+    <p className="text-foreground/90 mt-0.5 text-sm leading-normal break-words whitespace-pre-wrap">
       {parts.map((part, i) =>
         part.type === "text" ? (
           <span key={i}>{part.text}</span>

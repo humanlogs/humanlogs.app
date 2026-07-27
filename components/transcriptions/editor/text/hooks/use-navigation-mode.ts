@@ -3,7 +3,7 @@
 import { useCustomShortcuts } from "@/hooks/use-shortcuts";
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { CustomShortcut } from "@/components/transcriptions/editor/text/utils/shortcuts";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useAnyModalOpen } from "../../../../use-modal";
 import { EditorAPI } from "../api";
@@ -497,6 +497,41 @@ export function useNavigationMode(
     [isModalOpen, state, currentIndex, customShortcuts],
   );
 
+  /**
+   * Move the active word to whatever sits at `charOffset` in the flat projection, and
+   * take the audio with it.
+   *
+   * Needed whenever the UI jumps somewhere the caret alone doesn't account for — opening
+   * a comment thread selects a *range*, which useAudioSync deliberately ignores, so
+   * without this the active word stays where it was and the next scroll drags the page
+   * back to the old position.
+   */
+  const goToOffset = useCallback(
+    (charOffset: number) => {
+      const segments = editorAPI.getSegments();
+      if (segments.length === 0) return;
+
+      let index = segments.length - 1;
+      let charCount = 0;
+      for (let i = 0; i < segments.length; i++) {
+        const segmentEnd = charCount + segments[i].text.length;
+        if (charOffset < segmentEnd) {
+          index = i;
+          break;
+        }
+        charCount = segmentEnd;
+      }
+      index = ensureWord(index, segments, "r");
+
+      // Keep the audio-time watcher from overwriting us before the seek lands.
+      lastNavigationTime.current = Date.now();
+      setCurrentIndex(index);
+      const start = segments[index]?.start;
+      if (start !== undefined) audioControls?.seekTo(start);
+    },
+    [editorAPI, audioControls],
+  );
+
   useHotkeys(
     ["Escape"],
     (event) => {
@@ -515,6 +550,7 @@ export function useNavigationMode(
   return {
     state,
     currentIndex,
+    goToOffset,
   };
 }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { ProjectBadge } from "@/components/projects/project-badge";
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import {
   AlertCircleIcon,
@@ -23,11 +24,26 @@ type TranscriptionMenuItemProps = {
     mediaType?: "audio" | "text";
   };
   isActive: boolean;
+  /**
+   * The document's study, shown as a `[badge] Study /` prefix. Passed only when
+   * the list is not grouped by study — otherwise the group header already says
+   * it.
+   */
+  study?: {
+    id: string;
+    name: string;
+    iconType?: "icon" | "emoji" | "image" | null;
+    icon?: string | null;
+    color?: string | null;
+    hasImage?: boolean;
+    updatedAt?: string;
+  } | null;
 };
 
 export function TranscriptionMenuItem({
   transcription,
   isActive,
+  study,
 }: TranscriptionMenuItemProps) {
   // Unread notifications about this document (a mention, or a reply in a thread the
   // user follows). Opening the document clears them.
@@ -69,7 +85,22 @@ export function TranscriptionMenuItem({
       <Link href={`/app/transcription/${transcription.id}`}>
         <SidebarMenuButton isActive={isActive}>
           {getStatusIcon()}
-          <span className="flex-1 truncate">{transcription.title}</span>
+          <span className="flex min-w-0 flex-1 items-center gap-1">
+            {study && (
+              <span className="flex min-w-0 shrink items-center gap-1 text-muted-foreground">
+                <ProjectBadge
+                  appearance={study}
+                  projectId={study.id}
+                  name={study.name}
+                  size="xs"
+                  imageVersion={study.updatedAt}
+                />
+                <span className="max-w-24 truncate">{study.name}</span>
+                <span aria-hidden>/</span>
+              </span>
+            )}
+            <span className="truncate">{transcription.title}</span>
+          </span>
           {unread > 0 && (
             <span className="bg-primary text-primary-foreground flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full px-1 text-[10px] font-medium tabular-nums">
               {unread > 9 ? "9+" : unread}

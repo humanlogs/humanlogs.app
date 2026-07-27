@@ -14,7 +14,7 @@ import {
 } from "@/lib/sockets/yjs-collab-provider";
 import { getUserColor } from "@/lib/utils/utils";
 import Bold from "@tiptap/extension-bold";
-import Collaboration from "@tiptap/extension-collaboration";
+import Collaboration, { isChangeOrigin } from "@tiptap/extension-collaboration";
 import Italic from "@tiptap/extension-italic";
 import Paragraph from "@tiptap/extension-paragraph";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -81,6 +81,14 @@ interface UseTiptapEditorOptions {
   /** E2E: whether the transcription is encrypted, and its resolved session key. */
   isEncrypted?: boolean;
   aesKey?: string | null;
+  /**
+   * Whether the encryption state above is SETTLED. Before it is, `isEncrypted`
+   * merely defaults to false, which is indistinguishable from a plaintext
+   * document — starting the transport on that guess relayed an encrypted
+   * transcript in the clear, and the correction that followed tore the provider
+   * down and back up mid-join.
+   */
+  encryptionReady?: boolean;
   onChange: (segments: TranscriptionSegment[]) => void;
   editable: boolean;
   onSelectionUpdate?: (editor: any) => void;
@@ -103,6 +111,7 @@ export function useTiptapEditor({
   segments,
   isEncrypted,
   aesKey,
+  encryptionReady,
   onChange,
   editorAPI,
   editable,
@@ -137,6 +146,13 @@ export function useTiptapEditor({
   if (!segmentsHtmlRef.current)
     segmentsHtmlRef.current = segmentsToHtml(segmentsRef.current);
 
+  // Guards against saving a blank document over a real transcript — see the
+  // derivation below. `localEdits` turns true on the first edit made HERE (the
+  // seed and remote changes don't count).
+  const hadInitialContentRef = useRef(false);
+  hadInitialContentRef.current ||= (segmentsRef.current?.length ?? 0) > 0;
+  const localEditsRef = useRef(false);
+
   const editorRef = useRef<Editor>(null);
   const normalizeDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const { data: userProfile } = useUserProfile();
@@ -169,7 +185,20 @@ export function useTiptapEditor({
       timingRefRef.current ?? segmentsRef.current,
     );
     editorAPI.emit("speakersOffsets");
-    if (isCollabSaverRef.current && onChange) {
+    // Refuse to persist emptiness nobody asked for. A client that failed to sync
+    // sits in front of a blank editor; if it is also the save leader, saving that
+    // blank replaces the real transcript in Postgres for everyone. Emptying the
+    // document by hand stays possible — that goes through a local edit.
+    const wouldEraseEverything =
+      segmentsRef.current.length === 0 &&
+      hadInitialContentRef.current &&
+      !localEditsRef.current;
+    if (wouldEraseEverything) {
+      console.warn(
+        "[collab] not saving: the document is empty and was never edited here",
+      );
+    }
+    if (isCollabSaverRef.current && onChange && !wouldEraseEverything) {
       onChange(segmentsRef.current);
       // Refresh the shared timing reference (debounced, leader only).
       if (refreshDebounceRef.current) clearTimeout(refreshDebounceRef.current);
@@ -267,6 +296,14 @@ export function useTiptapEditor({
       onTransaction: ({ transaction }) => {
         // Standard Collaboration keeps text/structure/cursors in sync natively.
         if (!transaction.docChanged) return;
+        // Everything that isn't a remote apply or the initial seed is this user
+        // typing (the empty-save guard needs to know).
+        if (
+          !isChangeOrigin(transaction) &&
+          transaction.getMeta("addToHistory") !== false
+        ) {
+          localEditsRef.current = true;
+        }
         // Reposition/relabel the speaker column IMMEDIATELY on every doc change
         // (local AND remote) — the DOM is already updated by Collaboration, and
         // useSpeakerPositions coalesces the recompute via requestAnimationFrame.
@@ -310,8 +347,11 @@ export function useTiptapEditor({
   // Standard Collaboration handles doc↔PM; we don't touch the editor here.
   useEffect(() => {
     if (!editor || !isMounted || !yjsDoc.current) return;
-    // E2E: do not start the transport until the session key is resolved for an
-    // encrypted transcription — otherwise content would be relayed in the clear.
+    // E2E: do not start the transport until we KNOW whether this transcription is
+    // encrypted and, if it is, hold its session key — otherwise content would be
+    // relayed in the clear (and this effect would re-run, replacing a provider
+    // that had already joined the room).
+    if (encryptionReady === false) return;
     if (isEncrypted && !aesKey) return;
     const codec = isEncrypted && aesKey ? aesCodec(aesKey) : plaintextCodec;
     const ydoc = yjsDoc.current;
@@ -415,7 +455,18 @@ export function useTiptapEditor({
 
     const seedNow = () => {
       const frag = ydoc.getXmlFragment("default");
-      if (frag.length === 0) editor.commands.setContent(segmentsHtmlRef.current);
+      if (frag.length === 0) {
+        // `addToHistory: false` keeps the seed OUT of the collaborative undo
+        // stack. Writing the transcript in is a local ProseMirror change like any
+        // other, so Y.UndoManager used to record it as one big step: undo enough
+        // times and the whole document disappeared — and, the leader having then
+        // saved that emptiness, for everyone.
+        editor
+          .chain()
+          .setContent(segmentsHtmlRef.current)
+          .setMeta("addToHistory", false)
+          .run();
+      }
       seedSpeakersMap();
       seedTimingRef();
       speakersReady = true;
@@ -496,7 +547,7 @@ export function useTiptapEditor({
     };
     // Re-runs once the E2E session key resolves (isEncrypted/aesKey).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editor, isMounted, isEncrypted, aesKey]);
+  }, [editor, isMounted, encryptionReady, isEncrypted, aesKey]);
 
   // Publish our identity (name/color) into awareness so peers can label our remote
   // caret. yCursorPlugin writes our selection into awareness automatically.

@@ -1,4 +1,5 @@
 import { AppSidebar } from "@/components/app-sidebar";
+import { CodebookEditorDialog } from "@/components/codebooks/codebook-editor-dialog";
 import { FeedbackAutoPrompt } from "@/components/feedback/feedback-auto-prompt";
 import { FeedbackDialog } from "@/components/dialogs/feedback-dialog";
 import { HelpDialog } from "@/components/dialogs/help-dialog";
@@ -63,6 +64,7 @@ export default async function AppLayout({
       <TranscriptionSetProjectDialog />
       <TranscriptionShareDialog />
       <ProjectCreateModal />
+      <CodebookEditorDialog />
       <TranscriptionExportDialog />
       <TranscriptionHistorySheet />
       <SpeakerOptionsDialog />

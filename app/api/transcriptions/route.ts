@@ -6,6 +6,7 @@ import { EncryptedDataEntity } from "../../../lib/encryption/encryption-entities
 import { pollPendingTranscriptions } from "./[id]/route";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 import { findTranscriptionsSharedWith } from "@/lib/transcriptions/access";
+import { parseCodeRefs } from "@/lib/codebooks/codebook";
 
 export const GET = withAuthRateLimit(async (request, user) => {
   try {
@@ -127,6 +128,8 @@ const formatTranscriptionList = (t: Transcription, userId: string) => {
     speakerCount: t.speakerCount,
     speakerNames,
     mediaType: t.mediaType,
+    // Opaque { codebookId, codeId } refs; the sidebar groups on them.
+    codes: parseCodeRefs(t.codes),
     state: t.state,
     errorMessage: t.errorMessage,
     isEncrypted: (t.audioFileEncryption as EncryptedDataEntity)?.privateKeys

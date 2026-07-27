@@ -33,6 +33,11 @@ import { useFormat } from "./text/hooks/use-format";
 import { useNavigationMode } from "./text/hooks/use-navigation-mode";
 import { useSearchReplace } from "./text/hooks/use-search-replace";
 import { TranscriptEditorContentTipTap } from "./text/tiptap";
+import {
+  getCommentRanges,
+  sortByInnermost,
+} from "./text/utils/comment-actions";
+import { parseCommentIds } from "./text/extensions/comment-mark";
 import { segmentsToHtml } from "./text/utils/html";
 import { AudioControls } from "./audio/helpers";
 
@@ -97,7 +102,10 @@ export function TranscriptEditor({
     null,
   );
   const { selectionUpdate } = useAudioSync(editorAPI);
-  const { state, currentIndex } = useNavigationMode(editorAPI, audioControls);
+  const { state, currentIndex, goToOffset } = useNavigationMode(
+    editorAPI,
+    audioControls,
+  );
   const {
     applyFormat,
     activeFormats,
@@ -258,14 +266,33 @@ export function TranscriptEditor({
     }
   }, [commentThreads.railOpen, editorAPI]);
 
+  /**
+   * Opening a thread jumps the reader to its anchor, so move the active word (and the
+   * audio) there too. Otherwise playback stays wherever it was and the navigate-mode
+   * scroll yanks the page back off the thread you just opened.
+   */
+  const focusThreadAnchor = (anchorId: string) => {
+    const editor = editorAPI.getEditor();
+    if (!editor) return;
+    const range = getCommentRanges(editor).find((r) => r.anchorId === anchorId);
+    // ProseMirror positions are flat char offsets + 1 (see collab/doc-to-segments).
+    if (range) goToOffset(range.from - 1);
+  };
+
   // Focus a thread when its highlighted text is clicked in the editor.
   useEffect(() => {
     let bound: HTMLElement | null = null;
     const onClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
       const span = target?.closest?.("span[data-comment-id]");
-      const anchorId = span?.getAttribute("data-comment-id");
-      if (anchorId) commentThreads.openThread(anchorId);
+      const ids = parseCommentIds(span?.getAttribute("data-comment-id"));
+      if (ids.length === 0) return;
+      // Overlapping threads share a span, so a click lands on all of them at once.
+      // Open the narrowest — the one the user was most likely aiming at.
+      const editor = editorAPI.getEditor();
+      const anchorId = editor ? sortByInnermost(editor, ids)[0] : ids[0];
+      commentThreads.openThread(anchorId);
+      focusThreadAnchor(anchorId);
     };
     const bind = () => {
       const el = editorAPI.getEditorElement();
@@ -281,11 +308,15 @@ export function TranscriptEditor({
       bound?.removeEventListener("click", onClick);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editorAPI, commentThreads.openThread]);
+  }, [editorAPI, commentThreads.openThread, goToOffset]);
 
   // Stable session AES key (E2E). The collab provider must not start until this is
   // resolved for an encrypted transcription, so content is never relayed in clear.
-  const { aesKey, isEncrypted } = useTranscriptionAesKey(transcription.id);
+  const {
+    aesKey,
+    isEncrypted,
+    ready: encryptionReady,
+  } = useTranscriptionAesKey(transcription.id);
 
   // Auto-save with debounce. The Y.Doc is the live source of truth and Postgres is
   // just a checkpoint, so we save less aggressively (and only the save leader
@@ -351,7 +382,15 @@ export function TranscriptEditor({
   }, [saveStatus, onSaveStatusChange]);
 
   return (
-    <div ref={containerRef} className="h-full min-w-0 overflow-x-hidden">
+    <div
+      ref={containerRef}
+      // While the rail is closed nobody is reading comments, so their highlights drop
+      // to a hint (see .comments-idle in index.css) instead of competing with the text.
+      className={cn(
+        "h-full min-w-0 overflow-x-hidden",
+        !commentThreads.railOpen && "comments-idle",
+      )}
+    >
       {revertedBy && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="mx-4 max-w-sm rounded-lg border bg-background p-6 text-center shadow-lg">
@@ -378,10 +417,10 @@ export function TranscriptEditor({
           often the spans are recreated. */}
       {emphasisedAnchorId && /^[\w-]+$/.test(emphasisedAnchorId) && (
         <style>{`
-          span[data-comment-id="${emphasisedAnchorId}"] {
+          .hl-comment[data-comment-id~="${emphasisedAnchorId}"] {
             background-color: color-mix(in oklab, var(--color-yellow-400) 70%, transparent);
           }
-          .dark span[data-comment-id="${emphasisedAnchorId}"] {
+          .dark .hl-comment[data-comment-id~="${emphasisedAnchorId}"] {
             background-color: color-mix(in oklab, var(--color-yellow-500) 50%, transparent);
           }
         `}</style>
@@ -437,6 +476,7 @@ export function TranscriptEditor({
                   segments={transcription.transcription?.words || []}
                   isEncrypted={isEncrypted}
                   aesKey={aesKey}
+                  encryptionReady={encryptionReady}
                   editorAPI={editorAPI}
                   onChange={() => {
                     editorAPI.emit("change");
@@ -464,6 +504,7 @@ export function TranscriptEditor({
               onOpenThread={(anchorId) => {
                 captureReadingAnchor();
                 commentThreads.openThread(anchorId);
+                focusThreadAnchor(anchorId);
               }}
               onHoverThread={setHoveredAnchorId}
               onCloseRail={() => {

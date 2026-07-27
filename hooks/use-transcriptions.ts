@@ -1,5 +1,6 @@
 "use client";
 
+import type { CodeRef } from "@/lib/codebooks/codebook";
 import {
   EncryptionUtils,
   type EncryptedDataEntity,
@@ -24,6 +25,8 @@ type Transcription = {
   speakerCount?: number;
   speakerNames?: (string | null)[];
   mediaType?: "audio" | "text";
+  /** Codes applied to the document; opaque ids resolved against the codebooks. */
+  codes?: CodeRef[];
   state: "PENDING" | "COMPLETED" | "ERROR";
   errorMessage?: string | null;
   isOwner?: boolean;
@@ -52,6 +55,7 @@ export type TranscriptionDetail = {
   transcription?: TranscriptionContent;
   projectId?: string;
   projectName?: string;
+  codes?: CodeRef[];
   createdAt: string;
   updatedAt: string;
   completedAt?: string;

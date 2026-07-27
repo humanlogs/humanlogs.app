@@ -27,7 +27,7 @@ import { layoutRail } from "../utils/comment-rail-layout";
 import { CommentComposer } from "./comment-composer";
 import { CommentText } from "./comment-text";
 
-const RAIL_WIDTH = 288;
+const RAIL_WIDTH = 320;
 
 interface CommentRailProps {
   transcriptionId: string;
@@ -297,14 +297,14 @@ function CommentCard({
       // up the text it belongs to — the link between the two without a connector line.
       onMouseEnter={() => onHover(anchorId)}
       onMouseLeave={() => onHover(null)}
-      className={`bg-card cursor-default rounded-lg border p-2.5 transition-shadow ${
+      className={`bg-card cursor-default rounded-lg border p-3 transition-shadow ${
         active ? "border-yellow-400/70 shadow-sm" : "hover:border-foreground/20"
       }`}
     >
       <div className="mb-1.5 flex items-start gap-1">
         {quote && (
-          <p className="text-muted-foreground min-w-0 flex-1 border-l-2 border-yellow-400/70 pl-2 text-[11px] leading-snug italic">
-            {excerptText(quote, 52)}
+          <p className="text-muted-foreground min-w-0 flex-1 border-l-2 border-yellow-400/70 pl-2 text-xs leading-snug italic">
+            {excerptText(quote, 60)}
           </p>
         )}
         {/* Follow/unfollow this thread. Only shown once the thread exists, since an
@@ -330,9 +330,9 @@ function CommentCard({
             }`}
           >
             {subscribed ? (
-              <Bell className="h-3 w-3" />
+              <Bell className="h-3.5 w-3.5" />
             ) : (
-              <BellOff className="h-3 w-3" />
+              <BellOff className="h-3.5 w-3.5" />
             )}
           </button>
         )}
@@ -341,7 +341,7 @@ function CommentCard({
       {notes.map((c) => {
         const isMine = c.userId === profile?.id;
         return (
-          <div key={c.id} className="mt-1.5 first:mt-0">
+          <div key={c.id} className="mt-2.5 first:mt-0">
             <div className="flex items-center gap-1.5">
               <UserAvatar
                 size="sm"
@@ -350,12 +350,12 @@ function CommentCard({
                   email: c.author?.email ?? null,
                 }}
               />
-              <span className="truncate text-xs font-medium">
+              <span className="truncate text-sm font-medium">
                 {isMine
                   ? t("comments.you")
                   : c.author?.name || c.author?.email || ""}
               </span>
-              <span className="text-muted-foreground ml-auto shrink-0 text-[10px]">
+              <span className="text-muted-foreground ml-auto shrink-0 text-[11px]">
                 {formatRelativeDate(c.createdAt, locale)}
               </span>
             </div>
@@ -382,7 +382,7 @@ function CommentCard({
               <div className="mt-0.5 flex gap-2" onClick={(e) => e.stopPropagation()}>
                 <button
                   type="button"
-                  className="text-muted-foreground hover:text-foreground text-[10px]"
+                  className="text-muted-foreground hover:text-foreground text-xs"
                   onClick={() => {
                     setEditingId(c.id);
                     setEditingText(c.text);
@@ -392,7 +392,7 @@ function CommentCard({
                 </button>
                 <button
                   type="button"
-                  className="text-muted-foreground hover:text-destructive text-[10px]"
+                  className="text-muted-foreground hover:text-destructive text-xs"
                   onClick={() => remove(c)}
                 >
                   {t("comments.delete")}

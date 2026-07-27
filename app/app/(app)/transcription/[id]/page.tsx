@@ -7,6 +7,7 @@ import { TranscriptionFailed } from "@/components/transcriptions/transcription-f
 import { TranscriptionLoading } from "@/components/transcriptions/transcription-loading";
 import { ProjectBadge } from "@/components/projects/project-badge";
 import { useProjects } from "@/hooks/use-api";
+import { useDocumentTitle } from "@/hooks/use-document-title";
 import { useEncryptionStatus } from "@/hooks/use-encryption";
 import { useTranscription, useTranscriptions } from "@/hooks/use-transcriptions";
 import { useTranscriptionDeleteModal } from "@/components/transcriptions/dialogs/transcription-delete-dialog";
@@ -46,6 +47,11 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
   const router = useRouter();
 
   const isEncryptionError = error?.message === "error_encrypted";
+
+  // The list carries plaintext titles, so the tab still shows a name while the
+  // document itself is loading (or can't be decrypted).
+  const listTitle = allTranscriptions.find((tr) => tr.id === id)?.title;
+  useDocumentTitle(transcription?.title || listTitle);
 
   useEffect(() => {
     if (error && !isEncryptionError) {

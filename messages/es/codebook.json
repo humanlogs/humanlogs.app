@@ -1,0 +1,57 @@
+{
+  "codebook": {
+    "section": {
+      "title": "Libros de códigos ({count})",
+      "create": "Nuevo libro de códigos",
+      "fromPreset": "A partir de una plantilla",
+      "empty": {
+        "title": "Todavía no hay libros de códigos",
+        "description": "Un libro de códigos es un conjunto de códigos que aplicas a tus documentos. Empieza con una plantilla o crea el tuyo.",
+        "action": "Crear un libro de códigos"
+      },
+      "allStudies": "Todos los estudios",
+      "studyCount": "{count} estudios",
+      "codeCount": "{count} códigos",
+      "locked": "Cifrado — sin clave en este dispositivo"
+    },
+    "editor": {
+      "createTitle": "Nuevo libro de códigos",
+      "editTitle": "Editar libro de códigos",
+      "description": "Los códigos se cifran como tus documentos: solo tú y las personas con quienes compartes tus documentos pueden leerlos.",
+      "name": "Nombre",
+      "namePlaceholder": "Temas, sentimiento, marcadores del discurso…",
+      "scope": "Estudios",
+      "scopeAll": "Todos los estudios",
+      "scopeSelected": "Estudios seleccionados",
+      "parent": "Libro de códigos principal",
+      "noParent": "Ninguno (primer nivel)",
+      "target": "Se aplica a",
+      "targets": {
+        "document": "Documento completo",
+        "sentence": "Frase",
+        "subsentence": "Parte de una frase",
+        "word": "Palabra"
+      },
+      "codes": "Códigos",
+      "addCode": "Añadir un código",
+      "codePlaceholder": "Etiqueta del código",
+      "removeCode": "Eliminar este código",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "delete": "Eliminar libro de códigos",
+      "deleteConfirm": "¿Eliminar este libro de códigos y sus subniveles? Los documentos conservan sus otros códigos.",
+      "errors": {
+        "nameRequired": "Se requiere un nombre",
+        "scopeRequired": "Selecciona al menos un estudio",
+        "codeRequired": "Añade al menos un código",
+        "failed": "No se pudo guardar el libro de códigos"
+      }
+    },
+    "presets": {
+      "title": "Empezar con una plantilla",
+      "description": "Las plantillas se crean para todos los estudios y se pueden editar después.",
+      "draft": "Borrador — revisa los códigos",
+      "create": "Crear"
+    }
+  }
+}

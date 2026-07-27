@@ -30,7 +30,25 @@
       "de": "Deutsch"
     },
     "home": "Inicio",
-    "unassigned": "Sin estudio"
+    "unassigned": "Sin estudio",
+    "view": {
+      "settings": "Opciones de visualización",
+      "groupBy": "Agrupar por",
+      "sortBy": "Ordenar por",
+      "updatedAt": "Última modificación",
+      "createdAt": "Fecha de creación",
+      "alphabetical": "Alfabéticamente",
+      "study": "Estudio",
+      "uncoded": "Sin codificar",
+      "untitledCodebook": "Libro de códigos sin nombre",
+      "buckets": {
+        "today": "Hoy",
+        "yesterday": "Ayer",
+        "thisWeek": "Esta semana",
+        "thisMonth": "Este mes",
+        "before": "Antes"
+      }
+    }
   },
   "newTranscription": {
     "title": "Nueva Transcripción",

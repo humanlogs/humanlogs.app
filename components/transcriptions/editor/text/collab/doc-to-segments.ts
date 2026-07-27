@@ -1,6 +1,7 @@
 import type { Node as PMNode } from "@tiptap/pm/model";
 import type { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { normalizeEditorSegments } from "../hooks/use-normalize-editor-segments";
+import { parseCommentIds } from "../extensions/comment-mark";
 
 /**
  * Deterministic, idempotent, order-independent repair of a token sequence's
@@ -85,13 +86,17 @@ function marksToMods(node: PMNode): ("b" | "i" | "u" | "s")[] | undefined {
   return mods.length ? mods : undefined;
 }
 
-/** Collect comment thread ids from a node's `comment` marks (usually 0 or 1). */
+/**
+ * Collect comment thread ids from a node's `comment` mark. There is at most one such
+ * mark (ProseMirror allows one per type), but it lists every thread covering the run,
+ * so overlapping threads all land in the projection.
+ */
 function marksToComments(node: PMNode): string[] | undefined {
   const ids: string[] = [];
   for (const m of node.marks) {
-    if (m.type.name === "comment") {
-      const id = m.attrs?.commentId as string | undefined;
-      if (id && !ids.includes(id)) ids.push(id);
+    if (m.type.name !== "comment") continue;
+    for (const id of parseCommentIds(m.attrs?.commentIds)) {
+      if (!ids.includes(id)) ids.push(id);
     }
   }
   return ids.length ? ids : undefined;
@@ -109,7 +114,14 @@ function pushTextRun(
   for (const part of text.split(/(\s+)/)) {
     if (!part) continue;
     if (/^\s+$/.test(part)) {
-      out.push({ type: "spacing", text: part, speakerId });
+      // Whitespace inside a marked run belongs to the thread too — otherwise a
+      // reloaded range comes back as one highlight per word instead of one band.
+      out.push({
+        type: "spacing",
+        text: part,
+        speakerId,
+        ...(comments ? { comments } : {}),
+      });
     } else {
       out.push({
         type: "word",
