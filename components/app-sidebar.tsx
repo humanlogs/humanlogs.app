@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from "@/components/locale-provider";
 import { DocumentViewSettings } from "@/components/sidebar/document-view-settings";
 import { SidebarUserMenu } from "@/components/sidebar/sidebar-user-menu";
 import { TranscriptionMenuItem } from "@/components/sidebar/transcription-menu-item";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -22,6 +22,7 @@ import { useProjects, useUpdateUser, useUserProfile } from "@/hooks/use-api";
 import { useCodebooks } from "@/hooks/use-codebooks";
 import { useDocumentViewPrefs } from "@/hooks/use-document-view-prefs";
 import { groupableCodebooks } from "@/lib/codebooks/codebook";
+import { cn } from "@/lib/utils/utils";
 import {
   groupDocuments,
   sortDocuments,
@@ -30,7 +31,7 @@ import {
 import {
   FilePlusCornerIcon,
   HomeIcon,
-  PencilIcon,
+  PlusIcon,
   SearchIcon,
   ShieldIcon,
 } from "lucide-react";
@@ -40,11 +41,10 @@ import * as React from "react";
 import { useTranscriptions } from "../hooks/use-transcriptions";
 import { useWelcomeRedirect } from "../hooks/use-welcome-redirect";
 import { Locale, locales } from "../lib/utils/i18n";
-import { useProjectModal } from "./dialogs/project-create-modal";
 
 /**
  * Headers for the groups that aren't a study — studies render their own link
- * and rename button.
+ * and add-document button.
  */
 function groupLabelText(
   label: GroupLabel,
@@ -74,7 +74,6 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
   const t = useTranslations("sidebar");
   const { setLocale } = useLocale();
   const [searchQuery, setSearchQuery] = React.useState("");
-  const { openRename } = useProjectModal();
   useWelcomeRedirect();
 
   // Fetch data using React Query
@@ -258,18 +257,20 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
                       >
                         {project.name}
                       </Link>
-                      <Button
-                        type="button"
-                        className="opacity-0 group-hover/label:opacity-100 transition-opacity"
-                        variant={"ghost"}
-                        size={"icon-xs"}
-                        onClick={() => {
-                          openRename(project.id, project.name);
-                        }}
-                        aria-label="Edit study name"
+                      <Link
+                        href={`/app/new?projectId=${project.id}`}
+                        className={cn(
+                          buttonVariants({
+                            variant: "ghost",
+                            size: "icon-xs",
+                          }),
+                          "opacity-0 group-hover/label:opacity-100 transition-opacity",
+                        )}
+                        aria-label={t("addDocument")}
+                        title={t("addDocument")}
                       >
-                        <PencilIcon className="h-3 w-3" />
-                      </Button>
+                        <PlusIcon className="h-3 w-3" />
+                      </Link>
                     </>
                   ) : (
                     <span className="flex-1 truncate">

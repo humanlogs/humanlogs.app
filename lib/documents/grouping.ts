@@ -7,7 +7,7 @@
  * translated strings so it stays free of i18n and of React.
  */
 
-import type { Code, CodeRef } from "@/lib/codebooks/codebook";
+import { flattenCodes, type Code, type CodeRef } from "@/lib/codebooks/codebook";
 
 export const TIME_BUCKETS = [
   "today",
@@ -151,17 +151,20 @@ export function groupDocuments<T extends GroupableDocument>({
 
   if (codebookId) {
     const codebook = codebooks.find((c) => c.id === codebookId);
-    const codes = codebook?.codes ?? [];
-    const codeIds = new Set(codes.map((c) => c.id));
+    // Sub-codes are groups of their own, listed right after their parent. The
+    // header shows the full path, so two sub-codes sharing a label stay
+    // distinguishable.
+    const codes = flattenCodes(codebook?.codes);
+    const codeIds = new Set(codes.map(({ code }) => code.id));
 
-    for (const code of codes) {
+    for (const { code, path } of codes) {
       push(
         `code:${codebookId}:${code.id}`,
         {
           type: "code",
           codebookId,
           codeId: code.id,
-          label: code.label,
+          label: path.join(" › "),
         },
         documents.filter((doc) =>
           (doc.codes ?? []).some(

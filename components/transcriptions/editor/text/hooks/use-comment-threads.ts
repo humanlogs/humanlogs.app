@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { EditorAPI } from "../api";
 import { applyCommentMark, removeCommentMark } from "../utils/comment-actions";
 
@@ -22,6 +22,15 @@ export function useCommentThreads({
   // navigate away while this is still pending, the dangling mark is removed so we never
   // leave an orphan highlight.
   const pendingNewRef = useRef<string | null>(null);
+  // Whether the rail was already open when the pending thread was started, so
+  // abandoning it puts the view back exactly as it was rather than leaving an empty
+  // column behind. Mirrored through a ref so `startNewComment` can read the current
+  // value without taking `railOpen` as a dependency and losing its stable identity.
+  const railOpenRef = useRef(false);
+  const railWasOpenRef = useRef(false);
+  useEffect(() => {
+    railOpenRef.current = railOpen;
+  }, [railOpen]);
 
   const getEditor = () => editorAPI.getEditor();
 
@@ -50,9 +59,23 @@ export function useCommentThreads({
     editorAPI.emit("commentsChange");
     pendingNewRef.current = id;
     setActiveAnchorId(id);
+    railWasOpenRef.current = railOpenRef.current;
     setRailOpen(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canWrite, discardPending]);
+
+  /**
+   * Abandon a thread whose first note was never written — the user started a comment
+   * and moved on without typing anything. The anchor mark goes with it, so the
+   * transcript is not left highlighting a comment that does not exist.
+   */
+  const cancelPending = useCallback(() => {
+    const pending = pendingNewRef.current;
+    if (!pending) return;
+    discardPending();
+    setActiveAnchorId((cur) => (cur === pending ? null : cur));
+    setRailOpen(railWasOpenRef.current);
+  }, [discardPending]);
 
   /** Focus a thread — from a highlight, a gutter dot, or a card. Opens the rail. */
   const openThread = useCallback(
@@ -102,6 +125,7 @@ export function useCommentThreads({
     activeAnchorId,
     railOpen,
     startNewComment,
+    cancelPending,
     openThread,
     closeRail,
     toggleRail,

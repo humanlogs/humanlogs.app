@@ -3,7 +3,6 @@
     "section": {
       "title": "Codebücher ({count})",
       "create": "Neues Codebuch",
-      "fromPreset": "Aus einer Vorlage",
       "empty": {
         "title": "Noch kein Codebuch",
         "description": "Ein Codebuch ist eine Sammlung von Codes, die Sie auf Ihre Dokumente anwenden. Beginnen Sie mit einer Vorlage oder erstellen Sie ein eigenes.",
@@ -23,8 +22,6 @@
       "scope": "Studien",
       "scopeAll": "Alle Studien",
       "scopeSelected": "Ausgewählte Studien",
-      "parent": "Übergeordnetes Codebuch",
-      "noParent": "Keines (oberste Ebene)",
       "target": "Gilt für",
       "targets": {
         "document": "Ganzes Dokument",
@@ -45,13 +42,14 @@
         "scopeRequired": "Wählen Sie mindestens eine Studie",
         "codeRequired": "Fügen Sie mindestens einen Code hinzu",
         "failed": "Codebuch konnte nicht gespeichert werden"
-      }
+      },
+      "addSubCode": "Untercode hinzufügen"
     },
     "presets": {
       "title": "Mit einer Vorlage beginnen",
-      "description": "Vorlagen werden für alle Studien erstellt und können danach bearbeitet werden.",
-      "draft": "Entwurf — Codes prüfen",
-      "create": "Erstellen"
+      "description": "Eine Vorlage füllt das Formular aus — prüfen und anpassen, bevor Sie speichern.",
+      "manual": "Manuell fortfahren",
+      "back": "Zurück zu den Vorlagen"
     }
   }
 }

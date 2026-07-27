@@ -4,8 +4,7 @@ import { ProjectBadge } from "@/components/projects/project-badge";
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import {
   AlertCircleIcon,
-  FileIcon,
-  FileLockIcon,
+  FileAudio2Icon,
   FileTextIcon,
   LoaderIcon,
 } from "lucide-react";
@@ -20,14 +19,14 @@ type TranscriptionMenuItemProps = {
     title: string;
     state: TranscriptionState;
     errorMessage?: string | null;
-    isEncrypted?: boolean;
     mediaType?: "audio" | "text";
   };
   isActive: boolean;
   /**
-   * The document's study, shown as a `[badge] Study /` prefix. Passed only when
-   * the list is not grouped by study — otherwise the group header already says
-   * it.
+   * The document's study, shown as a badge in front of the title. Passed only
+   * when the list is not grouped by study — otherwise the group header already
+   * says it. The name is not repeated on the row: the badge stands for it (and
+   * is its tooltip), which keeps the little space there is for the title.
    */
   study?: {
     id: string;
@@ -69,13 +68,14 @@ export function TranscriptionMenuItem({
         );
       case "COMPLETED":
       default:
-        if (transcription.mediaType === "text") {
-          return <FileTextIcon className="h-4 w-4" />;
-        }
-        return transcription.isEncrypted ? (
-          <FileLockIcon className="h-4 w-4" />
+        // The study badge already occupies the icon slot; a second icon next to
+        // it reads as noise rather than as information.
+        if (study) return null;
+        // Two states, two silhouettes: a written document, or a recording.
+        return transcription.mediaType === "text" ? (
+          <FileTextIcon className="h-4 w-4" />
         ) : (
-          <FileIcon className="h-4 w-4" />
+          <FileAudio2Icon className="h-4 w-4" />
         );
     }
   };
@@ -87,17 +87,14 @@ export function TranscriptionMenuItem({
           {getStatusIcon()}
           <span className="flex min-w-0 flex-1 items-center gap-1">
             {study && (
-              <span className="flex min-w-0 shrink items-center gap-1 text-muted-foreground">
-                <ProjectBadge
-                  appearance={study}
-                  projectId={study.id}
-                  name={study.name}
-                  size="xs"
-                  imageVersion={study.updatedAt}
-                />
-                <span className="max-w-24 truncate">{study.name}</span>
-                <span aria-hidden>/</span>
-              </span>
+              <ProjectBadge
+                appearance={study}
+                projectId={study.id}
+                name={study.name}
+                size="xs"
+                imageVersion={study.updatedAt}
+                title={study.name}
+              />
             )}
             <span className="truncate">{transcription.title}</span>
           </span>

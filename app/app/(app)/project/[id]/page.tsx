@@ -130,8 +130,9 @@ export default function StudyPage() {
         )}
       </section>
 
-      {/* Codebooks available from this study */}
-      <CodebookSection projectId={projectId} />
+      {/* Codebooks available from this study. Hidden until the study holds a
+          document — there is nothing to code before that. */}
+      {documents.length > 0 && <CodebookSection projectId={projectId} />}
     </PageLayout>
   );
 }

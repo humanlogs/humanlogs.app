@@ -13,7 +13,6 @@ import {
   type CodebookTarget,
   type DecryptedCodebook,
 } from "@/lib/codebooks/codebook";
-import type { CodebookPreset, PresetCodebook } from "@/lib/codebooks/presets";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { browserCrypto } from "../lib/encryption/encryption-entities.browser";
 import { fetchGateway } from "./fetch";
@@ -105,7 +104,6 @@ export type CodebookInput = {
   codes: Code[];
   allStudies: boolean;
   studyIds: string[];
-  parentId?: string | null;
   target?: CodebookTarget;
   preset?: string | null;
 };
@@ -136,7 +134,6 @@ export function useCreateCodebook() {
           content,
           allStudies: input.allStudies,
           studyIds: input.studyIds,
-          parentId: input.parentId ?? null,
           target: input.target ?? DEFAULT_CODEBOOK_TARGET,
           preset: input.preset ?? null,
         }),
@@ -165,7 +162,6 @@ export function useUpdateCodebook() {
 
       if (input.allStudies !== undefined) body.allStudies = input.allStudies;
       if (input.studyIds !== undefined) body.studyIds = input.studyIds;
-      if (input.parentId !== undefined) body.parentId = input.parentId;
       if (input.target !== undefined) body.target = input.target;
 
       // Name or codes changed: re-encrypt for the scope the codebook will have
@@ -219,49 +215,6 @@ export function useDeleteCodebook() {
       queryClient.invalidateQueries({ queryKey: ["codebooks"] });
       // Documents keep stale refs; the list reflects that once refetched.
       queryClient.invalidateQueries({ queryKey: ["transcriptions"] });
-    },
-  });
-}
-
-/**
- * Instantiates a preset. Presets always land on "all studies", and each nested
- * codebook is created after its parent so it can point at it.
- */
-export function useCreateCodebookFromPreset() {
-  const queryClient = useQueryClient();
-  const create = useCreateCodebook();
-
-  return useMutation({
-    mutationFn: async (preset: CodebookPreset) => {
-      const createTree = async (
-        node: PresetCodebook,
-        parentId: string | null,
-      ): Promise<void> => {
-        const created = await create.mutateAsync({
-          name: node.name,
-          codes: node.codes.map((c) => ({
-            id: newCodeId(),
-            label: c.label,
-            color: c.color,
-            description: c.description,
-          })),
-          allStudies: true,
-          studyIds: [],
-          parentId,
-          target: preset.target,
-          preset: preset.key,
-        });
-        for (const child of node.children ?? []) {
-          await createTree(child, created.id);
-        }
-      };
-
-      for (const root of preset.codebooks) {
-        await createTree(root, null);
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["codebooks"] });
     },
   });
 }

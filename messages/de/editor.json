@@ -158,6 +158,8 @@
             "empty": "Noch keine Kommentare",
             "you": "Du",
             "indicator": "Diese Zeile enthält Kommentare",
+            "jumpUp": "Zum Kommentar darüber",
+            "jumpDown": "Zum Kommentar darunter",
             "replyPlaceholder": "Antworten…",
             "mentionHint": "@ zum Erwähnen",
             "submitHint": "Umschalt + Eingabe zum Senden",

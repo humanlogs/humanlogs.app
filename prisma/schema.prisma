@@ -99,18 +99,18 @@ model Project {
   @@index([userId])
 }
 
-/// A set of codes used to tag documents. Attached to specific studies or to all
-/// of them, optionally nested under a parent codebook to build sub-themes.
+/// A set of codes used to tag documents, attached to specific studies or to all
+/// of them. Sub-themes live inside the codes themselves (each code may hold
+/// children) rather than in a hierarchy of codebooks.
 ///
 /// Only `content` is end-to-end encrypted (an EncryptedDataEntity holding
 /// `{ name, codes }`), exactly like `Comment.body`. The structure around it —
-/// parent, studies, target, and the code uuids stored on documents — stays in
-/// clear so the server can scope, cascade and filter without ever learning what
-/// a code means.
+/// studies, target, and the code uuids stored on documents — stays in clear so
+/// the server can scope, cascade and filter without ever learning what a code
+/// means.
 model Codebook {
   id         String          @id @default(uuid())
   userId     String
-  parentId   String?
   /// True when the codebook applies to every study of the user; otherwise the
   /// `studies` links decide.
   allStudies Boolean         @default(false)
@@ -120,17 +120,14 @@ model Codebook {
   /// Key of the preset it was created from, null for a hand-made codebook.
   preset     String?
   /// EncryptedDataEntity, or `{ name, codes }` in clear when the user has no
-  /// encryption key.
+  /// encryption key. Codes are a tree: `{ id, label, color?, children? }`.
   content    Json
   createdAt  DateTime        @default(now())
   updatedAt  DateTime        @updatedAt
-  parent     Codebook?       @relation("CodebookTree", fields: [parentId], references: [id], onDelete: Cascade)
-  children   Codebook[]      @relation("CodebookTree")
   studies    CodebookStudy[]
   user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([parentId])
 }
 
 model CodebookStudy {

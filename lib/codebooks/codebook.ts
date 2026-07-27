@@ -31,12 +31,17 @@ export type CodebookTarget = (typeof CODEBOOK_TARGETS)[number];
 
 export const DEFAULT_CODEBOOK_TARGET: CodebookTarget = "document";
 
-/** A single code. `id` is an opaque uuid; `color` is a palette key from `PROJECT_COLORS`. */
+/**
+ * A single code. `id` is an opaque uuid; `color` is a palette key from
+ * `PROJECT_COLORS`. Sub-themes are children of the code itself — there is no
+ * hierarchy of codebooks, so one editor manages the whole tree.
+ */
 export type Code = {
   id: string;
   label: string;
   color?: string;
   description?: string;
+  children?: Code[];
 };
 
 /** The encrypted half of a codebook. */
@@ -48,7 +53,6 @@ export type CodebookContent = {
 /** A codebook as the API returns it — `content` still encrypted when applicable. */
 export type CodebookDTO = {
   id: string;
-  parentId: string | null;
   allStudies: boolean;
   target: CodebookTarget;
   preset: string | null;
@@ -88,13 +92,36 @@ export function codebooksInScopeForProject<
 }
 
 /**
- * The codebooks offered as a grouping axis in the sidebar: roots (no parent)
- * that apply to every study, as agreed for the "group by" menu.
+ * The codebooks offered as a grouping axis in the sidebar: those that apply to
+ * every study, as agreed for the "group by" menu.
  */
-export function groupableCodebooks<
-  T extends { parentId: string | null; allStudies: boolean },
->(codebooks: T[]): T[] {
-  return codebooks.filter((c) => !c.parentId && c.allStudies);
+export function groupableCodebooks<T extends { allStudies: boolean }>(
+  codebooks: T[],
+): T[] {
+  return codebooks.filter((c) => c.allStudies);
+}
+
+/** A code and the labels of its ancestors, outermost first. */
+export type FlatCode = { code: Code; path: string[]; depth: number };
+
+/**
+ * Depth-first walk of a code tree: a parent is immediately followed by its
+ * descendants. Everything that needs to look codes up — grouping, sanitizing,
+ * pickers — goes through this rather than iterating the top level, which would
+ * silently ignore sub-codes.
+ */
+export function flattenCodes(
+  codes: Code[] | null | undefined,
+  parentPath: string[] = [],
+): FlatCode[] {
+  if (!Array.isArray(codes)) return [];
+  const flat: FlatCode[] = [];
+  for (const code of codes) {
+    const path = [...parentPath, code.label];
+    flat.push({ code, path, depth: parentPath.length });
+    flat.push(...flattenCodes(code.children, path));
+  }
+  return flat;
 }
 
 /**
@@ -108,7 +135,10 @@ export function sanitizeCodeRefs(
 ): CodeRef[] {
   if (!Array.isArray(refs) || refs.length === 0) return [];
   const known = new Map(
-    codebooks.map((c) => [c.id, new Set(c.codes.map((code) => code.id))]),
+    codebooks.map((c) => [
+      c.id,
+      new Set(flattenCodes(c.codes).map(({ code }) => code.id)),
+    ]),
   );
   return refs.filter((ref) => known.get(ref.codebookId)?.has(ref.codeId));
 }
@@ -175,7 +205,6 @@ export function parseCodebookInput(
         content?: unknown;
         allStudies?: boolean;
         studyIds?: string[];
-        parentId?: string | null;
         target?: CodebookTarget;
         preset?: string | null;
       };
@@ -185,7 +214,6 @@ export function parseCodebookInput(
     content?: unknown;
     allStudies?: boolean;
     studyIds?: string[];
-    parentId?: string | null;
     target?: CodebookTarget;
     preset?: string | null;
   } = {};
@@ -214,13 +242,6 @@ export function parseCodebookInput(
       return { error: "studyIds must be an array of ids" };
     }
     data.studyIds = Array.from(new Set(body.studyIds as string[]));
-  }
-
-  if (body.parentId !== undefined) {
-    if (body.parentId !== null && typeof body.parentId !== "string") {
-      return { error: "parentId must be an id or null" };
-    }
-    data.parentId = body.parentId as string | null;
   }
 
   if (body.target !== undefined) {

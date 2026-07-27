@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   codebooksInScopeForProject,
+  flattenCodes,
   groupableCodebooks,
   parseCodebookInput,
   parseCodeRefs,
@@ -17,16 +18,11 @@ import {
 
 const cb = (
   id: string,
-  overrides: Partial<{
-    allStudies: boolean;
-    studyIds: string[];
-    parentId: string | null;
-  }> = {},
+  overrides: Partial<{ allStudies: boolean; studyIds: string[] }> = {},
 ) => ({
   id,
   allStudies: false,
   studyIds: [],
-  parentId: null,
   ...overrides,
 });
 
@@ -55,13 +51,12 @@ describe("codebooksInScopeForProject", () => {
 });
 
 describe("groupableCodebooks", () => {
-  it("offers only roots that cover every study", () => {
+  it("offers only the codebooks that cover every study", () => {
     const codebooks = [
-      cb("root-all", { allStudies: true }),
-      cb("child-all", { allStudies: true, parentId: "root-all" }),
-      cb("root-scoped", { studyIds: ["p1"] }),
+      cb("all", { allStudies: true }),
+      cb("scoped", { studyIds: ["p1"] }),
     ];
-    expect(groupableCodebooks(codebooks).map((c) => c.id)).toEqual(["root-all"]);
+    expect(groupableCodebooks(codebooks).map((c) => c.id)).toEqual(["all"]);
   });
 });
 
@@ -109,8 +104,60 @@ describe("validateCodeRefs", () => {
   });
 });
 
+describe("flattenCodes", () => {
+  const codes = [
+    {
+      id: "a",
+      label: "A",
+      children: [
+        { id: "a1", label: "A1" },
+        { id: "a2", label: "A2", children: [{ id: "a2x", label: "A2x" }] },
+      ],
+    },
+    { id: "b", label: "B" },
+  ];
+
+  it("walks depth-first, a parent immediately followed by its descendants", () => {
+    expect(flattenCodes(codes).map(({ code }) => code.id)).toEqual([
+      "a",
+      "a1",
+      "a2",
+      "a2x",
+      "b",
+    ]);
+  });
+
+  it("records the ancestor path and the depth", () => {
+    const deep = flattenCodes(codes).find(({ code }) => code.id === "a2x")!;
+    expect(deep.path).toEqual(["A", "A2", "A2x"]);
+    expect(deep.depth).toBe(2);
+  });
+
+  it("handles missing values", () => {
+    expect(flattenCodes(undefined)).toEqual([]);
+    expect(flattenCodes([])).toEqual([]);
+  });
+});
+
 describe("sanitizeCodeRefs", () => {
-  const codebooks = [{ id: "cb1", codes: [{ id: "c1", label: "One" }] }];
+  const codebooks = [
+    {
+      id: "cb1",
+      codes: [
+        {
+          id: "c1",
+          label: "One",
+          children: [{ id: "c1a", label: "One, refined" }],
+        },
+      ],
+    },
+  ];
+
+  it("accepts a ref to a sub-code", () => {
+    expect(
+      sanitizeCodeRefs([{ codebookId: "cb1", codeId: "c1a" }], codebooks),
+    ).toEqual([{ codebookId: "cb1", codeId: "c1a" }]);
+  });
 
   it("drops refs whose codebook or code is gone", () => {
     expect(

@@ -21,7 +21,6 @@ import {
   newCodeId,
   useCodebooks,
   useCreateCodebook,
-  useCreateCodebookFromPreset,
   useDeleteCodebook,
   useUpdateCodebook,
 } from "@/hooks/use-codebooks";
@@ -35,7 +34,15 @@ import {
   CODEBOOK_PRESETS,
   type CodebookPreset,
 } from "@/lib/codebooks/presets";
-import { PlusIcon, SparklesIcon, Trash2Icon, XIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CornerDownRightIcon,
+  PlusIcon,
+  SparklesIcon,
+  Trash2Icon,
+  XIcon,
+} from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
@@ -67,7 +74,6 @@ export function CodebookEditorDialog() {
   const createCodebook = useCreateCodebook();
   const updateCodebook = useUpdateCodebook();
   const deleteCodebook = useDeleteCodebook();
-  const createFromPreset = useCreateCodebookFromPreset();
 
   const existing = data?.codebookId
     ? codebooks.find((c) => c.id === data.codebookId)
@@ -77,12 +83,13 @@ export function CodebookEditorDialog() {
   const [codes, setCodes] = React.useState<Code[]>([]);
   const [allStudies, setAllStudies] = React.useState(false);
   const [studyIds, setStudyIds] = React.useState<string[]>([]);
-  const [parentId, setParentId] = React.useState<string>("");
   const [target, setTarget] = React.useState<CodebookTarget>(
     DEFAULT_CODEBOOK_TARGET,
   );
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  // Creation opens on the preset picker; editing goes straight to the form.
+  const [step, setStep] = React.useState<"preset" | "form">("preset");
 
   // Seed the form on the closed→open transition, like the study modal does:
   // a render-phase reset rather than a setState inside an effect.
@@ -91,19 +98,18 @@ export function CodebookEditorDialog() {
     setWasOpen(true);
     setIsSubmitting(false);
     setConfirmingDelete(false);
+    setStep(existing ? "form" : "preset");
     if (existing) {
       setName(existing.name);
       setCodes(existing.codes);
       setAllStudies(existing.allStudies);
       setStudyIds(existing.studyIds);
-      setParentId(existing.parentId ?? "");
       setTarget(existing.target);
     } else {
       setName("");
       setCodes([{ id: newCodeId(), label: "" }]);
       setAllStudies(false);
       setStudyIds(data?.projectId ? [data.projectId] : []);
-      setParentId("");
       setTarget(DEFAULT_CODEBOOK_TARGET);
     }
   }
@@ -117,34 +123,79 @@ export function CodebookEditorDialog() {
     );
   };
 
+  // The three edits below rebuild the tree rather than mutating it, so a code
+  // at any depth is handled by the same call — sub-codes are just `children`.
+  const mapTree = (
+    list: Code[],
+    id: string,
+    fn: (code: Code) => Code,
+  ): Code[] =>
+    list.map((code) =>
+      code.id === id
+        ? fn(code)
+        : { ...code, children: mapTree(code.children ?? [], id, fn) },
+    );
+
   const updateCode = (id: string, patch: Partial<Code>) => {
+    setCodes((current) => mapTree(current, id, (code) => ({ ...code, ...patch })));
+  };
+
+  const addSubCode = (id: string) => {
     setCodes((current) =>
-      current.map((code) => (code.id === id ? { ...code, ...patch } : code)),
+      mapTree(current, id, (code) => ({
+        ...code,
+        children: [...(code.children ?? []), { id: newCodeId(), label: "" }],
+      })),
     );
   };
 
+  /** Removing a code removes its sub-codes with it. */
+  const removeCode = (id: string) => {
+    const prune = (list: Code[]): Code[] =>
+      list
+        .filter((code) => code.id !== id)
+        .map((code) =>
+          code.children
+            ? { ...code, children: prune(code.children) }
+            : code,
+        );
+    setCodes((current) => prune(current));
+  };
+
   /**
-   * Presets are created whole — a preset can hold a tree of codebooks, which no
-   * single form could represent — and always cover every study, as agreed. The
-   * result is editable right after, from the same dialog.
+   * A preset only fills the form — nothing is written until the researcher
+   * saves, so every label can still be corrected first. Code ids are minted
+   * here, never taken from the preset: they must carry no meaning.
    */
-  const applyPreset = async (preset: CodebookPreset) => {
-    setIsSubmitting(true);
-    try {
-      await createFromPreset.mutateAsync(preset);
-      close();
-    } catch (error) {
-      console.error("Failed to create codebook from preset", error);
-      toast.error(t("errors.failed"));
-    } finally {
-      setIsSubmitting(false);
-    }
+  const applyPreset = (preset: CodebookPreset) => {
+    setName(preset.name);
+    setCodes(
+      preset.codes.map((code) => ({
+        id: newCodeId(),
+        label: code.label,
+        color: code.color,
+        description: code.description,
+      })),
+    );
+    setTarget(preset.target);
+    setStep("form");
   };
 
   const handleSubmit = async () => {
-    const cleanCodes = codes
-      .map((code) => ({ ...code, label: code.label.trim() }))
-      .filter((code) => code.label.length > 0);
+    // An unlabelled code is a row the researcher started and left blank; it goes
+    // with its sub-codes, which would otherwise hang off nothing.
+    const cleanTree = (list: Code[]): Code[] =>
+      list
+        .map((code) => ({ ...code, label: code.label.trim() }))
+        .filter((code) => code.label.length > 0)
+        .map(({ children, ...code }) => {
+          const cleanedChildren = cleanTree(children ?? []);
+          return cleanedChildren.length > 0
+            ? { ...code, children: cleanedChildren }
+            : code;
+        });
+
+    const cleanCodes = cleanTree(codes);
 
     if (!name.trim()) {
       toast.error(t("errors.nameRequired"));
@@ -168,7 +219,6 @@ export function CodebookEditorDialog() {
           codes: cleanCodes,
           allStudies,
           studyIds: allStudies ? [] : studyIds,
-          parentId: parentId || null,
           target,
         });
       } else {
@@ -177,7 +227,6 @@ export function CodebookEditorDialog() {
           codes: cleanCodes,
           allStudies,
           studyIds: allStudies ? [] : studyIds,
-          parentId: parentId || null,
           target,
         });
       }
@@ -206,13 +255,92 @@ export function CodebookEditorDialog() {
     }
   };
 
-  // A codebook cannot be its own parent; deeper cycles are refused server-side.
-  const parentOptions = [
-    { value: "", label: t("noParent") },
-    ...codebooks
-      .filter((c) => c.id !== existing?.id)
-      .map((c) => ({ value: c.id, label: c.name || c.id.slice(0, 8) })),
-  ];
+  /**
+   * One row per code, its sub-codes nested underneath. The same row handles
+   * every depth — that is the point of holding the hierarchy in the codes
+   * rather than in a tree of codebooks.
+   */
+  const renderCode = (code: Code, depth = 0): React.ReactNode => (
+    <div key={code.id} className="space-y-2">
+      <div
+        className="flex items-center gap-1"
+        style={{ paddingLeft: depth * 20 }}
+      >
+        <Input
+          value={code.label}
+          onChange={(e) => updateCode(code.id, { label: e.target.value })}
+          placeholder={t("codePlaceholder")}
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={t("addSubCode")}
+          title={t("addSubCode")}
+          onClick={() => addSubCode(code.id)}
+        >
+          <CornerDownRightIcon className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={t("removeCode")}
+          onClick={() => removeCode(code.id)}
+        >
+          <XIcon className="h-4 w-4" />
+        </Button>
+      </div>
+      {(code.children ?? []).map((child) => renderCode(child, depth + 1))}
+    </div>
+  );
+
+  // Step one of a creation: pick a preset to prefill the form, or skip it.
+  if (isOpen && step === "preset") {
+    return (
+      <Dialog open={isOpen} onOpenChange={close}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{tPreset("title")}</DialogTitle>
+            <DialogDescription>{tPreset("description")}</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 px-6 pb-6">
+            <button
+              type="button"
+              onClick={() => setStep("form")}
+              className="flex w-full items-center justify-between gap-2 rounded-lg border p-3 text-left text-sm font-medium transition-colors hover:bg-accent"
+            >
+              {tPreset("manual")}
+              <ArrowRightIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+            </button>
+
+            <div className="grid gap-2 sm:grid-cols-2">
+              {CODEBOOK_PRESETS.map((preset) => (
+                <button
+                  key={preset.key}
+                  type="button"
+                  onClick={() => applyPreset(preset)}
+                  className="rounded-lg border p-3 text-left transition-colors hover:bg-accent"
+                >
+                  <span className="flex items-center gap-2 font-medium">
+                    <SparklesIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <span className="truncate">{preset.name}</span>
+                  </span>
+                  <span className="mt-1 block text-xs text-muted-foreground">
+                    {preset.description}
+                  </span>
+                  <span className="mt-1 block text-xs text-muted-foreground">
+                    {t("codes")} · {preset.codes.length}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={close}>
@@ -227,39 +355,6 @@ export function CodebookEditorDialog() {
         {/* DialogContent has no padding of its own — only the header and footer
             carry it, so the body supplies its own. */}
         <div className="space-y-4 px-6">
-          {!existing && (
-            <div className="space-y-2">
-              <Label>{tPreset("title")}</Label>
-              <p className="text-xs text-muted-foreground">
-                {tPreset("description")}
-              </p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {CODEBOOK_PRESETS.map((preset) => (
-                  <button
-                    key={preset.key}
-                    type="button"
-                    onClick={() => applyPreset(preset)}
-                    disabled={isSubmitting}
-                    className="rounded-lg border p-3 text-left transition-colors hover:bg-accent disabled:opacity-50"
-                  >
-                    <span className="flex items-center gap-2 font-medium">
-                      <SparklesIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      <span className="truncate">{preset.label}</span>
-                    </span>
-                    <span className="mt-1 block text-xs text-muted-foreground">
-                      {preset.description}
-                    </span>
-                    {preset.draft && (
-                      <span className="mt-1 block text-xs text-amber-600">
-                        {tPreset("draft")}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           <div className="space-y-2">
             <Label htmlFor="codebook-name">{t("name")}</Label>
             <Input
@@ -297,59 +392,23 @@ export function CodebookEditorDialog() {
             )}
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label>{t("parent")}</Label>
-              <Select
-                options={parentOptions}
-                value={parentId}
-                onChange={setParentId}
-                placeholder={t("noParent")}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>{t("target")}</Label>
-              <Select
-                options={CODEBOOK_TARGETS.map((value) => ({
-                  value,
-                  label: t(`targets.${value}`),
-                }))}
-                value={target}
-                onChange={(value) => setTarget(value as CodebookTarget)}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label>{t("target")}</Label>
+            <Select
+              options={CODEBOOK_TARGETS.map((value) => ({
+                value,
+                label: t(`targets.${value}`),
+              }))}
+              value={target}
+              onChange={(value) => setTarget(value as CodebookTarget)}
+            />
           </div>
 
           <Separator />
 
           <div className="space-y-2">
             <Label>{t("codes")}</Label>
-            <div className="space-y-2">
-              {codes.map((code) => (
-                <div key={code.id} className="flex items-center gap-2">
-                  <Input
-                    value={code.label}
-                    onChange={(e) =>
-                      updateCode(code.id, { label: e.target.value })
-                    }
-                    placeholder={t("codePlaceholder")}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label={t("removeCode")}
-                    onClick={() =>
-                      setCodes((current) =>
-                        current.filter((c) => c.id !== code.id),
-                      )
-                    }
-                  >
-                    <XIcon className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
+            <div className="space-y-2">{codes.map((code) => renderCode(code))}</div>
             <Button
               type="button"
               variant="outline"
@@ -408,6 +467,17 @@ export function CodebookEditorDialog() {
         </div>
 
         <DialogFooter>
+          {!existing && (
+            <Button
+              variant="ghost"
+              onClick={() => setStep("preset")}
+              disabled={isSubmitting}
+              className="sm:mr-auto"
+            >
+              <ArrowLeftIcon className="h-4 w-4" />
+              {tPreset("back")}
+            </Button>
+          )}
           <Button variant="outline" onClick={close} disabled={isSubmitting}>
             {t("cancel")}
           </Button>

@@ -3,7 +3,6 @@
     "section": {
       "title": "Libros de códigos ({count})",
       "create": "Nuevo libro de códigos",
-      "fromPreset": "A partir de una plantilla",
       "empty": {
         "title": "Todavía no hay libros de códigos",
         "description": "Un libro de códigos es un conjunto de códigos que aplicas a tus documentos. Empieza con una plantilla o crea el tuyo.",
@@ -23,8 +22,6 @@
       "scope": "Estudios",
       "scopeAll": "Todos los estudios",
       "scopeSelected": "Estudios seleccionados",
-      "parent": "Libro de códigos principal",
-      "noParent": "Ninguno (primer nivel)",
       "target": "Se aplica a",
       "targets": {
         "document": "Documento completo",
@@ -45,13 +42,14 @@
         "scopeRequired": "Selecciona al menos un estudio",
         "codeRequired": "Añade al menos un código",
         "failed": "No se pudo guardar el libro de códigos"
-      }
+      },
+      "addSubCode": "Añadir un subcódigo"
     },
     "presets": {
       "title": "Empezar con una plantilla",
-      "description": "Las plantillas se crean para todos los estudios y se pueden editar después.",
-      "draft": "Borrador — revisa los códigos",
-      "create": "Crear"
+      "description": "Una plantilla rellena el formulario — revísala y edítala antes de guardar.",
+      "manual": "Continuar manualmente",
+      "back": "Volver a las plantillas"
     }
   }
 }

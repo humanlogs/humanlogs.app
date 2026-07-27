@@ -55,7 +55,6 @@ async function makeCodebook(
   options: {
     studyIds?: string[];
     allStudies?: boolean;
-    parentId?: string;
     content?: unknown;
   } = {},
 ) {
@@ -63,7 +62,6 @@ async function makeCodebook(
     data: {
       userId,
       allStudies: options.allStudies ?? false,
-      parentId: options.parentId,
       content: (options.content ?? { name: "cb", codes: [] }) as never,
       studies: {
         create: (options.studyIds ?? []).map((projectId) => ({ projectId })),
@@ -168,21 +166,18 @@ describe("settleCodebooksForDeletedProject", () => {
     expect(after!.studies.map((s) => s.projectId)).toEqual([target.id]);
   });
 
-  it("deletes a study-only codebook, and its children, when nothing receives it", async () => {
+  it("deletes every study-only codebook when nothing receives them", async () => {
     const user = await makeUser();
     const doomed = await makeProject(user.id, "doomed");
-    const parent = await makeCodebook(user.id, { studyIds: [doomed.id] });
-    const child = await makeCodebook(user.id, {
-      studyIds: [doomed.id],
-      parentId: parent.id,
-    });
+    const first = await makeCodebook(user.id, { studyIds: [doomed.id] });
+    const second = await makeCodebook(user.id, { studyIds: [doomed.id] });
 
     await server.settleCodebooksForDeletedProject(user.id, doomed.id, {
       targetProjectId: null,
     });
 
-    expect(await prisma.codebook.findUnique({ where: { id: parent.id } })).toBeNull();
-    expect(await prisma.codebook.findUnique({ where: { id: child.id } })).toBeNull();
+    expect(await prisma.codebook.findUnique({ where: { id: first.id } })).toBeNull();
+    expect(await prisma.codebook.findUnique({ where: { id: second.id } })).toBeNull();
   });
 
   it("never touches another user's codebooks", async () => {

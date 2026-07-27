@@ -14,6 +14,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { createPortal } from "react-dom";
+import type { Editor } from "@tiptap/react";
 import {
   TranscriptionDetail,
   useTranscriptionAesKey,
@@ -24,6 +25,7 @@ import { ActiveSegmentHighlight } from "./text/components/active-segment-highlig
 import { CommentRail } from "./text/components/comment-rail";
 import { EditorToolbar } from "./text/components/editor-toolbar";
 import { SearchHighlights } from "./text/components/search-highlights";
+import { SelectionToolbar } from "./text/components/selection-toolbar";
 import { SpeakerColumn } from "./text/components/speaker-column";
 import { SpeakerRenameDialog } from "./text/components/speaker-rename-dialog";
 import { useAudioSync } from "./text/hooks/use-audio-sync";
@@ -376,6 +378,19 @@ export function TranscriptEditor({
     onEditorReady?.(editorAPI);
   }, [editorAPI, onEditorReady]);
 
+  // The selection toolbar is a React component and needs the TipTap instance as state,
+  // not the imperative handle — `editorAPI.getEditor()` would not re-render this tree
+  // when the editor finishes mounting.
+  const [tiptapEditor, setTiptapEditor] = useState<Editor | null>(null);
+  useEffect(() => {
+    const sync = () => setTiptapEditor(editorAPI.getEditor());
+    sync();
+    editorAPI.addListener("ready", sync);
+    return () => {
+      editorAPI.removeListener("ready", sync);
+    };
+  }, [editorAPI]);
+
   // Notify parent when save status changes
   useEffect(() => {
     onSaveStatusChange?.(saveStatus);
@@ -469,6 +484,14 @@ export function TranscriptEditor({
                 segmentIndex={currentIndex}
                 visible={state === "navigate" && currentIndex >= 0}
               />
+              <SelectionToolbar
+                editor={tiptapEditor}
+                editorAPI={editorAPI}
+                canWrite={canWrite}
+                applyFormat={applyFormat}
+                activeFormats={activeFormats}
+                onComment={commentThreads.startNewComment}
+              />
               <div className="w-full min-w-0 max-w-full overflow-hidden">
                 <TranscriptEditorContentTipTap
                   transcriptionId={transcription.id}
@@ -519,6 +542,7 @@ export function TranscriptEditor({
                 commentThreads.emptied(anchorId);
                 flushAnchors();
               }}
+              onCancelPending={commentThreads.cancelPending}
             />
             {showSegmentsHtmlDebug && (
               <SegmentsHtmlDebugPanel editorAPI={editorAPI} />

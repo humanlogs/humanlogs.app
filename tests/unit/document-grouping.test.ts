@@ -221,6 +221,69 @@ describe("groupDocuments — by codebook", () => {
     expect(groups[0].documents.map((d) => d.id)).toEqual(["stale"]);
   });
 
+  it("gives sub-codes their own group, labelled by their full path", () => {
+    const nested = [
+      {
+        id: "cb1",
+        codes: [
+          {
+            id: "c1",
+            label: "Positive",
+            children: [{ id: "c1a", label: "Hedged" }],
+          },
+        ],
+      },
+    ];
+
+    const groups = groupDocuments({
+      documents: [
+        doc({ id: "sub", codes: [{ codebookId: "cb1", codeId: "c1a" }] }),
+      ],
+      projects: [],
+      codebooks: nested,
+      groupBy: "codebook:cb1",
+      sortBy: "alphabetical",
+      now: NOW,
+    });
+
+    // The parent group is empty and dropped; the sub-code keeps its own.
+    expect(groups.map((g) => g.key)).toEqual(["code:cb1:c1a"]);
+    expect(groups[0].label).toMatchObject({ label: "Positive › Hedged" });
+  });
+
+  it("does not put a document under the parent of the code it carries", () => {
+    const nested = [
+      {
+        id: "cb1",
+        codes: [
+          {
+            id: "c1",
+            label: "Positive",
+            children: [{ id: "c1a", label: "Hedged" }],
+          },
+        ],
+      },
+    ];
+
+    const groups = groupDocuments({
+      documents: [
+        doc({ id: "sub", codes: [{ codebookId: "cb1", codeId: "c1a" }] }),
+        doc({ id: "parent", codes: [{ codebookId: "cb1", codeId: "c1" }] }),
+      ],
+      projects: [],
+      codebooks: nested,
+      groupBy: "codebook:cb1",
+      sortBy: "alphabetical",
+      now: NOW,
+    });
+
+    const byKey = Object.fromEntries(
+      groups.map((g) => [g.key, g.documents.map((d) => d.id)]),
+    );
+    expect(byKey["code:cb1:c1"]).toEqual(["parent"]);
+    expect(byKey["code:cb1:c1a"]).toEqual(["sub"]);
+  });
+
   it("ignores codes belonging to another codebook", () => {
     const groups = groupDocuments({
       documents: [

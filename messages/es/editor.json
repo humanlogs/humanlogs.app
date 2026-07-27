@@ -158,6 +158,8 @@
             "empty": "Aún no hay comentarios",
             "you": "Tú",
             "indicator": "Esta línea tiene comentarios",
+            "jumpUp": "Ir al comentario de arriba",
+            "jumpDown": "Ir al comentario de abajo",
             "replyPlaceholder": "Responder…",
             "mentionHint": "@ para mencionar",
             "submitHint": "Mayús + Intro para enviar",

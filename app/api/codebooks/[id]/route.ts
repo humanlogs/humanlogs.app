@@ -2,11 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 import { parseCodebookInput } from "@/lib/codebooks/codebook";
-import {
-  formatCodebook,
-  isSafeParent,
-  ownsAllStudies,
-} from "@/lib/codebooks/server";
+import { formatCodebook, ownsAllStudies } from "@/lib/codebooks/server";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -31,17 +27,7 @@ export const PATCH = withAuthRateLimit(
       if ("error" in parsed) {
         return NextResponse.json({ error: parsed.error }, { status: 400 });
       }
-      const { content, allStudies, studyIds, parentId, target, preset } =
-        parsed.data;
-
-      if (parentId !== undefined) {
-        if (!(await isSafeParent(user.id, id, parentId))) {
-          return NextResponse.json(
-            { error: "Invalid parent codebook" },
-            { status: 400 },
-          );
-        }
-      }
+      const { content, allStudies, studyIds, target, preset } = parsed.data;
 
       // Scope after the update, needed to check the "must be reachable" rule
       // against the fields the request leaves untouched.
@@ -63,7 +49,6 @@ export const PATCH = withAuthRateLimit(
         data: {
           ...(content !== undefined ? { content: content as never } : {}),
           ...(allStudies !== undefined ? { allStudies } : {}),
-          ...(parentId !== undefined ? { parentId } : {}),
           ...(target !== undefined ? { target } : {}),
           ...(preset !== undefined ? { preset } : {}),
           // Links are replaced wholesale; an "all studies" codebook keeps none.
@@ -93,9 +78,9 @@ export const PATCH = withAuthRateLimit(
 );
 
 /**
- * Deletes a codebook and, by cascade, its children. References left on
- * documents are not swept: `sanitizeCodeRefs` hides refs whose codebook is
- * gone, which avoids a large write on every delete.
+ * Deletes a codebook. References left on documents are not swept:
+ * `sanitizeCodeRefs` hides refs whose codebook is gone, which avoids a large
+ * write on every delete.
  */
 export const DELETE = withAuthRateLimit(
   async (request, user, { params }: RouteParams) => {

@@ -3,7 +3,6 @@
     "section": {
       "title": "Codebooks ({count})",
       "create": "New codebook",
-      "fromPreset": "From a preset",
       "empty": {
         "title": "No codebook yet",
         "description": "A codebook is a set of codes you apply to your documents. Start from a preset or build your own.",
@@ -23,8 +22,6 @@
       "scope": "Studies",
       "scopeAll": "All studies",
       "scopeSelected": "Selected studies",
-      "parent": "Parent codebook",
-      "noParent": "None (top level)",
       "target": "Applies to",
       "targets": {
         "document": "Whole document",
@@ -45,13 +42,14 @@
         "scopeRequired": "Pick at least one study",
         "codeRequired": "Add at least one code",
         "failed": "Could not save the codebook"
-      }
+      },
+      "addSubCode": "Add a sub-code"
     },
     "presets": {
       "title": "Start from a preset",
-      "description": "Presets are created for all studies and can be edited afterwards.",
-      "draft": "Draft — review the codes",
-      "create": "Create"
+      "description": "A preset fills the form for you — review and edit it before saving.",
+      "manual": "Continue manually",
+      "back": "Back to presets"
     }
   }
 }

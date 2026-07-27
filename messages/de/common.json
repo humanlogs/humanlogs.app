@@ -1,6 +1,7 @@
 {
   "sidebar": {
     "newTranscription": "Neue Transkription",
+    "addDocument": "Audio oder Text importieren",
     "search": "Suchen...",
     "shared": "Geteilt",
     "noResults": "Keine Ergebnisse gefunden",

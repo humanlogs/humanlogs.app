@@ -3,7 +3,6 @@
     "section": {
       "title": "Codebooks ({count})",
       "create": "Nouveau codebook",
-      "fromPreset": "À partir d'un preset",
       "empty": {
         "title": "Aucun codebook",
         "description": "Un codebook est un ensemble de codes que vous appliquez à vos documents. Partez d'un preset ou créez le vôtre.",
@@ -23,8 +22,6 @@
       "scope": "Études",
       "scopeAll": "Toutes les études",
       "scopeSelected": "Études sélectionnées",
-      "parent": "Codebook parent",
-      "noParent": "Aucun (premier niveau)",
       "target": "S'applique à",
       "targets": {
         "document": "Document entier",
@@ -45,13 +42,14 @@
         "scopeRequired": "Sélectionnez au moins une étude",
         "codeRequired": "Ajoutez au moins un code",
         "failed": "Impossible d'enregistrer le codebook"
-      }
+      },
+      "addSubCode": "Ajouter un sous-code"
     },
     "presets": {
       "title": "Partir d'un preset",
-      "description": "Les presets sont créés pour toutes les études et restent modifiables ensuite.",
-      "draft": "Brouillon — à relire",
-      "create": "Créer"
+      "description": "Un preset préremplit le formulaire — relisez-le et modifiez-le avant d'enregistrer.",
+      "manual": "Continuer manuellement",
+      "back": "Retour aux presets"
     }
   }
 }

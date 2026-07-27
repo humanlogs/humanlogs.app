@@ -11,7 +11,6 @@ import type { CodebookDTO, CodebookTarget } from "./codebook";
 
 type CodebookRow = {
   id: string;
-  parentId: string | null;
   allStudies: boolean;
   target: string;
   preset: string | null;
@@ -24,7 +23,6 @@ type CodebookRow = {
 export function formatCodebook(row: CodebookRow): CodebookDTO {
   return {
     id: row.id,
-    parentId: row.parentId,
     allStudies: row.allStudies,
     target: row.target as CodebookTarget,
     preset: row.preset,
@@ -47,38 +45,6 @@ export async function ownsAllStudies(
   return count === studyIds.length;
 }
 
-/**
- * Walks up the parent chain to reject cycles: a codebook may not become a
- * descendant of itself. Returns true when `parentId` is a safe parent for
- * `codebookId`.
- */
-export async function isSafeParent(
-  userId: string,
-  codebookId: string,
-  parentId: string | null,
-): Promise<boolean> {
-  if (!parentId) return true;
-  if (parentId === codebookId) return false;
-
-  let current: string | null = parentId;
-  // Bounded by the number of codebooks; the guard below stops a corrupted chain.
-  for (let hops = 0; current && hops < 100; hops++) {
-    const row: { id: string; parentId: string | null } | null =
-      await prisma.codebook.findFirst({
-        where: { id: current, userId },
-        select: { id: true, parentId: true },
-      });
-    if (!row) return false; // not ours, or missing
-    if (row.parentId === codebookId) return false;
-    current = row.parentId;
-  }
-  return true;
-}
-
-/**
- * Ids of the codebooks that apply to a study — "all studies" ones included.
- * Used by the sharing flow and by the study-deletion cascade.
- */
 /**
  * How many documents of `ownerId` are still shared with `userId`, optionally
  * restricted to one study. Sharing lives in a JSONB array, so containment is
@@ -168,8 +134,7 @@ export async function revokeCodebookAccess(
  *    no "all studies" flag would be reachable from nowhere, so keeping it would
  *    just hide data.
  *
- * Children follow their parent by cascade. Call this *before* deleting the
- * study, while the links still exist.
+ * Call this *before* deleting the study, while the links still exist.
  */
 export async function settleCodebooksForDeletedProject(
   userId: string,
@@ -194,9 +159,6 @@ export async function settleCodebooksForDeletedProject(
     else toDelete.push(codebook.id);
   }
 
-  // Deleting a parent takes its children with it, so these must be bulk
-  // operations: a per-row delete would fail on the child that just cascaded
-  // away. `deleteMany` is idempotent, `delete` is not.
   if (toDelete.length > 0) {
     await prisma.codebook.deleteMany({ where: { id: { in: toDelete } } });
   }

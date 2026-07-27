@@ -4,75 +4,51 @@ import { useCodebookModal } from "@/components/codebooks/codebook-editor-dialog"
 import { GuideCallout } from "@/components/guidance/guide-callout";
 import { useTranslations } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import { useCodebooks, useCreateCodebookFromPreset } from "@/hooks/use-codebooks";
+import { useCodebooks } from "@/hooks/use-codebooks";
 import {
   codebooksInScopeForProject,
+  flattenCodes,
   type DecryptedCodebook,
 } from "@/lib/codebooks/codebook";
-import { CODEBOOK_PRESETS } from "@/lib/codebooks/presets";
-import { BookMarkedIcon, PlusIcon, SparklesIcon } from "lucide-react";
-import * as React from "react";
-import { toast } from "sonner";
+import { BookMarkedIcon, PlusIcon } from "lucide-react";
 
 /**
  * The codebooks available from a study: those attached to it, plus the ones
- * covering every study. Children are nested under their parent.
+ * covering every study.
  */
 export function CodebookSection({ projectId }: { projectId: string }) {
   const t = useTranslations("codebook");
   const { data: codebooks = [], isLoading } = useCodebooks();
   const { openCreate, openEdit } = useCodebookModal();
-  const createFromPreset = useCreateCodebookFromPreset();
 
   const inScope = codebooksInScopeForProject(codebooks, projectId);
-  const roots = inScope.filter(
-    (c) => !c.parentId || !inScope.some((other) => other.id === c.parentId),
-  );
-  const childrenOf = (id: string) => inScope.filter((c) => c.parentId === id);
 
-  const handlePreset = async (presetKey: string) => {
-    const preset = CODEBOOK_PRESETS.find((p) => p.key === presetKey);
-    if (!preset) return;
-    try {
-      await createFromPreset.mutateAsync(preset);
-    } catch (error) {
-      console.error("Failed to create codebook from preset", error);
-      toast.error(t("editor.errors.failed"));
-    }
-  };
-
-  const renderCodebook = (codebook: DecryptedCodebook, depth = 0) => (
-    <React.Fragment key={codebook.id}>
-      <button
-        type="button"
-        onClick={() => openEdit(codebook.id)}
-        className="flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-accent"
-        style={{ marginLeft: depth * 16, width: `calc(100% - ${depth * 16}px)` }}
-      >
-        <BookMarkedIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-        <span className="min-w-0 flex-1">
-          <span className="block truncate font-medium">
-            {codebook.name || (
-              <span className="text-muted-foreground">
-                {t("section.locked")}
-              </span>
-            )}
-          </span>
-          <span className="text-xs text-muted-foreground">
-            {codebook.allStudies
-              ? t("section.allStudies")
-              : t("section.studyCount", { count: codebook.studyIds.length })}
-            {" · "}
-            {t("section.codeCount", { count: codebook.codes.length })}
-          </span>
+  const renderCodebook = (codebook: DecryptedCodebook) => (
+    <button
+      key={codebook.id}
+      type="button"
+      onClick={() => openEdit(codebook.id)}
+      className="flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-accent"
+    >
+      <BookMarkedIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate font-medium">
+          {codebook.name || (
+            <span className="text-muted-foreground">{t("section.locked")}</span>
+          )}
         </span>
-      </button>
-      {childrenOf(codebook.id).map((child) => renderCodebook(child, depth + 1))}
-    </React.Fragment>
+        <span className="text-xs text-muted-foreground">
+          {codebook.allStudies
+            ? t("section.allStudies")
+            : t("section.studyCount", { count: codebook.studyIds.length })}
+          {" · "}
+          {/* Sub-codes count too — they are codes of this codebook. */}
+          {t("section.codeCount", {
+            count: flattenCodes(codebook.codes).length,
+          })}
+        </span>
+      </span>
+    </button>
   );
 
   return (
@@ -102,7 +78,7 @@ export function CodebookSection({ projectId }: { projectId: string }) {
         />
       ) : (
         <div className="space-y-2">
-          {roots.map((codebook) => renderCodebook(codebook))}
+          {inScope.map((codebook) => renderCodebook(codebook))}
         </div>
       )}
     </section>

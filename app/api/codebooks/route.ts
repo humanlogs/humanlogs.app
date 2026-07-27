@@ -37,8 +37,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
     if ("error" in parsed) {
       return NextResponse.json({ error: parsed.error }, { status: 400 });
     }
-    const { content, allStudies, studyIds, parentId, target, preset } =
-      parsed.data;
+    const { content, allStudies, studyIds, target, preset } = parsed.data;
 
     // "All studies" ignores any explicit list: the scope is already total.
     const links = allStudies ? [] : (studyIds ?? []);
@@ -46,25 +45,11 @@ export const POST = withAuthRateLimit(async (request, user) => {
       return NextResponse.json({ error: "Study not found" }, { status: 404 });
     }
 
-    if (parentId) {
-      const parent = await prisma.codebook.findFirst({
-        where: { id: parentId, userId: user.id },
-        select: { id: true },
-      });
-      if (!parent) {
-        return NextResponse.json(
-          { error: "Parent codebook not found" },
-          { status: 404 },
-        );
-      }
-    }
-
     const codebook = await prisma.codebook.create({
       data: {
         userId: user.id,
         content: content as never,
         allStudies: allStudies ?? false,
-        parentId: parentId ?? null,
         target: target ?? DEFAULT_CODEBOOK_TARGET,
         preset: preset ?? null,
         studies: { create: links.map((projectId) => ({ projectId })) },

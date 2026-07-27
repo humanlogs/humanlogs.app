@@ -158,6 +158,8 @@
             "empty": "No comments yet",
             "you": "You",
             "indicator": "This line has comments",
+            "jumpUp": "Scroll to the comment above",
+            "jumpDown": "Scroll to the comment below",
             "replyPlaceholder": "Reply…",
             "mentionHint": "@ to mention",
             "submitHint": "Shift + Enter to send",
