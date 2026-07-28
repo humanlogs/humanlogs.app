@@ -1,6 +1,6 @@
 "use client";
 
-import type { CodeRef, ParticipantCodeRef } from "@/lib/codebooks/codebook";
+import type { CodeRef, SpeakerCodeRef } from "@/lib/codebooks/codebook";
 import {
   EncryptionUtils,
   type EncryptedDataEntity,
@@ -24,11 +24,18 @@ type Transcription = {
   projectId?: string;
   speakerCount?: number;
   speakerNames?: (string | null)[];
+  /**
+   * The speakers with their ids, so the study coding board can code them
+   * without opening each document. Absent for E2E-encrypted documents, whose
+   * speakers only exist inside the payload — the board loads those on demand.
+   */
+  speakers?: { id: string; name?: string | null }[];
+  isEncrypted?: boolean;
   mediaType?: "audio" | "text";
   /** Codes applied to the document; opaque ids resolved against the codebooks. */
   codes?: CodeRef[];
-  /** Codes applied to the document's participants (speakers). */
-  participantCodes?: ParticipantCodeRef[];
+  /** Codes applied to the document's speakers. */
+  speakerCodes?: SpeakerCodeRef[];
   state: "PENDING" | "COMPLETED" | "ERROR";
   errorMessage?: string | null;
   isOwner?: boolean;
@@ -58,7 +65,7 @@ export type TranscriptionDetail = {
   projectId?: string;
   projectName?: string;
   codes?: CodeRef[];
-  participantCodes?: ParticipantCodeRef[];
+  speakerCodes?: SpeakerCodeRef[];
   createdAt: string;
   updatedAt: string;
   completedAt?: string;
@@ -339,8 +346,7 @@ export function useTranscriptionAesKey(transcriptionId: string): {
     new EncryptionUtils(browserCrypto)
       .resolveAesKey(rawEntity as EncryptedDataEntity, privateKey, publicKey)
       .then((k) => {
-        if (!cancelled)
-          setState({ aesKey: k, isEncrypted: true, ready: true });
+        if (!cancelled) setState({ aesKey: k, isEncrypted: true, ready: true });
       })
       .catch(() => {
         if (!cancelled)
@@ -452,52 +458,95 @@ export function useSaveTranscription(
 }
 
 /**
- * Codes applied to the participants of a document. The mutation replaces the
- * whole list — the server stores it as one JSON array, and a document has a
- * handful of participants, so sending the new state is simpler (and free of
- * merge questions) than sending a patch.
+ * Codes applied to a document (`codes`) or to its speakers (`speakerCodes`).
+ * The mutation replaces the whole list — the server stores it as one JSON
+ * array, and a document has a handful of codes, so sending the new state is
+ * simpler (and free of merge questions) than sending a patch.
  *
- * The cache is updated on the spot rather than waiting for a refetch: this
- * drives a checkbox in a menu, where a delayed tick reads as a lost click.
+ * Both caches are written on the spot rather than waiting for a refetch: these
+ * drive checkboxes in a menu, where a delayed tick reads as a lost click, and
+ * the coding board reads the *list* while the editor reads the *detail*.
  */
-export function useUpdateParticipantCodes(transcriptionId: string) {
+function useDocumentCodesMutation<T extends CodeRef>(
+  transcriptionId: string,
+  field: "codes" | "speakerCodes",
+) {
   const queryClient = useQueryClient();
-  const key = ["transcriptions", transcriptionId];
+  const detailKey = ["transcriptions", transcriptionId];
+  const listKey = ["transcriptions"];
 
   return useMutation({
-    mutationFn: async (participantCodes: ParticipantCodeRef[]) => {
+    mutationFn: async (value: T[]) => {
       const response = await fetchGateway(
         `/api/transcriptions/${transcriptionId}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ participantCodes }),
+          body: JSON.stringify({ [field]: value }),
         },
       );
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || "Failed to save participant codes");
+        throw new Error(data.error || "Failed to save codes");
       }
       return data;
     },
-    onMutate: async (participantCodes) => {
-      await queryClient.cancelQueries({ queryKey: key });
-      const previous =
-        queryClient.getQueryData<DecryptedWithRaw<TranscriptionDetail>>(key);
-      if (previous) {
-        queryClient.setQueryData(key, { ...previous, participantCodes });
+    onMutate: async (value) => {
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: detailKey }),
+        queryClient.cancelQueries({ queryKey: listKey }),
+      ]);
+
+      const previousDetail =
+        queryClient.getQueryData<DecryptedWithRaw<TranscriptionDetail>>(
+          detailKey,
+        );
+      const previousList = queryClient.getQueryData<Transcription[]>(listKey);
+
+      if (previousDetail) {
+        queryClient.setQueryData(detailKey, {
+          ...previousDetail,
+          [field]: value,
+        });
       }
-      return { previous };
+      if (previousList) {
+        queryClient.setQueryData(
+          listKey,
+          previousList.map((doc) =>
+            doc.id === transcriptionId ? { ...doc, [field]: value } : doc,
+          ),
+        );
+      }
+
+      return { previousDetail, previousList };
     },
     onError: (_error, _variables, context) => {
-      if (context?.previous) queryClient.setQueryData(key, context.previous);
+      if (context?.previousDetail) {
+        queryClient.setQueryData(detailKey, context.previousDetail);
+      }
+      if (context?.previousList) {
+        queryClient.setQueryData(listKey, context.previousList);
+      }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: key });
+      queryClient.invalidateQueries({ queryKey: detailKey });
       // The sidebar groups on these, so its list is stale too.
-      queryClient.invalidateQueries({ queryKey: ["transcriptions"] });
+      queryClient.invalidateQueries({ queryKey: listKey });
     },
   });
+}
+
+/** Codes applied to the document as a whole. */
+export function useUpdateDocumentCodes(transcriptionId: string) {
+  return useDocumentCodesMutation<CodeRef>(transcriptionId, "codes");
+}
+
+/** Codes applied to the individual speakers of a document. */
+export function useUpdateSpeakerCodes(transcriptionId: string) {
+  return useDocumentCodesMutation<SpeakerCodeRef>(
+    transcriptionId,
+    "speakerCodes",
+  );
 }
 
 // Revert transcription mutation

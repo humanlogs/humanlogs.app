@@ -4,13 +4,14 @@ import {
   flattenCodes,
   groupableCodebooks,
   parseCodebookInput,
+  normalizeCodebookTarget,
   parseCodeRefs,
-  parseParticipantCodeRefs,
-  participantCodebooks,
+  parseSpeakerCodeRefs,
+  speakerCodebooks,
   sanitizeCodeRefs,
-  sanitizeParticipantCodeRefs,
+  sanitizeSpeakerCodeRefs,
   validateCodeRefs,
-  validateParticipantCodeRefs,
+  validateSpeakerCodeRefs,
 } from "@/lib/codebooks/codebook";
 
 /**
@@ -45,9 +46,9 @@ describe("codebooksInScopeForProject", () => {
   });
 
   it("keeps only all-studies codebooks for a document without a study", () => {
-    expect(codebooksInScopeForProject(codebooks, null).map((c) => c.id)).toEqual(
-      ["all"],
-    );
+    expect(
+      codebooksInScopeForProject(codebooks, null).map((c) => c.id),
+    ).toEqual(["all"]);
     expect(
       codebooksInScopeForProject(codebooks, undefined).map((c) => c.id),
     ).toEqual(["all"]);
@@ -63,31 +64,43 @@ describe("groupableCodebooks", () => {
     expect(groupableCodebooks(codebooks).map((c) => c.id)).toEqual(["all"]);
   });
 
-  it("keeps document and participant codebooks, drops the finer grains", () => {
+  it("keeps speaker codebooks and drops the verbatim ones", () => {
+    // A verbatim codebook codes passages, which never land on a document: as a
+    // grouping axis it would put the whole list in "uncoded".
     const codebooks = [
-      { ...cb("doc", { allStudies: true }), target: "document" as const },
-      {
-        ...cb("people", { allStudies: true }),
-        target: "participant" as const,
-      },
-      { ...cb("phrase", { allStudies: true }), target: "sentence" as const },
-      { ...cb("mot", { allStudies: true }), target: "word" as const },
+      { ...cb("people", { allStudies: true }), target: "speaker" as const },
+      { ...cb("text", { allStudies: true }), target: "verbatim" as const },
     ];
-    expect(groupableCodebooks(codebooks).map((c) => c.id)).toEqual([
-      "doc",
-      "people",
-    ]);
+    expect(groupableCodebooks(codebooks).map((c) => c.id)).toEqual(["people"]);
   });
 });
 
-describe("participantCodebooks", () => {
+describe("speakerCodebooks", () => {
   it("keeps the codebooks that code people rather than text", () => {
     const codebooks = [
-      { id: "a", target: "participant" as const },
-      { id: "b", target: "document" as const },
+      { id: "a", target: "speaker" as const },
+      { id: "b", target: "verbatim" as const },
+      // No target at all defaults to the speaker one, like the database does.
       { id: "c" },
     ];
-    expect(participantCodebooks(codebooks).map((c) => c.id)).toEqual(["a"]);
+    expect(speakerCodebooks(codebooks).map((c) => c.id)).toEqual(["a", "c"]);
+  });
+});
+
+describe("normalizeCodebookTarget", () => {
+  it("maps the five targets that existed before the split", () => {
+    expect(normalizeCodebookTarget("document")).toBe("speaker");
+    expect(normalizeCodebookTarget("participant")).toBe("speaker");
+    expect(normalizeCodebookTarget("sentence")).toBe("verbatim");
+    expect(normalizeCodebookTarget("subsentence")).toBe("verbatim");
+    expect(normalizeCodebookTarget("word")).toBe("verbatim");
+  });
+
+  it("keeps the current ones and falls back for anything else", () => {
+    expect(normalizeCodebookTarget("speaker")).toBe("speaker");
+    expect(normalizeCodebookTarget("verbatim")).toBe("verbatim");
+    expect(normalizeCodebookTarget(null)).toBe("speaker");
+    expect(normalizeCodebookTarget("paragraph")).toBe("speaker");
   });
 });
 
@@ -135,38 +148,35 @@ describe("validateCodeRefs", () => {
   });
 });
 
-describe("validateParticipantCodeRefs", () => {
+describe("validateSpeakerCodeRefs", () => {
   const allowed = new Set(["cb1"]);
 
-  it("accepts a code pinned on a participant", () => {
+  it("accepts a code pinned on a speaker", () => {
     expect(
-      validateParticipantCodeRefs(
-        [{ participantId: "speaker_0", codebookId: "cb1", codeId: "c1" }],
+      validateSpeakerCodeRefs(
+        [{ speakerId: "speaker_0", codebookId: "cb1", codeId: "c1" }],
         allowed,
       ),
     ).toEqual({
-      participantCodes: [
-        { participantId: "speaker_0", codebookId: "cb1", codeId: "c1" },
+      speakerCodes: [
+        { speakerId: "speaker_0", codebookId: "cb1", codeId: "c1" },
       ],
     });
   });
 
-  it("treats null as clearing every participant's codes", () => {
-    expect(validateParticipantCodeRefs(null, allowed)).toEqual({
-      participantCodes: [],
+  it("treats null as clearing every speaker's codes", () => {
+    expect(validateSpeakerCodeRefs(null, allowed)).toEqual({
+      speakerCodes: [],
     });
   });
 
-  it("rejects a ref without a participant", () => {
+  it("rejects a ref without a speaker", () => {
     expect(
-      validateParticipantCodeRefs(
-        [{ codebookId: "cb1", codeId: "c1" }],
-        allowed,
-      ),
+      validateSpeakerCodeRefs([{ codebookId: "cb1", codeId: "c1" }], allowed),
     ).toHaveProperty("error");
     expect(
-      validateParticipantCodeRefs(
-        [{ participantId: "", codebookId: "cb1", codeId: "c1" }],
+      validateSpeakerCodeRefs(
+        [{ speakerId: "", codebookId: "cb1", codeId: "c1" }],
         allowed,
       ),
     ).toHaveProperty("error");
@@ -174,77 +184,71 @@ describe("validateParticipantCodeRefs", () => {
 
   it("rejects a codebook the caller may not use", () => {
     expect(
-      validateParticipantCodeRefs(
-        [{ participantId: "speaker_0", codebookId: "other", codeId: "c1" }],
+      validateSpeakerCodeRefs(
+        [{ speakerId: "speaker_0", codebookId: "other", codeId: "c1" }],
         allowed,
       ),
     ).toEqual({ error: "Unknown codebook" });
   });
 
-  it("keeps the same code on two participants but deduplicates one", () => {
+  it("keeps the same code on two speakers but deduplicates one", () => {
     expect(
-      validateParticipantCodeRefs(
+      validateSpeakerCodeRefs(
         [
-          { participantId: "speaker_0", codebookId: "cb1", codeId: "c1" },
-          { participantId: "speaker_1", codebookId: "cb1", codeId: "c1" },
-          { participantId: "speaker_0", codebookId: "cb1", codeId: "c1" },
+          { speakerId: "speaker_0", codebookId: "cb1", codeId: "c1" },
+          { speakerId: "speaker_1", codebookId: "cb1", codeId: "c1" },
+          { speakerId: "speaker_0", codebookId: "cb1", codeId: "c1" },
         ],
         allowed,
       ),
     ).toEqual({
-      participantCodes: [
-        { participantId: "speaker_0", codebookId: "cb1", codeId: "c1" },
-        { participantId: "speaker_1", codebookId: "cb1", codeId: "c1" },
+      speakerCodes: [
+        { speakerId: "speaker_0", codebookId: "cb1", codeId: "c1" },
+        { speakerId: "speaker_1", codebookId: "cb1", codeId: "c1" },
       ],
     });
   });
 });
 
-describe("parseParticipantCodeRefs", () => {
+describe("parseSpeakerCodeRefs", () => {
   it("keeps only well-formed entries from database JSON", () => {
     expect(
-      parseParticipantCodeRefs([
-        { participantId: "speaker_0", codebookId: "cb1", codeId: "c1" },
+      parseSpeakerCodeRefs([
+        { speakerId: "speaker_0", codebookId: "cb1", codeId: "c1" },
         { codebookId: "cb1", codeId: "c1" },
-        { participantId: 1, codebookId: "cb1", codeId: "c1" },
+        { speakerId: 1, codebookId: "cb1", codeId: "c1" },
         null,
       ]),
-    ).toEqual([
-      { participantId: "speaker_0", codebookId: "cb1", codeId: "c1" },
-    ]);
-    expect(parseParticipantCodeRefs(null)).toEqual([]);
+    ).toEqual([{ speakerId: "speaker_0", codebookId: "cb1", codeId: "c1" }]);
+    expect(parseSpeakerCodeRefs(null)).toEqual([]);
   });
 });
 
-describe("sanitizeParticipantCodeRefs", () => {
+describe("sanitizeSpeakerCodeRefs", () => {
   const codebooks = [{ id: "cb1", codes: [{ id: "c1", label: "One" }] }];
 
   it("drops refs whose codebook or code is gone, whoever carries them", () => {
     expect(
-      sanitizeParticipantCodeRefs(
+      sanitizeSpeakerCodeRefs(
         [
-          { participantId: "speaker_0", codebookId: "cb1", codeId: "c1" },
-          { participantId: "speaker_0", codebookId: "cb1", codeId: "gone" },
-          { participantId: "speaker_1", codebookId: "gone", codeId: "c1" },
+          { speakerId: "speaker_0", codebookId: "cb1", codeId: "c1" },
+          { speakerId: "speaker_0", codebookId: "cb1", codeId: "gone" },
+          { speakerId: "speaker_1", codebookId: "gone", codeId: "c1" },
         ],
         codebooks,
       ),
-    ).toEqual([
-      { participantId: "speaker_0", codebookId: "cb1", codeId: "c1" },
-    ]);
+    ).toEqual([{ speakerId: "speaker_0", codebookId: "cb1", codeId: "c1" }]);
   });
 
-  it("keeps a ref to a participant the transcript no longer shows", () => {
+  it("keeps a ref to a speaker the transcript no longer shows", () => {
     // The speaker may come back (a merge, a rename round-trip); losing the
     // coding would lose work the researcher cannot recover.
     expect(
-      sanitizeParticipantCodeRefs(
-        [{ participantId: "speaker_9", codebookId: "cb1", codeId: "c1" }],
+      sanitizeSpeakerCodeRefs(
+        [{ speakerId: "speaker_9", codebookId: "cb1", codeId: "c1" }],
         codebooks,
       ),
-    ).toEqual([
-      { participantId: "speaker_9", codebookId: "cb1", codeId: "c1" },
-    ]);
+    ).toEqual([{ speakerId: "speaker_9", codebookId: "cb1", codeId: "c1" }]);
   });
 });
 
@@ -355,8 +359,8 @@ describe("parseCodebookInput", () => {
 
   it("lets a patch leave the scope untouched", () => {
     expect(
-      parseCodebookInput({ target: "sentence" }, { requireContent: false }),
-    ).toEqual({ data: { target: "sentence" } });
+      parseCodebookInput({ target: "verbatim" }, { requireContent: false }),
+    ).toEqual({ data: { target: "verbatim" } });
   });
 
   it("refuses an empty study list when the codebook is not all-studies", () => {

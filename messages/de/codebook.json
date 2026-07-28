@@ -12,7 +12,8 @@
       "allStudies": "Alle Studien",
       "studyCount": "{count} Studien",
       "codeCount": "{count} Codes",
-      "locked": "Verschlüsselt — kein Schlüssel auf diesem Gerät"
+      "locked": "Verschlüsselt — kein Schlüssel auf diesem Gerät",
+      "code": "Studie codieren"
     },
     "editor": {
       "createTitle": "Neues Codebuch",
@@ -25,11 +26,12 @@
       "scopeSelected": "Ausgewählte Studien",
       "target": "Gilt für",
       "targets": {
-        "document": "Ganzes Dokument",
-        "participant": "Teilnehmende Person",
-        "sentence": "Satz",
-        "subsentence": "Satzteil",
-        "word": "Wort"
+        "speaker": "Sprechende Person",
+        "verbatim": "Verbatim"
+      },
+      "targetHints": {
+        "speaker": "Codes für die Personen: gelten für ein ganzes Dokument und für jede sprechende Person darin (Rolle, Gruppe, Profil).",
+        "verbatim": "Codes für das Gesagte: gelten für eine Passage des Transkripts, vom Wort bis zum ganzen Satz."
       },
       "codes": "Codes",
       "addCode": "Code hinzufügen",
@@ -53,11 +55,31 @@
       "manual": "Manuell fortfahren",
       "back": "Zurück zu den Vorlagen"
     },
-    "participant": {
-      "menu": "Codes der teilnehmenden Person",
-      "create": "Teilnehmenden-Codebook erstellen",
-      "untitled": "Unbenanntes Codebook",
-      "failed": "Die Codes der teilnehmenden Person konnten nicht gespeichert werden"
+    "speaker": {
+      "menu": "Codes der sprechenden Person",
+      "create": "Sprecher-Codebook erstellen",
+      "failed": "Die Codes der sprechenden Person konnten nicht gespeichert werden",
+      "untitled": "Unbenanntes Codebook"
+    },
+    "board": {
+      "title": "Codierung",
+      "description": "Weisen Sie die Codes eines Codebooks allen Dokumenten der Studie und den Personen darin zu.",
+      "codebook": "Codebook",
+      "hint": "Nur Sprecher-Codebooks werden gelistet: Verbatim-Codes werden im Editor auf den Text gesetzt.",
+      "documentCodes": "Dokument",
+      "speakerCodes": "Codes",
+      "speakerFallback": "Sprechende Person {index}",
+      "noSpeakers": "Keine sprechende Person in diesem Dokument",
+      "revealSpeakers": "Die {count} sprechenden Personen anzeigen (verschlüsseltes Dokument)",
+      "locked": "Verschlüsselt — kein Schlüssel auf diesem Gerät",
+      "empty": "Noch kein Dokument in dieser Studie",
+      "failed": "Die Codes konnten nicht gespeichert werden",
+      "noCodebook": {
+        "title": "Noch kein Sprecher-Codebook",
+        "description": "Zum Codieren einer Studie braucht es ein Codebook, dessen Codes für Dokumente und sprechende Personen gelten.",
+        "action": "Codebook erstellen"
+      },
+      "untitled": "Unbenanntes Codebook"
     }
   }
 }

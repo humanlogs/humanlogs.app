@@ -12,7 +12,7 @@ import {
   type Code,
   type CodebookTarget,
   type CodeRef,
-  type ParticipantCodeRef,
+  type SpeakerCodeRef,
 } from "@/lib/codebooks/codebook";
 
 export const TIME_BUCKETS = [
@@ -25,7 +25,11 @@ export const TIME_BUCKETS = [
 
 export type TimeBucket = (typeof TIME_BUCKETS)[number];
 
-export type GroupBy = "study" | "updatedAt" | "createdAt" | `codebook:${string}`;
+export type GroupBy =
+  | "study"
+  | "updatedAt"
+  | "createdAt"
+  | `codebook:${string}`;
 
 export type SortBy = "alphabetical" | "updatedAt" | "createdAt";
 
@@ -34,7 +38,9 @@ export const DEFAULT_SORT_BY: SortBy = "alphabetical";
 
 /** The codebook id encoded in a `codebook:<id>` grouping, or null. */
 export function codebookIdFromGroupBy(groupBy: GroupBy): string | null {
-  return groupBy.startsWith("codebook:") ? groupBy.slice("codebook:".length) : null;
+  return groupBy.startsWith("codebook:")
+    ? groupBy.slice("codebook:".length)
+    : null;
 }
 
 export type GroupableDocument = {
@@ -44,21 +50,24 @@ export type GroupableDocument = {
   updatedAt: string;
   projectId?: string | null;
   codes?: CodeRef[];
-  /** Codes carried by the document's participants, not by the document. */
-  participantCodes?: ParticipantCodeRef[];
+  /** Codes carried by the document's speakers, not by the document itself. */
+  speakerCodes?: SpeakerCodeRef[];
 };
 
 /**
- * The refs a codebook grouping reads: its own kind of code and no other, so a
- * participant codebook never groups on document codes and vice versa.
+ * The refs a codebook grouping reads. A speaker codebook codes the document
+ * *and* its speakers, so both lists count: a study grouped by "rôle" shows an
+ * interview under the codes of the people in it as much as under the ones put
+ * on the interview itself. A verbatim codebook has no document-level refs at
+ * all — it only ever lands in the "uncoded" group, which is why it is kept out
+ * of the grouping menu.
  */
 function refsFor(
   document: GroupableDocument,
   target: CodebookTarget | undefined,
 ): CodeRef[] {
-  return target === "participant"
-    ? (document.participantCodes ?? [])
-    : (document.codes ?? []);
+  if (target === "verbatim") return [];
+  return [...(document.codes ?? []), ...(document.speakerCodes ?? [])];
 }
 
 /**
@@ -151,9 +160,9 @@ export type GroupDocumentsOptions<T extends GroupableDocument> = {
 /**
  * Groups documents and sorts each group's contents. Empty groups are dropped;
  * a document carrying several codes of the grouping codebook appears in each of
- * their groups. Grouping on a participant codebook reads the codes of the
- * document's participants instead — a document with two participants coded
- * differently is therefore listed under both, once each.
+ * their groups — including the codes of its speakers, since a speaker codebook
+ * codes both. A document whose two speakers are coded differently is therefore
+ * listed under both, once each.
  */
 export function groupDocuments<T extends GroupableDocument>({
   documents,

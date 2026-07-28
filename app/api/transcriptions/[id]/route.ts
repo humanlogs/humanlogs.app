@@ -14,7 +14,7 @@ import {
 import { checkAccess } from "@/lib/transcriptions/access";
 import {
   validateCodeRefs,
-  validateParticipantCodeRefs,
+  validateSpeakerCodeRefs,
 } from "@/lib/codebooks/codebook";
 
 type RouteParams = {
@@ -104,7 +104,7 @@ export const PATCH = withAuthRateLimit(
         projectId?: string | null;
         transcription?: never;
         codes?: never;
-        participantCodes?: never;
+        speakerCodes?: never;
         updatedBy?: string;
       } = {};
 
@@ -163,10 +163,10 @@ export const PATCH = withAuthRateLimit(
         }
       }
 
-      // Codes applied to the document and to its participants. Any writer may
+      // Codes applied to the document and to its speakers. Any writer may
       // code, but the codes must come from the *owner's* codebooks — those are
       // the ones scoped to the study this document sits in.
-      if (body.codes !== undefined || body.participantCodes !== undefined) {
+      if (body.codes !== undefined || body.speakerCodes !== undefined) {
         const projectId =
           updateData.projectId !== undefined
             ? updateData.projectId
@@ -192,15 +192,15 @@ export const PATCH = withAuthRateLimit(
           updateData.codes = parsed.codes as never;
         }
 
-        if (body.participantCodes !== undefined) {
-          const parsed = validateParticipantCodeRefs(
-            body.participantCodes,
+        if (body.speakerCodes !== undefined) {
+          const parsed = validateSpeakerCodeRefs(
+            body.speakerCodes,
             allowed,
           );
           if ("error" in parsed) {
             return NextResponse.json({ error: parsed.error }, { status: 400 });
           }
-          updateData.participantCodes = parsed.participantCodes as never;
+          updateData.speakerCodes = parsed.speakerCodes as never;
         }
       }
 
@@ -450,6 +450,6 @@ export const mapTransactionDetails = (transcription: Transcription) =>
     "isTutorial",
     "shared",
     "codes",
-    "participantCodes",
+    "speakerCodes",
     "userId",
   ]);

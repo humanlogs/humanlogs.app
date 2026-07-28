@@ -8,7 +8,7 @@ import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 import { findTranscriptionsSharedWith } from "@/lib/transcriptions/access";
 import {
   parseCodeRefs,
-  parseParticipantCodeRefs,
+  parseSpeakerCodeRefs,
 } from "@/lib/codebooks/codebook";
 
 export const GET = withAuthRateLimit(async (request, user) => {
@@ -107,18 +107,19 @@ const formatTranscriptionList = (t: Transcription, userId: string) => {
   const isOwner = t.userId === userId;
   const sharedUser = shared.find((s) => s.userId === userId);
 
-  // Speaker names live inside the (possibly large) transcription content JSON,
-  // which is already loaded here. Surface just the names so the documents list
-  // can show them for small panels. E2E-encrypted content has no readable
-  // `speakers` array, so this is simply undefined there and the UI falls back
-  // to the speaker count.
+  // Speakers live inside the (possibly large) transcription content JSON, which
+  // is already loaded here. Surface just their ids and names: the documents list
+  // shows the names, and the study coding board needs the ids to code a speaker
+  // without opening the document. E2E-encrypted content has no readable
+  // `speakers` array, so both are simply undefined there — the list falls back
+  // to the speaker count, and the board loads the document on demand.
   const content = t.transcription as {
     speakers?: { id: string; name?: string | null }[];
   } | null;
-  const speakers = content?.speakers;
-  const speakerNames = Array.isArray(speakers)
-    ? speakers.map((s) => s.name?.trim() || null)
+  const speakers = Array.isArray(content?.speakers)
+    ? content.speakers.map((s) => ({ id: s.id, name: s.name?.trim() || null }))
     : undefined;
+  const speakerNames = speakers?.map((s) => s.name);
 
   return {
     id: t.id,
@@ -130,12 +131,13 @@ const formatTranscriptionList = (t: Transcription, userId: string) => {
     projectId: t.projectId,
     speakerCount: t.speakerCount,
     speakerNames,
+    speakers,
     mediaType: t.mediaType,
     // Opaque { codebookId, codeId } refs; the sidebar groups on them.
     codes: parseCodeRefs(t.codes),
-    // Same, pinned on a participant of the document — a participant codebook
-    // groups the list on these.
-    participantCodes: parseParticipantCodeRefs(t.participantCodes),
+    // Same, pinned on a speaker of the document — a speaker codebook groups the
+    // list on both.
+    speakerCodes: parseSpeakerCodeRefs(t.speakerCodes),
     state: t.state,
     errorMessage: t.errorMessage,
     isEncrypted: (t.audioFileEncryption as EncryptedDataEntity)?.privateKeys

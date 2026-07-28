@@ -1,6 +1,6 @@
 "use client";
 
-import { ParticipantCodesMenu } from "@/components/codebooks/participant-codes-menu";
+import { SpeakerCodesMenu } from "@/components/codebooks/speaker-codes-menu";
 import { useTranslations } from "@/components/locale-provider";
 import { useSpeakerOptionsModal } from "@/components/transcriptions/dialogs/speaker-options-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -159,12 +159,12 @@ function SpeakerBadge({
               </DropdownMenuItem>
 
               {/* Codes carried by the person, not by what they say — kept on
-                  the speaker itself so coding a participant is one click from
-                  where they are visible. */}
-              <ParticipantCodesMenu
+                  the speaker itself, so coding one is a click away from where
+                  they are visible. */}
+              <SpeakerCodesMenu
                 transcriptionId={transcriptionId}
                 projectId={projectId}
-                participantId={speakerId}
+                speakerId={speakerId}
               />
 
               <DropdownMenuSeparator />

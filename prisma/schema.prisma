@@ -117,9 +117,9 @@ model Codebook {
   /// True when the codebook applies to every study of the user; otherwise the
   /// `studies` links decide.
   allStudies Boolean         @default(false)
-  /// Smallest unit this codebook is meant to tag:
-  /// "document" | "sentence" | "subsentence" | "word".
-  target     String          @default("document")
+  /// What this codebook codes: "speaker" (the document and the people in it)
+  /// or "verbatim" (a passage of the transcript).
+  target     String          @default("speaker")
   /// Key of the preset it was created from, null for a hand-made codebook.
   preset     String?
   /// EncryptedDataEntity, or `{ name, codes }` in clear when the user has no
@@ -169,11 +169,11 @@ model Transcription {
   // uuids — the labels live inside the codebook's encrypted content, so this
   // stays readable by the server without leaking what the codes mean.
   codes                     Json?
-  // Codes applied to the participants (speakers) of this document:
-  // [{ participantId, codebookId, codeId }]. `participantId` is the speaker id
-  // of the transcript, a position rather than a name — names live inside the
+  // Codes applied to the speakers of this document:
+  // [{ speakerId, codebookId, codeId }]. `speakerId` is the speaker id of the
+  // transcript, a position rather than a name — names live inside the
   // encrypted content, so this stays as opaque to the server as the code ids.
-  participantCodes          Json?
+  speakerCodes              Json?
   createdAt                 DateTime           @default(now())
   updatedAt                 DateTime           @updatedAt
   updatedBy                 String             @default("system")

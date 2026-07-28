@@ -4,14 +4,16 @@ import { useCodebookModal } from "@/components/codebooks/codebook-editor-dialog"
 import { GuideCallout } from "@/components/guidance/guide-callout";
 import { useTranslations } from "@/components/locale-provider";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useCodebooks } from "@/hooks/use-codebooks";
 import {
   codebooksInScopeForProject,
   flattenCodes,
   type DecryptedCodebook,
 } from "@/lib/codebooks/codebook";
-import { BookMarkedIcon, PlusIcon } from "lucide-react";
+import { BookMarkedIcon, PlusIcon, TagsIcon } from "lucide-react";
+import Link from "next/link";
+import { cn } from "@/lib/utils/utils";
 
 /**
  * The codebooks available from a study: those attached to it, plus the ones
@@ -65,12 +67,25 @@ export function CodebookSection({ projectId }: { projectId: string }) {
               honest: this part still moves. */}
           <Badge variant="outline">{t("section.beta")}</Badge>
         </h2>
-        {/* Presets live inside the creation dialog, as cards — no separate entry
-            point here. */}
-        <Button size="sm" onClick={() => openCreate(projectId)}>
-          <PlusIcon className="h-4 w-4" />
-          {t("section.create")}
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* The coding pass over the whole study — hidden while there is
+              nothing to code with. */}
+          {inScope.length > 0 && (
+            <Link
+              href={`/app/project/${projectId}/coding`}
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+            >
+              <TagsIcon className="h-4 w-4" />
+              {t("section.code")}
+            </Link>
+          )}
+          {/* Presets live inside the creation dialog, as cards — no separate
+              entry point here. */}
+          <Button size="sm" onClick={() => openCreate(projectId)}>
+            <PlusIcon className="h-4 w-4" />
+            {t("section.create")}
+          </Button>
+        </div>
       </div>
 
       {!isLoading && inScope.length === 0 ? (

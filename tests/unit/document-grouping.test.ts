@@ -18,13 +18,8 @@ import {
  * wrong thing.
  */
 
-const at = (
-  y: number,
-  m: number,
-  d: number,
-  h = 12,
-  min = 0,
-): string => new Date(y, m - 1, d, h, min).toISOString();
+const at = (y: number, m: number, d: number, h = 12, min = 0): string =>
+  new Date(y, m - 1, d, h, min).toISOString();
 
 // A Wednesday, so "this week" (Monday-based) has room on both sides.
 const NOW = new Date(2026, 6, 15, 14, 30); // 15 July 2026, 14:30 local
@@ -109,7 +104,11 @@ describe("groupDocuments — by study", () => {
 describe("groupDocuments — by date", () => {
   it("buckets on the requested field, not always on updatedAt", () => {
     const documents = [
-      doc({ id: "old-edit", createdAt: at(2026, 5, 2), updatedAt: at(2026, 7, 15) }),
+      doc({
+        id: "old-edit",
+        createdAt: at(2026, 5, 2),
+        updatedAt: at(2026, 7, 15),
+      }),
     ];
 
     const byUpdate = groupDocuments({
@@ -181,10 +180,7 @@ describe("groupDocuments — by codebook", () => {
       now: NOW,
     });
 
-    expect(groups.map((g) => g.key)).toEqual([
-      "code:cb1:c1",
-      "code:cb1:c2",
-    ]);
+    expect(groups.map((g) => g.key)).toEqual(["code:cb1:c1", "code:cb1:c2"]);
     expect(groups.every((g) => g.documents[0].id === "both")).toBe(true);
   });
 
@@ -312,11 +308,11 @@ describe("groupDocuments — by codebook", () => {
   });
 });
 
-describe("groupDocuments — by participant codebook", () => {
+describe("groupDocuments — by speaker codebook", () => {
   const codebooks = [
     {
       id: "roles",
-      target: "participant" as const,
+      target: "speaker" as const,
       codes: [
         { id: "interviewee", label: "Enquêté" },
         { id: "third", label: "Tiers" },
@@ -324,17 +320,17 @@ describe("groupDocuments — by participant codebook", () => {
     },
   ];
 
-  it("groups on the codes of the participants, not on the document's own", () => {
+  it("groups on the document's own codes and on its speakers' alike", () => {
+    // One codebook covers both levels, so an interview tagged at the document
+    // level and a speaker tagged inside it belong to their two groups.
     const groups = groupDocuments({
       documents: [
         doc({
           id: "interview",
-          // A document code with the same id must not answer for the
-          // participant grouping.
           codes: [{ codebookId: "roles", codeId: "third" }],
-          participantCodes: [
+          speakerCodes: [
             {
-              participantId: "speaker_0",
+              speakerId: "speaker_0",
               codebookId: "roles",
               codeId: "interviewee",
             },
@@ -348,22 +344,49 @@ describe("groupDocuments — by participant codebook", () => {
       now: NOW,
     });
 
-    expect(groups.map((g) => g.key)).toEqual(["code:roles:interviewee"]);
+    expect(groups.map((g) => g.key)).toEqual([
+      "code:roles:interviewee",
+      "code:roles:third",
+    ]);
   });
 
-  it("lists a document under each code its participants carry", () => {
+  it("never groups on a verbatim codebook, which codes passages", () => {
+    const groups = groupDocuments({
+      documents: [
+        doc({
+          id: "coded",
+          codes: [{ codebookId: "themes", codeId: "c1" }],
+        }),
+      ],
+      projects: [],
+      codebooks: [
+        {
+          id: "themes",
+          target: "verbatim" as const,
+          codes: [{ id: "c1", label: "Thème" }],
+        },
+      ],
+      groupBy: "codebook:themes",
+      sortBy: "alphabetical",
+      now: NOW,
+    });
+
+    expect(groups.map((g) => g.key)).toEqual(["code:themes:none"]);
+  });
+
+  it("lists a document under each code its speakers carry", () => {
     const groups = groupDocuments({
       documents: [
         doc({
           id: "duo",
-          participantCodes: [
+          speakerCodes: [
             {
-              participantId: "speaker_0",
+              speakerId: "speaker_0",
               codebookId: "roles",
               codeId: "interviewee",
             },
             {
-              participantId: "speaker_1",
+              speakerId: "speaker_1",
               codebookId: "roles",
               codeId: "third",
             },
@@ -387,19 +410,19 @@ describe("groupDocuments — by participant codebook", () => {
     ]);
   });
 
-  it("lists a document once per code, even when two participants share it", () => {
+  it("lists a document once per code, even when two speakers share it", () => {
     const groups = groupDocuments({
       documents: [
         doc({
           id: "two-interviewees",
-          participantCodes: [
+          speakerCodes: [
             {
-              participantId: "speaker_0",
+              speakerId: "speaker_0",
               codebookId: "roles",
               codeId: "interviewee",
             },
             {
-              participantId: "speaker_1",
+              speakerId: "speaker_1",
               codebookId: "roles",
               codeId: "interviewee",
             },
@@ -416,15 +439,15 @@ describe("groupDocuments — by participant codebook", () => {
     expect(groups[0].documents.map((d) => d.id)).toEqual(["two-interviewees"]);
   });
 
-  it("collects documents with no coded participant in the trailing group", () => {
+  it("collects documents with no coded speaker in the trailing group", () => {
     const groups = groupDocuments({
       documents: [
         doc({ id: "bare" }),
         doc({
           id: "coded",
-          participantCodes: [
+          speakerCodes: [
             {
-              participantId: "speaker_0",
+              speakerId: "speaker_0",
               codebookId: "roles",
               codeId: "interviewee",
             },
@@ -445,8 +468,18 @@ describe("groupDocuments — by participant codebook", () => {
 
 describe("sortDocuments", () => {
   const documents = [
-    doc({ id: "b", title: "Beta 10", updatedAt: at(2026, 7, 1), createdAt: at(2026, 6, 1) }),
-    doc({ id: "a", title: "beta 2", updatedAt: at(2026, 7, 10), createdAt: at(2026, 5, 1) }),
+    doc({
+      id: "b",
+      title: "Beta 10",
+      updatedAt: at(2026, 7, 1),
+      createdAt: at(2026, 6, 1),
+    }),
+    doc({
+      id: "a",
+      title: "beta 2",
+      updatedAt: at(2026, 7, 10),
+      createdAt: at(2026, 5, 1),
+    }),
   ];
 
   it("sorts alphabetically, case-insensitively and numerically", () => {

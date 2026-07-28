@@ -40,7 +40,7 @@ const SENTIMENT: CodebookPreset = {
   key: "sentiment",
   name: "Sentiment",
   description: "Valence du propos, du très positif à l'ambivalent.",
-  target: "sentence",
+  target: "verbatim",
   codes: [
     { label: "Positif", color: "green" },
     { label: "Plutôt positif", color: "teal" },
@@ -69,7 +69,7 @@ const TAT_DISCURSIVE: CodebookPreset = {
   key: "tat-discursive",
   name: "TAT — procédés du discours",
   description: "Procédés discursifs du TAT, séries A, B, C et E.",
-  target: "sentence",
+  target: "verbatim",
   codes: [
     { label: "A1 — Référence à la réalité externe", color: "blue" },
     { label: "A2 — Procédés de type obsessionnel", color: "blue" },
@@ -104,7 +104,7 @@ const INTERVIEW_STRUCTURE: CodebookPreset = {
   name: "Structure d'entretien",
   description:
     "Type de tour de parole : question, relance, récit, digression, méta-commentaire.",
-  target: "sentence",
+  target: "verbatim",
   codes: [
     { label: "Question", color: "indigo" },
     { label: "Relance", color: "sky" },
@@ -116,16 +116,16 @@ const INTERVIEW_STRUCTURE: CodebookPreset = {
 
 /**
  * Who the speaker is in the encounter — the first thing to settle before any
- * participant-level attribute, and the one grid that is the same in every
- * study. Attributes proper (âge, profession, groupe) are too study-specific to
- * ship as a preset; they are added as codes of a second participant codebook.
+ * attribute of the person, and the one grid that is the same in every study.
+ * Attributes proper (âge, profession, groupe) are too study-specific to ship as
+ * a preset; they are added as codes of a second speaker codebook.
  */
-const PARTICIPANT_ROLE: CodebookPreset = {
-  key: "participant-role",
-  name: "Rôle du participant",
+const SPEAKER_ROLE: CodebookPreset = {
+  key: "speaker-role",
+  name: "Rôle du locuteur",
   description:
     "Place du locuteur dans l'entretien : enquêté, enquêteur, tiers.",
-  target: "participant",
+  target: "speaker",
   codes: [
     { label: "Enquêté·e", color: "green" },
     { label: "Enquêteur·rice", color: "indigo" },
@@ -138,12 +138,15 @@ const PARTICIPANT_ROLE: CodebookPreset = {
   ],
 };
 
-/** Document-level triage — the one preset that tags whole documents. */
+/**
+ * Triage of the interview as a whole — a speaker codebook applied at the
+ * document level rather than to one of its speakers.
+ */
 const DOCUMENT_STATUS: CodebookPreset = {
   key: "document-status",
   name: "Statut du document",
   description: "Tri au niveau du document : à relire, exploitable, écarté.",
-  target: "document",
+  target: "speaker",
   codes: [
     { label: "À relire", color: "amber" },
     { label: "Exploitable", color: "green" },
@@ -156,7 +159,7 @@ export const CODEBOOK_PRESETS: CodebookPreset[] = [
   SENTIMENT,
   TAT_DISCURSIVE,
   INTERVIEW_STRUCTURE,
-  PARTICIPANT_ROLE,
+  SPEAKER_ROLE,
   DOCUMENT_STATUS,
 ];
 

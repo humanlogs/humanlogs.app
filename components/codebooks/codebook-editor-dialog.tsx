@@ -30,10 +30,7 @@ import {
   type Code,
   type CodebookTarget,
 } from "@/lib/codebooks/codebook";
-import {
-  CODEBOOK_PRESETS,
-  type CodebookPreset,
-} from "@/lib/codebooks/presets";
+import { CODEBOOK_PRESETS, type CodebookPreset } from "@/lib/codebooks/presets";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -82,9 +79,9 @@ export function CodebookEditorDialog() {
     ? codebooks.find((c) => c.id === data.codebookId)
     : undefined;
 
-  // Opening from a place that implies a granularity (the participant menu, for
-  // instance) narrows the presets to the ones that fit it, so a preset cannot
-  // silently change the target the researcher came for.
+  // Opening from a place that implies a target (the speaker menu, for instance)
+  // narrows the presets to the ones that fit it, so a preset cannot silently
+  // change the target the researcher came for.
   const presets = data?.target
     ? CODEBOOK_PRESETS.filter((preset) => preset.target === data.target)
     : CODEBOOK_PRESETS;
@@ -147,7 +144,9 @@ export function CodebookEditorDialog() {
     );
 
   const updateCode = (id: string, patch: Partial<Code>) => {
-    setCodes((current) => mapTree(current, id, (code) => ({ ...code, ...patch })));
+    setCodes((current) =>
+      mapTree(current, id, (code) => ({ ...code, ...patch })),
+    );
   };
 
   const addSubCode = (id: string) => {
@@ -165,9 +164,7 @@ export function CodebookEditorDialog() {
       list
         .filter((code) => code.id !== id)
         .map((code) =>
-          code.children
-            ? { ...code, children: prune(code.children) }
-            : code,
+          code.children ? { ...code, children: prune(code.children) } : code,
         );
     setCodes((current) => prune(current));
   };
@@ -243,9 +240,7 @@ export function CodebookEditorDialog() {
       close();
     } catch (error) {
       console.error("Failed to save codebook", error);
-      toast.error(
-        error instanceof Error ? error.message : t("errors.failed"),
-      );
+      toast.error(error instanceof Error ? error.message : t("errors.failed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -412,13 +407,20 @@ export function CodebookEditorDialog() {
               value={target}
               onChange={(value) => setTarget(value as CodebookTarget)}
             />
+            {/* Two targets say little on their own — the hint is what tells the
+                researcher where the codes will be applied. */}
+            <p className="text-xs text-muted-foreground">
+              {t(`targetHints.${target}`)}
+            </p>
           </div>
 
           <Separator />
 
           <div className="space-y-2">
             <Label>{t("codes")}</Label>
-            <div className="space-y-2">{codes.map((code) => renderCode(code))}</div>
+            <div className="space-y-2">
+              {codes.map((code) => renderCode(code))}
+            </div>
             <Button
               type="button"
               variant="outline"

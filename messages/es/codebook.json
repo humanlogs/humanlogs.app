@@ -12,7 +12,8 @@
       "allStudies": "Todos los estudios",
       "studyCount": "{count} estudios",
       "codeCount": "{count} códigos",
-      "locked": "Cifrado — sin clave en este dispositivo"
+      "locked": "Cifrado — sin clave en este dispositivo",
+      "code": "Codificar el estudio"
     },
     "editor": {
       "createTitle": "Nuevo libro de códigos",
@@ -25,11 +26,12 @@
       "scopeSelected": "Estudios seleccionados",
       "target": "Se aplica a",
       "targets": {
-        "document": "Documento completo",
-        "participant": "Participante",
-        "sentence": "Frase",
-        "subsentence": "Parte de una frase",
-        "word": "Palabra"
+        "speaker": "Hablante",
+        "verbatim": "Verbatim"
+      },
+      "targetHints": {
+        "speaker": "Códigos de las personas: se aplican a un documento entero y a cada uno de sus hablantes (rol, grupo, perfil).",
+        "verbatim": "Códigos de lo que se dice: se aplican a un fragmento de la transcripción, de una palabra a una frase entera."
       },
       "codes": "Códigos",
       "addCode": "Añadir un código",
@@ -53,11 +55,31 @@
       "manual": "Continuar manualmente",
       "back": "Volver a las plantillas"
     },
-    "participant": {
-      "menu": "Códigos del participante",
-      "create": "Crear un codebook de participantes",
-      "untitled": "Codebook sin nombre",
-      "failed": "No se han podido guardar los códigos del participante"
+    "speaker": {
+      "menu": "Códigos del hablante",
+      "create": "Crear un codebook de hablantes",
+      "failed": "No se han podido guardar los códigos del hablante",
+      "untitled": "Codebook sin nombre"
+    },
+    "board": {
+      "title": "Codificación",
+      "description": "Asigne los códigos de un codebook a todos los documentos del estudio y a las personas que aparecen en ellos.",
+      "codebook": "Codebook",
+      "hint": "Solo se listan los codebooks de hablante: los códigos verbatim se aplican al texto, en el editor.",
+      "documentCodes": "Documento",
+      "speakerCodes": "Códigos",
+      "speakerFallback": "Hablante {index}",
+      "noSpeakers": "Ningún hablante en este documento",
+      "revealSpeakers": "Mostrar los {count} hablantes (documento cifrado)",
+      "locked": "Cifrado — sin clave en este dispositivo",
+      "empty": "Todavía no hay documentos en este estudio",
+      "failed": "No se han podido guardar los códigos",
+      "noCodebook": {
+        "title": "Ningún codebook de hablante",
+        "description": "Codificar un estudio requiere un codebook cuyos códigos se apliquen a documentos y hablantes.",
+        "action": "Crear un codebook"
+      },
+      "untitled": "Codebook sin nombre"
     }
   }
 }

@@ -7,7 +7,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { serverEncryption } from "@/lib/encryption/encryption-entities";
-import type { CodebookDTO, CodebookTarget } from "./codebook";
+import { normalizeCodebookTarget, type CodebookDTO } from "./codebook";
 
 type CodebookRow = {
   id: string;
@@ -24,7 +24,9 @@ export function formatCodebook(row: CodebookRow): CodebookDTO {
   return {
     id: row.id,
     allStudies: row.allStudies,
-    target: row.target as CodebookTarget,
+    // Normalized on the way out, so a row written before the targets were
+    // reduced to two still opens in the editor.
+    target: normalizeCodebookTarget(row.target),
     preset: row.preset,
     studyIds: (row.studies ?? []).map((s) => s.projectId),
     content: row.content as CodebookDTO["content"],
@@ -108,7 +110,10 @@ export async function revokeCodebookAccess(
       payload?: string;
     } | null;
     // Leave plaintext codebooks alone, and never strip the last key holder.
-    if (!Array.isArray(content?.privateKeys) || content.privateKeys.length <= 1) {
+    if (
+      !Array.isArray(content?.privateKeys) ||
+      content.privateKeys.length <= 1
+    ) {
       continue;
     }
     try {
@@ -143,7 +148,11 @@ export async function settleCodebooksForDeletedProject(
 ): Promise<void> {
   const codebooks = await prisma.codebook.findMany({
     where: { userId, studies: { some: { projectId } } },
-    select: { id: true, allStudies: true, studies: { select: { projectId: true } } },
+    select: {
+      id: true,
+      allStudies: true,
+      studies: { select: { projectId: true } },
+    },
   });
 
   const toDelete: string[] = [];
