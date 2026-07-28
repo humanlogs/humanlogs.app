@@ -31,6 +31,10 @@ import * as Y from "yjs";
 import { EditorAPI } from "../api";
 import { CollabCaret } from "../collab/collab-caret";
 import { docToSegments } from "../collab/doc-to-segments";
+import {
+  chooseTimingReference,
+  isUnsyncedBlank,
+} from "../collab/timing-reference";
 import { AutoWrapExtension } from "../extensions/auto-wrap-extension";
 import { CommentMark } from "../extensions/comment-mark";
 import { segmentsToHtml } from "../utils/html";
@@ -150,6 +154,15 @@ export function useTiptapEditor({
     });
   }
 
+  // The projection as it was loaded from the database, kept intact for the whole
+  // session. `segmentsRef` is rewritten on every derivation, so it is not a
+  // dependable timestamp source: the doc is empty until the seed lands, and a
+  // derivation that runs in that window would leave it empty. This one is the
+  // floor under every fallback — it always carries the stored per-word timings.
+  const initialSegmentsRef = useRef<TranscriptionSegment[]>(
+    segmentsRef.current,
+  );
+
   // Initial HTML the seed authority writes into the Yjs fragment.
   const segmentsHtmlRef = useRef<any>("");
   if (!segmentsHtmlRef.current)
@@ -188,6 +201,19 @@ export function useTiptapEditor({
   const refreshTimingRefFnRef = useRef<() => void>(() => {});
   const refreshDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
+  /**
+   * What the next derivation carries its per-word timestamps from: the shared
+   * reference when the Y.Doc holds one, the current projection otherwise, and the
+   * segments as loaded from the database as a last resort. See
+   * {@link chooseTimingReference} for why each step tests for content.
+   */
+  const timingReference = (): TranscriptionSegment[] =>
+    chooseTimingReference(
+      timingRefRef.current,
+      segmentsRef.current,
+      initialSegmentsRef.current,
+    );
+
   // Derive the flat projection from the (converged) doc, then update consumers and
   // (save-leader only) persist. Kept in a ref so once-created closures call the
   // latest version.
@@ -195,25 +221,25 @@ export function useTiptapEditor({
   collabDeriveRef.current = () => {
     const ed = editorRef.current;
     if (!ed) return;
-    segmentsRef.current = docToSegments(
-      ed.state.doc,
-      timingRefRef.current ?? segmentsRef.current,
-    );
-    editorAPI.emit("speakersOffsets");
-    // Refuse to persist emptiness nobody asked for. A client that failed to sync
-    // sits in front of a blank editor; if it is also the save leader, saving that
-    // blank replaces the real transcript in Postgres for everyone. Emptying the
-    // document by hand stays possible — that goes through a local edit.
-    const wouldEraseEverything =
-      segmentsRef.current.length === 0 &&
-      hadInitialContentRef.current &&
-      !localEditsRef.current;
-    if (wouldEraseEverything) {
+    const derived = docToSegments(ed.state.doc, timingReference());
+    // Refuse to persist emptiness nobody asked for — and refuse to KEEP it, since
+    // `segmentsRef` is the only in-memory copy of the per-word timings until the
+    // seed pins them in the Y.Doc (see collab/timing-reference.ts).
+    if (
+      isUnsyncedBlank(derived, {
+        hadInitialContent: hadInitialContentRef.current,
+        localEdits: localEditsRef.current,
+      })
+    ) {
       console.warn(
         "[collab] not saving: the document is empty and was never edited here",
       );
+      editorAPI.emit("speakersOffsets");
+      return;
     }
-    if (isCollabSaverRef.current && onChange && !wouldEraseEverything) {
+    segmentsRef.current = derived;
+    editorAPI.emit("speakersOffsets");
+    if (isCollabSaverRef.current && onChange) {
       onChange(segmentsRef.current);
       // Refresh the shared timing reference (debounced, leader only).
       if (refreshDebounceRef.current) clearTimeout(refreshDebounceRef.current);
@@ -484,17 +510,31 @@ export function useTiptapEditor({
           end: w.end,
         }));
 
+    /**
+     * Pin a timing reference for the whole room. An EMPTY one is never written:
+     * it would not merely be useless, it would override the fallbacks every
+     * client has locally and strip the audio position off every word — for the
+     * late joiners too, since this is the copy they adopt.
+     */
     const writeTimingRef = (words: TranscriptionSegment[]) => {
+      if (!words.length) return;
       ydoc.transact(() => timingMap.set("ref", words), "timing-local");
       timingRefRef.current = words;
     };
     const seedTimingRef = () => {
-      if (!timingMap.has("ref"))
-        writeTimingRef(extractTimingWords(segmentsRef.current));
-      else timingRefRef.current = timingMap.get("ref") ?? null;
+      const shared = timingMap.get("ref");
+      if (shared?.length) {
+        timingRefRef.current = shared;
+        return;
+      }
+      // From the segments as LOADED, not from the live projection: a derivation
+      // that ran before the document arrived leaves the latter empty, and this
+      // is the value every client in the room will derive against.
+      writeTimingRef(extractTimingWords(initialSegmentsRef.current));
     };
     const adoptTimingRef = () => {
-      timingRefRef.current = timingMap.get("ref") ?? timingRefRef.current;
+      const shared = timingMap.get("ref");
+      if (shared?.length) timingRefRef.current = shared;
     };
 
     // A remote refresh (from the save leader) → adopt it for our next derivation.
@@ -519,9 +559,16 @@ export function useTiptapEditor({
         // other, so Y.UndoManager used to record it as one big step: undo enough
         // times and the whole document disappeared — and, the leader having then
         // saved that emptiness, for everyone.
+        //
+        // The caret is pinned back to the top in the same transaction: replacing
+        // the whole document maps the selection to its END, and when the seed
+        // lands late (a stale authority still holding the room, so we waited on
+        // a state reply that never came) the browser then scrolls the reader to
+        // the last line of a transcript they have not started reading.
         editor
           .chain()
           .setContent(segmentsHtmlRef.current)
+          .setTextSelection(0)
           .setMeta("addToHistory", false)
           .run();
       }

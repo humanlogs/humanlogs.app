@@ -76,7 +76,18 @@ type SyncMsg = {
  */
 let sessionCounter = 0;
 
-/** How long to wait for the authority's state before asking again. */
+/**
+ * How long to wait for the authority's state before asking again.
+ *
+ * The first wait is short on purpose. The common case for a missing reply is a
+ * reload: the server still has the previous page's socket down as the authority,
+ * routes our request to it, and nobody answers. Until we ask again — which is
+ * what makes the server promote us and seed the editor — the reader sits in
+ * front of a blank document, so four seconds of it reads as the app losing the
+ * transcript. Later attempts back off to the original wait, which is generous
+ * enough for a live authority encoding a long transcript.
+ */
+const STATE_FIRST_RETRY_MS = 1200;
 const STATE_RETRY_MS = 4000;
 /** Give up re-asking after this many tries (~20s) and let the UI stay as it is. */
 const STATE_MAX_ATTEMPTS = 5;
@@ -179,7 +190,10 @@ export class YjsCollabProvider {
       this.onAwarenessUpdate = ({ added, updated, removed }, origin) => {
         if (origin === this) return; // came from a remote apply — don't echo
         const changed = [...added, ...updated, ...removed];
-        void this.emitMsg("awareness", encodeAwarenessUpdate(awareness, changed));
+        void this.emitMsg(
+          "awareness",
+          encodeAwarenessUpdate(awareness, changed),
+        );
       };
       awareness.on("update", this.onAwarenessUpdate);
     }
@@ -273,22 +287,19 @@ export class YjsCollabProvider {
     });
     this.clearStateTimer();
     if (this.stateAttempts >= STATE_MAX_ATTEMPTS) return;
+    const wait =
+      this.stateAttempts === 0 ? STATE_FIRST_RETRY_MS : STATE_RETRY_MS;
     this.stateTimer = setTimeout(() => {
       this.stateTimer = null;
       if (this.destroyed || !this.awaitingState) return;
       this.stateAttempts++;
-      this.log(
-        "no state after",
-        STATE_RETRY_MS,
-        "ms — retry",
-        this.stateAttempts,
-      );
+      this.log("no state after", wait, "ms — retry", this.stateAttempts);
       this.socket.emit("yjs:join", {
         transcriptionId: this.transcriptionId,
         session: this.session,
       });
       this.requestState();
-    }, STATE_RETRY_MS);
+    }, wait);
   }
 
   /** A state reply landed (or is no longer needed): stop the retry loop. */

@@ -7,7 +7,7 @@ updated: 2026-07-28
 related: organize/collaboration, privacy/legal
 ---
 
-End-to-end encryption means your audio and transcripts are encrypted in your browser, before anything is sent to us, and can only be decrypted by you and the people you share with. We store ciphertext and hold no key that opens it.
+End-to-end encryption means your transcripts and your audio are stored encrypted with a key only you hold, and can only be read by you and the people you share with. We store ciphertext and hold no key that opens it.
 
 It is optional, and off unless you turn it on. This page explains what it does, so you can decide, and so you can answer an ethics committee that asks about it.
 
@@ -21,7 +21,7 @@ You are then offered a **certificate file** containing your key. **Download it a
 
 ## The scheme, in plain terms
 
-Each document gets its own random **AES-GCM** key, generated in your browser, which encrypts the content: the transcript and the audio file.
+Each document gets its own random **AES-GCM** key, which encrypts its content: the transcript, the audio file, the speaker list and the vocabulary.
 
 That content key is then **wrapped separately for each authorised person**, using their public **RSA** key. A document therefore carries one small encrypted key entry per person with access, alongside a single copy of the encrypted content.
 
@@ -64,7 +64,11 @@ That last case is the one real cost of encryption, and it is the same property t
 
 ## What we can and cannot see
 
-We hold the ciphertext of your transcripts and audio, the wrapped key entries, and the metadata that makes the service work: who owns a document, who it is shared with, its length, when it was created.
+Encrypted, unreadable to us: the transcript, the audio, the speaker names, your codes and their labels, comments, and the custom vocabulary you gave the recording.
+
+In clear, because the service cannot work otherwise: the document title, the original file name and size, the language, durations and dates, who owns a document and who it is shared with. Code identifiers are stored too, but they are meaningless uuids, the labels live inside the encrypted payload.
+
+That is why the advice about titles below matters: it is the one field where you choose what we can see.
 
 We cannot read the transcript or listen to the audio. No support request, no court order and no compromise of our servers changes that, because the key is not ours to produce.
 
@@ -75,7 +79,8 @@ Real-time collaboration is not an exception: our server relays messages between 
 Being precise here matters more than being reassuring:
 
 - **The transcription step.** Speech recognition happens at a provider, which needs the audio in the clear. It is decrypted for that step, under a zero-retention policy, and re-encrypted before storage. If that is unacceptable for your material, run a local Whisper server on your own infrastructure. See the [installation guide](/docs/self-hosting/installation-guide).
-- **Metadata.** Document names, participants and timings are not encrypted. Do not put a participant's real name in a document title.
+- **The upload itself.** Your audio reaches us in the clear and is encrypted on arrival, with a key only you can unwrap. It has to: the transcription provider needs to hear it. Encryption protects it at rest, from that moment on, which is what a stolen backup or a compromised database would touch.
+- **Document titles.** They stay readable, so do not put a participant's real name in one. Their names inside the transcript, the speaker list and the vocabulary are encrypted.
 - **Anyone you share with.** They can read, export and copy what you gave them. Encryption is not a leash.
 - **Your own device.** A compromised laptop holding your key is a compromised transcript.
 

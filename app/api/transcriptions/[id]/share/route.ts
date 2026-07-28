@@ -149,6 +149,17 @@ export const POST = withAuthRateLimit(
             };
           }
         }
+
+        // And for the custom vocabulary, its own entity since creation.
+        if (body.encryptedData.vocabulary?.privateKeys) {
+          const currentVocabulary = transcription.vocabulary as any;
+          if (currentVocabulary?.privateKeys) {
+            updateData.vocabulary = {
+              ...currentVocabulary,
+              privateKeys: body.encryptedData.vocabulary.privateKeys,
+            };
+          }
+        }
       }
 
       // Update the transcription

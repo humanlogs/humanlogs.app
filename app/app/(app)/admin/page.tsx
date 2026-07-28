@@ -27,6 +27,7 @@ import {
   BriefcaseIcon,
   RepeatIcon,
   GiftIcon,
+  BugIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
@@ -302,6 +303,11 @@ export default function AdminPage() {
   const featureRequests = useMemo(() => {
     if (!stats?.feedback.recent) return [];
     return stats.feedback.recent.filter((f) => f.type === "FEATURE_REQUEST");
+  }, [stats]);
+
+  const bugReports = useMemo(() => {
+    if (!stats?.feedback.recent) return [];
+    return stats.feedback.recent.filter((f) => f.type === "BUG_REPORT");
   }, [stats]);
 
   // Don't show anything if not admin
@@ -1613,6 +1619,49 @@ export default function AdminPage() {
                     <p className="text-muted-foreground">
                       No feature requests yet
                     </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Bug Reports */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BugIcon className="h-5 w-5" />
+                  Bug Reports
+                </CardTitle>
+                <CardDescription>
+                  What users report as broken, newest first
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {bugReports.length > 0 ? (
+                    bugReports.slice(0, 20).map((feedback) => (
+                      <div
+                        key={feedback.id}
+                        className="border-b pb-4 last:border-b-0 last:pb-0"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <span className="font-medium text-sm">
+                              {feedback.user.name || feedback.user.email}
+                            </span>
+                            {feedback.message && (
+                              <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">
+                                {feedback.message}
+                              </p>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(feedback.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground">No bug reports yet</p>
                   )}
                 </div>
               </CardContent>

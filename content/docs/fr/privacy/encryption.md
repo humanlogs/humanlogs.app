@@ -7,7 +7,7 @@ updated: 2026-07-28
 related: organize/collaboration, privacy/legal
 ---
 
-Le chiffrement de bout en bout signifie que votre audio et vos transcriptions sont chiffrés dans votre navigateur, avant que quoi que ce soit ne nous soit envoyé, et ne peuvent être déchiffrés que par vous et les personnes avec qui vous partagez. Nous stockons du chiffré et ne détenons aucune clé qui l'ouvre.
+Le chiffrement de bout en bout signifie que vos transcriptions et votre audio sont stockés chiffrés avec une clé que vous seul détenez, et ne peuvent être lus que par vous et les personnes avec qui vous partagez. Nous stockons du chiffré et ne détenons aucune clé qui l'ouvre.
 
 C'est optionnel, et désactivé tant que vous ne l'activez pas. Cette page explique ce qu'il fait, pour que vous puissiez décider, et pour répondre à un comité d'éthique qui pose la question.
 
@@ -21,7 +21,7 @@ On vous propose ensuite un **fichier de certificat** contenant votre clé. **Té
 
 ## Le principe, en clair
 
-Chaque document reçoit sa propre clé **AES-GCM** aléatoire, générée dans votre navigateur, qui chiffre le contenu : la transcription et le fichier audio.
+Chaque document reçoit sa propre clé **AES-GCM** aléatoire, qui chiffre son contenu : la transcription, le fichier audio, la liste des locuteurs et le vocabulaire.
 
 Cette clé de contenu est ensuite **emballée séparément pour chaque personne autorisée**, avec sa clé publique **RSA**. Un document porte donc une petite entrée de clé chiffrée par personne ayant accès, à côté d'un seul exemplaire du contenu chiffré.
 
@@ -64,7 +64,11 @@ Ce dernier cas est le seul vrai prix du chiffrement, et c'est la propriété mê
 
 ## Ce que nous voyons et ce que nous ne voyons pas
 
-Nous détenons le chiffré de vos transcriptions et de votre audio, les entrées de clés emballées, et les métadonnées qui font fonctionner le service : qui possède un document, avec qui il est partagé, sa durée, sa date de création.
+Chiffré, illisible pour nous : la transcription, l'audio, les noms des locuteurs, vos codes et leurs intitulés, les commentaires, et le vocabulaire personnalisé fourni à l'enregistrement.
+
+En clair, parce que le service ne peut pas fonctionner autrement : le titre du document, le nom et la taille du fichier d'origine, la langue, les durées et les dates, qui possède le document et avec qui il est partagé. Les identifiants de codes sont stockés aussi, mais ce sont des uuid sans signification : les intitulés vivent dans la charge chiffrée.
+
+C'est pourquoi le conseil sur les titres, plus bas, compte : c'est le seul champ où vous choisissez ce que nous pouvons voir.
 
 Nous ne pouvons ni lire la transcription ni écouter l'audio. Aucune demande de support, aucune décision de justice et aucune compromission de nos serveurs n'y change quoi que ce soit, parce que la clé n'est pas à nous.
 
@@ -75,7 +79,8 @@ La collaboration en temps réel n'est pas une exception : notre serveur relaie l
 Être précis ici compte plus qu'être rassurant :
 
 - **L'étape de transcription.** La reconnaissance vocale a lieu chez un fournisseur, qui a besoin de l'audio en clair. Il est déchiffré pour cette étape, sous une politique de non-conservation, puis rechiffré avant stockage. Si c'est inacceptable pour votre matériau, faites tourner un serveur Whisper local sur votre infrastructure, voir le [guide d'installation](/docs/self-hosting/installation-guide).
-- **Les métadonnées.** Noms de documents, participants et durées ne sont pas chiffrés. Ne mettez pas le vrai nom d'un participant dans un titre de document.
+- **L'envoi lui-même.** Votre audio nous parvient en clair et est chiffré à l'arrivée, avec une clé que vous seul pouvez ouvrir. C'est inévitable : le fournisseur de transcription doit l'entendre. Le chiffrement le protège au repos, à partir de ce moment, c'est-à-dire contre une sauvegarde volée ou une base compromise.
+- **Les titres de documents.** Ils restent lisibles : n'y mettez pas le vrai nom d'un participant. Leurs noms dans la transcription, dans la liste des locuteurs et dans le vocabulaire sont chiffrés.
 - **Les personnes avec qui vous partagez.** Elles peuvent lire, exporter et copier ce à quoi vous leur avez donné accès. Le chiffrement n'est pas une laisse.
 - **Votre propre appareil.** Un ordinateur compromis qui porte votre clé, c'est une transcription compromise.
 

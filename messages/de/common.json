@@ -20,6 +20,7 @@
       "feedback": "Feedback und Bewertungen",
       "feedbackDirect": "Feedback und Bewertungen",
       "featureRequest": "Feature-Anfrage",
+      "bugReport": "Fehler melden",
       "help": "Hilfe",
       "logout": "Abmelden",
       "referral": "Empfehlungen"
@@ -124,6 +125,11 @@
     "featureMessageLabel": "Welche Funktion möchten Sie sehen?",
     "featureMessagePlaceholder": "Beschreiben Sie die Funktion oder Verbesserung, die Sie sehen möchten...",
     "featureSuccess": "Vielen Dank für Ihren Vorschlag!",
+    "bugTitle": "Fehler melden",
+    "bugDescription": "Etwas funktioniert nicht? Sagen Sie es uns, wir sehen es uns an.",
+    "bugMessageLabel": "Was ist passiert?",
+    "bugMessagePlaceholder": "Was haben Sie getan, was haben Sie erwartet, und was ist stattdessen passiert? Das Dokument oder die Seite zu nennen hilft uns beim Nachstellen...",
+    "bugSuccess": "Danke, Ihre Meldung ist bei uns eingegangen!",
     "submit": "Feedback Senden",
     "submitting": "Wird gesendet...",
     "cancel": "Abbrechen",
@@ -132,6 +138,7 @@
       "ratingRequired": "Bitte wählen Sie eine Bewertung aus",
       "messageRequired": "Bitte sagen Sie uns, was wir verbessern können",
       "featureMessageRequired": "Bitte beschreiben Sie die Funktion, die Sie sehen möchten",
+      "bugMessageRequired": "Bitte beschreiben Sie das Problem",
       "submitFailed": "Feedback konnte nicht gesendet werden"
     }
   },

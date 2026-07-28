@@ -65,7 +65,9 @@ export type TranscriptionDetail = {
   audioFileEncryption?: string;
   mediaType?: "audio" | "text";
   language: string;
-  vocabulary: string[];
+  /** Decrypted by the generic decrypt when the document carries a key; null on
+   * documents created before the column was encrypted. */
+  vocabulary: string[] | null;
   speakerCount: number;
   state: "PENDING" | "COMPLETED" | "ERROR";
   errorMessage?: string | null;

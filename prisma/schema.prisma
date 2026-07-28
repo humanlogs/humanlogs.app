@@ -164,7 +164,11 @@ model Transcription {
   speakers                  Json?
   isTutorial                Boolean            @default(false)
   language                  String
-  vocabulary                String[]
+  /// Words given to the speech-to-text provider at creation, typically
+  /// including participant names. A plain `string[]`, or an
+  /// EncryptedDataEntity holding one when the user has a key: the provider
+  /// reads it in the creation request, nothing reads it at rest afterwards.
+  vocabulary                Json?
   speakerCount              Int                @default(1)
   state                     TranscriptionState @default(PENDING)
   errorMessage              String?
@@ -306,6 +310,7 @@ model Feedback {
 enum FeedbackType {
   RATING
   FEATURE_REQUEST
+  BUG_REPORT
 }
 
 model DeletionToken {

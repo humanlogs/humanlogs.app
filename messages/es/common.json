@@ -20,6 +20,7 @@
       "feedback": "Comentarios y opiniones",
       "feedbackDirect": "Ayúdanos a mejorar",
       "featureRequest": "Solicitud de función",
+      "bugReport": "Reportar un error",
       "help": "Ayuda",
       "logout": "Cerrar sesión",
       "referral": "Referidos"
@@ -124,6 +125,11 @@
     "featureMessageLabel": "¿Qué función te gustaría ver?",
     "featureMessagePlaceholder": "Describe la función o mejora que te gustaría ver...",
     "featureSuccess": "¡Gracias por tu sugerencia!",
+    "bugTitle": "Reportar un error",
+    "bugDescription": "¿Algo no funciona? Cuéntanoslo y lo revisamos.",
+    "bugMessageLabel": "¿Qué ha pasado?",
+    "bugMessagePlaceholder": "Qué hiciste, qué esperabas y qué ocurrió en su lugar. Indicar el documento o la página nos ayuda a reproducirlo...",
+    "bugSuccess": "¡Gracias, hemos recibido tu reporte!",
     "submit": "Enviar Comentarios",
     "submitting": "Enviando...",
     "cancel": "Cancelar",
@@ -132,6 +138,7 @@
       "ratingRequired": "Por favor selecciona una calificación",
       "messageRequired": "Por favor cuéntanos qué podemos mejorar",
       "featureMessageRequired": "Por favor describe la función que te gustaría ver",
+      "bugMessageRequired": "Por favor describe el problema",
       "submitFailed": "Error al enviar comentarios"
     }
   },

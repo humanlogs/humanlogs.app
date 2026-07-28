@@ -19,7 +19,8 @@ Assign a document from its actions menu or from the sidebar. Documents with no s
 
 Beyond tidiness, a study is the unit the rest of the product hangs off:
 
-- **Codebooks** are scoped to studies, all of them, or a selection. See [Codebooks](/docs/coding/codebooks).
+- **Codebooks** are scoped to studies, all of them, or a selection, and a study has its own coding board for going through a corpus in one pass. See [Codebooks](/docs/coding/codebooks).
+- **The sidebar can group documents by the codes** of a speaker codebook, which turns a code into a working view of the corpus.
 - **Comparisons** between interviews will work on a study when analysis ships.
 
 Grouping your interviews now costs a click each and saves the retrofit later.

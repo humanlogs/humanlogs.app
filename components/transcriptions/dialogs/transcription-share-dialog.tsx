@@ -227,6 +227,19 @@ export function TranscriptionShareDialog() {
           );
         }
 
+        // The custom vocabulary, same reason: it sits in its own entity, and a
+        // collaborator who cannot decrypt it would fail to read the document's
+        // metadata at all (the account export decrypts every field it finds).
+        const rawVocabulary = (transcription._raw as any)?.vocabulary;
+        if (rawVocabulary?.privateKeys && rawVocabulary?.payload) {
+          updatedEncryptedData.vocabulary = await encryptionUtils.share(
+            rawVocabulary,
+            newAccessor,
+            encryptionState.privateKey,
+            encryptionState.publicKey,
+          );
+        }
+
         // Re-wrap existing comment bodies so the new user can read them too. New
         // comments made after this share already include them (they encrypt for the
         // transcription's current accessor set).

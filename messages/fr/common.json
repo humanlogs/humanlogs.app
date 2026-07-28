@@ -20,6 +20,7 @@
       "feedback": "Avis",
       "feedbackDirect": "Donnez votre avis",
       "featureRequest": "Demande de fonctionnalité",
+      "bugReport": "Signaler un bug",
       "help": "Aide",
       "logout": "Déconnexion",
       "referral": "Parrainage"
@@ -124,6 +125,11 @@
     "featureMessageLabel": "Quelle fonctionnalité aimeriez-vous voir ?",
     "featureMessagePlaceholder": "Décrivez la fonctionnalité ou l'amélioration que vous aimeriez voir...",
     "featureSuccess": "Merci pour votre suggestion !",
+    "bugTitle": "Signaler un bug",
+    "bugDescription": "Quelque chose ne fonctionne pas ? Dites-le nous, on regarde.",
+    "bugMessageLabel": "Que s'est-il passé ?",
+    "bugMessagePlaceholder": "Ce que vous avez fait, ce que vous attendiez, et ce qui s'est passé à la place. Préciser le document ou la page nous aide à reproduire...",
+    "bugSuccess": "Merci, votre signalement a bien été envoyé !",
     "submit": "Envoyer le commentaire",
     "submitting": "Envoi en cours...",
     "cancel": "Annuler",
@@ -132,6 +138,7 @@
       "ratingRequired": "Veuillez sélectionner une note",
       "messageRequired": "Veuillez nous dire ce que nous pouvons améliorer",
       "featureMessageRequired": "Veuillez décrire la fonctionnalité que vous aimeriez voir",
+      "bugMessageRequired": "Veuillez décrire le problème",
       "submitFailed": "Échec de l'envoi des commentaires"
     }
   },

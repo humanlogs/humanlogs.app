@@ -17,7 +17,40 @@ import { StarIcon } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
-export type FeedbackModalMode = "rating" | "feature-request";
+export type FeedbackModalMode = "rating" | "feature-request" | "bug";
+
+/** The modes that are just a message: same form, different words and type. */
+const TEXT_MODES: Record<
+  "feature-request" | "bug",
+  {
+    type: "FEATURE_REQUEST" | "BUG_REPORT";
+    title: string;
+    description: string;
+    label: string;
+    placeholder: string;
+    success: string;
+    missing: string;
+  }
+> = {
+  "feature-request": {
+    type: "FEATURE_REQUEST",
+    title: "featureTitle",
+    description: "featureDescription",
+    label: "featureMessageLabel",
+    placeholder: "featureMessagePlaceholder",
+    success: "featureSuccess",
+    missing: "errors.featureMessageRequired",
+  },
+  bug: {
+    type: "BUG_REPORT",
+    title: "bugTitle",
+    description: "bugDescription",
+    label: "bugMessageLabel",
+    placeholder: "bugMessagePlaceholder",
+    success: "bugSuccess",
+    missing: "errors.bugMessageRequired",
+  },
+};
 
 export type FeedbackModalData = {
   mode?: FeedbackModalMode;
@@ -31,6 +64,8 @@ export function FeedbackDialog() {
   const { isOpen, data, close } = useFeedbackModal();
   const t = useTranslations("feedback");
   const mode = data?.mode || "rating";
+  // Everything that is not the star rating is the same one-textarea form.
+  const textMode = mode === "rating" ? null : TEXT_MODES[mode];
 
   const [rating, setRating] = React.useState<number | null>(null);
   const [hoveredRating, setHoveredRating] = React.useState<number | null>(null);
@@ -95,8 +130,8 @@ export function FeedbackDialog() {
       return;
     }
 
-    if (mode === "feature-request" && !message.trim()) {
-      toast.error(t("errors.featureMessageRequired"));
+    if (textMode && !message.trim()) {
+      toast.error(t(textMode.missing));
       return;
     }
 
@@ -109,7 +144,7 @@ export function FeedbackDialog() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          type: mode === "rating" ? "RATING" : "FEATURE_REQUEST",
+          type: textMode ? textMode.type : "RATING",
           rating: mode === "rating" ? rating : undefined,
           message: message.trim() || undefined,
         }),
@@ -120,9 +155,7 @@ export function FeedbackDialog() {
         throw new Error(error.error || "Failed to submit feedback");
       }
 
-      toast.success(
-        mode === "feature-request" ? t("featureSuccess") : t("success"),
-      );
+      toast.success(textMode ? t(textMode.success) : t("success"));
       close();
     } catch (error) {
       console.error("Error submitting feedback:", error);
@@ -148,13 +181,9 @@ export function FeedbackDialog() {
     <Dialog open={isOpen} onOpenChange={(open) => !open && close()}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>
-            {mode === "feature-request" ? t("featureTitle") : t("title")}
-          </DialogTitle>
+          <DialogTitle>{textMode ? t(textMode.title) : t("title")}</DialogTitle>
           <DialogDescription>
-            {mode === "feature-request"
-              ? t("featureDescription")
-              : t("description")}
+            {textMode ? t(textMode.description) : t("description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -250,19 +279,20 @@ export function FeedbackDialog() {
             </div>
           )}
 
-          {/* Feature Request Form */}
-          {mode === "feature-request" && (
+          {/* Feature request / bug report — one message, no rating */}
+          {textMode && (
             <div className="space-y-2">
-              <label htmlFor="feature-message" className="text-sm font-medium">
-                {t("featureMessageLabel")}
+              <label htmlFor="feedback-text" className="text-sm font-medium">
+                {t(textMode.label)}
               </label>
               <Textarea
-                id="feature-message"
+                id="feedback-text"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder={t("featureMessagePlaceholder")}
+                placeholder={t(textMode.placeholder)}
                 rows={6}
                 disabled={isSubmitting}
+                autoFocus
               />
             </div>
           )}
@@ -271,7 +301,7 @@ export function FeedbackDialog() {
         {/* Footer */}
         {((mode === "rating" && showThankYou) ||
           (mode === "rating" && rating !== null && rating < 3) ||
-          mode === "feature-request") && (
+          textMode !== null) && (
           <DialogFooter>
             {mode === "rating" && showThankYou ? (
               <>

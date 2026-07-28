@@ -24,7 +24,7 @@ Anyone who records people talking and then has to read, correct, quote and analy
 
 ## Where it is heading
 
-Transcription is the first stage of a longer journey. **Coding** is being built: [codebooks](/docs/coding/codebooks) already exist, applying codes to passages does not yet. **[Analysis](/docs/analysis/learn-more)** comes after it. Both are labelled as such throughout these docs, so you always know what has shipped.
+Transcription is the first stage of a longer journey. **Coding** is arriving in pieces: [codebooks](/docs/coding/codebooks) exist, and you can already code the people and the documents of a study; coding a passage of a transcript does not yet. **[Analysis](/docs/analysis/learn-more)** comes after it. Everything is labelled with what has shipped, so the docs never promise more than the product does.
 
 Everything you do now survives that: transcripts, studies and codebooks carry forward.
 

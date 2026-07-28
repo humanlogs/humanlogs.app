@@ -9,7 +9,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
     const { type = "RATING", rating, message } = body;
 
     // Validate type
-    if (!["RATING", "FEATURE_REQUEST"].includes(type)) {
+    if (!["RATING", "FEATURE_REQUEST", "BUG_REPORT"].includes(type)) {
       return NextResponse.json(
         { error: "Invalid feedback type" },
         { status: 400 },
@@ -39,13 +39,18 @@ export const POST = withAuthRateLimit(async (request, user) => {
       }
     }
 
-    // Validate message for FEATURE_REQUEST type
+    // Validate message for the free-text types
     if (
-      type === "FEATURE_REQUEST" &&
+      (type === "FEATURE_REQUEST" || type === "BUG_REPORT") &&
       (!message || typeof message !== "string" || !message.trim())
     ) {
       return NextResponse.json(
-        { error: "Message is required for feature requests" },
+        {
+          error:
+            type === "BUG_REPORT"
+              ? "Message is required for bug reports"
+              : "Message is required for feature requests",
+        },
         { status: 400 },
       );
     }

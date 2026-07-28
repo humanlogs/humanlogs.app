@@ -44,6 +44,8 @@ export const InteractiveAudio = ({
   const { setCurrentTime, registerSeekHandler } = useAudio();
   const segmentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const blobUrlRef = useRef<string | null>(null);
+  /** A seek asked for before the media had a duration — replayed once it does. */
+  const pendingSeekRef = useRef<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeedVal] = useState(1);
   const [totalDuration, setTotalDuration] = useState<number | undefined>(0);
@@ -80,14 +82,19 @@ export const InteractiveAudio = ({
 
   // Seek to specific time
   const seekTo = useCallback((time: number) => {
-    if (audioMediaRef.current) {
-      const duration = audioMediaRef.current.duration;
-      if (duration > 0) {
-        audioMediaRef.current.currentTime = Math.min(time, duration);
-        if (wavesurferRef.current) {
-          wavesurferRef.current.seekTo(time / duration);
-        }
-      }
+    if (!audioMediaRef.current) return;
+    const duration = audioMediaRef.current.duration;
+    if (!(duration > 0)) {
+      // No metadata yet (the file is still downloading, or being decrypted and
+      // decoded). A media element ignores `currentTime` in that state, so the
+      // seek would be dropped and every word clicked before the audio is ready
+      // would leave the playhead at 0. Remember it and replay it on load.
+      pendingSeekRef.current = time;
+      return;
+    }
+    audioMediaRef.current.currentTime = Math.min(time, duration);
+    if (wavesurferRef.current) {
+      wavesurferRef.current.seekTo(Math.min(time, duration) / duration);
     }
   }, []);
 
@@ -257,6 +264,12 @@ export const InteractiveAudio = ({
         const duration = audioMediaRef.current?.duration;
         if (duration && Number.isFinite(duration)) {
           setTotalDuration(duration);
+          // Honour the last word clicked while the audio was still loading.
+          const pending = pendingSeekRef.current;
+          if (pending !== null) {
+            pendingSeekRef.current = null;
+            seekTo(pending);
+          }
         }
       };
       audioMediaRef.current?.addEventListener(
@@ -339,6 +352,8 @@ export const InteractiveAudio = ({
 
     // Cleanup
     return () => {
+      // Never carry a seek over to another document's audio.
+      pendingSeekRef.current = null;
       if (segmentTimeoutRef.current) {
         clearTimeout(segmentTimeoutRef.current);
       }

@@ -31,7 +31,9 @@ Yes, at the same time, with three levels of access, including read-without-the-a
 
 ## Can I code and analyse my corpus here?
 
-Not yet. [Codebooks](/docs/coding/codebooks) exist; applying codes to passages and [analysing](/docs/analysis/learn-more) a coded corpus are being built. Today you export to NVivo, MAXQDA or CSV and code there, see [Export](/docs/transcribe/export).
+Partly. You can build [codebooks](/docs/coding/codebooks) and code the **people** and the **documents** of a study, including across every interview someone appears in. Coding a **passage** of a transcript, and [analysing](/docs/analysis/learn-more) a coded corpus, are still being built.
+
+For passage coding today, export to NVivo, MAXQDA or CSV and code there, see [Export](/docs/transcribe/export).
 
 ## What happens if I stop paying?
 

@@ -111,6 +111,23 @@ export function SelectionToolbar({
         // The editor sits inside several `overflow-hidden` wrappers — an absolutely
         // positioned menu would be clipped by them, a fixed one is not.
         strategy: "fixed",
+        // Adopt that strategy BEFORE the first measurement, not after it.
+        //
+        // Floating UI reads the menu's CURRENT `position` to decide what the
+        // coordinates it returns are relative to — but the plugin only writes
+        // `position: fixed` once they have been computed, and the element starts
+        // out `absolute` (the React wrapper's initial style). So the very first
+        // show measured against the editor's offset parent and then applied the
+        // result as viewport coordinates: the bar appeared off by that parent's
+        // position and scroll, and only the next selection was placed correctly.
+        // `onShow` runs after the element is appended and before the position is
+        // computed, which is exactly where the two have to agree.
+        onShow: () => {
+          const el = menuRef.current;
+          if (!el) return;
+          el.style.position = "fixed";
+          el.style.width = "max-content";
+        },
         // Anchor on ONE line of the selection rather than on the box enclosing all of
         // them: for a selection spanning several lines that box is as wide as the
         // paragraph, and centring under it put the bar far from the text. With the real
