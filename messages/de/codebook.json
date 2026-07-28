@@ -26,6 +26,7 @@
       "target": "Gilt für",
       "targets": {
         "document": "Ganzes Dokument",
+        "participant": "Teilnehmende Person",
         "sentence": "Satz",
         "subsentence": "Satzteil",
         "word": "Wort"
@@ -51,6 +52,12 @@
       "description": "Eine Vorlage füllt das Formular aus — prüfen und anpassen, bevor Sie speichern.",
       "manual": "Manuell fortfahren",
       "back": "Zurück zu den Vorlagen"
+    },
+    "participant": {
+      "menu": "Codes der teilnehmenden Person",
+      "create": "Teilnehmenden-Codebook erstellen",
+      "untitled": "Unbenanntes Codebook",
+      "failed": "Die Codes der teilnehmenden Person konnten nicht gespeichert werden"
     }
   }
 }

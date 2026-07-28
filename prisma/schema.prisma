@@ -169,6 +169,11 @@ model Transcription {
   // uuids — the labels live inside the codebook's encrypted content, so this
   // stays readable by the server without leaking what the codes mean.
   codes                     Json?
+  // Codes applied to the participants (speakers) of this document:
+  // [{ participantId, codebookId, codeId }]. `participantId` is the speaker id
+  // of the transcript, a position rather than a name — names live inside the
+  // encrypted content, so this stays as opaque to the server as the code ids.
+  participantCodes          Json?
   createdAt                 DateTime           @default(now())
   updatedAt                 DateTime           @updatedAt
   updatedBy                 String             @default("system")

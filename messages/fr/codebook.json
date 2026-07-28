@@ -26,6 +26,7 @@
       "target": "S'applique à",
       "targets": {
         "document": "Document entier",
+        "participant": "Participant",
         "sentence": "Phrase",
         "subsentence": "Partie de phrase",
         "word": "Mot"
@@ -51,6 +52,12 @@
       "description": "Un preset préremplit le formulaire — relisez-le et modifiez-le avant d'enregistrer.",
       "manual": "Continuer manuellement",
       "back": "Retour aux presets"
+    },
+    "participant": {
+      "menu": "Codes du participant",
+      "create": "Créer un codebook participant",
+      "untitled": "Codebook sans nom",
+      "failed": "Impossible d'enregistrer les codes du participant"
     }
   }
 }

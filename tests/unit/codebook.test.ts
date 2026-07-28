@@ -5,8 +5,12 @@ import {
   groupableCodebooks,
   parseCodebookInput,
   parseCodeRefs,
+  parseParticipantCodeRefs,
+  participantCodebooks,
   sanitizeCodeRefs,
+  sanitizeParticipantCodeRefs,
   validateCodeRefs,
+  validateParticipantCodeRefs,
 } from "@/lib/codebooks/codebook";
 
 /**
@@ -58,6 +62,33 @@ describe("groupableCodebooks", () => {
     ];
     expect(groupableCodebooks(codebooks).map((c) => c.id)).toEqual(["all"]);
   });
+
+  it("keeps document and participant codebooks, drops the finer grains", () => {
+    const codebooks = [
+      { ...cb("doc", { allStudies: true }), target: "document" as const },
+      {
+        ...cb("people", { allStudies: true }),
+        target: "participant" as const,
+      },
+      { ...cb("phrase", { allStudies: true }), target: "sentence" as const },
+      { ...cb("mot", { allStudies: true }), target: "word" as const },
+    ];
+    expect(groupableCodebooks(codebooks).map((c) => c.id)).toEqual([
+      "doc",
+      "people",
+    ]);
+  });
+});
+
+describe("participantCodebooks", () => {
+  it("keeps the codebooks that code people rather than text", () => {
+    const codebooks = [
+      { id: "a", target: "participant" as const },
+      { id: "b", target: "document" as const },
+      { id: "c" },
+    ];
+    expect(participantCodebooks(codebooks).map((c) => c.id)).toEqual(["a"]);
+  });
 });
 
 describe("validateCodeRefs", () => {
@@ -101,6 +132,119 @@ describe("validateCodeRefs", () => {
         { codebookId: "cb2", codeId: "c1" },
       ],
     });
+  });
+});
+
+describe("validateParticipantCodeRefs", () => {
+  const allowed = new Set(["cb1"]);
+
+  it("accepts a code pinned on a participant", () => {
+    expect(
+      validateParticipantCodeRefs(
+        [{ participantId: "speaker_0", codebookId: "cb1", codeId: "c1" }],
+        allowed,
+      ),
+    ).toEqual({
+      participantCodes: [
+        { participantId: "speaker_0", codebookId: "cb1", codeId: "c1" },
+      ],
+    });
+  });
+
+  it("treats null as clearing every participant's codes", () => {
+    expect(validateParticipantCodeRefs(null, allowed)).toEqual({
+      participantCodes: [],
+    });
+  });
+
+  it("rejects a ref without a participant", () => {
+    expect(
+      validateParticipantCodeRefs(
+        [{ codebookId: "cb1", codeId: "c1" }],
+        allowed,
+      ),
+    ).toHaveProperty("error");
+    expect(
+      validateParticipantCodeRefs(
+        [{ participantId: "", codebookId: "cb1", codeId: "c1" }],
+        allowed,
+      ),
+    ).toHaveProperty("error");
+  });
+
+  it("rejects a codebook the caller may not use", () => {
+    expect(
+      validateParticipantCodeRefs(
+        [{ participantId: "speaker_0", codebookId: "other", codeId: "c1" }],
+        allowed,
+      ),
+    ).toEqual({ error: "Unknown codebook" });
+  });
+
+  it("keeps the same code on two participants but deduplicates one", () => {
+    expect(
+      validateParticipantCodeRefs(
+        [
+          { participantId: "speaker_0", codebookId: "cb1", codeId: "c1" },
+          { participantId: "speaker_1", codebookId: "cb1", codeId: "c1" },
+          { participantId: "speaker_0", codebookId: "cb1", codeId: "c1" },
+        ],
+        allowed,
+      ),
+    ).toEqual({
+      participantCodes: [
+        { participantId: "speaker_0", codebookId: "cb1", codeId: "c1" },
+        { participantId: "speaker_1", codebookId: "cb1", codeId: "c1" },
+      ],
+    });
+  });
+});
+
+describe("parseParticipantCodeRefs", () => {
+  it("keeps only well-formed entries from database JSON", () => {
+    expect(
+      parseParticipantCodeRefs([
+        { participantId: "speaker_0", codebookId: "cb1", codeId: "c1" },
+        { codebookId: "cb1", codeId: "c1" },
+        { participantId: 1, codebookId: "cb1", codeId: "c1" },
+        null,
+      ]),
+    ).toEqual([
+      { participantId: "speaker_0", codebookId: "cb1", codeId: "c1" },
+    ]);
+    expect(parseParticipantCodeRefs(null)).toEqual([]);
+  });
+});
+
+describe("sanitizeParticipantCodeRefs", () => {
+  const codebooks = [{ id: "cb1", codes: [{ id: "c1", label: "One" }] }];
+
+  it("drops refs whose codebook or code is gone, whoever carries them", () => {
+    expect(
+      sanitizeParticipantCodeRefs(
+        [
+          { participantId: "speaker_0", codebookId: "cb1", codeId: "c1" },
+          { participantId: "speaker_0", codebookId: "cb1", codeId: "gone" },
+          { participantId: "speaker_1", codebookId: "gone", codeId: "c1" },
+        ],
+        codebooks,
+      ),
+    ).toEqual([
+      { participantId: "speaker_0", codebookId: "cb1", codeId: "c1" },
+    ]);
+  });
+
+  it("keeps a ref to a participant the transcript no longer shows", () => {
+    // The speaker may come back (a merge, a rename round-trip); losing the
+    // coding would lose work the researcher cannot recover.
+    expect(
+      sanitizeParticipantCodeRefs(
+        [{ participantId: "speaker_9", codebookId: "cb1", codeId: "c1" }],
+        codebooks,
+      ),
+    ).toEqual([
+      { participantId: "speaker_9", codebookId: "cb1", codeId: "c1" },
+    ]);
   });
 });
 

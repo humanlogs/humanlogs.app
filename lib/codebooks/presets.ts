@@ -114,6 +114,30 @@ const INTERVIEW_STRUCTURE: CodebookPreset = {
   ],
 };
 
+/**
+ * Who the speaker is in the encounter — the first thing to settle before any
+ * participant-level attribute, and the one grid that is the same in every
+ * study. Attributes proper (âge, profession, groupe) are too study-specific to
+ * ship as a preset; they are added as codes of a second participant codebook.
+ */
+const PARTICIPANT_ROLE: CodebookPreset = {
+  key: "participant-role",
+  name: "Rôle du participant",
+  description:
+    "Place du locuteur dans l'entretien : enquêté, enquêteur, tiers.",
+  target: "participant",
+  codes: [
+    { label: "Enquêté·e", color: "green" },
+    { label: "Enquêteur·rice", color: "indigo" },
+    { label: "Tiers présent", color: "amber" },
+    {
+      label: "Non identifié",
+      color: "gray",
+      description: "Locuteur que la diarisation n'a pas su rattacher.",
+    },
+  ],
+};
+
 /** Document-level triage — the one preset that tags whole documents. */
 const DOCUMENT_STATUS: CodebookPreset = {
   key: "document-status",
@@ -132,6 +156,7 @@ export const CODEBOOK_PRESETS: CodebookPreset[] = [
   SENTIMENT,
   TAT_DISCURSIVE,
   INTERVIEW_STRUCTURE,
+  PARTICIPANT_ROLE,
   DOCUMENT_STATUS,
 ];
 

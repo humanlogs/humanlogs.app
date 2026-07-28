@@ -47,6 +47,10 @@ export function CodebookSection({ projectId }: { projectId: string }) {
           {t("section.codeCount", {
             count: flattenCodes(codebook.codes).length,
           })}
+          {" · "}
+          {/* What it codes: a document, a participant, a sentence… now that
+              codebooks tag different things, the list has to say which. */}
+          {t(`editor.targets.${codebook.target}`)}
         </span>
       </span>
     </button>

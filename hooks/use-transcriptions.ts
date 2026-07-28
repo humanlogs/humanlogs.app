@@ -1,6 +1,6 @@
 "use client";
 
-import type { CodeRef } from "@/lib/codebooks/codebook";
+import type { CodeRef, ParticipantCodeRef } from "@/lib/codebooks/codebook";
 import {
   EncryptionUtils,
   type EncryptedDataEntity,
@@ -27,6 +27,8 @@ type Transcription = {
   mediaType?: "audio" | "text";
   /** Codes applied to the document; opaque ids resolved against the codebooks. */
   codes?: CodeRef[];
+  /** Codes applied to the document's participants (speakers). */
+  participantCodes?: ParticipantCodeRef[];
   state: "PENDING" | "COMPLETED" | "ERROR";
   errorMessage?: string | null;
   isOwner?: boolean;
@@ -56,6 +58,7 @@ export type TranscriptionDetail = {
   projectId?: string;
   projectName?: string;
   codes?: CodeRef[];
+  participantCodes?: ParticipantCodeRef[];
   createdAt: string;
   updatedAt: string;
   completedAt?: string;
@@ -444,6 +447,55 @@ export function useSaveTranscription(
         queryKey: ["transcriptions"],
       });
       return data;
+    },
+  });
+}
+
+/**
+ * Codes applied to the participants of a document. The mutation replaces the
+ * whole list — the server stores it as one JSON array, and a document has a
+ * handful of participants, so sending the new state is simpler (and free of
+ * merge questions) than sending a patch.
+ *
+ * The cache is updated on the spot rather than waiting for a refetch: this
+ * drives a checkbox in a menu, where a delayed tick reads as a lost click.
+ */
+export function useUpdateParticipantCodes(transcriptionId: string) {
+  const queryClient = useQueryClient();
+  const key = ["transcriptions", transcriptionId];
+
+  return useMutation({
+    mutationFn: async (participantCodes: ParticipantCodeRef[]) => {
+      const response = await fetchGateway(
+        `/api/transcriptions/${transcriptionId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ participantCodes }),
+        },
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to save participant codes");
+      }
+      return data;
+    },
+    onMutate: async (participantCodes) => {
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous =
+        queryClient.getQueryData<DecryptedWithRaw<TranscriptionDetail>>(key);
+      if (previous) {
+        queryClient.setQueryData(key, { ...previous, participantCodes });
+      }
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) queryClient.setQueryData(key, context.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: key });
+      // The sidebar groups on these, so its list is stale too.
+      queryClient.invalidateQueries({ queryKey: ["transcriptions"] });
     },
   });
 }

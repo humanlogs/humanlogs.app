@@ -12,7 +12,10 @@ import {
   failTranscription,
 } from "@/lib/stt/transcription-completion";
 import { checkAccess } from "@/lib/transcriptions/access";
-import { validateCodeRefs } from "@/lib/codebooks/codebook";
+import {
+  validateCodeRefs,
+  validateParticipantCodeRefs,
+} from "@/lib/codebooks/codebook";
 
 type RouteParams = {
   params: Promise<{
@@ -101,6 +104,7 @@ export const PATCH = withAuthRateLimit(
         projectId?: string | null;
         transcription?: never;
         codes?: never;
+        participantCodes?: never;
         updatedBy?: string;
       } = {};
 
@@ -159,10 +163,10 @@ export const PATCH = withAuthRateLimit(
         }
       }
 
-      // Codes applied to the document. Any writer may code, but the codes must
-      // come from the *owner's* codebooks — those are the ones scoped to the
-      // study this document sits in.
-      if (body.codes !== undefined) {
+      // Codes applied to the document and to its participants. Any writer may
+      // code, but the codes must come from the *owner's* codebooks — those are
+      // the ones scoped to the study this document sits in.
+      if (body.codes !== undefined || body.participantCodes !== undefined) {
         const projectId =
           updateData.projectId !== undefined
             ? updateData.projectId
@@ -178,15 +182,26 @@ export const PATCH = withAuthRateLimit(
           },
           select: { id: true },
         });
+        const allowed = new Set(codebooks.map((c) => c.id));
 
-        const parsed = validateCodeRefs(
-          body.codes,
-          new Set(codebooks.map((c) => c.id)),
-        );
-        if ("error" in parsed) {
-          return NextResponse.json({ error: parsed.error }, { status: 400 });
+        if (body.codes !== undefined) {
+          const parsed = validateCodeRefs(body.codes, allowed);
+          if ("error" in parsed) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
+          }
+          updateData.codes = parsed.codes as never;
         }
-        updateData.codes = parsed.codes as never;
+
+        if (body.participantCodes !== undefined) {
+          const parsed = validateParticipantCodeRefs(
+            body.participantCodes,
+            allowed,
+          );
+          if ("error" in parsed) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
+          }
+          updateData.participantCodes = parsed.participantCodes as never;
+        }
       }
 
       // Handle transcription content updates
@@ -435,5 +450,6 @@ export const mapTransactionDetails = (transcription: Transcription) =>
     "isTutorial",
     "shared",
     "codes",
+    "participantCodes",
     "userId",
   ]);

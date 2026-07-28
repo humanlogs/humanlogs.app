@@ -26,6 +26,7 @@
       "target": "Se aplica a",
       "targets": {
         "document": "Documento completo",
+        "participant": "Participante",
         "sentence": "Frase",
         "subsentence": "Parte de una frase",
         "word": "Palabra"
@@ -51,6 +52,12 @@
       "description": "Una plantilla rellena el formulario — revísala y edítala antes de guardar.",
       "manual": "Continuar manualmente",
       "back": "Volver a las plantillas"
+    },
+    "participant": {
+      "menu": "Códigos del participante",
+      "create": "Crear un codebook de participantes",
+      "untitled": "Codebook sin nombre",
+      "failed": "No se han podido guardar los códigos del participante"
     }
   }
 }

@@ -51,6 +51,8 @@ export type CodebookModalData = {
   codebookId?: string;
   /** Study pre-selected when creating from a study page. */
   projectId?: string;
+  /** Granularity pre-selected when creating from a place that implies one. */
+  target?: CodebookTarget;
 };
 
 export function useCodebookModal() {
@@ -58,7 +60,8 @@ export function useCodebookModal() {
 
   return {
     ...modal,
-    openCreate: (projectId?: string) => modal.open({ projectId }),
+    openCreate: (projectId?: string | null, target?: CodebookTarget) =>
+      modal.open({ projectId: projectId ?? undefined, target }),
     openEdit: (codebookId: string) => modal.open({ codebookId }),
   };
 }
@@ -79,6 +82,13 @@ export function CodebookEditorDialog() {
     ? codebooks.find((c) => c.id === data.codebookId)
     : undefined;
 
+  // Opening from a place that implies a granularity (the participant menu, for
+  // instance) narrows the presets to the ones that fit it, so a preset cannot
+  // silently change the target the researcher came for.
+  const presets = data?.target
+    ? CODEBOOK_PRESETS.filter((preset) => preset.target === data.target)
+    : CODEBOOK_PRESETS;
+
   const [name, setName] = React.useState("");
   const [codes, setCodes] = React.useState<Code[]>([]);
   const [allStudies, setAllStudies] = React.useState(false);
@@ -98,7 +108,7 @@ export function CodebookEditorDialog() {
     setWasOpen(true);
     setIsSubmitting(false);
     setConfirmingDelete(false);
-    setStep(existing ? "form" : "preset");
+    setStep(existing || presets.length === 0 ? "form" : "preset");
     if (existing) {
       setName(existing.name);
       setCodes(existing.codes);
@@ -110,7 +120,7 @@ export function CodebookEditorDialog() {
       setCodes([{ id: newCodeId(), label: "" }]);
       setAllStudies(false);
       setStudyIds(data?.projectId ? [data.projectId] : []);
-      setTarget(DEFAULT_CODEBOOK_TARGET);
+      setTarget(data?.target ?? DEFAULT_CODEBOOK_TARGET);
     }
   }
   if (!isOpen && wasOpen) setWasOpen(false);
@@ -316,7 +326,7 @@ export function CodebookEditorDialog() {
             </button>
 
             <div className="grid gap-2 sm:grid-cols-2">
-              {CODEBOOK_PRESETS.map((preset) => (
+              {presets.map((preset) => (
                 <button
                   key={preset.key}
                   type="button"
@@ -467,7 +477,7 @@ export function CodebookEditorDialog() {
         </div>
 
         <DialogFooter>
-          {!existing && (
+          {!existing && presets.length > 0 && (
             <Button
               variant="ghost"
               onClick={() => setStep("preset")}

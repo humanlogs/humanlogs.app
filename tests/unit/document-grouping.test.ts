@@ -312,6 +312,137 @@ describe("groupDocuments — by codebook", () => {
   });
 });
 
+describe("groupDocuments — by participant codebook", () => {
+  const codebooks = [
+    {
+      id: "roles",
+      target: "participant" as const,
+      codes: [
+        { id: "interviewee", label: "Enquêté" },
+        { id: "third", label: "Tiers" },
+      ],
+    },
+  ];
+
+  it("groups on the codes of the participants, not on the document's own", () => {
+    const groups = groupDocuments({
+      documents: [
+        doc({
+          id: "interview",
+          // A document code with the same id must not answer for the
+          // participant grouping.
+          codes: [{ codebookId: "roles", codeId: "third" }],
+          participantCodes: [
+            {
+              participantId: "speaker_0",
+              codebookId: "roles",
+              codeId: "interviewee",
+            },
+          ],
+        }),
+      ],
+      projects: [],
+      codebooks,
+      groupBy: "codebook:roles",
+      sortBy: "alphabetical",
+      now: NOW,
+    });
+
+    expect(groups.map((g) => g.key)).toEqual(["code:roles:interviewee"]);
+  });
+
+  it("lists a document under each code its participants carry", () => {
+    const groups = groupDocuments({
+      documents: [
+        doc({
+          id: "duo",
+          participantCodes: [
+            {
+              participantId: "speaker_0",
+              codebookId: "roles",
+              codeId: "interviewee",
+            },
+            {
+              participantId: "speaker_1",
+              codebookId: "roles",
+              codeId: "third",
+            },
+          ],
+        }),
+      ],
+      projects: [],
+      codebooks,
+      groupBy: "codebook:roles",
+      sortBy: "alphabetical",
+      now: NOW,
+    });
+
+    expect(groups.map((g) => g.key)).toEqual([
+      "code:roles:interviewee",
+      "code:roles:third",
+    ]);
+    expect(groups.map((g) => g.documents.map((d) => d.id))).toEqual([
+      ["duo"],
+      ["duo"],
+    ]);
+  });
+
+  it("lists a document once per code, even when two participants share it", () => {
+    const groups = groupDocuments({
+      documents: [
+        doc({
+          id: "two-interviewees",
+          participantCodes: [
+            {
+              participantId: "speaker_0",
+              codebookId: "roles",
+              codeId: "interviewee",
+            },
+            {
+              participantId: "speaker_1",
+              codebookId: "roles",
+              codeId: "interviewee",
+            },
+          ],
+        }),
+      ],
+      projects: [],
+      codebooks,
+      groupBy: "codebook:roles",
+      sortBy: "alphabetical",
+      now: NOW,
+    });
+
+    expect(groups[0].documents.map((d) => d.id)).toEqual(["two-interviewees"]);
+  });
+
+  it("collects documents with no coded participant in the trailing group", () => {
+    const groups = groupDocuments({
+      documents: [
+        doc({ id: "bare" }),
+        doc({
+          id: "coded",
+          participantCodes: [
+            {
+              participantId: "speaker_0",
+              codebookId: "roles",
+              codeId: "interviewee",
+            },
+          ],
+        }),
+      ],
+      projects: [],
+      codebooks,
+      groupBy: "codebook:roles",
+      sortBy: "alphabetical",
+      now: NOW,
+    });
+
+    expect(groups.at(-1)?.key).toBe("code:roles:none");
+    expect(groups.at(-1)?.documents.map((d) => d.id)).toEqual(["bare"]);
+  });
+});
+
 describe("sortDocuments", () => {
   const documents = [
     doc({ id: "b", title: "Beta 10", updatedAt: at(2026, 7, 1), createdAt: at(2026, 6, 1) }),

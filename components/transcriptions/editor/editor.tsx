@@ -473,7 +473,12 @@ export function TranscriptEditor({
 
         {/* Scrollable content area */}
         <div className="flex flex-row px-4 gap-2 flex-1 min-w-0 overflow-hidden pb-6 pt-4 pb-16">
-          <SpeakerColumn editorAPI={editorAPI} readOnly={!canWrite} />
+          <SpeakerColumn
+            editorAPI={editorAPI}
+            readOnly={!canWrite}
+            transcriptionId={transcription.id}
+            projectId={transcription.projectId}
+          />
           <div className="flex-[1_1_0%] px-2 min-w-0 flex gap-4 overflow-hidden">
             <div className="relative flex-[1_1_0%] min-w-0 overflow-visible">
               {/* Text carets come from CollabCaret (awareness); the custom socket

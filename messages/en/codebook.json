@@ -26,6 +26,7 @@
       "target": "Applies to",
       "targets": {
         "document": "Whole document",
+        "participant": "Participant",
         "sentence": "Sentence",
         "subsentence": "Part of a sentence",
         "word": "Word"
@@ -51,6 +52,12 @@
       "description": "A preset fills the form for you — review and edit it before saving.",
       "manual": "Continue manually",
       "back": "Back to presets"
+    },
+    "participant": {
+      "menu": "Participant codes",
+      "create": "Create a participant codebook",
+      "untitled": "Untitled codebook",
+      "failed": "Could not save the participant's codes"
     }
   }
 }

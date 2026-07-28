@@ -7,7 +7,13 @@
  * translated strings so it stays free of i18n and of React.
  */
 
-import { flattenCodes, type Code, type CodeRef } from "@/lib/codebooks/codebook";
+import {
+  flattenCodes,
+  type Code,
+  type CodebookTarget,
+  type CodeRef,
+  type ParticipantCodeRef,
+} from "@/lib/codebooks/codebook";
 
 export const TIME_BUCKETS = [
   "today",
@@ -38,7 +44,22 @@ export type GroupableDocument = {
   updatedAt: string;
   projectId?: string | null;
   codes?: CodeRef[];
+  /** Codes carried by the document's participants, not by the document. */
+  participantCodes?: ParticipantCodeRef[];
 };
+
+/**
+ * The refs a codebook grouping reads: its own kind of code and no other, so a
+ * participant codebook never groups on document codes and vice versa.
+ */
+function refsFor(
+  document: GroupableDocument,
+  target: CodebookTarget | undefined,
+): CodeRef[] {
+  return target === "participant"
+    ? (document.participantCodes ?? [])
+    : (document.codes ?? []);
+}
 
 /**
  * What a group header stands for. The component turns this into a translated
@@ -120,7 +141,7 @@ export type GroupDocumentsOptions<T extends GroupableDocument> = {
   /** Studies in display order; groups follow it. */
   projects: Array<{ id: string }>;
   /** Decrypted codebooks, needed only for `codebook:<id>` groupings. */
-  codebooks?: Array<{ id: string; codes: Code[] }>;
+  codebooks?: Array<{ id: string; codes: Code[]; target?: CodebookTarget }>;
   groupBy: GroupBy;
   sortBy: SortBy;
   /** Injectable clock, so bucket boundaries can be tested. */
@@ -130,7 +151,9 @@ export type GroupDocumentsOptions<T extends GroupableDocument> = {
 /**
  * Groups documents and sorts each group's contents. Empty groups are dropped;
  * a document carrying several codes of the grouping codebook appears in each of
- * their groups.
+ * their groups. Grouping on a participant codebook reads the codes of the
+ * document's participants instead — a document with two participants coded
+ * differently is therefore listed under both, once each.
  */
 export function groupDocuments<T extends GroupableDocument>({
   documents,
@@ -167,7 +190,7 @@ export function groupDocuments<T extends GroupableDocument>({
           label: path.join(" › "),
         },
         documents.filter((doc) =>
-          (doc.codes ?? []).some(
+          refsFor(doc, codebook?.target).some(
             (ref) => ref.codebookId === codebookId && ref.codeId === code.id,
           ),
         ),
@@ -181,7 +204,7 @@ export function groupDocuments<T extends GroupableDocument>({
       { type: "code", codebookId, codeId: null, label: "" },
       documents.filter(
         (doc) =>
-          !(doc.codes ?? []).some(
+          !refsFor(doc, codebook?.target).some(
             (ref) => ref.codebookId === codebookId && codeIds.has(ref.codeId),
           ),
       ),
