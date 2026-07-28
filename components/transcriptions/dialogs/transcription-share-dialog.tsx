@@ -214,6 +214,19 @@ export function TranscriptionShareDialog() {
           );
         }
 
+        // Share the speaker roster cache, when it is encrypted: it is stored
+        // apart from the transcript precisely so it can be read without it, so
+        // it needs its own re-wrap.
+        const rawSpeakers = (transcription._raw as any)?.speakers;
+        if (rawSpeakers?.privateKeys && rawSpeakers?.payload) {
+          updatedEncryptedData.speakers = await encryptionUtils.share(
+            rawSpeakers,
+            newAccessor,
+            encryptionState.privateKey,
+            encryptionState.publicKey,
+          );
+        }
+
         // Re-wrap existing comment bodies so the new user can read them too. New
         // comments made after this share already include them (they encrypt for the
         // transcription's current accessor set).

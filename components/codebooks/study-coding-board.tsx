@@ -180,10 +180,10 @@ function CodesMenu({
 /**
  * One document: its own codes, then one line per speaker.
  *
- * Speakers of an E2E-encrypted document are not in the list payload — they only
- * exist inside the encrypted content — so that document is fetched and
- * decrypted on demand, one click, rather than pulling every transcript of the
- * study into the browser on open.
+ * The speakers come from the roster cache carried by the list — encrypted like
+ * the rest for an E2E document, but small enough to decrypt on the spot. Only a
+ * document with no cache at all (one that predates it, and that nobody has
+ * opened since) falls back to loading the transcript on demand.
  */
 function DocumentCodingRow({
   document: doc,
@@ -197,8 +197,8 @@ function DocumentCodingRow({
   const updateDocumentCodes = useUpdateDocumentCodes(doc.id);
   const updateSpeakerCodes = useUpdateSpeakerCodes(doc.id);
 
-  // Disabled (empty id) until the researcher asks for it; a readable document
-  // never needs it at all.
+  // Disabled (empty id) unless the cache is missing *and* the researcher asked
+  // for the document to be loaded.
   const needsDetail = !doc.speakers && revealSpeakers;
   const detail = useTranscription(needsDetail ? doc.id : "");
 
@@ -306,7 +306,7 @@ function DocumentCodingRow({
           <Skeleton className="h-6 w-40" />
         ) : detail.isError ? (
           <p className="text-xs text-muted-foreground">{t("locked")}</p>
-        ) : doc.isEncrypted && !revealSpeakers ? (
+        ) : !revealSpeakers ? (
           <Button
             variant="ghost"
             size="sm"

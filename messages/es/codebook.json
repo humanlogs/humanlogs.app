@@ -70,7 +70,7 @@
       "speakerCodes": "Códigos",
       "speakerFallback": "Hablante {index}",
       "noSpeakers": "Ningún hablante en este documento",
-      "revealSpeakers": "Mostrar los {count} hablantes (documento cifrado)",
+      "revealSpeakers": "Cargar los {count} hablantes",
       "locked": "Cifrado — sin clave en este dispositivo",
       "empty": "Todavía no hay documentos en este estudio",
       "failed": "No se han podido guardar los códigos",

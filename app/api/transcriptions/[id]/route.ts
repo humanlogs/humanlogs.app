@@ -16,6 +16,10 @@ import {
   validateCodeRefs,
   validateSpeakerCodeRefs,
 } from "@/lib/codebooks/codebook";
+import {
+  parseSpeakers,
+  validateSpeakerCache,
+} from "@/lib/transcriptions/speakers";
 
 type RouteParams = {
   params: Promise<{
@@ -103,6 +107,7 @@ export const PATCH = withAuthRateLimit(
         title?: string;
         projectId?: string | null;
         transcription?: never;
+        speakers?: never;
         codes?: never;
         speakerCodes?: never;
         updatedBy?: string;
@@ -193,10 +198,7 @@ export const PATCH = withAuthRateLimit(
         }
 
         if (body.speakerCodes !== undefined) {
-          const parsed = validateSpeakerCodeRefs(
-            body.speakerCodes,
-            allowed,
-          );
+          const parsed = validateSpeakerCodeRefs(body.speakerCodes, allowed);
           if ("error" in parsed) {
             return NextResponse.json({ error: parsed.error }, { status: 400 });
           }
@@ -281,6 +283,24 @@ export const PATCH = withAuthRateLimit(
 
         updateData.transcription = body.transcription as never;
         updateData.updatedBy = user.id;
+
+        // Keep the roster cache in step with the content it summarizes. A
+        // plaintext save is read here; an encrypted one can only be summarized
+        // by the client, which sends `speakers` alongside (below).
+        const derived = parseSpeakers(body.transcription);
+        if (derived) updateData.speakers = derived as never;
+      }
+
+      // The roster cache on its own — how a client refreshes it for an
+      // encrypted document, whose content the server cannot read. Sent after
+      // the content above so an explicit value always wins over the derived
+      // one.
+      if (body.speakers !== undefined) {
+        const parsed = validateSpeakerCache(body.speakers);
+        if ("error" in parsed) {
+          return NextResponse.json({ error: parsed.error }, { status: 400 });
+        }
+        updateData.speakers = parsed.speakers as never;
       }
 
       const updated = await prisma.transcription.update({
@@ -297,7 +317,9 @@ export const PATCH = withAuthRateLimit(
         (updated.shared as { userId?: string }[] | null) ?? [];
       for (const s of sharedUsers) if (s?.userId) recipients.add(s.userId);
       for (const uid of recipients) {
-        notifyDatabaseChange(uid, "transcription", "update", { id: updated.id });
+        notifyDatabaseChange(uid, "transcription", "update", {
+          id: updated.id,
+        });
       }
 
       return NextResponse.json(mapTransactionDetails(updated));
@@ -443,6 +465,9 @@ export const mapTransactionDetails = (transcription: Transcription) =>
     "state",
     "errorMessage",
     "transcription",
+    // The roster cache, so a client can tell whether it still matches the
+    // content it just decrypted and refresh it when it does not.
+    "speakers",
     "projectId",
     "createdAt",
     "updatedAt",

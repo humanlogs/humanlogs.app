@@ -17,6 +17,7 @@ import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import {
   TranscriptionDetail,
+  useSpeakerCacheSync,
   useTranscriptionAesKey,
 } from "../../../hooks/use-transcriptions";
 import { InteractiveAudio } from "./audio";
@@ -100,6 +101,9 @@ export function TranscriptEditor({
   const [editorAPI] = useState(() => new EditorAPI());
   const { cursors, updateCursorPosition, updateAudioPosition } =
     useTranscriptionCursors(transcription.id);
+  // Opening a document is the one moment its roster is certainly readable —
+  // the chance to fix a cache that predates it or drifted from the transcript.
+  useSpeakerCacheSync(transcription.id, hasWriteAccess);
   const [audioControls, setAudioControls] = useState<AudioControls | null>(
     null,
   );

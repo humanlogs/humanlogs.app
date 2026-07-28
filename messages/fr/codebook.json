@@ -70,7 +70,7 @@
       "speakerCodes": "Codes",
       "speakerFallback": "Locuteur {index}",
       "noSpeakers": "Aucun locuteur dans ce document",
-      "revealSpeakers": "Afficher les {count} locuteurs (document chiffré)",
+      "revealSpeakers": "Charger les {count} locuteurs",
       "locked": "Chiffré — aucune clé sur cet appareil",
       "empty": "Aucun document dans cette étude",
       "failed": "Impossible d'enregistrer les codes",

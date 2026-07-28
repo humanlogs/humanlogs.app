@@ -2,11 +2,18 @@
 
 import type { CodeRef, SpeakerCodeRef } from "@/lib/codebooks/codebook";
 import {
+  encodeSpeakerCache,
+  isEncryptedEntity,
+  parseSpeakers,
+  sameSpeakers,
+  type SpeakerSummary,
+} from "@/lib/transcriptions/speakers";
+import {
   EncryptionUtils,
   type EncryptedDataEntity,
 } from "@/lib/encryption/encryption-entities";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { browserCrypto } from "../lib/encryption/encryption-entities.browser";
 import { fetchGateway } from "./fetch";
 import {
@@ -25,11 +32,12 @@ type Transcription = {
   speakerCount?: number;
   speakerNames?: (string | null)[];
   /**
-   * The speakers with their ids, so the study coding board can code them
-   * without opening each document. Absent for E2E-encrypted documents, whose
-   * speakers only exist inside the payload — the board loads those on demand.
+   * The document's speakers, from the roster cache — decrypted here, without
+   * touching the transcript itself. Undefined only when the cache was never
+   * written (a document from before it existed) or when this device has no key
+   * for it.
    */
-  speakers?: { id: string; name?: string | null }[];
+  speakers?: SpeakerSummary[];
   isEncrypted?: boolean;
   mediaType?: "audio" | "text";
   /** Codes applied to the document; opaque ids resolved against the codebooks. */
@@ -64,6 +72,8 @@ export type TranscriptionDetail = {
   transcription?: TranscriptionContent;
   projectId?: string;
   projectName?: string;
+  /** The roster cache, decrypted; compare it with the content to spot drift. */
+  speakers?: SpeakerSummary[];
   codes?: CodeRef[];
   speakerCodes?: SpeakerCodeRef[];
   createdAt: string;
@@ -120,6 +130,27 @@ export type VersionData = {
   } | null;
 };
 
+/**
+ * The roster cache as the UI wants it: a plain list of speakers.
+ *
+ * Decrypting it is deliberately allowed to fail. It is a cache, and its
+ * accessors can legitimately lag behind the document's (a collaborator added
+ * after it was written, a device without the key): losing the names must cost
+ * a fallback, never the whole list of documents.
+ */
+async function decodeSpeakerCache(
+  value: unknown,
+  decrypt: <T>(data: EncryptedDataEntity) => Promise<DecryptedWithRaw<T>>,
+): Promise<SpeakerSummary[] | undefined> {
+  if (!value) return undefined;
+  if (!isEncryptedEntity(value)) return parseSpeakers(value) ?? undefined;
+  try {
+    return parseSpeakers(await decrypt(value)) ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 // Fetch transcriptions
 export function useTranscriptions() {
   const decrypt = useDecryptData();
@@ -131,8 +162,16 @@ export function useTranscriptions() {
       if (!response.ok) {
         throw new Error("Failed to fetch transcriptions");
       }
+      const items = (await response.json()) as Array<
+        Record<string, unknown> & { speakers?: unknown }
+      >;
+      // The roster is pulled out before the generic pass: it is the one
+      // encrypted field of a list item, and it must not be able to fail it.
       return Promise.all<Transcription>(
-        (await response.json()).map(decrypt<Transcription>),
+        items.map(async ({ speakers, ...rest }) => ({
+          ...(await decrypt<Transcription>(rest as never)),
+          speakers: await decodeSpeakerCache(speakers, decrypt),
+        })),
       );
     },
   });
@@ -163,8 +202,19 @@ export function useTranscription(id: string) {
         }
         throw new Error("Failed to fetch transcription");
       }
+      const raw = (await response.json()) as Record<string, unknown> & {
+        speakers?: unknown;
+      };
+      const { speakers, ...rest } = raw;
       try {
-        return await decrypt<TranscriptionDetail>(await response.json());
+        const decoded = await decrypt<TranscriptionDetail>(rest as never);
+        return {
+          ...decoded,
+          speakers: await decodeSpeakerCache(speakers, decrypt),
+          // `_raw` keeps the payload as it was served — the share dialog
+          // re-wraps the stored entities from it, roster included.
+          _raw: raw,
+        } as DecryptedWithRaw<TranscriptionDetail>;
       } catch (error) {
         console.error("Decryption error", error);
         throw new Error("error_encrypted");
@@ -422,6 +472,16 @@ export function useSaveTranscription(
         }
       }
 
+      // The roster cache travels with the content it summarizes, encrypted for
+      // the same accessors. The server can derive it from a plaintext save on
+      // its own, but not from an encrypted one — this is what keeps it fresh
+      // for E2E documents.
+      const speakers = await encodeSpeakerCache(
+        data.speakers,
+        currentData,
+        new EncryptionUtils(browserCrypto),
+      );
+
       const response = await fetchGateway(
         `/api/transcriptions/${transcriptionId}`,
         {
@@ -431,6 +491,7 @@ export function useSaveTranscription(
           },
           body: JSON.stringify({
             transcription: transcriptionData,
+            ...(speakers ? { speakers } : {}),
             changeStats,
           }),
         },
@@ -455,6 +516,65 @@ export function useSaveTranscription(
       return data;
     },
   });
+}
+
+/**
+ * Refreshes the roster cache of a document that is open, when it does not match
+ * the transcript.
+ *
+ * The cache is written by whoever can read the content: the server on a
+ * plaintext write, the editor on every save. That leaves two gaps — documents
+ * that predate the cache, and E2E documents reverted or shared since — and this
+ * closes them silently the first time someone with a key and write access opens
+ * the document. It runs at most once per mount; there is nothing to retry,
+ * since the next opening would do it again anyway.
+ */
+export function useSpeakerCacheSync(
+  transcriptionId: string,
+  canWrite: boolean,
+) {
+  const queryClient = useQueryClient();
+  const { data: transcription } = useTranscription(transcriptionId);
+  // A ref rather than state: this guard gates one fire-and-forget request, and
+  // has nothing to show for itself in the render.
+  const synced = useRef(false);
+
+  useEffect(() => {
+    if (synced.current || !canWrite || !transcription) return;
+
+    const actual = parseSpeakers(transcription.transcription);
+    // No readable content (no key on this device, or nothing transcribed yet):
+    // there is nothing to refresh the cache from.
+    if (!actual || sameSpeakers(actual, transcription.speakers)) return;
+
+    synced.current = true;
+    const raw = transcription._raw as { transcription?: EncryptedDataEntity };
+
+    void (async () => {
+      try {
+        const speakers = await encodeSpeakerCache(
+          actual,
+          raw?.transcription,
+          new EncryptionUtils(browserCrypto),
+        );
+        if (!speakers) return;
+        const response = await fetchGateway(
+          `/api/transcriptions/${transcriptionId}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ speakers }),
+          },
+        );
+        if (!response.ok) return;
+        // The list groups and codes on these names; it is now out of date.
+        queryClient.invalidateQueries({ queryKey: ["transcriptions"] });
+      } catch (error) {
+        // A stale cache costs a lazy load, never a broken document.
+        console.error("Failed to refresh the speaker cache", error);
+      }
+    })();
+  }, [canWrite, transcription, transcriptionId, queryClient]);
 }
 
 /**

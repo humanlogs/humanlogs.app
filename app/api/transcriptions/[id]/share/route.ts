@@ -137,6 +137,18 @@ export const POST = withAuthRateLimit(
             };
           }
         }
+
+        // Same for the speaker roster cache, which is encrypted separately so
+        // it can be read without the transcript.
+        if (body.encryptedData.speakers?.privateKeys) {
+          const currentSpeakers = transcription.speakers as any;
+          if (currentSpeakers?.privateKeys) {
+            updateData.speakers = {
+              ...currentSpeakers,
+              privateKeys: body.encryptedData.speakers.privateKeys,
+            };
+          }
+        }
       }
 
       // Update the transcription

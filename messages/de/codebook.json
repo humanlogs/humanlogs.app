@@ -70,7 +70,7 @@
       "speakerCodes": "Codes",
       "speakerFallback": "Sprechende Person {index}",
       "noSpeakers": "Keine sprechende Person in diesem Dokument",
-      "revealSpeakers": "Die {count} sprechenden Personen anzeigen (verschlüsseltes Dokument)",
+      "revealSpeakers": "Die {count} sprechenden Personen laden",
       "locked": "Verschlüsselt — kein Schlüssel auf diesem Gerät",
       "empty": "Noch kein Dokument in dieser Studie",
       "failed": "Die Codes konnten nicht gespeichert werden",

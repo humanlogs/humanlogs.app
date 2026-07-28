@@ -6,10 +6,12 @@ import { EncryptedDataEntity } from "../../../lib/encryption/encryption-entities
 import { pollPendingTranscriptions } from "./[id]/route";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 import { findTranscriptionsSharedWith } from "@/lib/transcriptions/access";
+import { parseCodeRefs, parseSpeakerCodeRefs } from "@/lib/codebooks/codebook";
 import {
-  parseCodeRefs,
-  parseSpeakerCodeRefs,
-} from "@/lib/codebooks/codebook";
+  parseSpeakers,
+  readSpeakerCache,
+  type SpeakerCache,
+} from "@/lib/transcriptions/speakers";
 
 export const GET = withAuthRateLimit(async (request, user) => {
   try {
@@ -107,19 +109,15 @@ const formatTranscriptionList = (t: Transcription, userId: string) => {
   const isOwner = t.userId === userId;
   const sharedUser = shared.find((s) => s.userId === userId);
 
-  // Speakers live inside the (possibly large) transcription content JSON, which
-  // is already loaded here. Surface just their ids and names: the documents list
-  // shows the names, and the study coding board needs the ids to code a speaker
-  // without opening the document. E2E-encrypted content has no readable
-  // `speakers` array, so both are simply undefined there — the list falls back
-  // to the speaker count, and the board loads the document on demand.
-  const content = t.transcription as {
-    speakers?: { id: string; name?: string | null }[];
-  } | null;
-  const speakers = Array.isArray(content?.speakers)
-    ? content.speakers.map((s) => ({ id: s.id, name: s.name?.trim() || null }))
-    : undefined;
-  const speakerNames = speakers?.map((s) => s.name);
+  // The roster comes from its own column rather than from the (possibly large,
+  // possibly encrypted) content: that is what the cache is for. It travels as
+  // stored — an EncryptedDataEntity for an E2E document, which the client
+  // decrypts on its own, cheaply. Falling back to the content covers a document
+  // whose cache was never written.
+  const speakers =
+    (t.speakers as SpeakerCache | null) ?? parseSpeakers(t.transcription);
+  const readable = readSpeakerCache(speakers);
+  const speakerNames = readable?.map((s) => s.name);
 
   return {
     id: t.id,

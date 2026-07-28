@@ -70,7 +70,7 @@
       "speakerCodes": "Codes",
       "speakerFallback": "Speaker {index}",
       "noSpeakers": "No speaker in this document",
-      "revealSpeakers": "Show the {count} speakers (encrypted document)",
+      "revealSpeakers": "Load the {count} speakers",
       "locked": "Encrypted — no key on this device",
       "empty": "No document in this study yet",
       "failed": "Could not save the codes",

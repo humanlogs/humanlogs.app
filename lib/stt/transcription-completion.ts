@@ -6,6 +6,7 @@ import {
   EncryptedDataEntity,
   EncryptionUtils,
 } from "@/lib/encryption/encryption-entities";
+import { encodeSpeakerCache } from "@/lib/transcriptions/speakers";
 import { TranscriptionResult, TranscriptionWord } from "./elevenlabs";
 import { getConfig } from "@/lib/config";
 import { sendEmail } from "@/lib/email/mailer";
@@ -145,9 +146,18 @@ export async function completeTranscription(
   const wasAlreadyCompleted = transcription.state === "COMPLETED";
 
   // If the transcription is an EncryptedDataEntity, encrypt the result with the transcription's public key
-  const encodedTranscription = await new EncryptionUtils(crypto).encrypt(
+  const utils = new EncryptionUtils(crypto);
+  const encodedTranscription = await utils.encrypt(
     transcription.transcription as EncryptedDataEntity,
     result,
+  );
+
+  // The roster cache follows the content it summarizes, and is encrypted for
+  // the same accessors — this is the one moment the server can read it.
+  const speakers = await encodeSpeakerCache(
+    result,
+    transcription.transcription,
+    utils,
   );
 
   // Update the transcription with the result
@@ -156,6 +166,7 @@ export async function completeTranscription(
     data: {
       state: "COMPLETED",
       transcription: encodedTranscription as never,
+      ...(speakers ? { speakers: speakers as never } : {}),
       completedAt: new Date(),
     },
   });
