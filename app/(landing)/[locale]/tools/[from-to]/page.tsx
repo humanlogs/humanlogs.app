@@ -212,7 +212,7 @@ export default async function ConversionPage({ params }: ConversionPageProps) {
           {
             title: "Privacy & Security",
             description: "Learn about our security practices",
-            href: "/resources",
+            href: "/docs/privacy/how-encryption-works",
           },
         ]}
         columns={3}

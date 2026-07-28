@@ -168,7 +168,6 @@ export const browserCrypto: CryptoCompat = {
   },
 
   createCipheriv(_algorithm: string, key: Uint8Array, iv: Uint8Array) {
-    let encryptedData: Uint8Array;
     let authTag: Uint8Array;
 
     return {
@@ -214,7 +213,6 @@ export const browserCrypto: CryptoCompat = {
           encryptedArray.length - 16,
         );
         authTag = encryptedArray.subarray(-16);
-        encryptedData = dataWithoutTag;
 
         return dataWithoutTag;
       },

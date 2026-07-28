@@ -7,6 +7,7 @@ import {
   FileDown,
   FolderKanban,
   MessageSquareHeart,
+  MessagesSquare,
   PenLine,
   Shield,
   UserCog,
@@ -187,13 +188,21 @@ export const FeaturesSection = () => {
           />
         </div>
 
-        {/* Row 3: C + D (2 columns) */}
-        <div className="grid md:grid-cols-2 gap-6 mb-6 max-w-6xl mx-auto">
+        {/* Row 3: C + D (3 columns) */}
+        <div className="grid md:grid-cols-3 gap-6 mb-6 max-w-6xl mx-auto">
           <FeatureCard
             icon={<Users className="h-6 w-6" />}
             title={t("collaboration.title")}
             description={t("collaboration.description")}
+            badge={t("collaboration.badge")}
             colorIndex={5}
+          />
+          <FeatureCard
+            icon={<MessagesSquare className="h-6 w-6" />}
+            title={t("comments.title")}
+            description={t("comments.description")}
+            badge={t("comments.badge")}
+            colorIndex={2}
           />
           <FeatureCard
             icon={<Shield className="h-6 w-6" />}

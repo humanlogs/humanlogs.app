@@ -5,17 +5,20 @@ import { VisitTracker } from "@/components/visit-tracker";
 import { LandingFooter } from "./[locale]/components/landing-footer";
 import { LandingHeader } from "./[locale]/components/landing-header";
 import { CookieConsentBanner } from "./[locale]/components/cookie-consent-banner";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import Cookies from "js-cookie";
 
-export const Layout = ({ children }: { children: React.ReactNode }) => {
-  const [hasConsent, setHasConsent] = useState(false);
+/** The consent cookie never changes without a reload, so there is nothing to subscribe to. */
+const subscribeToNothing = () => () => {};
 
-  useEffect(() => {
-    // Check if user has given consent
-    const consent = Cookies.get("humanlogs-cookie-consent");
-    setHasConsent(consent === "true");
-  }, []);
+export const Layout = ({ children }: { children: React.ReactNode }) => {
+  // Read on the client only (the server has no access to the cookie), without a
+  // state-setting effect: the server snapshot is `false`, so hydration matches.
+  const hasConsent = useSyncExternalStore(
+    subscribeToNothing,
+    () => Cookies.get("humanlogs-cookie-consent") === "true",
+    () => false,
+  );
 
   return (
     <>

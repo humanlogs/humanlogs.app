@@ -16,8 +16,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   RotateCcwIcon,
-  ArrowLeftIcon,
-} from "lucide-react";
+  } from "lucide-react";
 import { useTranslations } from "@/components/locale-provider";
 import * as React from "react";
 import { toast } from "sonner";
@@ -26,7 +25,6 @@ import {
   useTranscriptionVersion,
   useRevertTranscription,
   useTranscription,
-  type HistoryEntry,
   type TranscriptionSegment,
 } from "@/hooks/use-transcriptions";
 import { useRouter } from "next/navigation";
@@ -51,7 +49,7 @@ export function useTranscriptionHistoryModal() {
 
 export function TranscriptionHistorySheet() {
   const { isOpen, data, close } = useTranscriptionHistoryModal();
-  const queryClient = useQueryClient();
+  const _queryClient = useQueryClient();
   const router = useRouter();
   const t = useTranslations("dialog.history");
   const [selectedVersionIndex, setSelectedVersionIndex] = React.useState<
@@ -95,7 +93,10 @@ export function TranscriptionHistorySheet() {
     if (revertMutation.isSuccess) {
       toast.success(t("revertSuccess"));
       setSelectedVersionIndex(null);
-      window.location.reload();
+      // Do NOT reload here: the server broadcasts `transcription:reverted` to every
+      // participant (including us), which makes each client leave the collab room and
+      // show a blocking reload prompt — so the reload happens uniformly for everyone
+      // and no peer serves the stale (pre-revert) doc first.
     }
     if (revertMutation.isError) {
       toast.error(t("revertError"));
@@ -358,7 +359,7 @@ export function TranscriptionHistorySheet() {
       // Render segments in chunk
       const chunkElements: React.ReactNode[] = [];
       let lastSpeakerId: string | undefined = undefined;
-      const firstSegment = unifiedSegments[chunk.start]?.segment;
+      const _firstSegment = unifiedSegments[chunk.start]?.segment;
       const isStartTruncated = chunk.start > 0;
       let addedLeadingEllipsis = false;
 

@@ -1,0 +1,37 @@
+{
+  "docs": {
+    "index": {
+      "title": "Documentation",
+      "subtitle": "How to transcribe, edit, share and protect your interviews with HumanLogs.",
+      "seeAll": "See all {count} pages"
+    },
+    "nav": {
+      "title": "Documentation",
+      "searchPlaceholder": "Search the docs…",
+      "noResults": "No page matches your search."
+    },
+    "toc": {
+      "title": "On this page"
+    },
+    "pager": {
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "related": "Related pages",
+    "lastUpdated": "Last updated on {date}",
+    "fallbackNotice": "This page has not been translated yet — you are reading the English version.",
+    "status": {
+      "beta": "Beta",
+      "soon": "Coming soon"
+    },
+    "sections": {
+      "getting-started": "Getting started",
+      "transcribe": "Transcribe",
+      "coding": "Coding",
+      "analysis": "Analysis",
+      "organize": "Organizing & sharing",
+      "privacy": "Privacy & account",
+      "self-hosting": "Self-hosting"
+    }
+  }
+}

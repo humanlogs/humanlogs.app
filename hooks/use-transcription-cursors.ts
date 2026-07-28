@@ -1,11 +1,9 @@
 "use client";
 
 import {
-  claimLeadership,
   CursorPositionWithSocket,
   emitCursorPosition,
   joinTranscriptionRoom,
-  leaderKeepalive,
   leaveTranscriptionRoom,
   offCursorPosition,
   offUserDisconnected,
@@ -15,7 +13,6 @@ import {
   onUserDisconnected,
   onUserJoined,
   onUserLeft,
-  releaseLeadership,
 } from "@/lib/sockets/socket-client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useUserProfile } from "./use-api";
@@ -28,19 +25,23 @@ export type UserCursor = {
   endOffset: number;
   lastUpdate: number;
   hasWriteAccess: boolean;
+  /** Audio position (seconds) while listening; null → tick follows the edit caret. */
+  audioTime?: number | null;
 };
 
 export function useTranscriptionCursors(transcriptionId: string) {
   const { data: userProfile } = useUserProfile();
   const [cursors, setCursors] = useState<Map<string, UserCursor>>(new Map());
-  const [isLeader, setIsLeader] = useState(false);
   const lastEmitRef = useRef<number>(0);
+  const lastAudioEmitRef = useRef<number>(0);
   const lastPositionRef = useRef<{
     startOffset: number;
     endOffset: number;
     hasWriteAccess: boolean;
+    audioTime?: number | null;
   } | null>(null);
   const EMIT_THROTTLE = 100; // Throttle cursor updates to 100ms
+  const AUDIO_EMIT_THROTTLE = 150; // Throttle audio-position updates
 
   // Join/leave transcription room
   useEffect(() => {
@@ -68,6 +69,7 @@ export function useTranscriptionCursors(transcriptionId: string) {
           endOffset: position.endOffset,
           lastUpdate: position.timestamp,
           hasWriteAccess: position.hasWriteAccess,
+          audioTime: position.audioTime ?? null,
         });
         return updated;
       });
@@ -115,8 +117,13 @@ export function useTranscriptionCursors(transcriptionId: string) {
 
       const now = Date.now();
 
-      // Save the last position for keepalive
-      lastPositionRef.current = { startOffset, endOffset, hasWriteAccess };
+      // Edit-caret movement → clear any audio position (tick follows the caret).
+      lastPositionRef.current = {
+        startOffset,
+        endOffset,
+        hasWriteAccess,
+        audioTime: null,
+      };
 
       if (now - lastEmitRef.current < EMIT_THROTTLE) {
         return;
@@ -131,24 +138,33 @@ export function useTranscriptionCursors(transcriptionId: string) {
         endOffset,
         timestamp: now,
         hasWriteAccess,
+        audioTime: null,
       });
     },
-    [transcriptionId, userProfile?.id, userProfile?.name],
+    [transcriptionId, userProfile],
   );
 
-  // Function to emit cursor position immediately (bypasses throttle)
-  // Used for focus events to lock editing quickly
-  const updateCursorPositionImmediate = useCallback(
-    (startOffset: number, endOffset: number, hasWriteAccess: boolean) => {
+  // Emit the current audio playback/scrub position so peers' waveform ticks follow
+  // this user while listening (not just when the edit caret moves). Throttled.
+  const updateAudioPosition = useCallback(
+    (audioTime: number) => {
       if (!userProfile?.id || !userProfile?.name) return;
 
+      const prev = lastPositionRef.current;
+      const startOffset = prev?.startOffset ?? 0;
+      const endOffset = prev?.endOffset ?? 0;
+      const hasWriteAccess = prev?.hasWriteAccess ?? false;
+
       const now = Date.now();
+      lastPositionRef.current = {
+        startOffset,
+        endOffset,
+        hasWriteAccess,
+        audioTime,
+      };
 
-      // Save the last position for keepalive
-      lastPositionRef.current = { startOffset, endOffset, hasWriteAccess };
-
-      // Update throttle timestamp to prevent immediate re-emit
-      lastEmitRef.current = now;
+      if (now - lastAudioEmitRef.current < AUDIO_EMIT_THROTTLE) return;
+      lastAudioEmitRef.current = now;
 
       emitCursorPosition(transcriptionId, {
         userId: userProfile.id,
@@ -157,9 +173,10 @@ export function useTranscriptionCursors(transcriptionId: string) {
         endOffset,
         timestamp: now,
         hasWriteAccess,
+        audioTime,
       });
     },
-    [transcriptionId, userProfile?.id, userProfile?.name],
+    [transcriptionId, userProfile],
   );
 
   // Clean up stale cursors (older than 30 seconds)
@@ -186,54 +203,28 @@ export function useTranscriptionCursors(transcriptionId: string) {
     return () => clearInterval(interval);
   }, []);
 
-  // Keepalive: Periodically re-emit cursor position and leader keepalive
+  // Keepalive: periodically re-emit our cursor position so peers don't stale it out.
   useEffect(() => {
     const interval = setInterval(() => {
       if (!userProfile?.id || !userProfile?.name) return;
-
-      const now = Date.now();
-
-      // Send cursor position keepalive if we have a position
-      if (lastPositionRef.current) {
-        emitCursorPosition(transcriptionId, {
-          userId: userProfile.id,
-          userName: userProfile.name,
-          startOffset: lastPositionRef.current.startOffset,
-          endOffset: lastPositionRef.current.endOffset,
-          timestamp: now,
-          hasWriteAccess: lastPositionRef.current.hasWriteAccess,
-        });
-      }
-
-      // Send leader keepalive if we are the leader
-      if (isLeader) {
-        leaderKeepalive(transcriptionId);
-      }
+      if (!lastPositionRef.current) return;
+      emitCursorPosition(transcriptionId, {
+        userId: userProfile.id,
+        userName: userProfile.name,
+        startOffset: lastPositionRef.current.startOffset,
+        endOffset: lastPositionRef.current.endOffset,
+        timestamp: Date.now(),
+        hasWriteAccess: lastPositionRef.current.hasWriteAccess,
+        audioTime: lastPositionRef.current.audioTime ?? null,
+      });
     }, 15000); // Send keepalive every 15 seconds
 
     return () => clearInterval(interval);
-  }, [transcriptionId, userProfile?.id, userProfile?.name, isLeader]);
-
-  // Functions to claim and release leadership
-  const claimLeader = useCallback(() => {
-    if (!userProfile?.id || !userProfile?.name) return;
-    claimLeadership(transcriptionId, userProfile.id, userProfile.name);
   }, [transcriptionId, userProfile?.id, userProfile?.name]);
-
-  const releaseLeader = useCallback(() => {
-    if (!isLeader) return;
-    releaseLeadership(transcriptionId);
-    setIsLeader(false);
-  }, [transcriptionId, isLeader]);
 
   return {
     cursors: Array.from(cursors.values()),
     updateCursorPosition,
-    updateCursorPositionImmediate,
-    // Leader-based locking
-    isEditLocked: !isLeader, // Locked if we are not the leader
-    isLeader,
-    claimLeader,
-    releaseLeader,
+    updateAudioPosition,
   };
 }

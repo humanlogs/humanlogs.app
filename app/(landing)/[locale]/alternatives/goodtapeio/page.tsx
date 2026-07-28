@@ -1,6 +1,5 @@
 "use client";
 
-import { Layout } from "../../../_layout";
 import {
   CTASection,
   ComparisonTable,

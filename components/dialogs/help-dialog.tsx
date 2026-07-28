@@ -12,7 +12,6 @@ import {
 import { Select } from "@/components/ui/select";
 import { useModal } from "@/components/use-modal";
 import * as React from "react";
-import { useEffect } from "react";
 import { toast } from "sonner";
 import { useUserProfile } from "../../hooks/use-api";
 import { languagesNames, locales } from "../../lib/utils/i18n";
@@ -69,18 +68,20 @@ export const useResetTutorial = () => {
 export function HelpDialog() {
   const t = useTranslations("help");
   const { isOpen, close } = useHelpModal();
-  const [selectedLanguage, setSelectedLanguage] = React.useState<string>("en");
   const { isResettingTutorial, handleResetTutorial } = useResetTutorial();
   const { data: user } = useUserProfile();
-
-  useEffect(() => {
-    if (isOpen && user?.language) {
-      setSelectedLanguage(user.language);
-    }
-  }, [isOpen, user?.language]);
+  // Defaults to the user's language; an explicit choice in this dialog wins until
+  // it is closed again. Derived rather than synced from an effect.
+  const [languageOverride, setSelectedLanguage] = React.useState<string | null>(
+    null,
+  );
+  const selectedLanguage = languageOverride ?? user?.language ?? "en";
+  React.useEffect(() => {
+    if (!isOpen) setSelectedLanguage(null);
+  }, [isOpen]);
 
   const handleOpenDocumentation = () => {
-    window.open("https://humanlogs.app", "_blank");
+    window.open("/docs", "_blank");
   };
 
   const handleOpenForum = () => {

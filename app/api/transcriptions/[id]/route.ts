@@ -3,60 +3,29 @@ import { prisma } from "@/lib/prisma";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 import { notifyDatabaseChange } from "@/lib/sockets/socket-helpers";
 import { Transcription } from "@prisma/client";
-import crypto from "crypto";
 import _ from "lodash";
 import { NextResponse } from "next/server";
-import {
-  EncryptedDataEntity,
-  EncryptionUtils,
-} from "../../../../lib/encryption/encryption-entities";
+import { EncryptedDataEntity } from "../../../../lib/encryption/encryption-entities";
 import { getStorage } from "../../../../lib/storage";
 import {
   completeTranscription,
   failTranscription,
 } from "@/lib/stt/transcription-completion";
+import { checkAccess } from "@/lib/transcriptions/access";
+import {
+  validateCodeRefs,
+  validateSpeakerCodeRefs,
+} from "@/lib/codebooks/codebook";
+import {
+  parseSpeakers,
+  validateSpeakerCache,
+} from "@/lib/transcriptions/speakers";
 
 type RouteParams = {
   params: Promise<{
     id: string;
   }>;
 };
-
-type SharedUser = { userId: string; role: "read" | "read+listen" | "write" };
-
-// Helper function to check user access to a transcription
-function checkAccess(
-  transcription: Transcription,
-  userId: string,
-  requiredRole?: "read" | "read+listen" | "write",
-): { hasAccess: boolean; isOwner: boolean; role: string | null } {
-  const isOwner = transcription.userId === userId;
-  const shared = (transcription.shared as SharedUser[]) || [];
-  const sharedUser = shared.find((s) => s.userId === userId);
-
-  if (isOwner) {
-    return { hasAccess: true, isOwner: true, role: "owner" };
-  }
-
-  if (!sharedUser) {
-    return { hasAccess: false, isOwner: false, role: null };
-  }
-
-  // Check if user's role meets the requirement
-  if (requiredRole) {
-    const roleHierarchy: Record<string, number> = {
-      read: 1,
-      "read+listen": 2,
-      write: 3,
-    };
-
-    const hasAccess =
-      roleHierarchy[sharedUser.role] >= roleHierarchy[requiredRole];
-    return { hasAccess, isOwner: false, role: sharedUser.role };
-  }
-
-  return { hasAccess: true, isOwner: false, role: sharedUser.role };
-}
 
 export const GET = withAuthRateLimit(
   async (request, user, { params }: RouteParams) => {
@@ -138,6 +107,9 @@ export const PATCH = withAuthRateLimit(
         title?: string;
         projectId?: string | null;
         transcription?: never;
+        speakers?: never;
+        codes?: never;
+        speakerCodes?: never;
         updatedBy?: string;
       } = {};
 
@@ -196,6 +168,44 @@ export const PATCH = withAuthRateLimit(
         }
       }
 
+      // Codes applied to the document and to its speakers. Any writer may
+      // code, but the codes must come from the *owner's* codebooks — those are
+      // the ones scoped to the study this document sits in.
+      if (body.codes !== undefined || body.speakerCodes !== undefined) {
+        const projectId =
+          updateData.projectId !== undefined
+            ? updateData.projectId
+            : transcription.projectId;
+
+        const codebooks = await prisma.codebook.findMany({
+          where: {
+            userId: transcription.userId,
+            OR: [
+              { allStudies: true },
+              ...(projectId ? [{ studies: { some: { projectId } } }] : []),
+            ],
+          },
+          select: { id: true },
+        });
+        const allowed = new Set(codebooks.map((c) => c.id));
+
+        if (body.codes !== undefined) {
+          const parsed = validateCodeRefs(body.codes, allowed);
+          if ("error" in parsed) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
+          }
+          updateData.codes = parsed.codes as never;
+        }
+
+        if (body.speakerCodes !== undefined) {
+          const parsed = validateSpeakerCodeRefs(body.speakerCodes, allowed);
+          if ("error" in parsed) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
+          }
+          updateData.speakerCodes = parsed.speakerCodes as never;
+        }
+      }
+
       // Handle transcription content updates
       if (body.transcription !== undefined) {
         if (
@@ -233,23 +243,64 @@ export const PATCH = withAuthRateLimit(
           }
         }
 
-        // Create a history entry before updating
+        // Create a history entry (snapshot of the PRE-save state) before updating.
+        // Coalesce rapid saves: collaborative autosave debounces every few seconds,
+        // which would otherwise create a history row per tick. Skip the snapshot when
+        // the last one is very recent AND the change is minor — keeping the pre-burst
+        // checkpoint instead of every quickly-overwritten intermediate. A significant
+        // change always gets its own checkpoint so it stays revertable.
         if (transcription.transcription !== null) {
-          await prisma.transcriptionHistory.create({
-            data: {
-              transcriptionId: id,
-              userId: user.id,
-              transcription: transcription.transcription as never,
-              updatedBy: user.id,
-              additions: changeStats.additions || 0,
-              removals: changeStats.removals || 0,
-              changed: changeStats.changed || 0,
-            },
+          const HISTORY_COALESCE_MS = 2 * 60 * 1000; // 2 min
+          const SIGNIFICANT_CHANGE = 40; // words added + removed + changed
+          const changeMagnitude =
+            (changeStats.additions || 0) +
+            (changeStats.removals || 0) +
+            (changeStats.changed || 0);
+
+          const lastEntry = await prisma.transcriptionHistory.findFirst({
+            where: { transcriptionId: id, userId: user.id },
+            orderBy: { updatedAt: "desc" },
+            select: { updatedAt: true },
           });
+          const recentlyCheckpointed =
+            !!lastEntry &&
+            Date.now() - lastEntry.updatedAt.getTime() < HISTORY_COALESCE_MS;
+
+          if (!recentlyCheckpointed || changeMagnitude >= SIGNIFICANT_CHANGE) {
+            await prisma.transcriptionHistory.create({
+              data: {
+                transcriptionId: id,
+                userId: user.id,
+                transcription: transcription.transcription as never,
+                updatedBy: user.id,
+                additions: changeStats.additions || 0,
+                removals: changeStats.removals || 0,
+                changed: changeStats.changed || 0,
+              },
+            });
+          }
         }
 
         updateData.transcription = body.transcription as never;
         updateData.updatedBy = user.id;
+
+        // Keep the roster cache in step with the content it summarizes. A
+        // plaintext save is read here; an encrypted one can only be summarized
+        // by the client, which sends `speakers` alongside (below).
+        const derived = parseSpeakers(body.transcription);
+        if (derived) updateData.speakers = derived as never;
+      }
+
+      // The roster cache on its own — how a client refreshes it for an
+      // encrypted document, whose content the server cannot read. Sent after
+      // the content above so an explicit value always wins over the derived
+      // one.
+      if (body.speakers !== undefined) {
+        const parsed = validateSpeakerCache(body.speakers);
+        if ("error" in parsed) {
+          return NextResponse.json({ error: parsed.error }, { status: 400 });
+        }
+        updateData.speakers = parsed.speakers as never;
       }
 
       const updated = await prisma.transcription.update({
@@ -257,10 +308,19 @@ export const PATCH = withAuthRateLimit(
         data: updateData,
       });
 
-      // Notify client of transcription update
-      notifyDatabaseChange(user.id, "transcription", "update", {
-        id: updated.id,
-      });
+      // Notify the owner AND every collaborator so their sidebar/header/detail
+      // queries refetch (the acting user is always one of them). This does NOT
+      // clobber a live collaborative editor: the editor seeds once and ignores
+      // later `segments` prop changes.
+      const recipients = new Set<string>([updated.userId]);
+      const sharedUsers =
+        (updated.shared as { userId?: string }[] | null) ?? [];
+      for (const s of sharedUsers) if (s?.userId) recipients.add(s.userId);
+      for (const uid of recipients) {
+        notifyDatabaseChange(uid, "transcription", "update", {
+          id: updated.id,
+        });
+      }
 
       return NextResponse.json(mapTransactionDetails(updated));
     } catch (error) {
@@ -405,11 +465,16 @@ export const mapTransactionDetails = (transcription: Transcription) =>
     "state",
     "errorMessage",
     "transcription",
+    // The roster cache, so a client can tell whether it still matches the
+    // content it just decrypted and refresh it when it does not.
+    "speakers",
     "projectId",
     "createdAt",
     "updatedAt",
     "completedAt",
     "isTutorial",
     "shared",
+    "codes",
+    "speakerCodes",
     "userId",
   ]);

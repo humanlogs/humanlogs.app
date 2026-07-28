@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import {
+  BugIcon,
   CheckIcon,
   CreditCardIcon,
   GiftIcon,
@@ -80,6 +81,14 @@ export function SidebarUserMenu({
           >
             <StarIcon className="h-4 w-4" />
             {t("user.feedbackDirect")}
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        {/* Next to it rather than buried in the menu: something being broken is
+            what people want to say the second it happens. */}
+        <SidebarMenuItem>
+          <SidebarMenuButton onClick={() => openFeedbackModal({ mode: "bug" })}>
+            <BugIcon className="h-4 w-4" />
+            {t("user.bugReport")}
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
@@ -266,6 +275,11 @@ export function SidebarUserMenu({
           >
             <LightbulbIcon className="w-4 h-4 mr-2" />
             {t("user.featureRequest")}
+          </DropdownMenuItem>
+
+          <DropdownMenuItem onClick={() => openFeedbackModal({ mode: "bug" })}>
+            <BugIcon className="w-4 h-4 mr-2" />
+            {t("user.bugReport")}
           </DropdownMenuItem>
 
           <DropdownMenuItem onClick={() => openHelpModal({})}>

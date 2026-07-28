@@ -6,7 +6,11 @@ import { notifyDatabaseChange } from "@/lib/sockets/socket-helpers";
 import crypto from "crypto";
 import { readFile } from "fs/promises";
 import { NextResponse } from "next/server";
-import { EncryptionUtils } from "@/lib/encryption/encryption-entities";
+import {
+  EncryptionUtils,
+  serverEncryption,
+} from "@/lib/encryption/encryption-entities";
+import { encodeSpeakerCache } from "@/lib/transcriptions/speakers";
 
 export const dynamic = "force-dynamic";
 
@@ -129,6 +133,12 @@ export const POST = withAuthRateLimit(async (request, user) => {
         state: "COMPLETED",
         sttProvider: null,
         transcription: stored as never,
+        // The roster cache, encrypted like the transcript when it is.
+        speakers: ((await encodeSpeakerCache(
+          content,
+          stored,
+          serverEncryption,
+        )) ?? null) as never,
         completedAt: new Date(),
         updatedBy: user.id,
       },

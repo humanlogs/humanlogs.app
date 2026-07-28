@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
-import { notifyDatabaseChange } from "@/lib/sockets/socket-helpers";
+import { notifyTranscriptionReverted } from "@/lib/sockets/socket-helpers";
 import { NextResponse } from "next/server";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
+import { parseSpeakers } from "@/lib/transcriptions/speakers";
+
+type SharedUser = { userId: string; role: "read" | "read+listen" | "write" };
 
 type RouteParams = {
   params: Promise<{
@@ -35,7 +38,12 @@ export const POST = withAuthRateLimit(
         );
       }
 
-      if (transcription.userId !== user.id) {
+      // Owner OR a write-collaborator may revert (consistent with collaborative
+      // editing — anyone who can edit can restore a version).
+      const shared = (transcription.shared as SharedUser[] | null) ?? [];
+      const isOwner = transcription.userId === user.id;
+      const myRole = shared.find((s) => s.userId === user.id)?.role;
+      if (!isOwner && myRole !== "write") {
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
       }
 
@@ -67,17 +75,27 @@ export const POST = withAuthRateLimit(
         });
       }
 
-      // Update the transcription with the old version
+      // Update the transcription with the old version. The roster cache goes
+      // back with it when the version is readable; an encrypted one is left
+      // alone and refreshed by the first client that opens the document.
+      const speakers = parseSpeakers(version.transcription);
+
       const updated = await prisma.transcription.update({
         where: { id },
         data: {
           transcription: version.transcription as never,
+          ...(speakers ? { speakers: speakers as never } : {}),
+          updatedBy: user.id,
         },
       });
 
-      // Notify client of transcription update
-      notifyDatabaseChange(user.id, "transcription", "update", {
-        id: updated.id,
+      // Notify EVERY participant (owner + all collaborators) to leave the collab
+      // room and reload — the fresh session re-seeds from this (now reverted) DB row.
+      const recipients = [updated.userId, ...shared.map((s) => s.userId)];
+      notifyTranscriptionReverted(recipients, {
+        transcriptionId: updated.id,
+        byUserId: user.id,
+        byName: user.name || user.email || "A collaborator",
       });
 
       return NextResponse.json({ success: true });

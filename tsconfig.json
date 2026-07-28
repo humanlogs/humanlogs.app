@@ -30,8 +30,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "rules": {
-    "react-hooks/set-state-in-effect": "off"
-  },
   "exclude": ["node_modules", "growth", "pipeline"]
 }

@@ -9,9 +9,9 @@ const landingPaths = [
   "/alternatives",
   "/blog",
   "/contact",
+  "/docs",
   "/legal",
   "/pricing",
-  "/resources",
   "/tools",
   "/use-cases",
 ];

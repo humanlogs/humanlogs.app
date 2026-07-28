@@ -1,5 +1,6 @@
 "use client";
 
+import { CodebookSection } from "@/components/codebooks/codebook-section";
 import { useProjectModal } from "@/components/dialogs/project-create-modal";
 import { GuideCallout } from "@/components/guidance/guide-callout";
 import { useTranslations } from "@/components/locale-provider";
@@ -8,7 +9,7 @@ import { ProjectBadge } from "@/components/projects/project-badge";
 import { DocumentList } from "@/components/transcriptions/document-list";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useProjects } from "@/hooks/use-api";
+import { useBetaFeatures, useProjects } from "@/hooks/use-api";
 import { useTranscriptions } from "@/hooks/use-transcriptions";
 import { ArrowLeftIcon, PlusIcon, Settings2Icon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -21,6 +22,7 @@ export default function StudyPage() {
   const router = useRouter();
   const { openRename } = useProjectModal();
 
+  const betaFeatures = useBetaFeatures();
   const { data: projects = [], isLoading: isLoadingProjects } = useProjects();
   const { data: transcriptions = [], isLoading: isLoadingTranscriptions } =
     useTranscriptions();
@@ -128,6 +130,13 @@ export default function StudyPage() {
           <DocumentList documents={documents} />
         )}
       </section>
+
+      {/* Codebooks available from this study. Still beta, so it only shows for
+          users who opted in from /app/account. Hidden until the study holds a
+          document too — there is nothing to code before that. */}
+      {betaFeatures && documents.length > 0 && (
+        <CodebookSection projectId={projectId} />
+      )}
     </PageLayout>
   );
 }

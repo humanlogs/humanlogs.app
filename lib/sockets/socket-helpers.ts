@@ -33,3 +33,20 @@ export function notifyDatabaseChange(
   io.to(`user:${userId}`).emit("db:change", event);
   console.log(`[Socket] Emitted db:change to user:${userId}`, event);
 }
+
+/**
+ * Notify every participant that a transcription was reverted to a past version. The
+ * live collaborative editor content is an in-memory Yjs doc; a DB-only revert would
+ * be silently re-synced away. So every client leaves the collab room (dropping the
+ * stale doc) and reloads — the fresh session then re-seeds from the reverted DB row.
+ */
+export function notifyTranscriptionReverted(
+  userIds: string[],
+  data: { transcriptionId: string; byUserId: string; byName: string },
+) {
+  const io = getSocketServer();
+  if (!io) return;
+  for (const userId of new Set(userIds)) {
+    io.to(`user:${userId}`).emit("transcription:reverted", data);
+  }
+}

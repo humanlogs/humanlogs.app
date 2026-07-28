@@ -429,6 +429,32 @@ export class EncryptionUtils {
   }
 
   /**
+   * Resolve the symmetric AES key an entity is encrypted with, for the given user,
+   * WITHOUT decrypting the payload. Returns the base64 key usable with
+   * {@link encryptWithAESKeySync}/{@link decryptWithAESKeySync}.
+   *
+   * Used by the real-time collaboration transport as a stable per-session key: every
+   * authorized user unwraps the same key, so peers can encrypt/decrypt the shared
+   * Yjs updates, and a save that keeps `privateKeys` untouched keeps it valid.
+   */
+  public async resolveAesKey(
+    encryptedEntity: EncryptedDataEntity,
+    userPrivateKey: string,
+    userPublicKey: string,
+  ): Promise<string> {
+    const privateKeyEntry = encryptedEntity?.privateKeys?.find(
+      (entry) => entry.publicKey === userPublicKey,
+    );
+    if (!privateKeyEntry) {
+      throw new Error("User does not have access to this encrypted data");
+    }
+    return this.decryptStringWithPrivateKey(
+      privateKeyEntry.aesKeyEncrypted,
+      userPrivateKey,
+    );
+  }
+
+  /**
    * Shares access to an encrypted entity with a new user.
    * The current user must have access to decrypt the entity.
    *
@@ -575,7 +601,10 @@ export class EncryptionUtils {
 // Server-side instance (Node.js crypto)
 let serverEncryption: EncryptionUtils | null = null;
 if (typeof window === "undefined") {
-   
+  // Deliberate require: a static import would pull node:crypto into the browser
+  // bundle, where this same module is imported for its types and for the browser
+  // implementation.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const crypto = require("crypto");
   serverEncryption = new EncryptionUtils(crypto);
 }

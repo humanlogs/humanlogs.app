@@ -1,11 +1,19 @@
 "use client";
 
+import type { CodeRef, SpeakerCodeRef } from "@/lib/codebooks/codebook";
+import {
+  encodeSpeakerCache,
+  isEncryptedEntity,
+  parseSpeakers,
+  sameSpeakers,
+  type SpeakerSummary,
+} from "@/lib/transcriptions/speakers";
 import {
   EncryptionUtils,
   type EncryptedDataEntity,
 } from "@/lib/encryption/encryption-entities";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { browserCrypto } from "../lib/encryption/encryption-entities.browser";
 import { fetchGateway } from "./fetch";
 import {
@@ -23,7 +31,19 @@ type Transcription = {
   projectId?: string;
   speakerCount?: number;
   speakerNames?: (string | null)[];
+  /**
+   * The document's speakers, from the roster cache — decrypted here, without
+   * touching the transcript itself. Undefined only when the cache was never
+   * written (a document from before it existed) or when this device has no key
+   * for it.
+   */
+  speakers?: SpeakerSummary[];
+  isEncrypted?: boolean;
   mediaType?: "audio" | "text";
+  /** Codes applied to the document; opaque ids resolved against the codebooks. */
+  codes?: CodeRef[];
+  /** Codes applied to the document's speakers. */
+  speakerCodes?: SpeakerCodeRef[];
   state: "PENDING" | "COMPLETED" | "ERROR";
   errorMessage?: string | null;
   isOwner?: boolean;
@@ -45,13 +65,19 @@ export type TranscriptionDetail = {
   audioFileEncryption?: string;
   mediaType?: "audio" | "text";
   language: string;
-  vocabulary: string[];
+  /** Decrypted by the generic decrypt when the document carries a key; null on
+   * documents created before the column was encrypted. */
+  vocabulary: string[] | null;
   speakerCount: number;
   state: "PENDING" | "COMPLETED" | "ERROR";
   errorMessage?: string | null;
   transcription?: TranscriptionContent;
   projectId?: string;
   projectName?: string;
+  /** The roster cache, decrypted; compare it with the content to spot drift. */
+  speakers?: SpeakerSummary[];
+  codes?: CodeRef[];
+  speakerCodes?: SpeakerCodeRef[];
   createdAt: string;
   updatedAt: string;
   completedAt?: string;
@@ -74,6 +100,11 @@ export type TranscriptionSegment = {
   end?: number;
   speakerId?: string;
   modifiers?: ("b" | "i" | "u" | "s")[];
+  // Comment thread ids anchored on this token (the `commentId` of any `comment`
+  // marks covering it). Note bodies live in the Comment table; this only records
+  // which range is anchored so it survives save → reseed and is versioned with the
+  // transcript. A token normally has at most one (a mark type is unique per position).
+  comments?: string[];
 };
 
 export type HistoryEntry = {
@@ -101,6 +132,27 @@ export type VersionData = {
   } | null;
 };
 
+/**
+ * The roster cache as the UI wants it: a plain list of speakers.
+ *
+ * Decrypting it is deliberately allowed to fail. It is a cache, and its
+ * accessors can legitimately lag behind the document's (a collaborator added
+ * after it was written, a device without the key): losing the names must cost
+ * a fallback, never the whole list of documents.
+ */
+async function decodeSpeakerCache(
+  value: unknown,
+  decrypt: <T>(data: EncryptedDataEntity) => Promise<DecryptedWithRaw<T>>,
+): Promise<SpeakerSummary[] | undefined> {
+  if (!value) return undefined;
+  if (!isEncryptedEntity(value)) return parseSpeakers(value) ?? undefined;
+  try {
+    return parseSpeakers(await decrypt(value)) ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 // Fetch transcriptions
 export function useTranscriptions() {
   const decrypt = useDecryptData();
@@ -112,8 +164,16 @@ export function useTranscriptions() {
       if (!response.ok) {
         throw new Error("Failed to fetch transcriptions");
       }
+      const items = (await response.json()) as Array<
+        Record<string, unknown> & { speakers?: unknown }
+      >;
+      // The roster is pulled out before the generic pass: it is the one
+      // encrypted field of a list item, and it must not be able to fail it.
       return Promise.all<Transcription>(
-        (await response.json()).map(decrypt<Transcription>),
+        items.map(async ({ speakers, ...rest }) => ({
+          ...(await decrypt<Transcription>(rest as never)),
+          speakers: await decodeSpeakerCache(speakers, decrypt),
+        })),
       );
     },
   });
@@ -144,8 +204,19 @@ export function useTranscription(id: string) {
         }
         throw new Error("Failed to fetch transcription");
       }
+      const raw = (await response.json()) as Record<string, unknown> & {
+        speakers?: unknown;
+      };
+      const { speakers, ...rest } = raw;
       try {
-        return await decrypt<TranscriptionDetail>(await response.json());
+        const decoded = await decrypt<TranscriptionDetail>(rest as never);
+        return {
+          ...decoded,
+          speakers: await decodeSpeakerCache(speakers, decrypt),
+          // `_raw` keeps the payload as it was served — the share dialog
+          // re-wraps the stored entities from it, roster included.
+          _raw: raw,
+        } as DecryptedWithRaw<TranscriptionDetail>;
       } catch (error) {
         console.error("Decryption error", error);
         throw new Error("error_encrypted");
@@ -280,9 +351,76 @@ export function calculateWordChanges(
 }
 
 // Save transcription mutation
-export function useSaveTranscription(transcriptionId: string) {
+/**
+ * Resolve the transcription's stable session AES key for the collab transport,
+ * WITHOUT decrypting the payload. Returns:
+ *  - `{ isEncrypted: false, aesKey: null, ready: true }` for plaintext transcriptions,
+ *  - `{ isEncrypted: true, aesKey, ready: true }` once the key is unwrapped,
+ *  - `{ ready: false }` while loading (the collab provider must not start yet, so E2E
+ *    content is never relayed in the clear).
+ */
+export function useTranscriptionAesKey(transcriptionId: string): {
+  aesKey: string | null;
+  isEncrypted: boolean;
+  ready: boolean;
+} {
+  const { data: transcription } = useTranscription(transcriptionId);
+  const { data: encState } = useEncryptionStatus();
+  const [state, setState] = useState<{
+    aesKey: string | null;
+    isEncrypted: boolean;
+    ready: boolean;
+  }>({ aesKey: null, isEncrypted: false, ready: false });
+
+  useEffect(() => {
+    if (!transcription) return; // query not loaded yet → not ready
+    const rawEntity = (
+      transcription as unknown as {
+        _raw?: { transcription?: EncryptedDataEntity };
+      }
+    )._raw?.transcription;
+    const isEncrypted = !!rawEntity?.privateKeys?.length;
+
+    if (!isEncrypted) {
+      // Result of an async decryption; there is no synchronous value to derive.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setState({ aesKey: null, isEncrypted: false, ready: true });
+      return;
+    }
+    const privateKey = encState?.privateKey;
+    const publicKey = encState?.publicKey;
+    if (!privateKey || !publicKey) {
+      setState({ aesKey: null, isEncrypted: true, ready: false });
+      return;
+    }
+
+    let cancelled = false;
+    new EncryptionUtils(browserCrypto)
+      .resolveAesKey(rawEntity as EncryptedDataEntity, privateKey, publicKey)
+      .then((k) => {
+        if (!cancelled) setState({ aesKey: k, isEncrypted: true, ready: true });
+      })
+      .catch(() => {
+        if (!cancelled)
+          setState({ aesKey: null, isEncrypted: true, ready: false });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [transcription, encState?.privateKey, encState?.publicKey]);
+
+  return state;
+}
+
+export function useSaveTranscription(
+  transcriptionId: string,
+  // In collab, the stable session AES key. When provided, encrypted saves REUSE it
+  // (keeping `privateKeys` untouched) instead of rotating — otherwise late joiners,
+  // who resolve the key from the stored entity, would get a key the current peers no
+  // longer use. Non-collab saves (undefined) keep rotating (supports revocation).
+  sessionAesKey?: string | null,
+) {
   const queryClient = useQueryClient();
-  const { data: encryptionStatus } = useEncryptionStatus();
 
   return useMutation({
     mutationFn: async (data: {
@@ -314,16 +452,37 @@ export function useSaveTranscription(transcriptionId: string) {
       const currentData = (currentTranscription?._raw as any)
         ?.transcription as EncryptedDataEntity;
       if (currentData?.privateKeys && currentData?.payload) {
-        // Encrypt the new transcription data using the existing entity template
-        const encryptedEntity = currentData as EncryptedDataEntity;
-        transcriptionData = await new EncryptionUtils(browserCrypto).encrypt(
-          encryptedEntity,
-          {
+        const utils = new EncryptionUtils(browserCrypto);
+        if (sessionAesKey) {
+          // Collab: reuse the stable session key. `privateKeys` already wrap it, so
+          // every collaborator (and any late joiner resolving the key from the stored
+          // entity) keeps decrypting. No key rotation, no re-wrap.
+          transcriptionData = {
+            version: "v1",
+            privateKeys: currentData.privateKeys,
+            payload: await utils.encryptWithAESKeySync(
+              JSON.stringify({ words: data.words, speakers: data.speakers }),
+              sessionAesKey,
+            ),
+          };
+        } else {
+          // Non-collab: rotate the AES key and re-wrap for all authorized users.
+          transcriptionData = await utils.encrypt(currentData, {
             words: data.words,
             speakers: data.speakers,
-          },
-        );
+          });
+        }
       }
+
+      // The roster cache travels with the content it summarizes, encrypted for
+      // the same accessors. The server can derive it from a plaintext save on
+      // its own, but not from an encrypted one — this is what keeps it fresh
+      // for E2E documents.
+      const speakers = await encodeSpeakerCache(
+        data.speakers,
+        currentData,
+        new EncryptionUtils(browserCrypto),
+      );
 
       const response = await fetchGateway(
         `/api/transcriptions/${transcriptionId}`,
@@ -334,6 +493,7 @@ export function useSaveTranscription(transcriptionId: string) {
           },
           body: JSON.stringify({
             transcription: transcriptionData,
+            ...(speakers ? { speakers } : {}),
             changeStats,
           }),
         },
@@ -356,6 +516,222 @@ export function useSaveTranscription(transcriptionId: string) {
         queryKey: ["transcriptions"],
       });
       return data;
+    },
+  });
+}
+
+/**
+ * Refreshes the roster cache of a document that is open, when it does not match
+ * the transcript.
+ *
+ * The cache is written by whoever can read the content: the server on a
+ * plaintext write, the editor on every save. That leaves two gaps — documents
+ * that predate the cache, and E2E documents reverted or shared since — and this
+ * closes them silently the first time someone with a key and write access opens
+ * the document. It runs at most once per mount; there is nothing to retry,
+ * since the next opening would do it again anyway.
+ */
+export function useSpeakerCacheSync(
+  transcriptionId: string,
+  canWrite: boolean,
+) {
+  const queryClient = useQueryClient();
+  const { data: transcription } = useTranscription(transcriptionId);
+  // A ref rather than state: this guard gates one fire-and-forget request, and
+  // has nothing to show for itself in the render.
+  const synced = useRef(false);
+
+  useEffect(() => {
+    if (synced.current || !canWrite || !transcription) return;
+
+    const actual = parseSpeakers(transcription.transcription);
+    // No readable content (no key on this device, or nothing transcribed yet):
+    // there is nothing to refresh the cache from.
+    if (!actual || sameSpeakers(actual, transcription.speakers)) return;
+
+    synced.current = true;
+    const raw = transcription._raw as { transcription?: EncryptedDataEntity };
+
+    void (async () => {
+      try {
+        const speakers = await encodeSpeakerCache(
+          actual,
+          raw?.transcription,
+          new EncryptionUtils(browserCrypto),
+        );
+        if (!speakers) return;
+        const response = await fetchGateway(
+          `/api/transcriptions/${transcriptionId}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ speakers }),
+          },
+        );
+        if (!response.ok) return;
+        // The list groups and codes on these names; it is now out of date.
+        queryClient.invalidateQueries({ queryKey: ["transcriptions"] });
+      } catch (error) {
+        // A stale cache costs a lazy load, never a broken document.
+        console.error("Failed to refresh the speaker cache", error);
+      }
+    })();
+  }, [canWrite, transcription, transcriptionId, queryClient]);
+}
+
+/**
+ * Codes applied to a document (`codes`) or to its speakers (`speakerCodes`).
+ * The mutation replaces the whole list — the server stores it as one JSON
+ * array, and a document has a handful of codes, so sending the new state is
+ * simpler (and free of merge questions) than sending a patch.
+ *
+ * Both caches are written on the spot rather than waiting for a refetch: these
+ * drive checkboxes in a menu, where a delayed tick reads as a lost click, and
+ * the coding board reads the *list* while the editor reads the *detail*.
+ */
+function useDocumentCodesMutation<T extends CodeRef>(
+  transcriptionId: string,
+  field: "codes" | "speakerCodes",
+) {
+  const queryClient = useQueryClient();
+  const detailKey = ["transcriptions", transcriptionId];
+  const listKey = ["transcriptions"];
+
+  return useMutation({
+    mutationFn: async (value: T[]) => {
+      const response = await fetchGateway(
+        `/api/transcriptions/${transcriptionId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ [field]: value }),
+        },
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to save codes");
+      }
+      return data;
+    },
+    onMutate: async (value) => {
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: detailKey }),
+        queryClient.cancelQueries({ queryKey: listKey }),
+      ]);
+
+      const previousDetail =
+        queryClient.getQueryData<DecryptedWithRaw<TranscriptionDetail>>(
+          detailKey,
+        );
+      const previousList = queryClient.getQueryData<Transcription[]>(listKey);
+
+      if (previousDetail) {
+        queryClient.setQueryData(detailKey, {
+          ...previousDetail,
+          [field]: value,
+        });
+      }
+      if (previousList) {
+        queryClient.setQueryData(
+          listKey,
+          previousList.map((doc) =>
+            doc.id === transcriptionId ? { ...doc, [field]: value } : doc,
+          ),
+        );
+      }
+
+      return { previousDetail, previousList };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousDetail) {
+        queryClient.setQueryData(detailKey, context.previousDetail);
+      }
+      if (context?.previousList) {
+        queryClient.setQueryData(listKey, context.previousList);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: detailKey });
+      // The sidebar groups on these, so its list is stale too.
+      queryClient.invalidateQueries({ queryKey: listKey });
+    },
+  });
+}
+
+/** Codes applied to the document as a whole. */
+export function useUpdateDocumentCodes(transcriptionId: string) {
+  return useDocumentCodesMutation<CodeRef>(transcriptionId, "codes");
+}
+
+/** Codes applied to the individual speakers of a document. */
+export function useUpdateSpeakerCodes(transcriptionId: string) {
+  return useDocumentCodesMutation<SpeakerCodeRef>(
+    transcriptionId,
+    "speakerCodes",
+  );
+}
+
+/**
+ * The same, for several documents at once — what coding a *person* means when
+ * the same name appears in five interviews. Each document keeps its own list;
+ * this only spares the caller five round trips and five cache updates.
+ */
+export function useUpdateSpeakerCodesAcross() {
+  const queryClient = useQueryClient();
+  const listKey = ["transcriptions"];
+
+  return useMutation({
+    mutationFn: async (
+      updates: Array<{
+        transcriptionId: string;
+        speakerCodes: SpeakerCodeRef[];
+      }>,
+    ) => {
+      const results = await Promise.all(
+        updates.map(async ({ transcriptionId, speakerCodes }) => {
+          const response = await fetchGateway(
+            `/api/transcriptions/${transcriptionId}`,
+            {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ speakerCodes }),
+            },
+          );
+          return response.ok;
+        }),
+      );
+      // One failure is worth reporting: the others went through, and the
+      // refetch below shows exactly which.
+      if (results.some((ok) => !ok)) throw new Error("Failed to save codes");
+    },
+    onMutate: async (updates) => {
+      await queryClient.cancelQueries({ queryKey: listKey });
+      const previousList = queryClient.getQueryData<Transcription[]>(listKey);
+      const byId = new Map(
+        updates.map((u) => [u.transcriptionId, u.speakerCodes]),
+      );
+      if (previousList) {
+        queryClient.setQueryData(
+          listKey,
+          previousList.map((doc) =>
+            byId.has(doc.id) ? { ...doc, speakerCodes: byId.get(doc.id) } : doc,
+          ),
+        );
+      }
+      return { previousList };
+    },
+    onError: (_error, _updates, context) => {
+      if (context?.previousList) {
+        queryClient.setQueryData(listKey, context.previousList);
+      }
+    },
+    onSettled: (_data, _error, updates) => {
+      queryClient.invalidateQueries({ queryKey: listKey });
+      for (const { transcriptionId } of updates) {
+        queryClient.invalidateQueries({
+          queryKey: ["transcriptions", transcriptionId],
+        });
+      }
     },
   });
 }

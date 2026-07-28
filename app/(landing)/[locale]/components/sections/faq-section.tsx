@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useTranslations } from "@/components/locale-provider";
@@ -152,12 +153,12 @@ export const FAQSection = () => {
         {/* Contact CTA */}
         <div className="mt-12 text-center">
           <p className="text-gray-600 mb-4">{t("stillHaveQuestions")}</p>
-          <a
+          <Link
             href="/contact"
             className="inline-flex items-center justify-center rounded-lg bg-black px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-gray-800"
           >
             {t("contactUs")}
-          </a>
+          </Link>
         </div>
       </div>
     </section>

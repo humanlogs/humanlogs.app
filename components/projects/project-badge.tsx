@@ -64,9 +64,16 @@ export const PROJECT_ICON_COMPONENTS: Record<ProjectIconKey, LucideIcon> = {
   leaf: LeafIcon,
 };
 
-type Size = "sm" | "md" | "lg";
+type Size = "xs" | "sm" | "md" | "lg";
 
 const SIZES: Record<Size, { box: string; icon: string; emoji: string }> = {
+  xs: {
+    // The icon sits well inside the box: at 16px the badge reads as a colored
+    // tile with a mark on it, not as an icon with a border.
+    box: "h-4 w-4 rounded-[4px]",
+    icon: "h-3! w-3!",
+    emoji: "text-[9px]",
+  },
   sm: { box: "h-6 w-6 rounded-md", icon: "h-3.5 w-3.5", emoji: "text-sm" },
   md: { box: "h-10 w-10 rounded-lg", icon: "h-5 w-5", emoji: "text-xl" },
   lg: { box: "h-12 w-12 rounded-xl", icon: "h-6 w-6", emoji: "text-2xl" },
@@ -84,6 +91,7 @@ export function ProjectBadge({
   size = "md",
   imageVersion,
   className,
+  title,
 }: {
   appearance?: ProjectAppearance | null;
   projectId: string;
@@ -92,16 +100,21 @@ export function ProjectBadge({
   /** Cache-busting token (e.g. the project's updatedAt) for the image URL. */
   imageVersion?: string | number;
   className?: string;
+  /** Tooltip, for the places where the badge stands in for the study name. */
+  title?: string;
 }) {
   const s = SIZES[size];
 
   if (appearance?.iconType === "image" && appearance.hasImage) {
-    const v = imageVersion ? `?v=${encodeURIComponent(String(imageVersion))}` : "";
+    const v = imageVersion
+      ? `?v=${encodeURIComponent(String(imageVersion))}`
+      : "";
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={`/api/projects/${projectId}/image${v}`}
         alt={name ?? ""}
+        title={title}
         className={cn("shrink-0 object-cover", s.box, className)}
       />
     );
@@ -127,6 +140,7 @@ export function ProjectBadge({
 
   return (
     <div
+      title={title}
       className={cn(
         "flex shrink-0 items-center justify-center text-white",
         s.box,

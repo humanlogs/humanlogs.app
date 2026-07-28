@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 import { notifyDatabaseChange } from "@/lib/sockets/socket-helpers";
 import { serverEncryption } from "@/lib/encryption/encryption-entities";
+import { revokeCodebookAccess } from "@/lib/codebooks/server";
 
 type RouteParams = {
   params: Promise<{
@@ -136,10 +137,33 @@ export const POST = withAuthRateLimit(
             };
           }
         }
+
+        // Same for the speaker roster cache, which is encrypted separately so
+        // it can be read without the transcript.
+        if (body.encryptedData.speakers?.privateKeys) {
+          const currentSpeakers = transcription.speakers as any;
+          if (currentSpeakers?.privateKeys) {
+            updateData.speakers = {
+              ...currentSpeakers,
+              privateKeys: body.encryptedData.speakers.privateKeys,
+            };
+          }
+        }
+
+        // And for the custom vocabulary, its own entity since creation.
+        if (body.encryptedData.vocabulary?.privateKeys) {
+          const currentVocabulary = transcription.vocabulary as any;
+          if (currentVocabulary?.privateKeys) {
+            updateData.vocabulary = {
+              ...currentVocabulary,
+              privateKeys: body.encryptedData.vocabulary.privateKeys,
+            };
+          }
+        }
       }
 
       // Update the transcription
-      const updated = await prisma.transcription.update({
+      const _updated = await prisma.transcription.update({
         where: { id },
         data: updateData,
       });
@@ -241,6 +265,47 @@ export const DELETE = withAuthRateLimit(
         where: { id },
         data: updateData,
       });
+
+      // Revoke the removed user's access to encrypted comment bodies too, by dropping
+      // their wrapped-key entry from each comment. Plaintext comments are left as-is.
+      if (serverEncryption) {
+        const comments = await prisma.comment.findMany({
+          where: { transcriptionId: id },
+          select: { id: true, body: true },
+        });
+        for (const c of comments) {
+          const body = c.body as {
+            privateKeys?: unknown[];
+            payload?: string;
+          } | null;
+          if (Array.isArray(body?.privateKeys) && body.privateKeys.length > 1) {
+            try {
+              const next = await serverEncryption.unshare(
+                body as never,
+                userIdToRemove,
+              );
+              await prisma.comment.update({
+                where: { id: c.id },
+                data: { body: next as never },
+              });
+            } catch (e) {
+              console.error("Failed to unshare comment", c.id, e);
+            }
+          }
+        }
+      }
+
+      // Losing a document can also mean losing the codebooks that covered its
+      // study — but only if no other document still grants that access.
+      try {
+        await revokeCodebookAccess(
+          transcription.userId,
+          transcription.projectId,
+          userIdToRemove,
+        );
+      } catch (e) {
+        console.error("Failed to revoke codebook access", e);
+      }
 
       // Notify both owner and removed user of the change
       notifyDatabaseChange(user.id, "transcription", "update", { id });

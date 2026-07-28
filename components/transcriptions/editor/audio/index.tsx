@@ -33,7 +33,9 @@ export const InteractiveAudio = ({
   const audioMediaRef = useRef<HTMLAudioElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
-  const onTimeUpdateRef = useRef<(currentTime: number) => void>(() => {});
+  const onTimeUpdateCallbacks = useRef<Set<(currentTime: number) => void>>(
+    new Set(),
+  );
   const timeUpdateIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const speakerSegmentsRef = useRef<
     (Partial<TranscriptionSegment> & { color: string })[]
@@ -42,6 +44,8 @@ export const InteractiveAudio = ({
   const { setCurrentTime, registerSeekHandler } = useAudio();
   const segmentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const blobUrlRef = useRef<string | null>(null);
+  /** A seek asked for before the media had a duration — replayed once it does. */
+  const pendingSeekRef = useRef<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeedVal] = useState(1);
   const [totalDuration, setTotalDuration] = useState<number | undefined>(0);
@@ -78,14 +82,19 @@ export const InteractiveAudio = ({
 
   // Seek to specific time
   const seekTo = useCallback((time: number) => {
-    if (audioMediaRef.current) {
-      const duration = audioMediaRef.current.duration;
-      if (duration > 0) {
-        audioMediaRef.current.currentTime = Math.min(time, duration);
-        if (wavesurferRef.current) {
-          wavesurferRef.current.seekTo(time / duration);
-        }
-      }
+    if (!audioMediaRef.current) return;
+    const duration = audioMediaRef.current.duration;
+    if (!(duration > 0)) {
+      // No metadata yet (the file is still downloading, or being decrypted and
+      // decoded). A media element ignores `currentTime` in that state, so the
+      // seek would be dropped and every word clicked before the audio is ready
+      // would leave the playhead at 0. Remember it and replay it on load.
+      pendingSeekRef.current = time;
+      return;
+    }
+    audioMediaRef.current.currentTime = Math.min(time, duration);
+    if (wavesurferRef.current) {
+      wavesurferRef.current.seekTo(Math.min(time, duration) / duration);
     }
   }, []);
 
@@ -106,6 +115,9 @@ export const InteractiveAudio = ({
     (window as any).audioMedia = audioMediaRef.current; // Expose for debugging
 
     // Show loading state
+    // Async load: the flag flips on before awaiting the waveform and off when it
+    // resolves. There is nothing to derive from during render.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoadingWaveform(true);
 
     // Initialize speaker segments from current segments
@@ -240,7 +252,7 @@ export const InteractiveAudio = ({
       audioMediaRef.current?.addEventListener("seeking", () => {
         const currentTime = audioMediaRef.current?.currentTime || 0;
         setCurrentTime(currentTime);
-        if (onTimeUpdateRef.current) onTimeUpdateRef.current(currentTime);
+        onTimeUpdateCallbacks.current.forEach((cb) => cb(currentTime));
       });
 
       // Keep the total duration in sync with the actual media element. The
@@ -252,6 +264,12 @@ export const InteractiveAudio = ({
         const duration = audioMediaRef.current?.duration;
         if (duration && Number.isFinite(duration)) {
           setTotalDuration(duration);
+          // Honour the last word clicked while the audio was still loading.
+          const pending = pendingSeekRef.current;
+          if (pending !== null) {
+            pendingSeekRef.current = null;
+            seekTo(pending);
+          }
         }
       };
       audioMediaRef.current?.addEventListener(
@@ -270,7 +288,7 @@ export const InteractiveAudio = ({
           // Update time as audio plays
           const currentTime = audioMediaRef.current?.currentTime || 0;
           setCurrentTime(currentTime);
-          if (onTimeUpdateRef.current) onTimeUpdateRef.current(currentTime);
+          onTimeUpdateCallbacks.current.forEach((cb) => cb(currentTime));
           if (wavesurferRef.current)
             wavesurferRef.current.seekTo(
               currentTime / (audioMediaRef.current?.duration || 1),
@@ -334,6 +352,8 @@ export const InteractiveAudio = ({
 
     // Cleanup
     return () => {
+      // Never carry a seek over to another document's audio.
+      pendingSeekRef.current = null;
       if (segmentTimeoutRef.current) {
         clearTimeout(segmentTimeoutRef.current);
       }
@@ -383,7 +403,8 @@ export const InteractiveAudio = ({
         seekTo,
         setPlaybackSpeed,
         onTimeUpdate: (callback) => {
-          onTimeUpdateRef.current = callback;
+          onTimeUpdateCallbacks.current.add(callback);
+          return () => onTimeUpdateCallbacks.current.delete(callback);
         },
       });
     }

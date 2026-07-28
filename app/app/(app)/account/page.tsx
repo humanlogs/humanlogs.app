@@ -20,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import {
   ShieldCheckIcon,
   CreditCardIcon,
@@ -27,8 +28,9 @@ import {
   TrashIcon,
   AlertTriangleIcon,
   GiftIcon,
+  FlaskConicalIcon,
 } from "lucide-react";
-import { useUserProfile } from "@/hooks/use-api";
+import { useUpdateUser, useUserProfile } from "@/hooks/use-api";
 import { useTranscriptions } from "@/hooks/use-transcriptions";
 import { useDecryptData } from "@/hooks/use-encryption";
 import { useState } from "react";
@@ -44,6 +46,7 @@ export default function AccountPage() {
   const { data: userProfile } = useUserProfile();
   const { data: transcriptions = [] } = useTranscriptions();
   const decrypt = useDecryptData();
+  const updateUser = useUpdateUser();
 
   const [includeAudio, setIncludeAudio] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -259,6 +262,15 @@ ${includeAudio ? "- **audio file**: Original audio file (decrypted if it was enc
     }
   };
 
+  const handleToggleBetaFeatures = async (enabled: boolean) => {
+    try {
+      await updateUser.mutateAsync({ betaFeatures: enabled });
+    } catch (error) {
+      console.error("Beta features toggle error:", error);
+      toast.error(t("preferences.betaFeatures.error"));
+    }
+  };
+
   const handleRequestAccountDeletion = async () => {
     setIsRequestingDelete(true);
     try {
@@ -350,6 +362,40 @@ ${includeAudio ? "- **audio file**: Original audio file (decrypted if it was enc
             </CardContent>
           </Card>
         )}
+
+        {/* Preferences: opt-in surfaces that aren't on for everyone yet. */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FlaskConicalIcon className="w-5 h-5" />
+              {t("preferences.title")}
+            </CardTitle>
+            <CardDescription>{t("preferences.description")}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="beta-features"
+                className="mt-0.5"
+                checked={userProfile?.betaFeatures === true}
+                disabled={!userProfile || updateUser.isPending}
+                onCheckedChange={(checked: boolean) =>
+                  handleToggleBetaFeatures(checked === true)
+                }
+              />
+              <Label
+                htmlFor="beta-features"
+                className="text-sm font-normal cursor-pointer"
+              >
+                {t("preferences.betaFeatures.label")}
+              </Label>
+              <Badge variant="outline">{t("preferences.betaBadge")}</Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {t("preferences.betaFeatures.description")}
+            </p>
+          </CardContent>
+        </Card>
 
         {/* Your Data Section */}
         <Card>

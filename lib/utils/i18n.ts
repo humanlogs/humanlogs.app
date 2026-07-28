@@ -5,7 +5,9 @@ export const locales = ["en", "fr", "es", "de"];
 export type Locale = "en" | "fr" | "es" | "de";
 export const i18nFiles = [
   "common",
+  "codebook",
   "dialog",
+  "docs",
   "editor",
   "landing",
   "alternatives",

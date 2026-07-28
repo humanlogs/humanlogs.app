@@ -1,6 +1,6 @@
 import { UserCursor } from "@/hooks/use-transcription-cursors";
 import { EditorAPI } from "../text/api";
-import { getUserColor } from "../text/components/remote-cursors";
+import { getUserColor } from "@/lib/utils/utils";
 import { offsetToTime } from "./helpers";
 import { useAudio } from "./audio-context";
 
@@ -25,8 +25,12 @@ export const CollaborationTicks = ({
         }}
       />
       {(cursors || []).map((cursor) => {
-        const segments = editorAPI.getSegments();
-        const cursorTime = offsetToTime(cursor.endOffset, segments);
+        // While a peer is listening we get their audio position directly; otherwise
+        // fall back to the audio time of their edit caret.
+        const cursorTime =
+          cursor.audioTime != null
+            ? cursor.audioTime
+            : offsetToTime(cursor.endOffset, editorAPI.getSegments());
         const duration = totalDuration || 1;
         const leftPercent = (cursorTime / duration) * 100;
         const color = getUserColor(cursor.userId);

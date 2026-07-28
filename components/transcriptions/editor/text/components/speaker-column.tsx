@@ -1,5 +1,6 @@
 "use client";
 
+import { SpeakerCodesMenu } from "@/components/codebooks/speaker-codes-menu";
 import { useTranslations } from "@/components/locale-provider";
 import { useSpeakerOptionsModal } from "@/components/transcriptions/dialogs/speaker-options-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -46,18 +47,25 @@ export function SpeakerBadgeChip({
 interface SpeakerColumnProps {
   editorAPI: EditorAPI;
   readOnly?: boolean;
+  /** The document these speakers belong to — needed to code them. */
+  transcriptionId: string;
+  projectId?: string | null;
 }
 
 interface SpeakerBadgeProps {
   position: SpeakerPosition;
   editorAPI: EditorAPI;
   readOnly?: boolean;
+  transcriptionId: string;
+  projectId?: string | null;
 }
 
 function SpeakerBadge({
   position,
   editorAPI,
   readOnly = false,
+  transcriptionId,
+  projectId,
 }: SpeakerBadgeProps) {
   const t = useTranslations("editor");
   const { speakerId, index, top } = position;
@@ -150,6 +158,15 @@ function SpeakerBadge({
                 {t("speaker.speakerOptions")}
               </DropdownMenuItem>
 
+              {/* Codes carried by the person, not by what they say — kept on
+                  the speaker itself, so coding one is a click away from where
+                  they are visible. */}
+              <SpeakerCodesMenu
+                transcriptionId={transcriptionId}
+                projectId={projectId}
+                speakerId={speakerId}
+              />
+
               <DropdownMenuSeparator />
             </>
           )}
@@ -185,6 +202,8 @@ function SpeakerBadge({
 export function SpeakerColumn({
   editorAPI,
   readOnly = false,
+  transcriptionId,
+  projectId,
 }: SpeakerColumnProps) {
   const { positions } = useSpeakerPositions(editorAPI);
   if (positions.length === 0) return <div className="w-24 shrink-0 min-w-0" />;
@@ -197,6 +216,8 @@ export function SpeakerColumn({
           position={pos}
           editorAPI={editorAPI}
           readOnly={readOnly}
+          transcriptionId={transcriptionId}
+          projectId={projectId}
         />
       ))}
 

@@ -19,17 +19,13 @@ export type CursorPosition = {
   endOffset: number;
   timestamp: number;
   hasWriteAccess: boolean;
+  /** Audio playback/scrub position (seconds) while listening; null when driven by
+   *  the edit caret. Lets peers see where a user is on the waveform during playback. */
+  audioTime?: number | null;
 };
 
 export type CursorPositionWithSocket = CursorPosition & {
   socketId: string;
-};
-
-export type Leader = {
-  userId: string;
-  userName: string;
-  socketId: string;
-  timestamp: number;
 };
 
 let socket: Socket | null = null;
@@ -94,37 +90,20 @@ export function useSocket() {
       });
 
       socket.on("connect", () => {
-        console.log("Socket connected:", socket?.id);
-
-        // Attach all pending event listeners
+        // Attach listeners and run operations queued before the socket connected.
         pendingListeners.forEach((callbacks, event) => {
-          callbacks.forEach((callback) => {
-            socket?.on(event, callback);
-            console.log("Attached cached listener for:", event);
-          });
+          callbacks.forEach((callback) => socket?.on(event, callback));
         });
         pendingListeners.clear();
 
-        // Execute all pending operations
         pendingOperations.forEach((operation) => {
           if (operation.type === "join") {
             socket?.emit("transcription:join", operation.transcriptionId);
-            console.log("Executed cached join for:", operation.transcriptionId);
           } else if (operation.type === "leave") {
             socket?.emit("transcription:leave", operation.transcriptionId);
-            console.log(
-              "Executed cached leave for:",
-              operation.transcriptionId,
-            );
           }
         });
-
-        // Clear pending operations after execution
         pendingOperations.clear();
-      });
-
-      socket.on("disconnect", () => {
-        console.log("Socket disconnected");
       });
 
       socket.on("error", (error: any) => {
@@ -137,22 +116,33 @@ export function useSocket() {
         }
       });
 
-      socket.on("db:change", (event: DatabaseChangeEvent) => {
-        console.log("Database change event:", event);
+      // The server authenticates in a Socket.io middleware, so a rejected
+      // handshake surfaces here (the connection is never established) rather
+      // than as a post-connect `error` event.
+      socket.on("connect_error", (error: Error) => {
+        if (error.message === "Authentication required") {
+          console.error(
+            "Socket authentication failed - token may be invalid or expired",
+          );
+          return;
+        }
+        console.error("Socket connection error:", error.message);
+      });
 
-        // Invalidate queries based on the table that changed
+      socket.on("db:change", (event: DatabaseChangeEvent) => {
+        // Invalidate queries whose key references the changed table. The server
+        // emits the singular Prisma model name (e.g. "transcription") while query
+        // keys use the plural (["transcriptions", ...]) — tolerate both directions.
+        const table = event.table.toLowerCase();
         queryClient.invalidateQueries({
           predicate: (query) => {
-            // Check if query key contains the table name
             const queryKey = query.queryKey;
-            if (Array.isArray(queryKey)) {
-              return queryKey.some(
-                (key) =>
-                  typeof key === "string" &&
-                  key.toLowerCase() === event.table.toLowerCase(),
-              );
-            }
-            return false;
+            if (!Array.isArray(queryKey)) return false;
+            return queryKey.some((key) => {
+              if (typeof key !== "string") return false;
+              const k = key.toLowerCase();
+              return k === table || `${k}s` === table || k === `${table}s`;
+            });
           },
         });
       });
@@ -189,11 +179,7 @@ export function joinTranscriptionRoom(transcriptionId: string) {
     pendingOperations.delete(transcriptionId);
   } else {
     // Cache the join operation to execute when socket connects
-    pendingOperations.set(transcriptionId, {
-      type: "join",
-      transcriptionId,
-    });
-    console.log("Cached join operation for:", transcriptionId);
+    pendingOperations.set(transcriptionId, { type: "join", transcriptionId });
   }
 }
 
@@ -206,16 +192,10 @@ export function leaveTranscriptionRoom(transcriptionId: string) {
     // Check if there's a pending join operation
     const pendingOp = pendingOperations.get(transcriptionId);
     if (pendingOp?.type === "join") {
-      // Cancel the pending join operation
+      // A queued join never ran — just cancel it.
       pendingOperations.delete(transcriptionId);
-      console.log("Cancelled cached join operation for:", transcriptionId);
     } else {
-      // Cache the leave operation to execute when socket connects
-      pendingOperations.set(transcriptionId, {
-        type: "leave",
-        transcriptionId,
-      });
-      console.log("Cached leave operation for:", transcriptionId);
+      pendingOperations.set(transcriptionId, { type: "leave", transcriptionId });
     }
   }
 }
@@ -286,72 +266,22 @@ export function offUserDisconnected(
   detachListener("transcription:user-disconnected", callback);
 }
 
-// Leader management
-export async function claimLeadership(
-  transcriptionId: string,
-  userId: string,
-  userName: string,
+// A transcription was reverted to a past version → all clients must leave the collab
+// room and reload so the fresh session re-seeds from the reverted DB row.
+export type RevertedEvent = {
+  transcriptionId: string;
+  byUserId: string;
+  byName: string;
+};
+
+export function onTranscriptionReverted(
+  callback: (data: RevertedEvent) => void,
 ) {
-  while (!socket?.connected) {
-    await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for 100ms before checking again
-  }
-  socket.emit("transcription:claim-leader", {
-    transcriptionId,
-    userId,
-    userName,
-  });
+  attachListener("transcription:reverted", callback);
 }
 
-export function releaseLeadership(transcriptionId: string) {
-  if (socket?.connected) {
-    socket.emit("transcription:release-leader", {
-      transcriptionId,
-    });
-  }
-}
-
-export function leaderKeepalive(transcriptionId: string) {
-  if (socket?.connected) {
-    socket.emit("transcription:leader-keepalive", {
-      transcriptionId,
-    });
-  }
-}
-
-// Listen for leader changes
-export function onLeaderChanged(
-  callback: (data: { transcriptionId: string; leader: Leader | null }) => void,
+export function offTranscriptionReverted(
+  callback?: (data: RevertedEvent) => void,
 ) {
-  attachListener("transcription:leader-changed", callback);
-}
-
-export function onLeaderGranted(
-  callback: (data: { transcriptionId: string }) => void,
-) {
-  attachListener("transcription:leader-granted", callback);
-}
-
-export function onLeaderDenied(
-  callback: (data: { transcriptionId: string; currentLeader: Leader }) => void,
-) {
-  attachListener("transcription:leader-denied", callback);
-}
-
-// Cleanup leader listeners
-export function offLeaderChanged(
-  callback?: (data: { transcriptionId: string; leader: Leader | null }) => void,
-) {
-  detachListener("transcription:leader-changed", callback);
-}
-
-export function offLeaderGranted(
-  callback?: (data: { transcriptionId: string }) => void,
-) {
-  detachListener("transcription:leader-granted", callback);
-}
-
-export function offLeaderDenied(
-  callback?: (data: { transcriptionId: string; currentLeader: Leader }) => void,
-) {
-  detachListener("transcription:leader-denied", callback);
+  detachListener("transcription:reverted", callback);
 }

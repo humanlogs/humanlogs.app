@@ -19,6 +19,8 @@ type UseAutoSaveOptions = {
   editorAPI: EditorAPI;
   debounceMs?: number;
   maxDebounceMs?: number;
+  /** Collab session AES key — encrypted saves reuse it instead of rotating. */
+  sessionAesKey?: string | null;
   onSaveStart?: () => void;
   onSaveComplete?: () => void;
   onSaveError?: (error: Error) => void;
@@ -29,6 +31,7 @@ export function useAutoSave({
   editorAPI,
   debounceMs = 3000,
   maxDebounceMs = 60000,
+  sessionAesKey,
   onSaveStart,
   onSaveComplete,
   onSaveError,
@@ -44,7 +47,7 @@ export function useAutoSave({
     (isManual?: boolean, forceSave?: boolean) => Promise<void>
   >(async () => {});
   const queryClient = useQueryClient();
-  const saveTranscription = useSaveTranscription(transcriptionId);
+  const saveTranscription = useSaveTranscription(transcriptionId, sessionAesKey);
 
   // Track if this is the first render
   // Initialize as mounted on first render
@@ -55,7 +58,6 @@ export function useAutoSave({
       segments: editorAPI.getSegments(),
       speakers: editorAPI.getSpeakers(),
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Manual save function
@@ -122,6 +124,20 @@ export function useAutoSave({
   // Keep performSaveRef up to date so the navigation guard can always call the latest version
   performSaveRef.current = performSave;
 
+  // Imperative flush — persist current state NOW (used on collab leadership handoff
+  // so the incoming save leader closes any unsaved window immediately).
+  const flush = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+    if (maxDebounceTimeoutRef.current) {
+      clearTimeout(maxDebounceTimeoutRef.current);
+      maxDebounceTimeoutRef.current = null;
+    }
+    void performSaveRef.current(false, false);
+  }, []);
+
   // Handle Ctrl+S / Cmd+S keyboard shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -141,7 +157,6 @@ export function useAutoSave({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onChange = useCallback(() => {
@@ -241,7 +256,7 @@ export function useAutoSave({
     };
   }, []);
 
-  return { saveStatus, onChange };
+  return { saveStatus, onChange, flush };
 }
 
 const setBeforeUnloadWarning = (

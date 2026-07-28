@@ -24,8 +24,8 @@ export default function Page() {
 
         <h2>Introduction</h2>
         <p>
-          These Terms of Service ("Terms") govern your use of our transcription
-          service ("Service"). By creating an account or using the Service, you
+          These Terms of Service (&quot;Terms&quot;) govern your use of our transcription
+          service (&quot;Service&quot;). By creating an account or using the Service, you
           agree to these Terms.
         </p>
 
@@ -81,7 +81,7 @@ export default function Page() {
 
         <h2>Service Availability</h2>
         <p>
-          The Service is provided "as is" and "as available". We do not
+          The Service is provided &quot;as is&quot; and &quot;as available&quot;. We do not
           guarantee uninterrupted availability. We are not responsible for
           temporary service interruptions.
         </p>

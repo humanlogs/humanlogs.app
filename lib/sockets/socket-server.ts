@@ -1,25 +1,49 @@
 import { Server as HTTPServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
-import * as awarenessProtocol from "y-protocols/awareness";
-import * as Y from "yjs";
-import { verifySocketAuth } from "./socket-auth";
+import { verifySocketAuth, type SocketAuthResult } from "./socket-auth";
+import { getTranscriptionAccessFor } from "../transcriptions/access";
 
 let io: SocketIOServer | null = null;
 
-// Store Y.js documents for each transcription
-// Map<transcriptionId, Y.Doc>
-const yjsDocuments = new Map<string, Y.Doc>();
+// The custom server (server.ts, run by tsx) and Next-compiled API routes resolve
+// this module to DIFFERENT instances, so a plain module-level `io` set by the server
+// is invisible to routes calling getSocketServer() (they'd silently skip every
+// notify — db:change, revert, …). Mirror the instance on globalThis, which IS shared
+// across both instances in the same Node process.
+const IO_GLOBAL_KEY = "__humanlogsSocketIO__";
+type GlobalWithIO = typeof globalThis & {
+  [IO_GLOBAL_KEY]?: SocketIOServer | null;
+};
+const globalWithIo = globalThis as GlobalWithIO;
 
-// Store awareness states for each transcription
-// Map<transcriptionId, Awareness>
-const yjsAwareness = new Map<string, awarenessProtocol.Awareness>();
+// ---------------------------------------------------------------------------
+// Blind Yjs relay
+// ---------------------------------------------------------------------------
+// The server never holds a Y.Doc and never inspects payloads (they may be E2E
+// ciphertext). It only (1) relays opaque `yjs:msg` between room members and
+// (2) coordinates WHICH client is the seeding authority, so a late joiner pulls
+// state from a peer instead of seeding a duplicate. Content stays opaque.
+type CollabRoom = { authority: string | null; members: Set<string> };
+const collabRooms = new Map<string, CollabRoom>();
 
-// Track the current editor (leader) for each transcription
-// Map<transcriptionId, { userId: string; userName: string; socketId: string; timestamp: number }>
-const transcriptionLeaders = new Map<
-  string,
-  { userId: string; userName: string; socketId: string; timestamp: number }
->();
+function collabLeave(socketId: string, transcriptionId: string) {
+  const room = collabRooms.get(transcriptionId);
+  if (!room) return;
+  room.members.delete(socketId);
+  if (room.authority === socketId) {
+    // A remaining member already synced full state on join → it can serve future
+    // state-requests and becomes the save leader. No re-seed needed (onSeed no-ops
+    // on a non-empty doc; the client just flips to isSaver=true).
+    room.authority = room.members.size ? [...room.members][0] : null;
+    if (room.authority) {
+      io?.to(room.authority).emit("yjs:role", {
+        transcriptionId,
+        role: "seed",
+      });
+    }
+  }
+  if (room.members.size === 0) collabRooms.delete(transcriptionId);
+}
 
 type CursorPosition = {
   userId: string;
@@ -28,6 +52,7 @@ type CursorPosition = {
   endOffset: number;
   timestamp: number;
   hasWriteAccess: boolean;
+  audioTime?: number | null;
 };
 
 const log = (...args: any[]) => {
@@ -44,159 +69,126 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
   io = new SocketIOServer(httpServer, {
     path: "/api/socket",
     addTrailingSlash: false,
+    // Collab seed / full-state syncs carry the whole Yjs doc (base64 or ciphertext),
+    // which can be several MB for a long transcript. The default 1MB cap silently
+    // rejects those packets and drops the socket, so raise it well above real sizes.
+    maxHttpBufferSize: 1e8, // 100 MB
     cors: {
       origin: process.env.NEXT_PUBLIC_APP_URL || "https://humanlogs.app",
       credentials: true,
     },
   });
 
-  io.on("connection", async (socket) => {
-    log("Client connected:", socket.id);
-
-    // Verify authentication and extract user info
+  // Authenticate in a MIDDLEWARE, not inside the connection handler. Socket.io
+  // buffers a connection's packets until its middlewares resolve, but NOT while
+  // an async `connection` handler awaits: a client emits `yjs:join` the instant
+  // it connects, so awaiting the token verification + user lookup there dropped
+  // that packet whenever the database was slower than the round-trip — the client
+  // then never received a role and its editor never seeded or synced.
+  io.use(async (socket, next) => {
     const authResult = await verifySocketAuth(socket);
-
     if (!authResult) {
-      log("Unauthorized connection attempt, disconnecting:", socket.id);
-      socket.emit("error", { message: "Authentication required" });
-      socket.disconnect();
-      return;
+      log("Unauthorized connection attempt, rejecting:", socket.id);
+      return next(new Error("Authentication required"));
     }
+    socket.data.auth = authResult;
+    next();
+  });
 
-    const { userId, email } = authResult;
-    log(`Authenticated user: ${userId} (${email})`);
+  io.on("connection", (socket) => {
+    const { userId, email } = socket.data.auth as SocketAuthResult;
+    log(`Client connected: ${socket.id} — user ${userId} (${email})`);
 
-    // Join user-specific room
-    socket.join(`user:${userId}`);
+    // Rooms this socket has JOINED, and with what rights. Authentication only
+    // proves who the user is; a transcription id travels in URLs, exports and
+    // emails, so it is no kind of secret — every join is checked against the
+    // transcription's owner/shared list.
+    //
+    // The map holds the in-flight promise, not the resolved value: a client emits
+    // its first document update moments after joining, and that message must wait
+    // for the authorization it races rather than be dropped (a lost Yjs update
+    // never comes back). Only a socket that joined — and has not left — is in here,
+    // so relaying costs no database round-trip after the first check.
+    type Membership = { canWrite: boolean };
+    const memberships = new Map<string, Promise<Membership | null>>();
 
-    // Handle joining a transcription room
-    socket.on("transcription:join", (transcriptionId: string) => {
-      socket.join(`transcription:${transcriptionId}`);
-      log(`Socket ${socket.id} joined transcription room: ${transcriptionId}`);
+    // The provider instance currently holding this socket's seat in a room.
+    //
+    // The socket is a long-lived singleton but the provider is not: the editor
+    // recreates it (React re-mounting an effect, the E2E session key resolving),
+    // and the old instance says goodbye AFTER an asynchronous farewell — so its
+    // `yjs:leave` reliably arrives once the new instance has already re-joined.
+    // Without this, that stale goodbye evicted the live client: its membership
+    // was gone, so every later message from it was dropped and it never received
+    // the document. A leave is honoured only for the session that is still in.
+    const joinSessions = new Map<string, string>();
 
-      // Send current leader info to the joining user
-      const currentLeader = transcriptionLeaders.get(transcriptionId);
-      if (currentLeader) {
-        socket.emit("transcription:leader-changed", {
-          transcriptionId,
-          leader: currentLeader,
-        });
+    const joinRoom = (transcriptionId: string): Promise<Membership | null> => {
+      const pending = memberships.get(transcriptionId);
+      if (pending) return pending;
+      const authorized = getTranscriptionAccessFor(userId, transcriptionId).then(
+        (access) => {
+          if (!access.hasAccess) {
+            log(`Denied ${userId} access to transcription ${transcriptionId}`);
+            socket.emit("transcription:denied", { transcriptionId });
+            memberships.delete(transcriptionId);
+            return null;
+          }
+          return { canWrite: access.isOwner || access.role === "write" };
+        },
+      );
+      memberships.set(transcriptionId, authorized);
+      return authorized;
+    };
+
+    /**
+     * Authorize a join and make sure the seat SURVIVES it.
+     *
+     * Authorization is a round-trip to the database, and messages keep arriving
+     * while it is in flight — including the goodbye of the provider instance this
+     * join replaces, which erases the very entry `joinRoom` just registered. The
+     * join is the newer intent, so it puts its seat back.
+     */
+    const joinRoomAndHold = async (
+      transcriptionId: string,
+    ): Promise<Membership | null> => {
+      const membership = await joinRoom(transcriptionId);
+      if (!membership) return null;
+      if (!memberships.has(transcriptionId)) {
+        memberships.set(transcriptionId, Promise.resolve(membership));
       }
+      return membership;
+    };
 
-      // Notify others in the room that a user joined
+    /** Rights in a room this socket has joined; null if it never did, or left. */
+    const membershipOf = (
+      transcriptionId: string,
+    ): Promise<Membership | null> =>
+      memberships.get(transcriptionId) ?? Promise.resolve(null);
+
+    // --- Presence + cursor room (drives the custom text/audio cursors) ----------
+    socket.on("transcription:join", async (transcriptionId: string) => {
+      if (!(await joinRoomAndHold(transcriptionId))) return;
+      socket.join(`transcription:${transcriptionId}`);
       socket
         .to(`transcription:${transcriptionId}`)
-        .emit("transcription:user-joined", {
-          userId,
-          socketId: socket.id,
-        });
+        .emit("transcription:user-joined", { userId, socketId: socket.id });
     });
 
-    // Handle leaving a transcription room
     socket.on("transcription:leave", (transcriptionId: string) => {
       socket.leave(`transcription:${transcriptionId}`);
-      log(`Socket ${socket.id} left transcription room: ${transcriptionId}`);
-
-      // Release leadership if this user was the leader
-      const currentLeader = transcriptionLeaders.get(transcriptionId);
-      if (currentLeader?.socketId === socket.id) {
-        transcriptionLeaders.delete(transcriptionId);
-        // Notify all users that leadership was released
-        io?.to(`transcription:${transcriptionId}`).emit(
-          "transcription:leader-changed",
-          {
-            transcriptionId,
-            leader: null,
-          },
-        );
-      }
-
-      // Notify others in the room that a user left
+      memberships.delete(transcriptionId);
       socket
         .to(`transcription:${transcriptionId}`)
-        .emit("transcription:user-left", {
-          userId,
-          socketId: socket.id,
-        });
+        .emit("transcription:user-left", { userId, socketId: socket.id });
     });
 
-    // Handle claiming leadership
-    socket.on(
-      "transcription:claim-leader",
-      (data: { transcriptionId: string; userId: string; userName: string }) => {
-        const currentLeader = transcriptionLeaders.get(data.transcriptionId);
-        const now = Date.now();
-        const STALE_THRESHOLD = 30000; // 30 seconds
-
-        // Grant leadership if no current leader or current leader is stale
-        if (!currentLeader || now - currentLeader.timestamp > STALE_THRESHOLD) {
-          const newLeader = {
-            userId: data.userId,
-            userName: data.userName,
-            socketId: socket.id,
-            timestamp: now,
-          };
-          transcriptionLeaders.set(data.transcriptionId, newLeader);
-
-          // Notify all users in the room about the new leader
-          io?.to(`transcription:${data.transcriptionId}`).emit(
-            "transcription:leader-changed",
-            {
-              transcriptionId: data.transcriptionId,
-              leader: newLeader,
-            },
-          );
-
-          // Confirm to the requester that they are now the leader
-          socket.emit("transcription:leader-granted", {
-            transcriptionId: data.transcriptionId,
-          });
-        } else {
-          // Deny leadership - someone else is already the leader
-          socket.emit("transcription:leader-denied", {
-            transcriptionId: data.transcriptionId,
-            currentLeader,
-          });
-        }
-      },
-    );
-
-    // Handle releasing leadership
-    socket.on(
-      "transcription:release-leader",
-      (data: { transcriptionId: string }) => {
-        const currentLeader = transcriptionLeaders.get(data.transcriptionId);
-        if (currentLeader?.socketId === socket.id) {
-          transcriptionLeaders.delete(data.transcriptionId);
-          // Notify all users that leadership was released
-          io?.to(`transcription:${data.transcriptionId}`).emit(
-            "transcription:leader-changed",
-            {
-              transcriptionId: data.transcriptionId,
-              leader: null,
-            },
-          );
-        }
-      },
-    );
-
-    // Handle leader keepalive
-    socket.on(
-      "transcription:leader-keepalive",
-      (data: { transcriptionId: string }) => {
-        const currentLeader = transcriptionLeaders.get(data.transcriptionId);
-        if (currentLeader?.socketId === socket.id) {
-          currentLeader.timestamp = Date.now();
-          transcriptionLeaders.set(data.transcriptionId, currentLeader);
-        }
-      },
-    );
-
-    // Handle cursor position updates
     socket.on(
       "transcription:cursor-update",
-      (data: { transcriptionId: string; position: CursorPosition }) => {
-        // Broadcast cursor position to all other users in the room
+      async (data: { transcriptionId: string; position: CursorPosition }) => {
+        // Presence is visible to every participant, but a cursor may not be
+        // pushed into a room the sender never joined.
+        if (!(await membershipOf(data.transcriptionId))) return;
         socket
           .to(`transcription:${data.transcriptionId}`)
           .emit("transcription:cursor-position", {
@@ -206,136 +198,129 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
       },
     );
 
-    // Handle Y.js sync request
+    // --- Blind Yjs relay — opaque payloads, seeding-authority coordination ------
     socket.on(
-      "yjs:sync-request",
-      (data: { transcriptionId: string; stateVector: number[] }) => {
-        const transcriptionId = data.transcriptionId;
-        log(
-          `[Y.js Server] Sync request from ${socket.id} for ${transcriptionId}`,
-        );
-
-        // Get or create Y.js document for this transcription
-        let doc = yjsDocuments.get(transcriptionId);
-        if (!doc) {
-          doc = new Y.Doc();
-          yjsDocuments.set(transcriptionId, doc);
-          log(`[Y.js Server] Created new document for ${transcriptionId}`);
+      "yjs:join",
+      async (data: { transcriptionId: string; session?: string }) => {
+        const { transcriptionId } = data;
+        // Claim the seat BEFORE authorizing: a goodbye that lands while we wait
+        // belongs to the instance this join replaces, and must be recognised as
+        // stale by the time it arrives.
+        if (data.session) joinSessions.set(transcriptionId, data.session);
+        if (!(await joinRoomAndHold(transcriptionId))) return;
+        socket.join(`transcription:${transcriptionId}`);
+        let room = collabRooms.get(transcriptionId);
+        if (!room) {
+          room = { authority: null, members: new Set() };
+          collabRooms.set(transcriptionId, room);
+        }
+        room.members.add(socket.id);
+        // First member in the room seeds; others pull state from the authority.
+        // A socket that re-joins keeps the role it already holds: telling the
+        // authority to "sync" would make it request state from itself.
+        //
+        // Every other join IS answered, re-joins included. A join is how a client
+        // asks where to get the document from, and a client re-joins precisely
+        // when it has nothing (a fresh provider on the same socket, a reconnect):
+        // staying silent left it waiting for a document that was never coming —
+        // the blank editor. Re-answering costs one duplicate state transfer,
+        // which Yjs merges into a no-op.
+        if (!room.authority || room.authority === socket.id) {
+          room.authority = socket.id;
+          socket.emit("yjs:role", { transcriptionId, role: "seed" });
         } else {
-          log(`[Y.js Server] Using existing document for ${transcriptionId}`);
+          socket.emit("yjs:role", { transcriptionId, role: "sync" });
         }
-
-        // Get or create awareness for this transcription
-        let awareness = yjsAwareness.get(transcriptionId);
-        if (!awareness) {
-          awareness = new awarenessProtocol.Awareness(doc);
-          yjsAwareness.set(transcriptionId, awareness);
-        }
-
-        // Send state update to the requesting client
-        const stateVector = new Uint8Array(data.stateVector);
-        const update = Y.encodeStateAsUpdate(doc, stateVector);
-        log(`[Y.js Server] Sending ${update.length} bytes to ${socket.id}`);
-
-        socket.emit(`yjs:sync:${transcriptionId}`, update.buffer);
-        socket.emit(`yjs:synced:${transcriptionId}`);
-        log(`[Y.js Server] Sent sync response to ${socket.id}`);
       },
     );
 
-    // Handle Y.js document updates
+    // A late joiner asks for full state; route to the authority (which holds it).
+    socket.on("yjs:state-request", async (data: { transcriptionId: string }) => {
+      if (!(await membershipOf(data.transcriptionId))) return;
+      const room = collabRooms.get(data.transcriptionId);
+      if (!room || !room.authority) {
+        // No authority available — promote the requester to seed instead.
+        if (room) room.authority = socket.id;
+        socket.emit("yjs:role", {
+          transcriptionId: data.transcriptionId,
+          role: "seed",
+        });
+        return;
+      }
+      io?.to(room.authority).emit("yjs:state-request", {
+        transcriptionId: data.transcriptionId,
+        requester: socket.id,
+      });
+    });
+
+    // Authority replies with opaque full state → relay to the original requester.
     socket.on(
-      "yjs:update",
-      (data: { transcriptionId: string; update: number[] }) => {
-        const transcriptionId = data.transcriptionId;
-        log(
-          `[Y.js Server] Received update from ${socket.id} for ${transcriptionId}: ${data.update.length} bytes`,
-        );
-
-        // Get or create document
-        let doc = yjsDocuments.get(transcriptionId);
-        if (!doc) {
-          doc = new Y.Doc();
-          yjsDocuments.set(transcriptionId, doc);
-          log(`[Y.js Server] Created new document for ${transcriptionId}`);
-        }
-
-        // Apply the update to the server's document
-        const update = new Uint8Array(data.update);
-        Y.applyUpdate(doc, update);
-        log(
-          `[Y.js Server] Applied update to server document for ${transcriptionId}`,
-        );
-
-        // Broadcast the update to all other clients in the room
-        socket
-          .to(`transcription:${transcriptionId}`)
-          .emit(`yjs:sync:${transcriptionId}`, update.buffer);
-        log(
-          `[Y.js Server] Broadcasted update to other clients in ${transcriptionId}`,
-        );
+      "yjs:state",
+      async (data: {
+        transcriptionId: string;
+        requester: string;
+        enc: boolean;
+        d: string;
+      }) => {
+        // Only participants may serve a room's state to a late joiner.
+        if (!(await membershipOf(data.transcriptionId))) return;
+        io?.to(data.requester).emit("yjs:state", {
+          transcriptionId: data.transcriptionId,
+          enc: data.enc,
+          d: data.d,
+        });
       },
     );
 
-    // Handle Y.js awareness updates
+    // Opaque doc/awareness message → broadcast to the rest of the room.
     socket.on(
-      "yjs:awareness",
-      (data: { transcriptionId: string; update: number[] }) => {
-        const transcriptionId = data.transcriptionId;
+      "yjs:msg",
+      async (data: {
+        transcriptionId: string;
+        t: "sync" | "awareness";
+        enc: boolean;
+        d: string;
+      }) => {
+        const membership = await membershipOf(data.transcriptionId);
+        if (!membership) return;
+        // Document changes need write access; awareness (carets) does not, so a
+        // read-only participant is still visible to the others. Enforcing this
+        // here is what makes the role real — the editor's read-only mode is a
+        // client-side convenience an attacker simply would not run.
+        if (data.t === "sync" && !membership.canWrite) return;
+        socket.to(`transcription:${data.transcriptionId}`).emit("yjs:msg", data);
+      },
+    );
 
-        // Get or create awareness
-        let doc = yjsDocuments.get(transcriptionId);
-        if (!doc) {
-          doc = new Y.Doc();
-          yjsDocuments.set(transcriptionId, doc);
-        }
-
-        let awareness = yjsAwareness.get(transcriptionId);
-        if (!awareness) {
-          awareness = new awarenessProtocol.Awareness(doc);
-          yjsAwareness.set(transcriptionId, awareness);
-        }
-
-        // Apply the awareness update
-        const update = new Uint8Array(data.update);
-        awarenessProtocol.applyAwarenessUpdate(awareness, update, socket.id);
-
-        // Broadcast the awareness update to all other clients
-        socket
-          .to(`transcription:${transcriptionId}`)
-          .emit(`yjs:awareness:${transcriptionId}`, update.buffer);
+    socket.on(
+      "yjs:leave",
+      (data: { transcriptionId: string; session?: string }) => {
+        // A goodbye from a provider instance that has already been replaced on
+        // this socket (see joinSessions) is not this client leaving the room.
+        const current = joinSessions.get(data.transcriptionId);
+        if (data.session && current && data.session !== current) return;
+        joinSessions.delete(data.transcriptionId);
+        socket.leave(`transcription:${data.transcriptionId}`);
+        memberships.delete(data.transcriptionId);
+        collabLeave(socket.id, data.transcriptionId);
       },
     );
 
     socket.on("disconnect", () => {
       log("Client disconnected:", socket.id);
-
-      // Release leadership if this user was a leader of any transcription
-      for (const [transcriptionId, leader] of transcriptionLeaders.entries()) {
-        if (leader.socketId === socket.id) {
-          transcriptionLeaders.delete(transcriptionId);
-          // Notify all users in that transcription that leadership was released
-          io?.to(`transcription:${transcriptionId}`).emit(
-            "transcription:leader-changed",
-            {
-              transcriptionId,
-              leader: null,
-            },
-          );
-        }
+      // Clean up blind-relay membership / reassign seeding authority.
+      for (const transcriptionId of [...collabRooms.keys()]) {
+        collabLeave(socket.id, transcriptionId);
       }
-
-      // Notify all rooms that this user disconnected
-      // Socket.io automatically removes the socket from all rooms on disconnect
-      io?.emit("transcription:user-disconnected", {
-        socketId: socket.id,
-      });
+      io?.emit("transcription:user-disconnected", { socketId: socket.id });
     });
   });
 
+  // Share across module instances (see IO_GLOBAL_KEY note) so API routes can emit.
+  globalWithIo[IO_GLOBAL_KEY] = io;
   return io;
 }
 
 export function getSocketServer(): SocketIOServer | null {
-  return io;
+  return globalWithIo[IO_GLOBAL_KEY] ?? io;
 }

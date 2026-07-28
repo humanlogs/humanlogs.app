@@ -73,7 +73,7 @@ export default function AlternativesPage() {
           {
             title: "Security & Privacy",
             description: "Learn about our privacy-first approach",
-            href: "/resources",
+            href: "/docs/privacy/how-encryption-works",
           },
           {
             title: "I am a university",

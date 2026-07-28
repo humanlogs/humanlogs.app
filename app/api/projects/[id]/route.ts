@@ -4,6 +4,7 @@ import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 import { parseAppearanceUpdate } from "@/lib/projects/appearance";
 import { getStorage } from "@/lib/storage";
 import { notifyDatabaseChange } from "@/lib/sockets/socket-helpers";
+import { settleCodebooksForDeletedProject } from "@/lib/codebooks/server";
 
 function formatProject(p: {
   id: string;
@@ -179,6 +180,12 @@ export const DELETE = withAuthRateLimit(
           where: { projectId: id, userId: user.id },
         });
       }
+
+      // Settle the codebooks before the study goes: shared ones just lose the
+      // link, ones that only covered this study follow the documents.
+      await settleCodebooksForDeletedProject(user.id, id, {
+        targetProjectId: mode === "move" ? targetProjectId : null,
+      });
 
       // Remove the study's own image, if any, then the study.
       if (project.imageKey) {

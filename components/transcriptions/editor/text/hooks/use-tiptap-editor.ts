@@ -1,25 +1,49 @@
 "use client";
 
+import { useTranslations } from "@/components/locale-provider";
 import { useUserProfile } from "@/hooks/use-api";
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
-import { getSocket } from "@/lib/sockets/socket-client";
-import { YjsSocketIOProvider } from "@/lib/sockets/yjs-socket-provider";
+import {
+  getSocket,
+  offTranscriptionReverted,
+  onTranscriptionReverted,
+} from "@/lib/sockets/socket-client";
+import {
+  YjsCollabProvider,
+  aesCodec,
+  plaintextCodec,
+} from "@/lib/sockets/yjs-collab-provider";
+import { getUserColor } from "@/lib/utils/utils";
 import Bold from "@tiptap/extension-bold";
+import Collaboration, { isChangeOrigin } from "@tiptap/extension-collaboration";
 import Italic from "@tiptap/extension-italic";
 import Paragraph from "@tiptap/extension-paragraph";
 import Placeholder from "@tiptap/extension-placeholder";
 import Strike from "@tiptap/extension-strike";
 import Underline from "@tiptap/extension-underline";
-import { ReplaceStep } from "@tiptap/pm/transform";
+import { TextSelection } from "@tiptap/pm/state";
 import { Editor, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import * as awarenessProtocol from "y-protocols/awareness";
 import * as Y from "yjs";
 import { EditorAPI } from "../api";
+import { CollabCaret } from "../collab/collab-caret";
+import { docToSegments } from "../collab/doc-to-segments";
+import {
+  chooseTimingReference,
+  isUnsyncedBlank,
+} from "../collab/timing-reference";
 import { AutoWrapExtension } from "../extensions/auto-wrap-extension";
+import { CommentMark } from "../extensions/comment-mark";
 import { segmentsToHtml } from "../utils/html";
-import { applyTransactionOnSegments } from "../utils/transaction-on-segments";
+import {
+  applyMergeOps,
+  cleanPastedHtml,
+  planPasteMerge,
+  sliceToParagraphs,
+} from "../utils/paste-merge";
 import { normalizeEditorSegments } from "./use-normalize-editor-segments";
 
 const SpeakerParagraph = Paragraph.extend({
@@ -67,27 +91,62 @@ const UnderlineNoShortcut = Underline.extend({
 interface UseTiptapEditorOptions {
   transcriptionId: string;
   segments: TranscriptionSegment[];
+  /** E2E: whether the transcription is encrypted, and its resolved session key. */
+  isEncrypted?: boolean;
+  aesKey?: string | null;
+  /**
+   * Whether the encryption state above is SETTLED. Before it is, `isEncrypted`
+   * merely defaults to false, which is indistinguishable from a plaintext
+   * document — starting the transport on that guess relayed an encrypted
+   * transcript in the clear, and the correction that followed tore the provider
+   * down and back up mid-join.
+   */
+  encryptionReady?: boolean;
   onChange: (segments: TranscriptionSegment[]) => void;
   editable: boolean;
-  onTransaction?: (editor: any) => void;
-  onUpdate?: (editor: any) => void;
   onSelectionUpdate?: (editor: any) => void;
   editorAPI: EditorAPI;
 }
 
 /**
- * Creates a Tiptap editor instance configured for transcription editing.
- * This hook manages the editor lifecycle and provides transaction events.
+ * Creates the real-time collaborative transcript editor.
+ *
+ * Text / structure / cursors / undo use the STANDARD TipTap Collaboration binding
+ * (Y.XmlFragment ↔ ProseMirror via @tiptap/y-tiptap) + CollabCaret for remote carets.
+ * The flat `TranscriptionSegment[]` projection (per-word timestamps for audio,
+ * autosave, speaker UI) is DERIVED from the converged doc via {@link docToSegments},
+ * debounced. Speaker names sync via a Y.Map. Persistence is gated to a single save
+ * leader. Transport is the blind-relay provider (E2E-encrypted when the transcription
+ * is encrypted — the provider does not start until the session key resolves).
  */
 export function useTiptapEditor({
   transcriptionId,
   segments,
+  isEncrypted,
+  aesKey,
+  encryptionReady,
   onChange,
   editorAPI,
   editable,
   onSelectionUpdate,
 }: UseTiptapEditorOptions) {
-  // Track the last segments to avoid redundant updates
+  // Y.Doc + awareness must exist before the editor is created (the Collaboration and
+  // CollabCaret extensions bind them synchronously).
+  const yjsDoc = useRef<Y.Doc | null>(null);
+  if (!yjsDoc.current && typeof window !== "undefined") {
+    yjsDoc.current = new Y.Doc();
+  }
+  const awarenessRef = useRef<awarenessProtocol.Awareness | null>(null);
+  if (yjsDoc.current && !awarenessRef.current) {
+    awarenessRef.current = new awarenessProtocol.Awareness(yjsDoc.current);
+  }
+  const providerRef = useRef<YjsCollabProvider | null>(null);
+  const cursorColorRef = useRef<string>("");
+  if (!cursorColorRef.current) cursorColorRef.current = getRandomColor();
+
+  // The flat projection is DERIVED from the doc on each change, but is seeded here
+  // with the normalized initial segments so the first derivation has a timestamp
+  // reference to carry from (the doc itself holds no timestamps).
   const segmentsRef = useRef<TranscriptionSegment[] | null>(null);
   if (segmentsRef.current === null) {
     segmentsRef.current = normalizeEditorSegments(segments, {
@@ -95,73 +154,108 @@ export function useTiptapEditor({
     });
   }
 
+  // The projection as it was loaded from the database, kept intact for the whole
+  // session. `segmentsRef` is rewritten on every derivation, so it is not a
+  // dependable timestamp source: the doc is empty until the seed lands, and a
+  // derivation that runs in that window would leave it empty. This one is the
+  // floor under every fallback — it always carries the stored per-word timings.
+  const initialSegmentsRef = useRef<TranscriptionSegment[]>(
+    segmentsRef.current,
+  );
+
+  // Initial HTML the seed authority writes into the Yjs fragment.
   const segmentsHtmlRef = useRef<any>("");
   if (!segmentsHtmlRef.current)
     segmentsHtmlRef.current = segmentsToHtml(segmentsRef.current);
 
+  // Guards against saving a blank document over a real transcript — see the
+  // derivation below. `localEdits` turns true on the first edit made HERE (the
+  // seed and remote changes don't count).
+  const hadInitialContentRef = useRef(false);
+  hadInitialContentRef.current ||= (segmentsRef.current?.length ?? 0) > 0;
+  const localEditsRef = useRef(false);
+
   const editorRef = useRef<Editor>(null);
-  const isUpdatingFromSegmentsRef = useRef(false);
   const normalizeDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const { data: userProfile } = useUserProfile();
   const [isMounted, setIsMounted] = useState(false);
 
-  // Create Y.js document immediately (not in useEffect)
-  // This must be available before the editor is created
-  const yjsDoc = useRef<Y.Doc | null>(null);
-  if (!yjsDoc.current && typeof window !== "undefined") {
-    yjsDoc.current = new Y.Doc();
-  }
+  // The editor is created once (deps `[]`), so its editorProps closures read the
+  // translator through a ref rather than capturing the first render's copy.
+  const t = useTranslations("editor");
+  const tRef = useRef(t);
+  tRef.current = t;
 
-  // Provider will be created after the editor is initialized
-  const yjsProvider = useRef<YjsSocketIOProvider | null>(null);
-  const awarenessRef = useRef<awarenessProtocol.Awareness | null>(null);
+  // Persistence is gated to a single "save leader" (the seed authority, or a
+  // standalone client with no working transport) so multiple writers don't race and
+  // corrupt the stored utterances JSON. Non-leaders never save.
+  const isCollabSaverRef = useRef(false);
+
+  // Shared timing reference (word → audio start/end), pinned once in the Y.Doc so it
+  // is identical on every client (incl. late joiners). Deriving against THIS instead
+  // of the local previous segments makes docToSegments a pure function of (converged
+  // doc, shared reference) → all clients derive identical timestamps → convergence.
+  const timingRefRef = useRef<TranscriptionSegment[] | null>(null);
+  // Save leader refreshes the shared timing reference (debounced) so it tracks the
+  // doc — keeps the derivation's LCS "middle" small → exact + fast over long sessions.
+  const refreshTimingRefFnRef = useRef<() => void>(() => {});
+  const refreshDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  /**
+   * What the next derivation carries its per-word timestamps from: the shared
+   * reference when the Y.Doc holds one, the current projection otherwise, and the
+   * segments as loaded from the database as a last resort. See
+   * {@link chooseTimingReference} for why each step tests for content.
+   */
+  const timingReference = (): TranscriptionSegment[] =>
+    chooseTimingReference(
+      timingRefRef.current,
+      segmentsRef.current,
+      initialSegmentsRef.current,
+    );
+
+  // Derive the flat projection from the (converged) doc, then update consumers and
+  // (save-leader only) persist. Kept in a ref so once-created closures call the
+  // latest version.
+  const collabDeriveRef = useRef<() => void>(() => {});
+  collabDeriveRef.current = () => {
+    const ed = editorRef.current;
+    if (!ed) return;
+    const derived = docToSegments(ed.state.doc, timingReference());
+    // Refuse to persist emptiness nobody asked for — and refuse to KEEP it, since
+    // `segmentsRef` is the only in-memory copy of the per-word timings until the
+    // seed pins them in the Y.Doc (see collab/timing-reference.ts).
+    if (
+      isUnsyncedBlank(derived, {
+        hadInitialContent: hadInitialContentRef.current,
+        localEdits: localEditsRef.current,
+      })
+    ) {
+      console.warn(
+        "[collab] not saving: the document is empty and was never edited here",
+      );
+      editorAPI.emit("speakersOffsets");
+      return;
+    }
+    segmentsRef.current = derived;
+    editorAPI.emit("speakersOffsets");
+    if (isCollabSaverRef.current && onChange) {
+      onChange(segmentsRef.current);
+      // Refresh the shared timing reference (debounced, leader only).
+      if (refreshDebounceRef.current) clearTimeout(refreshDebounceRef.current);
+      refreshDebounceRef.current = setTimeout(() => {
+        refreshTimingRefFnRef.current();
+        refreshDebounceRef.current = null;
+      }, 5000);
+    } else {
+      editorAPI.emit("change");
+    }
+  };
 
   // Detect client-side rendering - only mount after hydration
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  // Initialize awareness and provider after socket is available
-  useEffect(() => {
-    if (!isMounted) return;
-
-    const socket = getSocket();
-    if (!socket || !transcriptionId || !yjsDoc.current) return;
-
-    // Create awareness instance if not exists
-    if (!awarenessRef.current) {
-      awarenessRef.current = new awarenessProtocol.Awareness(yjsDoc.current);
-    }
-
-    // Set local user info for awareness
-    if (userProfile && awarenessRef.current) {
-      awarenessRef.current.setLocalStateField("user", {
-        name: userProfile.name || userProfile.email || "Anonymous",
-        color: getRandomColor(),
-      });
-    }
-
-    // Create provider
-    if (!yjsProvider.current && awarenessRef.current) {
-      yjsProvider.current = new YjsSocketIOProvider(
-        socket,
-        transcriptionId,
-        yjsDoc.current,
-        awarenessRef.current,
-      );
-      console.log(
-        "[Y.js] Provider created for transcription:",
-        transcriptionId,
-      );
-    }
-
-    return () => {
-      if (yjsProvider.current) {
-        yjsProvider.current.destroy();
-        yjsProvider.current = null;
-      }
-    };
-  }, [transcriptionId, userProfile, isMounted]);
 
   const editor = useEditor(
     {
@@ -179,22 +273,33 @@ export function useTiptapEditor({
           bulletList: false,
           orderedList: false,
           paragraph: false, // We'll use our custom SpeakerParagraph instead
+          // Collaboration provides its own CRDT-aware undo/redo (Mod-z).
+          undoRedo: false,
         }),
         // Add custom marks without keyboard shortcuts
         BoldNoShortcut,
         ItalicNoShortcut,
         StrikeNoShortcut,
         UnderlineNoShortcut,
+        CommentMark,
         SpeakerParagraph,
         Placeholder.configure({
           placeholder: "Start typing…",
         }),
         // Auto-wrap selected text with matching pairs
         AutoWrapExtension,
+        // Real-time collaboration (standard Yjs binding) + remote carets (built on
+        // the same y-tiptap package, so plugin keys match).
+        ...(yjsDoc.current
+          ? [
+              Collaboration.configure({ document: yjsDoc.current }),
+              CollabCaret.configure({ awareness: awarenessRef.current }),
+            ]
+          : []),
       ],
       editable,
-      // When collaboration is enabled, start empty - Y.js will handle content
-      content: isMounted && yjsDoc.current ? "" : segmentsHtmlRef.current,
+      // Content comes from the Yjs fragment (do NOT pass content).
+      content: undefined,
       immediatelyRender: false,
       editorProps: {
         attributes: {
@@ -202,53 +307,99 @@ export function useTiptapEditor({
             "text-base leading-relaxed focus:outline-none relative w-full max-w-full min-w-0 break-words",
           spellcheck: "true",
         },
-      },
-      onTransaction: ({ editor, transaction }) => {
-        if (
-          transaction.steps.length === 0 ||
-          !segmentsRef.current ||
-          !segmentsRef.current.length ||
-          isUpdatingFromSegmentsRef.current
-        ) {
-          return;
-        }
+        // Format shortcuts while editing. We own them here (ProseMirror) rather
+        // than only via the toolbar's document-level useHotkeys because:
+        //  - Cmd/Ctrl+U triggers the browser's NATIVE contentEditable underline;
+        //    handling it here (before the default action) lets us override it.
+        //  - Cmd/Ctrl+Shift+X (strikethrough) is the advertised shortcut (⌘⇧X).
+        // We stopPropagation so the event never bubbles to the toolbar's
+        // document-level hotkey (bubble phase) — otherwise it would toggle twice
+        // and cancel out. When the editor is NOT focused (navigate mode), this
+        // handler doesn't run and the toolbar hotkey applies to the current
+        // segment instead.
+        handleKeyDown: (_view, event) => {
+          if (!(event.metaKey || event.ctrlKey) || event.altKey) return false;
+          const key = event.key.toLowerCase();
+          let toggle: "toggleUnderline" | "toggleStrike" | null = null;
+          if (key === "u" && !event.shiftKey) toggle = "toggleUnderline";
+          else if (key === "x" && event.shiftKey) toggle = "toggleStrike";
+          if (!toggle) return false;
 
-        if (
-          transaction.steps.length === 1 &&
-          transaction.steps[0] instanceof ReplaceStep &&
-          transaction.steps[0].from === 0 &&
-          transaction.steps[0].to >= editor.getText().length - 1
-        ) {
-          // This is a full replacement coming from a segmentReplaces
-          return;
-        }
+          const ed = editorRef.current;
+          if (!ed || !ed.isEditable) return false;
 
-        // Edit segments based on transactions steps
-        segmentsRef.current = applyTransactionOnSegments(
-          segmentsRef.current ?? [],
-          transaction,
-        );
+          event.preventDefault();
+          event.stopPropagation();
+          toggleMarkExpandingWord(ed, toggle);
+          return true;
+        },
+        // Word/LibreOffice put a lot of noise in `text/html` (conditional
+        // comments, `<o:p>`, stylesheets, nbsp). Cleaning it before ProseMirror
+        // parses benefits both the surgical merge below and the plain paste.
+        transformPastedHTML: cleanPastedHtml,
+        // Pasting a transcript back from a word processor. A plain paste would
+        // replace the whole selection, and with it every speaker attribute,
+        // comment anchor, remote caret and derived timestamp — even for the 99%
+        // of the text that did not change. So we diff the pasted text against
+        // the selected region and apply ONLY the real changes, in place.
+        // See utils/paste-merge.ts; anything that isn't a recognizable round
+        // trip returns false and pastes normally.
+        handlePaste: (view, _event, slice) => {
+          if (!view.editable) return false;
+          const { from, to } = view.state.selection;
+          if (from === to) return false; // an insertion has nothing to diff against
 
-        editorAPI.emit("speakersOffsets");
+          const plan = planPasteMerge(
+            view.state.doc,
+            from,
+            to,
+            sliceToParagraphs(slice),
+          );
+          if (!plan) return false;
 
-        // Debounce normalize and onChange call
-        if (onChange) {
-          // Clear existing debounce timeout
-          if (normalizeDebounceRef.current) {
-            clearTimeout(normalizeDebounceRef.current);
+          if (plan.ops.length > 0) {
+            const tr = view.state.tr;
+            applyMergeOps(tr, plan.ops);
+            // Land the caret on the first change: after a merge the document
+            // looks untouched, so the user needs to be shown where it wasn't.
+            if (plan.firstChangePos !== null) {
+              const pos = Math.min(plan.firstChangePos, tr.doc.content.size);
+              tr.setSelection(TextSelection.near(tr.doc.resolve(pos)));
+            }
+            view.dispatch(tr.scrollIntoView());
           }
 
-          // Schedule normalize + onChange after debounce
-          normalizeDebounceRef.current = setTimeout(() => {
-            if (segmentsRef.current) {
-              segmentsRef.current = normalizeEditorSegments(
-                segmentsRef.current,
-              );
-              onChange(segmentsRef.current ?? []);
-            }
-            normalizeDebounceRef.current = null;
-          }, 300);
+          toast.success(
+            plan.changeCount === 0
+              ? tRef.current("paste.identical")
+              : tRef.current("paste.merged", { changes: plan.changeCount }),
+          );
+          return true;
+        },
+      },
+      onTransaction: ({ transaction }) => {
+        // Standard Collaboration keeps text/structure/cursors in sync natively.
+        if (!transaction.docChanged) return;
+        // Everything that isn't a remote apply or the initial seed is this user
+        // typing (the empty-save guard needs to know).
+        if (
+          !isChangeOrigin(transaction) &&
+          transaction.getMeta("addToHistory") !== false
+        ) {
+          localEditsRef.current = true;
         }
+        // Reposition/relabel the speaker column IMMEDIATELY on every doc change
+        // (local AND remote) — the DOM is already updated by Collaboration, and
+        // useSpeakerPositions coalesces the recompute via requestAnimationFrame.
+        editorAPI.emit("speakersOffsets");
+        // The heavier flat-projection derivation (audio sync / autosave) stays
+        // debounced — it doesn't need to run on every keystroke.
+        if (normalizeDebounceRef.current)
+          clearTimeout(normalizeDebounceRef.current);
+        normalizeDebounceRef.current = setTimeout(() => {
+          collabDeriveRef.current();
+          normalizeDebounceRef.current = null;
+        }, 300);
       },
       onSelectionUpdate: ({ editor }) => {
         if (onSelectionUpdate) {
@@ -275,32 +426,292 @@ export function useTiptapEditor({
     };
   }, []);
 
-  // Load initial content into Y.js document if it's empty
-  // This ensures the first user to connect populates the shared document
+  // Transport: wire the blind-relay provider (doc + awareness). The seed authority
+  // writes the initial content into the fragment; late joiners pull full state.
+  // Standard Collaboration handles doc↔PM; we don't touch the editor here.
   useEffect(() => {
     if (!editor || !isMounted || !yjsDoc.current) return;
+    // E2E: do not start the transport until we KNOW whether this transcription is
+    // encrypted and, if it is, hold its session key — otherwise content would be
+    // relayed in the clear (and this effect would re-run, replacing a provider
+    // that had already joined the room).
+    if (encryptionReady === false) return;
+    if (isEncrypted && !aesKey) return;
+    const codec = isEncrypted && aesKey ? aesCodec(aesKey) : plaintextCodec;
+    const ydoc = yjsDoc.current;
 
-    // Check if the Y.js document is empty (no content yet)
-    const yjsFragment = yjsDoc.current.getXmlFragment("default");
-    const isEmpty = yjsFragment.length === 0;
+    // --- Speaker names: shared "content" metadata that isn't in the XmlFragment.
+    // The fragment carries speakerId per paragraph; the id->name mapping lives in a
+    // Y.Map so renames sync live. The save leader persists it into
+    // transcription.speakers, which refreshes sidebars via db:change on real saves.
+    const speakersMap = ydoc.getMap<string>("speakers");
+    let speakersReady = false; // gate local->map writes until seeded/synced
+    let applyingRemoteSpeakers = false;
 
-    // If Y.js is empty and we have initial segments, load them
-    if (isEmpty && segmentsHtmlRef.current) {
-      console.log("[Y.js] Loading initial content into Y.js document");
-      editor.commands.setContent(segmentsHtmlRef.current);
-    } else {
-      console.log(
-        "[Y.js] Y.js document already has content, skipping initial load",
-      );
-    }
-  }, [editor, isMounted]);
+    const seedSpeakersMap = () => {
+      if (speakersMap.size > 0) return;
+      ydoc.transact(() => {
+        for (const s of editorAPI.getSpeakers())
+          if (s.name != null) speakersMap.set(s.id, s.name);
+      }, "sp-seed");
+    };
+
+    const adoptSpeakersFromMap = () => {
+      if (speakersMap.size === 0) return;
+      applyingRemoteSpeakers = true;
+      try {
+        const current = editorAPI.getSpeakers();
+        const seen = new Set(current.map((s) => s.id));
+        const merged = current.map((s) => {
+          const name = speakersMap.get(s.id);
+          return name != null ? { ...s, name } : s;
+        });
+        speakersMap.forEach((name, id) => {
+          if (!seen.has(id)) merged.push({ id, name });
+        });
+        editorAPI.setSpeakers(merged);
+      } finally {
+        applyingRemoteSpeakers = false;
+      }
+    };
+
+    const onSpeakersMapChange = (
+      _e: Y.YMapEvent<string>,
+      txn: Y.Transaction,
+    ) => {
+      if (txn.origin === "sp-local" || txn.origin === "sp-seed") return;
+      adoptSpeakersFromMap(); // remote rename → reflect into the speaker column
+    };
+    speakersMap.observe(onSpeakersMapChange);
+
+    const onLocalSpeakersChange = () => {
+      if (!speakersReady || applyingRemoteSpeakers) return;
+      ydoc.transact(() => {
+        for (const s of editorAPI.getSpeakers()) {
+          if (s.name != null && speakersMap.get(s.id) !== s.name)
+            speakersMap.set(s.id, s.name);
+        }
+      }, "sp-local");
+    };
+    editorAPI.addListener("speakersChange", onLocalSpeakersChange);
+
+    // --- Shared timing reference (word → audio start/end). Seeded from the initial
+    // segments and REFRESHED by the save leader so it tracks the doc; read by every
+    // client so docToSegments derives per-word timestamps deterministically → they
+    // converge. (Refresh keeps the derivation's LCS "middle" small on long sessions.)
+    const timingMap = ydoc.getMap<TranscriptionSegment[]>("timing");
+    const extractTimingWords = (segs: TranscriptionSegment[] | null) =>
+      (segs ?? [])
+        .filter((s) => s.type === "word")
+        .map((w) => ({
+          type: "word" as const,
+          text: w.text,
+          start: w.start,
+          end: w.end,
+        }));
+
+    /**
+     * Pin a timing reference for the whole room. An EMPTY one is never written:
+     * it would not merely be useless, it would override the fallbacks every
+     * client has locally and strip the audio position off every word — for the
+     * late joiners too, since this is the copy they adopt.
+     */
+    const writeTimingRef = (words: TranscriptionSegment[]) => {
+      if (!words.length) return;
+      ydoc.transact(() => timingMap.set("ref", words), "timing-local");
+      timingRefRef.current = words;
+    };
+    const seedTimingRef = () => {
+      const shared = timingMap.get("ref");
+      if (shared?.length) {
+        timingRefRef.current = shared;
+        return;
+      }
+      // From the segments as LOADED, not from the live projection: a derivation
+      // that ran before the document arrived leaves the latter empty, and this
+      // is the value every client in the room will derive against.
+      writeTimingRef(extractTimingWords(initialSegmentsRef.current));
+    };
+    const adoptTimingRef = () => {
+      const shared = timingMap.get("ref");
+      if (shared?.length) timingRefRef.current = shared;
+    };
+
+    // A remote refresh (from the save leader) → adopt it for our next derivation.
+    const onTimingMapChange = (
+      _e: Y.YMapEvent<TranscriptionSegment[]>,
+      txn: Y.Transaction,
+    ) => {
+      if (txn.origin === "timing-local") return; // our own write
+      adoptTimingRef();
+    };
+    timingMap.observe(onTimingMapChange);
+
+    // Exposed to collabDeriveRef (leader path) to refresh the shared reference.
+    refreshTimingRefFnRef.current = () =>
+      writeTimingRef(extractTimingWords(segmentsRef.current));
+
+    const seedNow = () => {
+      const frag = ydoc.getXmlFragment("default");
+      if (frag.length === 0) {
+        // `addToHistory: false` keeps the seed OUT of the collaborative undo
+        // stack. Writing the transcript in is a local ProseMirror change like any
+        // other, so Y.UndoManager used to record it as one big step: undo enough
+        // times and the whole document disappeared — and, the leader having then
+        // saved that emptiness, for everyone.
+        //
+        // The caret is pinned back to the top in the same transaction: replacing
+        // the whole document maps the selection to its END, and when the seed
+        // lands late (a stale authority still holding the room, so we waited on
+        // a state reply that never came) the browser then scrolls the reader to
+        // the last line of a transcript they have not started reading.
+        editor
+          .chain()
+          .setContent(segmentsHtmlRef.current)
+          .setTextSelection(0)
+          .setMeta("addToHistory", false)
+          .run();
+      }
+      seedSpeakersMap();
+      seedTimingRef();
+      speakersReady = true;
+    };
+
+    const debug =
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).has("collabdebug");
+
+    let cancelled = false;
+    let attempts = 0;
+    const trySetupProvider = () => {
+      if (cancelled || providerRef.current) return;
+      const socket = getSocket();
+      if (socket) {
+        if (debug) console.log("[collab] provider created, socket", socket.id);
+        providerRef.current = new YjsCollabProvider(
+          socket,
+          transcriptionId,
+          ydoc,
+          codec,
+          {
+            onSeed: seedNow,
+            onSynced: () => {
+              adoptSpeakersFromMap();
+              adoptTimingRef();
+              speakersReady = true;
+            },
+            awareness: awarenessRef.current ?? undefined,
+            debug,
+            onRole: (isSaver) => {
+              isCollabSaverRef.current = isSaver;
+              if (isSaver) {
+                collabDeriveRef.current(); // derive current segments + schedule save
+                editorAPI.emit("becameSaver"); // force-flush now (robust handoff)
+              }
+            },
+          },
+        );
+        return;
+      }
+      if (debug && attempts % 10 === 0)
+        console.log("[collab] waiting for socket…", attempts);
+      if (attempts++ < 40) {
+        setTimeout(trySetupProvider, 150); // ~6s of retries
+      } else if (!cancelled) {
+        // No socket ever appeared → standalone: seed locally and save on our own.
+        if (debug) console.log("[collab] no socket — standalone seed");
+        seedNow();
+        isCollabSaverRef.current = true;
+        collabDeriveRef.current();
+      }
+    };
+    trySetupProvider();
+
+    // A revert happened somewhere: leave the collab room IMMEDIATELY (drop the stale
+    // in-memory doc so we never serve pre-revert state to a reloading peer), then let
+    // the UI show a blocking "reload" prompt. The fresh session re-seeds from the
+    // reverted DB row.
+    const onReverted = (data: { transcriptionId: string; byName: string }) => {
+      if (data.transcriptionId !== transcriptionId) return;
+      cancelled = true;
+      providerRef.current?.destroy();
+      providerRef.current = null;
+      editorAPI.emit("reverted", data);
+    };
+    onTranscriptionReverted(onReverted);
+
+    return () => {
+      cancelled = true;
+      offTranscriptionReverted(onReverted);
+      speakersMap.unobserve(onSpeakersMapChange);
+      timingMap.unobserve(onTimingMapChange);
+      if (refreshDebounceRef.current) clearTimeout(refreshDebounceRef.current);
+      editorAPI.removeListener("speakersChange", onLocalSpeakersChange);
+      providerRef.current?.destroy();
+      providerRef.current = null;
+    };
+    // Re-runs once the E2E session key resolves (isEncrypted/aesKey).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor, isMounted, encryptionReady, isEncrypted, aesKey]);
+
+  // Publish our identity (name/color) into awareness so peers can label our remote
+  // caret. yCursorPlugin writes our selection into awareness automatically.
+  useEffect(() => {
+    if (!awarenessRef.current) return;
+    awarenessRef.current.setLocalStateField("user", {
+      name: userProfile?.name || userProfile?.email || "Anonymous",
+      // Deterministic per-user color so the remote caret matches this user's audio
+      // waveform tick color (both go through getUserColor(userId)).
+      color: userProfile?.id
+        ? getUserColor(userProfile.id)
+        : cursorColorRef.current,
+    });
+  }, [userProfile]);
 
   editorRef.current = editor;
 
   return { editor, segmentsRef };
 }
 
-// Generate a random color for collaboration cursors
+/**
+ * Toggle a mark from a keyboard shortcut while editing. Mirrors the toolbar's
+ * `applyFormat` focused behavior: with an empty selection (just a caret) it first
+ * expands to the surrounding word so the whole word is (un)formatted, matching
+ * what the toolbar buttons do.
+ */
+function toggleMarkExpandingWord(
+  editor: Editor,
+  toggle: "toggleUnderline" | "toggleStrike",
+): void {
+  const { from, to } = editor.state.selection;
+
+  if (from === to) {
+    const $pos = editor.state.doc.resolve(from);
+    const textContent = $pos.parent.textContent;
+    const posInParent = $pos.parentOffset;
+
+    let start = posInParent;
+    let end = posInParent;
+    while (start > 0 && /[\w']/.test(textContent[start - 1])) start--;
+    while (end < textContent.length && /[\w']/.test(textContent[end])) end++;
+
+    if (start < end) {
+      const absStart = from - posInParent + start;
+      const absEnd = from - posInParent + end;
+      editor
+        .chain()
+        .setTextSelection({ from: absStart, to: absEnd })
+        [toggle]()
+        .run();
+      return;
+    }
+  }
+
+  editor.chain()[toggle]().run();
+}
+
+// Fallback cursor color used only until the user profile (and its deterministic
+// getUserColor) is available.
 function getRandomColor(): string {
   const colors = [
     "#958DF1",

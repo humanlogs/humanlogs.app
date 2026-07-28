@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { parseFrontmatter, parseList } from "./frontmatter";
 
 export interface BlogPost {
   slug: string;
@@ -17,31 +18,8 @@ export type BlogPostMeta = Omit<BlogPost, "content">;
 
 const BLOG_PATH = path.join(process.cwd(), "content", "blog");
 
-function parseFrontmatter(raw: string): { data: Record<string, string>; content: string } {
-  const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
-  if (!match) return { data: {}, content: raw };
-
-  const data: Record<string, string> = {};
-  for (const line of match[1].split("\n")) {
-    const colon = line.indexOf(":");
-    if (colon === -1) continue;
-    const key = line.slice(0, colon).trim();
-    const value = line.slice(colon + 1).trim().replace(/^["']|["']$/g, "");
-    data[key] = value;
-  }
-
-  return { data, content: match[2] };
-}
-
-function parseTags(raw: string | undefined): string[] {
-  if (!raw) return [];
-  // Handle both "tag1, tag2" and "[tag1, tag2]" forms
-  return raw
-    .replace(/^\[|\]$/g, "")
-    .split(",")
-    .map((t) => t.trim().replace(/^["']|["']$/g, ""))
-    .filter(Boolean);
-}
+/** Handles both `tag1, tag2` and `[tag1, tag2]` forms. */
+const parseTags = parseList;
 
 export function getAllBlogPosts(): BlogPostMeta[] {
   try {

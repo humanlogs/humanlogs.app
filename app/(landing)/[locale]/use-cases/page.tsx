@@ -1,6 +1,5 @@
 "use client";
 
-import { useTranslations } from "@/components/locale-provider";
 import { RelatedLinks } from "../components/related-links";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
@@ -8,7 +7,6 @@ import { Layout } from "../../_layout";
 import { BookOpen, FileText, Mic, Users } from "lucide-react";
 
 export default function UseCasesPage() {
-  const t = useTranslations("landing");
 
   const useCases = [
     {
@@ -84,7 +82,7 @@ export default function UseCasesPage() {
           {
             title: "Privacy & Security",
             description: "Learn about our privacy-first approach",
-            href: "/resources",
+            href: "/docs/privacy/how-encryption-works",
           },
           {
             title: "I am a university",
@@ -94,7 +92,7 @@ export default function UseCasesPage() {
           {
             title: "Documentation",
             description: "Setup guides and best practices",
-            href: "/resources",
+            href: "/docs",
           },
         ]}
         columns={3}

@@ -6,7 +6,8 @@
             "bold": "Negrita (⌘B)",
             "italic": "Cursiva (⌘I)",
             "underline": "Subrayado (⌘U)",
-            "strikethrough": "Tachado (⌘⇧X)"
+            "strikethrough": "Tachado (⌘⇧X)",
+            "comment": "Comentario (⌘⌥M)"
         },
         "search": {
             "findPlaceholder": "Buscar...",
@@ -19,6 +20,10 @@
             "replace": "Reemplazar",
             "replaceWith": "Reemplazar con",
             "replaceAll": "Todos ({count})"
+        },
+        "paste": {
+            "merged": "Pegado fusionado: {changes} cambio(s) aplicado(s)",
+            "identical": "El texto pegado es idéntico: no ha cambiado nada"
         },
         "speaker": {
             "renameSpeaker": "Renombrar interlocutor",
@@ -92,15 +97,21 @@
             "keyboardShortcuts": "Atajos de teclado",
             "delete": "Eliminar",
             "csv": "CSV",
-            "txt": "TXT",
-            "srt": "SRT (Subtítulos)",
+            "txt": "Texto (.txt)",
+            "srt": "SRT",
             "word": "Word",
             "pdf": "PDF",
             "json": "JSON",
-            "vtt": "WebVTT (subtítulos)",
+            "vtt": "WebVTT",
             "nvivo": "NVivo",
             "maxqda": "MAXQDA",
-            "advanced": "Avanzado"
+            "history": "Historial de versiones",
+            "txtOptions": "Texto (opciones…)",
+            "groupQualitative": "Análisis cualitativo",
+            "groupSubtitles": "Subtítulos",
+            "groupData": "Datos",
+            "groupAudio": "Audio",
+            "exportAgain": "Volver a exportar en {format}"
         },
         "share": {
             "title": "Compartir transcripción",
@@ -139,6 +150,26 @@
                 "cancel": "Cancelar",
                 "confirm": "Transferir propiedad"
             }
+        },
+        "comments": {
+            "title": "Comentarios",
+            "placeholder": "Escribe un comentario…",
+            "add": "Comentar",
+            "save": "Guardar",
+            "cancel": "Cancelar",
+            "edit": "Editar",
+            "delete": "Eliminar",
+            "empty": "Aún no hay comentarios",
+            "you": "Tú",
+            "indicator": "Esta línea tiene comentarios",
+            "jumpUp": "Ir al comentario de arriba",
+            "jumpDown": "Ir al comentario de abajo",
+            "replyPlaceholder": "Responder…",
+            "mentionHint": "@ para mencionar",
+            "submitHint": "Mayús + Intro para enviar",
+            "subscribe": "Seguir este hilo",
+            "unsubscribe": "Dejar de seguir este hilo",
+            "hide": "Ocultar comentarios"
         }
     }
 }

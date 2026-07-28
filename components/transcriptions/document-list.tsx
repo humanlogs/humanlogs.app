@@ -3,7 +3,7 @@
 import { useLocale, useTranslations } from "@/components/locale-provider";
 import {
   AlertCircleIcon,
-  AudioLinesIcon,
+  FileAudio2Icon,
   FileTextIcon,
   LoaderIcon,
   Share2Icon,
@@ -108,6 +108,6 @@ function DocumentStateIcon({
   return isText ? (
     <FileTextIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
   ) : (
-    <AudioLinesIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+    <FileAudio2Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
   );
 }

@@ -118,7 +118,7 @@ export default function Page() {
 
         <h2>Updates to This Policy</h2>
         <p>
-          We may update this Cookie Policy from time to time. The "Last updated"
+          We may update this Cookie Policy from time to time. The &quot;Last updated&quot;
           date at the top of this page indicates when the policy was last
           revised.
         </p>

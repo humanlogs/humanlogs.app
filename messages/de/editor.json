@@ -6,7 +6,8 @@
             "bold": "Fett (⌘B)",
             "italic": "Kursiv (⌘I)",
             "underline": "Unterstrichen (⌘U)",
-            "strikethrough": "Durchgestrichen (⌘⇧X)"
+            "strikethrough": "Durchgestrichen (⌘⇧X)",
+            "comment": "Kommentar (⌘⌥M)"
         },
         "search": {
             "findPlaceholder": "Suchen...",
@@ -19,6 +20,10 @@
             "replace": "Ersetzen",
             "replaceWith": "Ersetzen durch",
             "replaceAll": "Alle ({count})"
+        },
+        "paste": {
+            "merged": "Einfügen zusammengeführt: {changes} Änderung(en) übernommen",
+            "identical": "Der eingefügte Text ist identisch – nichts geändert"
         },
         "speaker": {
             "renameSpeaker": "Sprecher umbenennen",
@@ -92,15 +97,21 @@
             "keyboardShortcuts": "Tastaturkürzel",
             "delete": "Löschen",
             "csv": "CSV",
-            "txt": "TXT",
-            "srt": "SRT (Untertitel)",
+            "txt": "Text (.txt)",
+            "srt": "SRT",
             "word": "Word",
             "pdf": "PDF",
             "json": "JSON",
-            "vtt": "WebVTT (Untertitel)",
+            "vtt": "WebVTT",
             "nvivo": "NVivo",
             "maxqda": "MAXQDA",
-            "advanced": "Erweitert"
+            "history": "Versionsverlauf",
+            "txtOptions": "Text (Optionen…)",
+            "groupQualitative": "Qualitative Analyse",
+            "groupSubtitles": "Untertitel",
+            "groupData": "Daten",
+            "groupAudio": "Audio",
+            "exportAgain": "Erneut als {format} exportieren"
         },
         "share": {
             "title": "Transkription teilen",
@@ -139,6 +150,26 @@
                 "cancel": "Abbrechen",
                 "confirm": "Eigentum übertragen"
             }
+        },
+        "comments": {
+            "title": "Kommentare",
+            "placeholder": "Kommentar schreiben…",
+            "add": "Kommentieren",
+            "save": "Speichern",
+            "cancel": "Abbrechen",
+            "edit": "Bearbeiten",
+            "delete": "Löschen",
+            "empty": "Noch keine Kommentare",
+            "you": "Du",
+            "indicator": "Diese Zeile enthält Kommentare",
+            "jumpUp": "Zum Kommentar darüber",
+            "jumpDown": "Zum Kommentar darunter",
+            "replyPlaceholder": "Antworten…",
+            "mentionHint": "@ zum Erwähnen",
+            "submitHint": "Umschalt + Eingabe zum Senden",
+            "subscribe": "Diesem Thread folgen",
+            "unsubscribe": "Thread nicht mehr folgen",
+            "hide": "Kommentare ausblenden"
         }
     }
 }

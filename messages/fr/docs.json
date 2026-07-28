@@ -1,0 +1,37 @@
+{
+  "docs": {
+    "index": {
+      "title": "Documentation",
+      "subtitle": "Transcrire, corriger, partager et protéger vos entretiens avec HumanLogs.",
+      "seeAll": "Voir les {count} pages"
+    },
+    "nav": {
+      "title": "Documentation",
+      "searchPlaceholder": "Rechercher dans la doc…",
+      "noResults": "Aucune page ne correspond à votre recherche."
+    },
+    "toc": {
+      "title": "Sur cette page"
+    },
+    "pager": {
+      "previous": "Précédent",
+      "next": "Suivant"
+    },
+    "related": "Pages liées",
+    "lastUpdated": "Mise à jour le {date}",
+    "fallbackNotice": "Cette page n'est pas encore traduite — vous lisez la version anglaise.",
+    "status": {
+      "beta": "Bêta",
+      "soon": "Bientôt"
+    },
+    "sections": {
+      "getting-started": "Démarrage",
+      "transcribe": "Transcrire",
+      "coding": "Coder",
+      "analysis": "Analyse",
+      "organize": "Organisation et partage",
+      "privacy": "Confidentialité et compte",
+      "self-hosting": "Auto-hébergement"
+    }
+  }
+}

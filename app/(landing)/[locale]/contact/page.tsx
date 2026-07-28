@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectOption } from "@/components/ui/select";
-import { Mail, Send, CheckCircle2 } from "lucide-react";
+import { Send, CheckCircle2 } from "lucide-react";
 import { AnimatedSectionTitle } from "../components/animated-section-title";
 import { FAQSection } from "../components/sections";
 import { RelatedLinks } from "../components/related-links";
@@ -90,7 +90,7 @@ export default function ContactPage() {
                   Message Sent!
                 </h2>
                 <p className="mb-6 text-gray-600">
-                  We've received your message and will get back to you soon.
+                  We&apos;ve received your message and will get back to you soon.
                   Check your email for a confirmation.
                 </p>
                 <Button

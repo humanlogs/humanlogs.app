@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { useShareCodebooksForStudy } from "@/hooks/use-codebooks";
 import { useEncryptionStatus } from "@/hooks/use-encryption";
 import {
   SharedUser,
@@ -94,6 +95,7 @@ export function TranscriptionShareDialog() {
   const [userCache, setUserCache] = useState<Map<string, UserInfo>>(new Map());
   const [loadingUsers, setLoadingUsers] = useState<Set<string>>(new Set());
 
+  const shareCodebooks = useShareCodebooksForStudy();
   const shareMutation = useShareTranscription(transcriptionId);
   const removeMutation = useRemoveShare(transcriptionId);
   const transferOwnershipMutation = useTransferOwnership(transcriptionId);
@@ -211,6 +213,75 @@ export function TranscriptionShareDialog() {
             encryptionState.publicKey,
           );
         }
+
+        // Share the speaker roster cache, when it is encrypted: it is stored
+        // apart from the transcript precisely so it can be read without it, so
+        // it needs its own re-wrap.
+        const rawSpeakers = (transcription._raw as any)?.speakers;
+        if (rawSpeakers?.privateKeys && rawSpeakers?.payload) {
+          updatedEncryptedData.speakers = await encryptionUtils.share(
+            rawSpeakers,
+            newAccessor,
+            encryptionState.privateKey,
+            encryptionState.publicKey,
+          );
+        }
+
+        // The custom vocabulary, same reason: it sits in its own entity, and a
+        // collaborator who cannot decrypt it would fail to read the document's
+        // metadata at all (the account export decrypts every field it finds).
+        const rawVocabulary = (transcription._raw as any)?.vocabulary;
+        if (rawVocabulary?.privateKeys && rawVocabulary?.payload) {
+          updatedEncryptedData.vocabulary = await encryptionUtils.share(
+            rawVocabulary,
+            newAccessor,
+            encryptionState.privateKey,
+            encryptionState.publicKey,
+          );
+        }
+
+        // Re-wrap existing comment bodies so the new user can read them too. New
+        // comments made after this share already include them (they encrypt for the
+        // transcription's current accessor set).
+        try {
+          const commentsRes = await fetch(
+            `/api/transcriptions/${transcription.id}/comments`,
+          );
+          if (commentsRes.ok) {
+            const { comments } = await commentsRes.json();
+            const rewrapped: Array<{ id: string; body: unknown }> = [];
+            for (const c of comments ?? []) {
+              const body = c?.body;
+              if (
+                body &&
+                Array.isArray(body.privateKeys) &&
+                typeof body.payload === "string"
+              ) {
+                rewrapped.push({
+                  id: c.id,
+                  body: await encryptionUtils.share(
+                    body,
+                    newAccessor,
+                    encryptionState.privateKey,
+                    encryptionState.publicKey,
+                  ),
+                });
+              }
+            }
+            if (rewrapped.length > 0) {
+              await fetch(
+                `/api/transcriptions/${transcription.id}/comments`,
+                {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ comments: rewrapped }),
+                },
+              );
+            }
+          }
+        } catch (e) {
+          console.error("Failed to re-encrypt comments for new user:", e);
+        }
       }
 
       const result = await shareMutation.mutateAsync({
@@ -223,6 +294,15 @@ export function TranscriptionShareDialog() {
       });
 
       if (result.exists) {
+        // The codebooks covering this document's study are encrypted for the
+        // same people; give the new collaborator their wrapped key too.
+        if (targetUser.publicKey) {
+          await shareCodebooks(transcription?.projectId, {
+            userId: targetUser.id,
+            publicKey: targetUser.publicKey,
+          });
+        }
+
         toast.success(t("share.success.shared", { email: newEmail }));
         setNewEmail("");
         setNewRole("read");

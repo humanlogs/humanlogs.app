@@ -1,0 +1,96 @@
+{
+  "codebook": {
+    "section": {
+      "title": "Codebooks ({count})",
+      "beta": "Beta",
+      "create": "New codebook",
+      "empty": {
+        "title": "No codebook yet",
+        "description": "A codebook is a set of codes you apply to your documents. Start from a preset or build your own.",
+        "action": "Create a codebook"
+      },
+      "allStudies": "All studies",
+      "studyCount": "{count} studies",
+      "codeCount": "{count} codes",
+      "locked": "Encrypted — no key on this device",
+      "code": "Code the study"
+    },
+    "editor": {
+      "createTitle": "New codebook",
+      "editTitle": "Edit codebook",
+      "description": "Codes are encrypted like your documents: only you and the people your documents are shared with can read them.",
+      "name": "Name",
+      "namePlaceholder": "Themes, sentiment, discourse markers…",
+      "scope": "Studies",
+      "scopeAll": "All studies",
+      "scopeSelected": "Selected studies",
+      "target": "Applies to",
+      "targets": {
+        "speaker": "Speaker",
+        "verbatim": "Verbatim"
+      },
+      "targetHints": {
+        "speaker": "Codes for the people: applied to a document as a whole and to each of its speakers (role, group, profile).",
+        "verbatim": "Codes for what is said: applied to a passage of the transcript, from a word to a whole sentence."
+      },
+      "codes": "Codes",
+      "addCode": "Add a code",
+      "codePlaceholder": "Code label",
+      "removeCode": "Remove this code",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete codebook",
+      "deleteConfirm": "Delete this codebook and its sub-codebooks? Documents keep their other codes.",
+      "errors": {
+        "nameRequired": "A name is required",
+        "scopeRequired": "Pick at least one study",
+        "codeRequired": "Add at least one code",
+        "failed": "Could not save the codebook"
+      },
+      "addSubCode": "Add a sub-code"
+    },
+    "presets": {
+      "title": "Start from a preset",
+      "description": "A preset fills the form for you — review and edit it before saving.",
+      "manual": "Continue manually",
+      "back": "Back to presets"
+    },
+    "speaker": {
+      "menu": "Speaker codes",
+      "create": "Create a speaker codebook",
+      "failed": "Could not save the speaker's codes",
+      "untitled": "Untitled codebook"
+    },
+    "board": {
+      "title": "Coding",
+      "description": "Assign the codes of one codebook to every document of the study and to the people in them.",
+      "codebook": "Codebook",
+      "hint": "Only speaker codebooks are listed: verbatim codes are applied to the text, inside the editor.",
+      "documentCodes": "Document",
+      "speakerCodes": "Codes",
+      "speakerFallback": "Speaker {index}",
+      "noSpeakers": "No speaker in this study yet",
+      "empty": "No document in this study yet",
+      "failed": "Could not save the codes",
+      "noCodebook": {
+        "title": "No speaker codebook yet",
+        "description": "Coding a study needs a codebook whose codes apply to documents and speakers.",
+        "action": "Create a codebook"
+      },
+      "untitled": "Untitled codebook",
+      "speakers": "People ({count})",
+      "speakersHint": "Speakers are grouped by name across the study: coding one applies to every interview they appear in.",
+      "documents": "Documents ({count})",
+      "inDocuments": "In {count} documents",
+      "loadRosters": "Load the speakers of {count} older documents",
+      "loadingRosters": "Loading the speakers of {count} documents…",
+      "beta": "Codebooks are still in beta — turn them on from your account to use the coding board."
+    },
+    "document": {
+      "menu": "Document codes",
+      "create": "Create a codebook",
+      "untitled": "Untitled codebook",
+      "failed": "Could not save the document's codes"
+    }
+  }
+}

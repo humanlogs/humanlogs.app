@@ -6,7 +6,8 @@
             "bold": "Bold (⌘B)",
             "italic": "Italic (⌘I)",
             "underline": "Underline (⌘U)",
-            "strikethrough": "Strikethrough (⌘⇧X)"
+            "strikethrough": "Strikethrough (⌘⇧X)",
+            "comment": "Comment (⌘⌥M)"
         },
         "search": {
             "findPlaceholder": "Find...",
@@ -19,6 +20,10 @@
             "replace": "Replace",
             "replaceWith": "Replace with",
             "replaceAll": "All ({count})"
+        },
+        "paste": {
+            "merged": "Paste merged: {changes} change(s) applied",
+            "identical": "Pasted text is identical — nothing changed"
         },
         "speaker": {
             "renameSpeaker": "Rename speaker",
@@ -92,15 +97,21 @@
             "keyboardShortcuts": "Keyboard Shortcuts",
             "delete": "Delete",
             "csv": "CSV",
-            "txt": "TXT",
-            "srt": "SRT (Subtitles)",
+            "txt": "Text (.txt)",
+            "srt": "SRT",
             "word": "Word",
             "pdf": "PDF",
             "json": "JSON",
-            "vtt": "WebVTT (Subtitles)",
+            "vtt": "WebVTT",
             "nvivo": "NVivo",
             "maxqda": "MAXQDA",
-            "advanced": "Advanced"
+            "history": "Version history",
+            "txtOptions": "Text (options…)",
+            "groupQualitative": "Qualitative analysis",
+            "groupSubtitles": "Subtitles",
+            "groupData": "Data",
+            "groupAudio": "Audio",
+            "exportAgain": "Export again as {format}"
         },
         "share": {
             "title": "Share transcription",
@@ -139,6 +150,26 @@
                 "cancel": "Cancel",
                 "confirm": "Transfer Ownership"
             }
+        },
+        "comments": {
+            "title": "Comments",
+            "placeholder": "Write a comment…",
+            "add": "Comment",
+            "save": "Save",
+            "cancel": "Cancel",
+            "edit": "Edit",
+            "delete": "Delete",
+            "empty": "No comments yet",
+            "you": "You",
+            "indicator": "This line has comments",
+            "jumpUp": "Scroll to the comment above",
+            "jumpDown": "Scroll to the comment below",
+            "replyPlaceholder": "Reply…",
+            "mentionHint": "@ to mention",
+            "submitHint": "Shift + Enter to send",
+            "subscribe": "Follow this thread",
+            "unsubscribe": "Stop following this thread",
+            "hide": "Hide comments"
         }
     }
 }

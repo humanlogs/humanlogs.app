@@ -2,6 +2,7 @@ import { Transcription } from "@prisma/client";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { prisma } from "../../../../lib/prisma";
+import { parseSpeakers } from "@/lib/transcriptions/speakers";
 
 const SUPPORTED_LANGUAGES = ["en", "fr", "es", "de"] as const;
 type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
@@ -98,6 +99,8 @@ export async function createTutorialTranscription(
         audioFileName: "tutorial.mp3",
         audioFileSize: audioStats.size,
         transcription: transcript,
+        // The tutorial ships in clear, so its roster is simply read off it.
+        speakers: (parseSpeakers(transcript) ?? null) as never,
         language: tutorialLanguage,
         vocabulary: [],
         speakerCount: 1,

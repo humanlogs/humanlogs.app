@@ -15,6 +15,7 @@
             "useCases": "Use Cases",
             "freeTools": "Free Tools",
             "pricing": "Pricing",
+            "docs": "Docs",
             "github": "Github",
             "blog": "Blog",
             "contact": "Contact",
@@ -60,9 +61,10 @@
                     "100+ languages, best-in-class accuracy",
                     "Automatic speaker labels",
                     "Audio-synced editor, 4x faster corrections",
+                    "Real-time co-editing with live cursors",
+                    "Threaded comments and @mentions",
                     "End-to-end encryption",
-                    "Export to Word, PDF, CSV and TXT",
-                    "Real-time collaboration"
+                    "Export to Word, PDF, CSV and TXT"
                 ]
             },
             "coding": {
@@ -272,8 +274,14 @@
             "description": "Basic exports to PDF, Word, CSV, and TXT. Advanced exports for word analysis software, extract specific speakers, and custom formatting options."
         },
         "collaboration": {
-            "title": "Collaboration",
-            "description": "Share your transcripts and work together on refining them. Perfect for research teams, newsrooms, and collaborative projects."
+            "title": "Real-time collaboration",
+            "description": "Invite your team and edit the same transcript at once, seeing each other's cursors live. Give read-only or write access per person, and everything stays end-to-end encrypted.",
+            "badge": "Live co-editing"
+        },
+        "comments": {
+            "title": "Comments & discussions",
+            "description": "Highlight any passage and open a thread on it. Reply, @mention a colleague, get notified — your analysis notes live next to the words, not in a separate document.",
+            "badge": "@mentions"
         },
         "privacy": {
             "title": "Privacy by design",
@@ -594,6 +602,7 @@
             "speakr": "vs Speakr"
         },
         "product": {
+            "docs": "Documentation",
             "blog": "Blog",
             "pricing": "Pricing",
             "faq": "FAQ",

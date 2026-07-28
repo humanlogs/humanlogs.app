@@ -1,9 +1,10 @@
 "use client";
 
 import { useLocale, useTranslations } from "@/components/locale-provider";
+import { DocumentViewSettings } from "@/components/sidebar/document-view-settings";
 import { SidebarUserMenu } from "@/components/sidebar/sidebar-user-menu";
 import { TranscriptionMenuItem } from "@/components/sidebar/transcription-menu-item";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -18,10 +19,21 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useProjects, useUpdateUser, useUserProfile } from "@/hooks/use-api";
+import { useCodebooks } from "@/hooks/use-codebooks";
+import { useDocumentViewPrefs } from "@/hooks/use-document-view-prefs";
+import { groupableCodebooks } from "@/lib/codebooks/codebook";
+import { cn } from "@/lib/utils/utils";
+import {
+  codebookIdFromGroupBy,
+  DEFAULT_GROUP_BY,
+  groupDocuments,
+  sortDocuments,
+  type GroupLabel,
+} from "@/lib/documents/grouping";
 import {
   FilePlusCornerIcon,
   HomeIcon,
-  PencilIcon,
+  PlusIcon,
   SearchIcon,
   ShieldIcon,
 } from "lucide-react";
@@ -31,7 +43,24 @@ import * as React from "react";
 import { useTranscriptions } from "../hooks/use-transcriptions";
 import { useWelcomeRedirect } from "../hooks/use-welcome-redirect";
 import { Locale, locales } from "../lib/utils/i18n";
-import { useProjectModal } from "./dialogs/project-create-modal";
+
+/**
+ * Headers for the groups that aren't a study — studies render their own link
+ * and add-document button.
+ */
+function groupLabelText(
+  label: GroupLabel,
+  t: (key: string) => string,
+): string {
+  switch (label.type) {
+    case "study":
+      return t("unassigned");
+    case "bucket":
+      return t(`view.buckets.${label.bucket}`);
+    case "code":
+      return label.codeId ? label.label : t("view.uncoded");
+  }
+}
 
 type AppSidebarProps = {
   user: {
@@ -47,14 +76,33 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
   const t = useTranslations("sidebar");
   const { setLocale } = useLocale();
   const [searchQuery, setSearchQuery] = React.useState("");
-  const { openRename } = useProjectModal();
   useWelcomeRedirect();
 
   // Fetch data using React Query
   const { data: projects = [] } = useProjects();
   const { data: transcriptions = [] } = useTranscriptions();
   const { data: userProfile } = useUserProfile();
+  const { data: codebooks = [] } = useCodebooks();
   const updateLanguage = useUpdateUser();
+  const { prefs, update } = useDocumentViewPrefs();
+
+  // Only codebooks covering every study, and only those whose codes land on a
+  // document — its own codes, or the codes of its participants.
+  const groupingCodebooks = React.useMemo(
+    () => groupableCodebooks(codebooks),
+    [codebooks],
+  );
+
+  // A stored `codebook:<id>` grouping outlives the codebook it points at —
+  // leaving the beta, or losing access to it, must fall back to the default
+  // axis rather than lumping every document under "uncoded".
+  const groupBy = React.useMemo(() => {
+    const codebookId = codebookIdFromGroupBy(prefs.groupBy);
+    if (!codebookId) return prefs.groupBy;
+    return groupingCodebooks.some((codebook) => codebook.id === codebookId)
+      ? prefs.groupBy
+      : DEFAULT_GROUP_BY;
+  }, [prefs.groupBy, groupingCodebooks]);
 
   // Sync language with locale provider when user profile loads
   React.useEffect(() => {
@@ -63,36 +111,19 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
     }
   }, [userProfile, setLocale]);
 
-  // Documents are listed alphabetically by title, matching the studies order.
-  const byTitle = (a: { title: string }, b: { title: string }) =>
-    a.title.localeCompare(b.title, undefined, {
-      numeric: true,
-      sensitivity: "base",
-    });
-
   // Separate owned and shared transcriptions
   const ownedTranscriptions = React.useMemo(() => {
     return transcriptions.filter((t) => t.isOwner !== false);
   }, [transcriptions]);
 
   const sharedTranscriptions = React.useMemo(() => {
-    return transcriptions.filter((t) => t.isOwner === false).sort(byTitle);
+    return transcriptions.filter((t) => t.isOwner === false);
   }, [transcriptions]);
 
-  // Combine projects with their transcriptions (owned only)
-  const projectsWithTranscriptions = React.useMemo(() => {
-    return projects.map((project) => ({
-      ...project,
-      transcriptions: ownedTranscriptions
-        .filter((t) => t.projectId === project.id)
-        .sort(byTitle),
-    }));
-  }, [projects, ownedTranscriptions]);
-
-  // Get unassigned transcriptions (owned only)
-  const unassignedTranscriptions = React.useMemo(() => {
-    return ownedTranscriptions.filter((t) => !t.projectId).sort(byTitle);
-  }, [ownedTranscriptions]);
+  const projectsById = React.useMemo(
+    () => new Map(projects.map((p) => [p.id, p])),
+    [projects],
+  );
 
   const handleLocaleChange = async (newLocale: "en" | "fr" | "es" | "de") => {
     setLocale(newLocale);
@@ -103,40 +134,62 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
     }
   };
 
-  // Filter projects and their transcriptions
-  const filteredProjects = React.useMemo(() => {
-    if (!searchQuery.trim()) return projectsWithTranscriptions;
-
-    const query = searchQuery.toLowerCase();
-    return projectsWithTranscriptions
-      .map((project) => ({
-        ...project,
-        transcriptions: project.transcriptions.filter((t) =>
-          t.title.toLowerCase().includes(query),
-        ),
-      }))
-      .filter(
-        (project) =>
-          project.transcriptions.length > 0 ||
-          project.name.toLowerCase().includes(query),
-      );
-  }, [searchQuery, projectsWithTranscriptions]);
-
-  const filteredUnassigned = React.useMemo(() => {
-    if (!searchQuery.trim()) return unassignedTranscriptions;
-    const query = searchQuery.toLowerCase();
-    return unassignedTranscriptions.filter((t) =>
-      t.title.toLowerCase().includes(query),
+  // Searching matches a document's title or its study's name — typing a study
+  // name keeps all of its documents, whatever the current grouping is.
+  const filteredOwned = React.useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return ownedTranscriptions;
+    return ownedTranscriptions.filter(
+      (t) =>
+        t.title.toLowerCase().includes(query) ||
+        (t.projectId
+          ? projectsById.get(t.projectId)?.name.toLowerCase().includes(query)
+          : false),
     );
-  }, [searchQuery, unassignedTranscriptions]);
+  }, [ownedTranscriptions, searchQuery, projectsById]);
+
+  const groups = React.useMemo(
+    () =>
+      groupDocuments({
+        documents: filteredOwned,
+        projects,
+        codebooks: groupingCodebooks,
+        groupBy,
+        sortBy: prefs.sortBy,
+      }),
+    [filteredOwned, projects, groupingCodebooks, groupBy, prefs.sortBy],
+  );
 
   const filteredShared = React.useMemo(() => {
-    if (!searchQuery.trim()) return sharedTranscriptions;
-    const query = searchQuery.toLowerCase();
-    return sharedTranscriptions.filter((t) =>
-      t.title.toLowerCase().includes(query),
-    );
-  }, [searchQuery, sharedTranscriptions]);
+    const query = searchQuery.trim().toLowerCase();
+    const matching = query
+      ? sharedTranscriptions.filter((t) =>
+          t.title.toLowerCase().includes(query),
+        )
+      : sharedTranscriptions;
+    return sortDocuments(matching, prefs.sortBy);
+  }, [searchQuery, sharedTranscriptions, prefs.sortBy]);
+
+  // The display-options button lives on the first header only — one control for
+  // the whole list. It falls through to the shared section so an account with
+  // only shared documents still has it.
+  const settingsGroupKey = groups[0]?.key ?? "shared";
+
+  // Outside of the "by study" grouping the study is no longer implied by the
+  // header, so each row carries it as a prefix.
+  const studyFor = (projectId?: string | null) =>
+    groupBy === "study" || !projectId
+      ? null
+      : (projectsById.get(projectId) ?? null);
+
+  const viewSettings = (
+    <DocumentViewSettings
+      groupBy={groupBy}
+      sortBy={prefs.sortBy}
+      codebooks={groupingCodebooks}
+      onChange={update}
+    />
+  );
 
   return (
     <>
@@ -199,70 +252,72 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
             </SidebarMenuItem>
           </SidebarMenu>
 
-          {/* Projects with transcriptions */}
+          {/* Documents, grouped and sorted per the display options */}
 
-          {filteredProjects.map((project) => (
-            <SidebarGroup key={project.id}>
-              <SidebarGroupLabel className="group/label">
-                <Link
-                  href={`/app/project/${project.id}`}
-                  className="flex-1 truncate hover:underline"
-                >
-                  {project.name}
-                </Link>
-                <Button
-                  type="button"
-                  className="opacity-0 group-hover/label:opacity-100 transition-opacity"
-                  variant={"ghost"}
-                  size={"icon-xs"}
-                  onClick={() => {
-                    openRename(project.id, project.name);
-                  }}
-                  aria-label="Edit study name"
-                >
-                  <PencilIcon className="h-3 w-3" />
-                </Button>
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {project.transcriptions.map((transcription) => (
-                    <TranscriptionMenuItem
-                      key={transcription.id}
-                      transcription={transcription}
-                      isActive={
-                        pathname === `/app/transcription/${transcription.id}`
-                      }
-                    />
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          ))}
+          {groups.map((group) => {
+            const project =
+              group.label.type === "study" && group.label.projectId
+                ? projectsById.get(group.label.projectId)
+                : undefined;
 
-          {/* No Projects section */}
-          {filteredUnassigned.length > 0 && (
-            <SidebarGroup>
-              <SidebarGroupLabel>{t("unassigned")}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {filteredUnassigned.map((transcription) => (
-                    <TranscriptionMenuItem
-                      key={transcription.id}
-                      transcription={transcription}
-                      isActive={
-                        pathname === `/app/transcription/${transcription.id}`
-                      }
-                    />
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )}
+            return (
+              <SidebarGroup key={group.key}>
+                <SidebarGroupLabel className="group/label">
+                  {project ? (
+                    <>
+                      <Link
+                        href={`/app/project/${project.id}`}
+                        className="flex-1 truncate hover:underline"
+                      >
+                        {project.name}
+                      </Link>
+                      <Link
+                        href={`/app/new?projectId=${project.id}`}
+                        className={cn(
+                          buttonVariants({
+                            variant: "ghost",
+                            size: "icon-xs",
+                          }),
+                          "opacity-0 group-hover/label:opacity-100 transition-opacity",
+                        )}
+                        aria-label={t("addDocument")}
+                        title={t("addDocument")}
+                      >
+                        <PlusIcon className="h-3 w-3" />
+                      </Link>
+                    </>
+                  ) : (
+                    <span className="flex-1 truncate">
+                      {groupLabelText(group.label, t)}
+                    </span>
+                  )}
+                  {group.key === settingsGroupKey && viewSettings}
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {group.documents.map((transcription) => (
+                      <TranscriptionMenuItem
+                        key={transcription.id}
+                        transcription={transcription}
+                        study={studyFor(transcription.projectId)}
+                        isActive={
+                          pathname === `/app/transcription/${transcription.id}`
+                        }
+                      />
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            );
+          })}
 
           {/* Shared section */}
           {filteredShared.length > 0 && (
             <SidebarGroup>
-              <SidebarGroupLabel>{t("shared")}</SidebarGroupLabel>
+              <SidebarGroupLabel className="group/label">
+                <span className="flex-1 truncate">{t("shared")}</span>
+                {settingsGroupKey === "shared" && viewSettings}
+              </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {filteredShared.map((transcription) => (

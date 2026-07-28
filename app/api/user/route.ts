@@ -25,6 +25,7 @@ const userSelectDefault = {
   profession: true,
   monthlyUsage: true,
   dataResidency: true,
+  betaFeatures: true,
   referralBonusCredits: true,
 };
 
@@ -107,6 +108,8 @@ export const PATCH = withAuthRateLimit(async (request, user) => {
 
     // Update allowed fields
     const updateData: Record<string, string | boolean> = {};
+    if (typeof body.betaFeatures === "boolean")
+      updateData.betaFeatures = body.betaFeatures;
     if (body.language) updateData.language = body.language;
     if (body.isWelcomeDone) {
       updateData.isWelcomeDone = true;

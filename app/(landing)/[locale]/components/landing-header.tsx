@@ -50,7 +50,7 @@ export const LandingHeader = () => {
         <nav className="hidden md:flex items-center gap-8">
           <Link
             href="/"
-            className="hidden lg:block text-sm font-medium text-black transition-colors hover:text-black"
+            className="hidden xl:block text-sm font-medium text-black transition-colors hover:text-black"
           >
             {t("nav.home")}
           </Link>
@@ -85,13 +85,6 @@ export const LandingHeader = () => {
               </DropdownMenuItem>
             </Link>
           </DropdownMenu>
-
-          <Link
-            href="/pricing"
-            className="text-sm font-medium text-black transition-colors hover:text-black"
-          >
-            {t("nav.pricing")}
-          </Link>
 
           {/* Free Tools Dropdown */}
           <div className="hidden xl:block">
@@ -136,8 +129,22 @@ export const LandingHeader = () => {
           </div>
 
           <Link
-            href="/blog"
+            href="/docs"
             className="text-sm font-medium text-black transition-colors hover:text-black"
+          >
+            {t("nav.docs")}
+          </Link>
+
+          <Link
+            href="/pricing"
+            className="text-sm hidden lg:block font-medium text-black transition-colors hover:text-black"
+          >
+            {t("nav.pricing")}
+          </Link>
+
+          <Link
+            href="/blog"
+            className="text-sm hidden lg:block font-medium text-black transition-colors hover:text-black"
           >
             {t("nav.blog")}
           </Link>

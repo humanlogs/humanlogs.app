@@ -1,6 +1,7 @@
 {
   "sidebar": {
     "newTranscription": "Nueva transcripción",
+    "addDocument": "Importar audio o texto",
     "search": "Buscar...",
     "shared": "Compartido",
     "noResults": "No se encontraron resultados",
@@ -19,6 +20,7 @@
       "feedback": "Comentarios y opiniones",
       "feedbackDirect": "Ayúdanos a mejorar",
       "featureRequest": "Solicitud de función",
+      "bugReport": "Reportar un error",
       "help": "Ayuda",
       "logout": "Cerrar sesión",
       "referral": "Referidos"
@@ -30,7 +32,25 @@
       "de": "Deutsch"
     },
     "home": "Inicio",
-    "unassigned": "Sin estudio"
+    "unassigned": "Sin estudio",
+    "view": {
+      "settings": "Opciones de visualización",
+      "groupBy": "Agrupar por",
+      "sortBy": "Ordenar por",
+      "updatedAt": "Última modificación",
+      "createdAt": "Fecha de creación",
+      "alphabetical": "Alfabéticamente",
+      "study": "Estudio",
+      "uncoded": "Sin codificar",
+      "untitledCodebook": "Libro de códigos sin nombre",
+      "buckets": {
+        "today": "Hoy",
+        "yesterday": "Ayer",
+        "thisWeek": "Esta semana",
+        "thisMonth": "Este mes",
+        "before": "Antes"
+      }
+    }
   },
   "newTranscription": {
     "title": "Nueva Transcripción",
@@ -105,6 +125,11 @@
     "featureMessageLabel": "¿Qué función te gustaría ver?",
     "featureMessagePlaceholder": "Describe la función o mejora que te gustaría ver...",
     "featureSuccess": "¡Gracias por tu sugerencia!",
+    "bugTitle": "Reportar un error",
+    "bugDescription": "¿Algo no funciona? Cuéntanoslo y lo revisamos.",
+    "bugMessageLabel": "¿Qué ha pasado?",
+    "bugMessagePlaceholder": "Qué hiciste, qué esperabas y qué ocurrió en su lugar. Indicar el documento o la página nos ayuda a reproducirlo...",
+    "bugSuccess": "¡Gracias, hemos recibido tu reporte!",
     "submit": "Enviar Comentarios",
     "submitting": "Enviando...",
     "cancel": "Cancelar",
@@ -113,6 +138,7 @@
       "ratingRequired": "Por favor selecciona una calificación",
       "messageRequired": "Por favor cuéntanos qué podemos mejorar",
       "featureMessageRequired": "Por favor describe la función que te gustaría ver",
+      "bugMessageRequired": "Por favor describe el problema",
       "submitFailed": "Error al enviar comentarios"
     }
   },
@@ -418,5 +444,13 @@
       "back": "Volver al inicio"
     },
     "settings": "Ajustes"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "empty": "Sin notificaciones",
+    "markAllRead": "Marcar todo como leído",
+    "someone": "Alguien",
+    "mentionedYou": "{name} te mencionó",
+    "repliedInThread": "{name} respondió en un hilo que sigues"
   }
 }

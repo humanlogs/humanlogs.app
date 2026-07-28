@@ -8,23 +8,23 @@ datasource db {
 }
 
 model User {
-  id                    String          @id @default(uuid())
-  auth0Id               String          @unique
-  email                 String          @unique
+  id                    String               @id @default(uuid())
+  auth0Id               String               @unique
+  email                 String               @unique
   name                  String?
   picture               String?
   passwordHash          String?
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
-  credits               Int             @default(100)
-  language              String          @default("en")
-  plan                  String          @default("free")
-  creditsRefill         Int             @default(100)
-  creditsUsed           Int             @default(0)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  credits               Int                  @default(100)
+  language              String               @default("en")
+  plan                  String               @default("free")
+  creditsRefill         Int                  @default(100)
+  creditsUsed           Int                  @default(0)
   publicKey             String?
   trustedDeviceSecret   String?
-  stripeCustomerId      String?         @unique
-  stripeSubscriptionId  String?         @unique
+  stripeCustomerId      String?              @unique
+  stripeSubscriptionId  String?              @unique
   subscriptionPeriodEnd DateTime?
   subscriptionStatus    String?
   lastCreditsRefill     DateTime?
@@ -33,25 +33,32 @@ model User {
   // "latest paying customers" list.
   lastPaymentAt         DateTime?
   shortcuts             Json?
-  isAdmin               Boolean         @default(false)
-  marketingEmailStep    Int             @default(0)
+  isAdmin               Boolean              @default(false)
+  marketingEmailStep    Int                  @default(0)
   lastMarketingEmailAt  DateTime?
   projects              Project[]
   transcriptions        Transcription[]
   feedbacks             Feedback[]
   deletionTokens        DeletionToken[]
-  isWelcomeDone         Boolean         @default(false)
+  isWelcomeDone         Boolean              @default(false)
   // Furthest onboarding step the user reached, so we can see exactly where
   // people drop off. "profile" | "security" | "referral" | "ready" | "done".
-  onboardingStep        String          @default("profile")
+  onboardingStep        String               @default("profile")
   // Onboarding profile
   profession            String?
   monthlyUsage          String?
   // Speech-to-text data residency preference: "eu" (Gladia) or "us" (ElevenLabs)
-  dataResidency         String          @default("eu")
+  dataResidency         String               @default("eu")
+  // Opt-in to features that are still in beta (currently: codebooks). Off by
+  // default — beta surfaces stay hidden until the user asks for them.
+  betaFeatures          Boolean              @default(false)
   // Referral program: extra monthly credits earned from referred users who registered
-  referralBonusCredits  Int             @default(0)
+  referralBonusCredits  Int                  @default(0)
   referralsSent         Referral[]
+  comments              Comment[]
+  codebooks             Codebook[]
+  notifications         Notification[]       @relation("NotificationRecipient")
+  threadSubscriptions   ThreadSubscription[]
 }
 
 enum ReferralStatus {
@@ -89,9 +96,51 @@ model Project {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   transcriptions Transcription[]
+  codebooks      CodebookStudy[]
   user           User            @relation(fields: [userId], references: [id])
 
   @@index([userId])
+}
+
+/// A set of codes used to tag documents, attached to specific studies or to all
+/// of them. Sub-themes live inside the codes themselves (each code may hold
+/// children) rather than in a hierarchy of codebooks.
+///
+/// Only `content` is end-to-end encrypted (an EncryptedDataEntity holding
+/// `{ name, codes }`), exactly like `Comment.body`. The structure around it —
+/// studies, target, and the code uuids stored on documents — stays in clear so
+/// the server can scope, cascade and filter without ever learning what a code
+/// means.
+model Codebook {
+  id         String          @id @default(uuid())
+  userId     String
+  /// True when the codebook applies to every study of the user; otherwise the
+  /// `studies` links decide.
+  allStudies Boolean         @default(false)
+  /// What this codebook codes: "speaker" (the document and the people in it)
+  /// or "verbatim" (a passage of the transcript).
+  target     String          @default("speaker")
+  /// Key of the preset it was created from, null for a hand-made codebook.
+  preset     String?
+  /// EncryptedDataEntity, or `{ name, codes }` in clear when the user has no
+  /// encryption key. Codes are a tree: `{ id, label, color?, children? }`.
+  content    Json
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  studies    CodebookStudy[]
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model CodebookStudy {
+  codebookId String
+  projectId  String
+  codebook   Codebook @relation(fields: [codebookId], references: [id], onDelete: Cascade)
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@id([codebookId, projectId])
+  @@index([projectId])
 }
 
 model Transcription {
@@ -106,9 +155,20 @@ model Transcription {
   // Source of the transcript: "audio" (transcribed from audio/video) or "text" (imported document)
   mediaType                 String             @default("audio")
   transcription             Json?
+  /// Cache of the speaker roster that lives inside `transcription`:
+  /// `[{ id, name }]` in clear, or an EncryptedDataEntity wrapping that array
+  /// for an E2E document (same accessors as the transcript). Lets anything
+  /// needing "who speaks here" — the study coding board first — read a dozen
+  /// names without pulling and decrypting whole interviews. Never
+  /// authoritative: rebuilt on every write that can read the content.
+  speakers                  Json?
   isTutorial                Boolean            @default(false)
   language                  String
-  vocabulary                String[]
+  /// Words given to the speech-to-text provider at creation, typically
+  /// including participant names. A plain `string[]`, or an
+  /// EncryptedDataEntity holding one when the user has a key: the provider
+  /// reads it in the creation request, nothing reads it at rest afterwards.
+  vocabulary                Json?
   speakerCount              Int                @default(1)
   state                     TranscriptionState @default(PENDING)
   errorMessage              String?
@@ -116,12 +176,22 @@ model Transcription {
   sttProvider               String?
   elevenLabsTranscriptionId String?
   shared                    Json?
+  // Codes applied to this document: [{ codebookId, codeId }]. Both are opaque
+  // uuids — the labels live inside the codebook's encrypted content, so this
+  // stays readable by the server without leaking what the codes mean.
+  codes                     Json?
+  // Codes applied to the speakers of this document:
+  // [{ speakerId, codebookId, codeId }]. `speakerId` is the speaker id of the
+  // transcript, a position rather than a name — names live inside the
+  // encrypted content, so this stays as opaque to the server as the code ids.
+  speakerCodes              Json?
   createdAt                 DateTime           @default(now())
   updatedAt                 DateTime           @updatedAt
   updatedBy                 String             @default("system")
   completedAt               DateTime?
   user                      User               @relation(fields: [userId], references: [id])
   project                   Project?           @relation(fields: [projectId], references: [id])
+  comments                  Comment[]
 
   @@index([id])
   @@index([userId, id])
@@ -150,6 +220,79 @@ model TranscriptionHistory {
   @@index([userId, transcriptionId, updatedAt])
 }
 
+/// A comment thread anchor lives in the transcript as a `comment` mark (serialized
+/// into segment `comments`), so the anchored range is CRDT-synced, versioned with the
+/// transcript, and survives reseed (a revert restores the anchors, which re-link to
+/// these rows by `anchorId`). The note bodies live here, one row per note, so a single
+/// anchor (`anchorId`) can hold a multi-user thread. `body` is an EncryptedDataEntity
+/// (AES-GCM payload + per-authorized-user RSA-wrapped key) when the transcription is
+/// encrypted, or plain `{ text }` otherwise.
+model Comment {
+  id              String        @id @default(uuid())
+  transcriptionId String
+  // Groups notes into a thread; equals the `commentId` attribute of the mark in the doc.
+  anchorId        String
+  // Author of this note.
+  userId          String
+  // EncryptedDataEntity (encrypted) or { text: string } (plaintext).
+  body            Json
+  resolved        Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+  transcription   Transcription @relation(fields: [transcriptionId], references: [id], onDelete: Cascade)
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([transcriptionId])
+  @@index([transcriptionId, anchorId])
+}
+
+/// Generic in-app notification. Deliberately feature-agnostic: `type` names the event
+/// ("comment.reply", "comment.mention", …) and `entityType`/`entityId` point at whatever
+/// it concerns, so other features can emit notifications without schema changes.
+///
+/// `data` holds only what is needed to render a one-line summary and build a link —
+/// never user content. Comment bodies are end-to-end encrypted, so a notification
+/// references the comment rather than quoting it, and the client renders the wording.
+model Notification {
+  id         String    @id @default(uuid())
+  /// Who receives it.
+  userId     String
+  /// Event name, e.g. "comment.mention". Unknown types render with a generic fallback.
+  type       String
+  /// Who caused it (null for system notifications).
+  actorId    String?
+  /// What it is about, e.g. "transcription".
+  entityType String?
+  entityId   String?
+  data       Json?
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+  user       User      @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+}
+
+/// Opt-in/opt-out of a comment thread. A row exists only once the user has expressed
+/// (or implicitly acquired) an interest: posting in a thread or being mentioned
+/// subscribes them, and `subscribed = false` records an explicit opt-out so it is not
+/// silently re-added.
+model ThreadSubscription {
+  id              String   @id @default(uuid())
+  userId          String
+  transcriptionId String
+  /// The comment thread, matching Comment.anchorId.
+  anchorId        String
+  subscribed      Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, transcriptionId, anchorId])
+  @@index([transcriptionId, anchorId])
+}
+
 model Feedback {
   id        String       @id @default(uuid())
   userId    String
@@ -167,6 +310,7 @@ model Feedback {
 enum FeedbackType {
   RATING
   FEATURE_REQUEST
+  BUG_REPORT
 }
 
 model DeletionToken {

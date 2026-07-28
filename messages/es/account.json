@@ -302,6 +302,16 @@
                 }
             }
         },
+        "preferences": {
+            "title": "Preferencias",
+            "description": "Elige qué te muestra humanlogs",
+            "betaBadge": "Beta",
+            "betaFeatures": {
+                "label": "Mostrar funciones en beta",
+                "description": "Activa las funciones que seguimos puliendo, como los libros de códigos. Funcionan, pero pueden cambiar o moverse sin previo aviso.",
+                "error": "No se han podido actualizar tus preferencias"
+            }
+        },
         "referralCardTitle": "Referidos",
         "referralCardDescription": "Invita a amigos y gana minutos de transcripción gratis",
         "referralCardButton": "Abrir referidos"

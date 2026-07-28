@@ -1,6 +1,7 @@
 {
   "sidebar": {
     "newTranscription": "New Transcription",
+    "addDocument": "Import audio or text",
     "search": "Search...",
     "shared": "Shared",
     "noResults": "No results found",
@@ -19,6 +20,7 @@
       "feedback": "Feedback and reviews",
       "feedbackDirect": "Help us improve",
       "featureRequest": "Feature request",
+      "bugReport": "Report a bug",
       "help": "Help",
       "logout": "Logout",
       "referral": "Referral"
@@ -30,7 +32,25 @@
       "de": "Deutsch"
     },
     "home": "Home",
-    "unassigned": "Unassigned"
+    "unassigned": "Unassigned",
+    "view": {
+      "settings": "Display options",
+      "groupBy": "Group by",
+      "sortBy": "Sort by",
+      "updatedAt": "Last update",
+      "createdAt": "Created at",
+      "alphabetical": "Alphabetically",
+      "study": "Study",
+      "uncoded": "Uncoded",
+      "untitledCodebook": "Untitled codebook",
+      "buckets": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "thisWeek": "This week",
+        "thisMonth": "This month",
+        "before": "Before"
+      }
+    }
   },
   "newTranscription": {
     "title": "New Transcription",
@@ -105,6 +125,11 @@
     "featureMessageLabel": "What feature would you like to see?",
     "featureMessagePlaceholder": "Describe the feature or improvement you'd like to see...",
     "featureSuccess": "Thank you for your suggestion!",
+    "bugTitle": "Report a bug",
+    "bugDescription": "Something is not working? Tell us and we'll look into it.",
+    "bugMessageLabel": "What went wrong?",
+    "bugMessagePlaceholder": "What did you do, what did you expect, and what happened instead? Mentioning the document or page helps us reproduce it...",
+    "bugSuccess": "Thank you, your report has been sent!",
     "submit": "Submit Feedback",
     "submitting": "Submitting...",
     "cancel": "Cancel",
@@ -113,6 +138,7 @@
       "ratingRequired": "Please select a rating",
       "messageRequired": "Please tell us what we can improve",
       "featureMessageRequired": "Please describe the feature you'd like to see",
+      "bugMessageRequired": "Please describe the problem",
       "submitFailed": "Failed to submit feedback"
     }
   },
@@ -418,5 +444,13 @@
       "back": "Back to home"
     },
     "settings": "Settings"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "markAllRead": "Mark all as read",
+    "someone": "Someone",
+    "mentionedYou": "{name} mentioned you",
+    "repliedInThread": "{name} replied in a thread you follow"
   }
 }

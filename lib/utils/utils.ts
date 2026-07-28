@@ -53,3 +53,22 @@ export function getSpeakerColor(index: number): string {
 export function getSpeakerColorClass(index: number): string {
   return SPEAKER_COLORS[index % SPEAKER_COLORS.length].tailwind;
 }
+
+/** Deterministic per-user color (remote carets + audio waveform ticks share it). */
+export function getUserColor(userId: string): string {
+  const colors = [
+    "#f59e0b", // amber
+    "#3b82f6", // blue
+    "#10b981", // green
+    "#ef4444", // red
+    "#8b5cf6", // violet
+    "#ec4899", // pink
+    "#06b6d4", // cyan
+    "#f97316", // orange
+  ];
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+}

@@ -11,6 +11,11 @@ import { isBillableVersion } from "@/lib/billing/stripe";
 import { prisma } from "@/lib/prisma";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 import { generateAudioKey, getStorage } from "@/lib/storage";
+import { parseSpeakers } from "@/lib/transcriptions/speakers";
+import {
+  parseVocabulary,
+  vocabularyToStore,
+} from "@/lib/transcriptions/vocabulary";
 import {
   getSTTService,
   resolveSttProvider,
@@ -80,11 +85,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
         ? tagAudioEventsRaw.toLowerCase() !== "false"
         : true;
 
-    const vocabulary = fields.vocabulary || "";
-    const vocabularyArray = vocabulary
-      .split(",")
-      .map((v) => v.trim())
-      .filter(Boolean);
+    const vocabularyArray = parseVocabulary(fields.vocabulary);
 
     // Resolve the STT provider: explicit request ("eu"/"us" or a provider name)
     // falls back to the user's saved data residency preference, then the
@@ -93,10 +94,19 @@ export const POST = withAuthRateLimit(async (request, user) => {
     const requestedProvider = fields.provider || null;
     const userPref = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { dataResidency: true },
+      select: { dataResidency: true, publicKey: true },
     });
     const provider: SttProvider = resolveSttProvider(
       requestedProvider || userPref?.dataResidency || null,
+    );
+
+    // The provider needs the words in the clear, in this very request; what we
+    // *store* is encrypted for the owner, because a vocabulary usually holds
+    // participant names.
+    const storedVocabulary = await vocabularyToStore(
+      vocabularyArray,
+      { id: user.id, publicKey: userPref?.publicKey },
+      crypto,
     );
 
     // Extract audio files (already streamed to disk), matched by field name.
@@ -234,7 +244,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
             audioFileKey: "", // Will be updated after upload in async processing
             language,
             speakerCount: speakerCount || 16,
-            vocabulary: vocabularyArray,
+            vocabulary: storedVocabulary as never,
             sttProvider: provider,
             state: "PENDING",
           },
@@ -546,6 +556,7 @@ async function processTranscription(
         data: {
           state: "COMPLETED",
           transcription: result as never,
+          speakers: (parseSpeakers(result) ?? null) as never,
           completedAt: new Date(),
         },
       });
