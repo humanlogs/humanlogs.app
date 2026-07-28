@@ -20,18 +20,29 @@ export const testSchema = new Schema({
     text: { group: "inline" },
     hardBreak: { group: "inline", inline: true, selectable: false },
   },
-  marks: { bold: {}, italic: {}, underline: {}, strike: {} },
+  marks: {
+    bold: {},
+    italic: {},
+    underline: {},
+    strike: {},
+    // Comment anchors, like the real editor's CommentMark: non-inclusive, and
+    // carrying the space-separated set of thread ids covering the run.
+    comment: { inclusive: false, attrs: { commentIds: { default: "" } } },
+  },
 });
 
-type Inline = string | { text: string; marks?: string[] } | { br: true };
+type Inline =
+  | string
+  | { text: string; marks?: string[]; comment?: string }
+  | { br: true };
 
 function inlineToNode(part: Inline) {
   if (typeof part === "string") return testSchema.text(part);
   if ("br" in part) return testSchema.node("hardBreak");
-  return testSchema.text(
-    part.text,
-    (part.marks ?? []).map((m) => testSchema.marks[m].create()),
-  );
+  const marks = (part.marks ?? []).map((m) => testSchema.marks[m].create());
+  if (part.comment)
+    marks.push(testSchema.marks.comment.create({ commentIds: part.comment }));
+  return testSchema.text(part.text, marks);
 }
 
 /** Single-paragraph doc: `doc("Bonjour le monde")`. */

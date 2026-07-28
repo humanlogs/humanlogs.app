@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "@/components/locale-provider";
 import { useUserProfile } from "@/hooks/use-api";
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import {
@@ -20,9 +21,11 @@ import Paragraph from "@tiptap/extension-paragraph";
 import Placeholder from "@tiptap/extension-placeholder";
 import Strike from "@tiptap/extension-strike";
 import Underline from "@tiptap/extension-underline";
+import { TextSelection } from "@tiptap/pm/state";
 import { Editor, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import * as awarenessProtocol from "y-protocols/awareness";
 import * as Y from "yjs";
 import { EditorAPI } from "../api";
@@ -31,6 +34,12 @@ import { docToSegments } from "../collab/doc-to-segments";
 import { AutoWrapExtension } from "../extensions/auto-wrap-extension";
 import { CommentMark } from "../extensions/comment-mark";
 import { segmentsToHtml } from "../utils/html";
+import {
+  applyMergeOps,
+  cleanPastedHtml,
+  planPasteMerge,
+  sliceToParagraphs,
+} from "../utils/paste-merge";
 import { normalizeEditorSegments } from "./use-normalize-editor-segments";
 
 const SpeakerParagraph = Paragraph.extend({
@@ -157,6 +166,12 @@ export function useTiptapEditor({
   const normalizeDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const { data: userProfile } = useUserProfile();
   const [isMounted, setIsMounted] = useState(false);
+
+  // The editor is created once (deps `[]`), so its editorProps closures read the
+  // translator through a ref rather than capturing the first render's copy.
+  const t = useTranslations("editor");
+  const tRef = useRef(t);
+  tRef.current = t;
 
   // Persistence is gated to a single "save leader" (the seed authority, or a
   // standalone client with no working transport) so multiple writers don't race and
@@ -290,6 +305,49 @@ export function useTiptapEditor({
           event.preventDefault();
           event.stopPropagation();
           toggleMarkExpandingWord(ed, toggle);
+          return true;
+        },
+        // Word/LibreOffice put a lot of noise in `text/html` (conditional
+        // comments, `<o:p>`, stylesheets, nbsp). Cleaning it before ProseMirror
+        // parses benefits both the surgical merge below and the plain paste.
+        transformPastedHTML: cleanPastedHtml,
+        // Pasting a transcript back from a word processor. A plain paste would
+        // replace the whole selection, and with it every speaker attribute,
+        // comment anchor, remote caret and derived timestamp — even for the 99%
+        // of the text that did not change. So we diff the pasted text against
+        // the selected region and apply ONLY the real changes, in place.
+        // See utils/paste-merge.ts; anything that isn't a recognizable round
+        // trip returns false and pastes normally.
+        handlePaste: (view, _event, slice) => {
+          if (!view.editable) return false;
+          const { from, to } = view.state.selection;
+          if (from === to) return false; // an insertion has nothing to diff against
+
+          const plan = planPasteMerge(
+            view.state.doc,
+            from,
+            to,
+            sliceToParagraphs(slice),
+          );
+          if (!plan) return false;
+
+          if (plan.ops.length > 0) {
+            const tr = view.state.tr;
+            applyMergeOps(tr, plan.ops);
+            // Land the caret on the first change: after a merge the document
+            // looks untouched, so the user needs to be shown where it wasn't.
+            if (plan.firstChangePos !== null) {
+              const pos = Math.min(plan.firstChangePos, tr.doc.content.size);
+              tr.setSelection(TextSelection.near(tr.doc.resolve(pos)));
+            }
+            view.dispatch(tr.scrollIntoView());
+          }
+
+          toast.success(
+            plan.changeCount === 0
+              ? tRef.current("paste.identical")
+              : tRef.current("paste.merged", { changes: plan.changeCount }),
+          );
           return true;
         },
       },

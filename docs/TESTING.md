@@ -39,6 +39,14 @@ npm test -- doc-to    # a single file
   message, tampered and wrong-key payloads rejected.
 - **`transcription-access.test.ts`** — the full sharing permission matrix
   (`read` < `read+listen` < `write`), including malformed share data.
+- **`paste-merge.test.ts`** — the word-processor round trip (copy the transcript
+  into Word, edit it there, paste it back). A plain paste replaces the whole
+  selection and silently takes down speaker attributes, comment anchors and
+  derived timestamps with it, so the paste is turned into the minimal diff
+  instead. These tests pin that an untouched round trip is a no-op (Word's own
+  typography included), that real edits — punctuation and capitalization too —
+  ARE applied, that what surrounds them is never rewritten, and that anything
+  which is not a recognizable round trip falls back to a normal paste.
 
 ### `tests/integration` — the real protocol
 
@@ -96,6 +104,13 @@ offline reaching the others on reconnect, undo reverting your own edit and not
 your colleague's, three participants converging, a speaker rename crossing the
 Y.Map, and a stranger speaking the socket protocol directly with valid
 credentials.
+
+`tests/e2e/paste-merge.spec.ts` covers the word-processor round trip in a real
+browser: a genuine `paste` event carrying Word's `text/html` (styled prose, no
+`data-speaker-id`, curly apostrophes) over a `Cmd+A` selection. It checks the
+wiring the unit suite cannot — that the selection is recognized and the merge
+fires — and that the transcript keeps its speakers instead of collapsing onto
+`speaker_0`.
 
 Note the two suites use different attack surfaces on purpose: the REST route and
 the socket are separate doors, and only testing the first one is how the second

@@ -21,6 +21,10 @@
             "replaceWith": "Replace with",
             "replaceAll": "All ({count})"
         },
+        "paste": {
+            "merged": "Paste merged: {changes} change(s) applied",
+            "identical": "Pasted text is identical — nothing changed"
+        },
         "speaker": {
             "renameSpeaker": "Rename speaker",
             "speakerOptions": "Speaker Options",

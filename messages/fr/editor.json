@@ -21,6 +21,10 @@
             "replaceWith": "Remplacer par",
             "replaceAll": "Tout ({count})"
         },
+        "paste": {
+            "merged": "Collage fusionné : {changes} modification(s) appliquée(s)",
+            "identical": "Le texte collé est identique — rien n'a changé"
+        },
         "speaker": {
             "renameSpeaker": "Renommer l'intervenant",
             "speakerOptions": "Options de l'intervenant",

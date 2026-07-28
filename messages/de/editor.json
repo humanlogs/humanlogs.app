@@ -21,6 +21,10 @@
             "replaceWith": "Ersetzen durch",
             "replaceAll": "Alle ({count})"
         },
+        "paste": {
+            "merged": "Einfügen zusammengeführt: {changes} Änderung(en) übernommen",
+            "identical": "Der eingefügte Text ist identisch – nichts geändert"
+        },
         "speaker": {
             "renameSpeaker": "Sprecher umbenennen",
             "speakerOptions": "Sprecher-Optionen",
