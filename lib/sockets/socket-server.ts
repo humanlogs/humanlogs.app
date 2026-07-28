@@ -98,6 +98,20 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
     const { userId, email } = socket.data.auth as SocketAuthResult;
     log(`Client connected: ${socket.id} — user ${userId} (${email})`);
 
+    // Personal room, targeted by everything the SERVER pushes to a user rather
+    // than to a document: `db:change` cache invalidation (comments, notifications,
+    // transcription updates) and `transcription:reverted`. It is keyed on the
+    // authenticated user id, never on anything the client sends, so a socket can
+    // only ever be in its own — unlike `transcription:<id>` rooms, which are a
+    // claim to be checked (see joinRoom below).
+    //
+    // Losing this join is silent: `io.to("user:<id>")` with no members simply
+    // emits into the void, so every cache invalidation stops arriving while the
+    // collaborative document keeps syncing — a comment's highlight appears live
+    // (it travels in the Yjs doc) but its note, which is fetched over HTTP and
+    // refreshed by `db:change`, never does.
+    socket.join(`user:${userId}`);
+
     // Rooms this socket has JOINED, and with what rights. Authentication only
     // proves who the user is; a transcription id travels in URLs, exports and
     // emails, so it is no kind of secret — every join is checked against the
