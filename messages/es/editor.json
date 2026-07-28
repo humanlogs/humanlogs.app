@@ -21,6 +21,10 @@
             "replaceWith": "Reemplazar con",
             "replaceAll": "Todos ({count})"
         },
+        "paste": {
+            "merged": "Pegado fusionado: {changes} cambio(s) aplicado(s)",
+            "identical": "El texto pegado es idéntico: no ha cambiado nada"
+        },
         "speaker": {
             "renameSpeaker": "Renombrar interlocutor",
             "speakerOptions": "Opciones del interlocutor",

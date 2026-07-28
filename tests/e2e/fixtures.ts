@@ -68,15 +68,22 @@ export async function createUser(
  */
 export async function createTranscription(
   request: APIRequestContext,
-  { title, text }: { title: string; text: string },
+  {
+    title,
+    text,
+    filename,
+  }: { title: string; text: string; filename?: string },
 ): Promise<string> {
+  // The extension drives the parser: `.txt` is one unlabeled speaker, `.csv`
+  // (`Speaker,Text`) is the lightest way to get a multi-speaker transcript.
+  const name = filename ?? `${title}.txt`;
   const response = await request.post(`${baseURL}/api/transcriptions/import`, {
     multipart: {
       title,
       language: "fr",
       file: {
-        name: `${title}.txt`,
-        mimeType: "text/plain",
+        name,
+        mimeType: name.endsWith(".csv") ? "text/csv" : "text/plain",
         buffer: Buffer.from(text, "utf8"),
       },
     },
