@@ -341,3 +341,106 @@ export function useAdminStats() {
     },
   });
 }
+
+// Newsletter subscribers (admin)
+export type NewsletterSubscriber = {
+  id: string;
+  email: string;
+  locale: string;
+  source: string;
+  createdAt: string;
+  updatedAt: string;
+  /** True when this address also belongs to a registered account. */
+  isUser: boolean;
+};
+
+export type NewsletterSubscribers = {
+  subscribers: NewsletterSubscriber[];
+  page: number;
+  pageSize: number;
+  /** Number of subscribers matching the current search. */
+  matching: number;
+  stats: {
+    total: number;
+    last30Days: number;
+    last7Days: number;
+    bySource: Record<string, number>;
+    byLocale: Record<string, number>;
+    byDay: Record<string, number>;
+    totalUsers: number;
+  };
+};
+
+export function useNewsletterSubscribers({
+  search = "",
+  page = 1,
+  pageSize = 50,
+  enabled = true,
+}: {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+  enabled?: boolean;
+} = {}) {
+  return useQuery({
+    queryKey: ["admin", "newsletter", { search, page, pageSize }],
+    enabled,
+    // Keep the previous page visible while the next one loads, so the table
+    // doesn't collapse on every keystroke.
+    placeholderData: (previous) => previous,
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        page: String(page),
+        pageSize: String(pageSize),
+      });
+      if (search) params.set("search", search);
+
+      const response = await fetchGateway(`/api/admin/newsletter?${params}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch newsletter subscribers");
+      }
+      return response.json() as Promise<NewsletterSubscribers>;
+    },
+  });
+}
+
+export type EmailExportType = "newsletter" | "users" | "all";
+export type EmailExportFormat = "csv" | "txt";
+
+/**
+ * Download the admin email export as a file. Goes through `fetchGateway` (not
+ * a plain link) so 401/429 responses are handled like every other API call and
+ * failures surface as an error instead of a broken download.
+ */
+export async function downloadEmailExport(
+  type: EmailExportType,
+  format: EmailExportFormat = "csv",
+) {
+  const response = await fetchGateway(
+    `/api/admin/emails/export?type=${type}&format=${format}`,
+  );
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || "Failed to export emails");
+  }
+
+  const blob = await response.blob();
+  const disposition = response.headers.get("Content-Disposition") ?? "";
+  const filename =
+    disposition.match(/filename="([^"]+)"/)?.[1] ??
+    `humanlogs-emails-${type}.${format}`;
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+
+  return {
+    filename,
+    count: Number(response.headers.get("X-Email-Count") ?? 0),
+  };
+}
