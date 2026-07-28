@@ -115,6 +115,15 @@ const configSchema = z.object({
       apiToken: z.string().optional(),
     })
     .optional(),
+  security: z
+    .object({
+      // Pepper used to HMAC email addresses of deleted accounts. Falls back to
+      // auth.sessionSecret when empty. Changing it invalidates existing hashes.
+      emailHashSecret: z.string().optional(),
+      // How long deleted-account credit records are kept. 0 disables the purge.
+      deletedAccountRetentionDays: z.coerce.number().int().min(0).default(365),
+    })
+    .optional(),
 });
 
 export type AppConfig = z.infer<typeof configSchema>;
@@ -165,6 +174,17 @@ export const ldapConfig = {
 
 export const databaseConfig = {
   url: config.get<string>("database.url"),
+};
+
+export const securityConfig = {
+  emailHashSecret: config.has("security.emailHashSecret")
+    ? config.get<string>("security.emailHashSecret")
+    : "",
+  deletedAccountRetentionDays: config.has(
+    "security.deletedAccountRetentionDays",
+  )
+    ? Number(config.get<string | number>("security.deletedAccountRetentionDays"))
+    : 365,
 };
 
 export const statsConfig = {
