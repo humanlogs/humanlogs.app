@@ -83,7 +83,8 @@
       "documents": "Documents ({count})",
       "inDocuments": "In {count} documents",
       "loadRosters": "Load the speakers of {count} older documents",
-      "loadingRosters": "Loading the speakers of {count} documents…"
+      "loadingRosters": "Loading the speakers of {count} documents…",
+      "beta": "Codebooks are still in beta — turn them on from your account to use the coding board."
     },
     "document": {
       "menu": "Document codes",

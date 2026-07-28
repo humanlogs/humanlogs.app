@@ -6,7 +6,7 @@ import { PageLayout } from "@/components/page-layout";
 import { ProjectBadge } from "@/components/projects/project-badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useProjects } from "@/hooks/use-api";
+import { useBetaFeatures, useProjects } from "@/hooks/use-api";
 import { ArrowLeftIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 
@@ -22,6 +22,7 @@ export default function StudyCodingPage() {
   const tStudy = useTranslations("study");
   const router = useRouter();
 
+  const betaFeatures = useBetaFeatures();
   const { data: projects = [], isLoading } = useProjects();
   const project = projects.find((p) => p.id === projectId);
 
@@ -30,6 +31,23 @@ export default function StudyCodingPage() {
       <div className="container mx-auto max-w-4xl space-y-6 p-4 py-12">
         <Skeleton className="h-9 w-64" />
         <Skeleton className="h-40 w-full" />
+      </div>
+    );
+  }
+
+  // Codebooks are beta: without the opt-in this page has nothing to show, so it
+  // sends the visitor back to the study rather than rendering an empty board.
+  if (!betaFeatures) {
+    return (
+      <div className="container mx-auto max-w-4xl space-y-4 p-4 py-12 text-center">
+        <p className="text-muted-foreground">{t("beta")}</p>
+        <Button
+          variant="outline"
+          onClick={() => router.push(`/app/project/${projectId}`)}
+        >
+          <ArrowLeftIcon className="h-4 w-4" />
+          {project?.name ?? tStudy("notFound.back")}
+        </Button>
       </div>
     );
   }

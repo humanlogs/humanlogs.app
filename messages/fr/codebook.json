@@ -83,7 +83,8 @@
       "documents": "Documents ({count})",
       "inDocuments": "Dans {count} documents",
       "loadRosters": "Charger les locuteurs de {count} anciens documents",
-      "loadingRosters": "Chargement des locuteurs de {count} documents…"
+      "loadingRosters": "Chargement des locuteurs de {count} documents…",
+      "beta": "Les codebooks sont encore en bêta — activez-les depuis votre compte pour utiliser le codage."
     },
     "document": {
       "menu": "Codes du document",

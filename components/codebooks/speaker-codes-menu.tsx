@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSub,
 } from "@/components/ui/dropdown-menu";
+import { useBetaFeatures } from "@/hooks/use-api";
 import { useCodebooks } from "@/hooks/use-codebooks";
 import {
   useTranscription,
@@ -40,6 +41,7 @@ export function SpeakerCodesMenu({
   speakerId: string;
 }) {
   const t = useTranslations("codebook.speaker");
+  const betaFeatures = useBetaFeatures();
   const { data: codebooks = [] } = useCodebooks();
   const { data: transcription } = useTranscription(transcriptionId);
   const { openCreate } = useCodebookModal();
@@ -83,6 +85,10 @@ export function SpeakerCodesMenu({
       onError: () => toast.error(t("failed")),
     });
   };
+
+  // Codebooks are still beta: the entry stays out of the menu entirely for
+  // users who have not opted in, rather than showing an empty picker.
+  if (!betaFeatures) return null;
 
   return (
     <DropdownMenuSub

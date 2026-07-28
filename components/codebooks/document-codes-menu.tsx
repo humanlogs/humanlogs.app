@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSub,
 } from "@/components/ui/dropdown-menu";
+import { useBetaFeatures } from "@/hooks/use-api";
 import { useCodebooks } from "@/hooks/use-codebooks";
 import {
   useTranscription,
@@ -38,6 +39,7 @@ export function DocumentCodesMenu({
   projectId?: string | null;
 }) {
   const t = useTranslations("codebook.document");
+  const betaFeatures = useBetaFeatures();
   const { data: codebooks = [] } = useCodebooks();
   const { data: transcription } = useTranscription(transcriptionId);
   const { openCreate } = useCodebookModal();
@@ -69,6 +71,9 @@ export function DocumentCodesMenu({
 
     updateCodes.mutate(next, { onError: () => toast.error(t("failed")) });
   };
+
+  // Same beta gate as the rest of the codebooks.
+  if (!betaFeatures) return null;
 
   return (
     <DropdownMenuSub
