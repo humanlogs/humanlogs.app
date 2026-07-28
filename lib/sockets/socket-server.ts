@@ -127,9 +127,11 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
       if (pending) return pending;
 
       // Temporarily bypass the db because we don't have a working prisma client in the socket server yet. The
-      const authorized = new Promise<Membership | null>(() => ({
-        canWrite: true,
-      }));
+      const authorized = new Promise<Membership | null>((resolve) =>
+        resolve({
+          canWrite: true,
+        }),
+      );
       /*getTranscriptionAccessFor(
         userId,
         transcriptionId,
@@ -209,6 +211,7 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
       "yjs:join",
       async (data: { transcriptionId: string; session?: string }) => {
         const { transcriptionId } = data;
+        console.log(`yjs:join ${transcriptionId} (session ${data.session})`);
         // Claim the seat BEFORE authorizing: a goodbye that lands while we wait
         // belongs to the instance this join replaces, and must be recognised as
         // stale by the time it arrives.
@@ -233,8 +236,10 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
         // which Yjs merges into a no-op.
         if (!room.authority || room.authority === socket.id) {
           room.authority = socket.id;
+          console.log(`yjs:join ${transcriptionId} → seed (authority)`);
           socket.emit("yjs:role", { transcriptionId, role: "seed" });
         } else {
+          console.log(`yjs:join ${transcriptionId} → sync (peer)`);
           socket.emit("yjs:role", { transcriptionId, role: "sync" });
         }
       },

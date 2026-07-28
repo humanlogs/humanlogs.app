@@ -220,7 +220,6 @@ export function TranscriptEditor({
     markNotificationsRead,
   ]);
 
-
   // Thread whose highlight is emphasised in the transcript: the one hovered in the
   // rail, otherwise the focused one.
   const [hoveredAnchorId, setHoveredAnchorId] = useState<string | null>(null);
@@ -327,15 +326,18 @@ export function TranscriptEditor({
   // Auto-save with debounce. The Y.Doc is the live source of truth and Postgres is
   // just a checkpoint, so we save less aggressively (and only the save leader
   // persists — gated in the editor hook).
-  const { onChange: autoSaveOnChange, saveStatus, flush: flushSave } =
-    useAutoSave({
-      transcriptionId: transcription.id,
-      editorAPI,
-      debounceMs: 5000,
-      // Saves reuse the stable session key (no rotation) so late joiners keep
-      // decrypting the shared content.
-      sessionAesKey: aesKey,
-    });
+  const {
+    onChange: autoSaveOnChange,
+    saveStatus,
+    flush: flushSave,
+  } = useAutoSave({
+    transcriptionId: transcription.id,
+    editorAPI,
+    debounceMs: 5000,
+    // Saves reuse the stable session key (no rotation) so late joiners keep
+    // decrypting the shared content.
+    sessionAesKey: aesKey,
+  });
 
   /**
    * A note is stored the moment it is sent, but its anchor lives in the transcript,
