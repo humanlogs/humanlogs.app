@@ -3,10 +3,11 @@ title: Collaboration
 description: Donner accès, choisir les droits, et travailler en même temps.
 order: 2
 status: live
-updated: 2026-07-27
+updated: 2026-07-28
+related: organize/comments, privacy/encryption
 ---
 
-Le partage se fait document par document et par adresse e-mail : la personne doit avoir un compte sur la même instance, et il n'existe pas de lien public. Pour du matériau de recherche, c'est une qualité — une transcription n'est jamais à un transfert d'URL d'être lisible par n'importe qui.
+Le partage se fait document par document et par adresse e-mail : la personne doit avoir un compte sur la même instance, et il n'existe pas de lien public. Pour du matériau de recherche, c'est une qualité, une transcription n'est jamais à un transfert d'URL d'être lisible par n'importe qui.
 
 ## Partager
 
@@ -22,7 +23,7 @@ Si l'adresse ne correspond à aucun compte, vous en êtes informé au lieu d'att
 | **Lecture + écoute** | Oui | Oui | Non |
 | **Écriture** | Oui | Oui | Oui |
 
-La **lecture sans l'audio** est le droit le plus utile et le plus facile à négliger. Une transcription peut être anonymisée ; une voix, non. Donner le texte sans l'enregistrement à un assistant de recherche, un co-auteur ou un relecteur extérieur est souvent exactement ce qu'exige votre protocole éthique — et c'est un clic.
+La **lecture sans l'audio** est le droit le plus utile et le plus facile à négliger. Une transcription peut être anonymisée ; une voix, non. Donner le texte sans l'enregistrement à un assistant de recherche, un co-auteur ou un relecteur extérieur est souvent exactement ce qu'exige votre protocole éthique, et c'est un clic.
 
 La **lecture + écoute** s'adresse à qui doit vérifier ce qui a réellement été dit : un traducteur, un second codeur, un directeur de thèse qui vérifie un passage contesté.
 
@@ -34,7 +35,7 @@ Toute personne ayant accès peut commenter et être mentionnée, quel que soit s
 
 Le droit est vérifié sur le serveur à chaque opération, et pas seulement reflété dans l'interface. Une personne en lecture seule ne peut pas écrire dans le document en manipulant son navigateur, et elle ne reçoit tout simplement pas l'audio.
 
-L'identifiant d'un document n'est pas un secret — il circule dans les URL et les exports — et c'est précisément pour cela que l'accès est décidé par la liste de partage, et par rien d'autre.
+L'identifiant d'un document n'est pas un secret, il circule dans les URL et les exports, et c'est précisément pour cela que l'accès est décidé par la liste de partage, et par rien d'autre.
 
 ## Modifier ou retirer un accès
 

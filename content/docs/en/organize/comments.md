@@ -1,18 +1,19 @@
 ---
 title: Comments
-description: Annotate passages, discuss in threads and mention colleagues.
+description: Annotate passages, discuss in threads, mention colleagues, and control what you are notified about.
 order: 3
 status: live
-updated: 2026-07-27
+updated: 2026-07-28
+related: organize/collaboration, transcribe/navigation
 ---
 
-Comments are how a team discusses a transcript without touching it.
+Comments are how a team discusses a transcript without touching it: a translation choice, a doubtful passage, a decision about anonymisation. The transcript stays what was said; the argument about it lives beside it.
 
 ## Leave a comment
 
 Select the passage and use the comment button in the toolbar, or **⌘⌥M**. Commented lines are marked in the text and the thread appears in the rail on the right; arrows jump to the previous or next comment in the document.
 
-Anyone with access can comment, whatever their role — including read-only collaborators.
+Anyone with access can comment, whatever their role. Read-only collaborators included.
 
 ## Reply and mention
 

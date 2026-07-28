@@ -3,10 +3,11 @@ title: Collaboration
 description: Give someone access, choose what they can do, and work at the same time.
 order: 2
 status: live
-updated: 2026-07-27
+updated: 2026-07-28
+related: organize/comments, privacy/encryption
 ---
 
-Sharing is per document and by email address: the person must have an account on the same instance, and there is no public link. For research material that is a feature — a transcript is never one forwarded URL away from being readable by anyone.
+Sharing is per document and by email address: the person must have an account on the same instance, and there is no public link. For research material that is a feature, a transcript is never one forwarded URL away from being readable by anyone.
 
 ## Share it
 
@@ -22,7 +23,7 @@ If the address matches no account, you are told so rather than left waiting: ask
 | **Read + Listen** | Yes | Yes | No |
 | **Write** | Yes | Yes | Yes |
 
-**Read** without the audio is the role that matters most often and is easy to miss. A transcript can be anonymised; a voice cannot. Giving a research assistant, a co-author or an external reviewer the text without the recording is frequently exactly what your ethics protocol requires — and it is one click.
+**Read** without the audio is the role that matters most often and is easy to miss. A transcript can be anonymised; a voice cannot. Giving a research assistant, a co-author or an external reviewer the text without the recording is frequently exactly what your ethics protocol requires, and it is one click.
 
 **Read + Listen** is for someone who has to verify what was actually said: a translator, a second coder, a supervisor checking a contested passage.
 
@@ -34,11 +35,11 @@ Anyone with access can comment and be mentioned, whatever their role.
 
 The role is checked on the server on every operation, not just reflected in the interface. Someone with read access cannot write to the document by manipulating their browser, and someone with read-only access never receives the audio at all.
 
-The document identifier is not a secret — it travels in URLs and exports — which is precisely why access is decided by the sharing list and nothing else.
+The document identifier is not a secret, it travels in URLs and exports, which is precisely why access is decided by the sharing list and nothing else.
 
 ## Changing or removing access
 
-The same dialog lists everyone with access. Change a role at any time, or **revoke access** to remove someone entirely — effective immediately. On an encrypted document, revoking also removes their key entry, so they cannot decrypt anything from then on.
+The same dialog lists everyone with access. Change a role at any time, or **revoke access** to remove someone entirely, effective immediately. On an encrypted document, revoking also removes their key entry, so they cannot decrypt anything from then on.
 
 ## Transferring ownership
 
@@ -52,6 +53,6 @@ If the document is end-to-end encrypted, the person you share with must have enc
 
 ## Working at the same time
 
-Several people with write access can edit simultaneously: you see each other's cursors and selections where they are working, and changes appear as they are typed. There is no "who has the file" problem — everyone converges on the same text.
+Several people with write access can edit simultaneously: you see each other's cursors and selections where they are working, and changes appear as they are typed. There is no "who has the file" problem, everyone converges on the same text.
 
 The editor tells you when your connection drops and keeps working locally, syncing when you come back. On an encrypted document this works unchanged: what travels through our server is ciphertext.

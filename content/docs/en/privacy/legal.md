@@ -1,36 +1,43 @@
 ---
 title: Legal documents
-description: Privacy policy, DPA, GDPR, sub-processors and IRB guidance.
+description: Privacy policy, DPA, GDPR, sub-processors, IRB guidance, plus how to delete your data.
 order: 3
 status: live
-updated: 2026-07-27
+updated: 2026-07-28
+related: privacy/encryption, transcribe/advanced-options
 ---
 
-## What we store
+Research material comes with obligations. These are the documents your institution or ethics committee will ask for, and the short answers that usually accompany them.
 
-Your account, your documents (transcripts and their metadata), and the audio you uploaded, so you can replay and re-export it. With end-to-end encryption enabled, transcripts and audio are stored as ciphertext we cannot read.
+## The documents
 
-## Retention
+| Document | What it answers |
+| --- | --- |
+| [Privacy policy](/legal/privacy) | What we collect, why, and on what basis |
+| [Terms of service](/legal/terms) | The contract itself |
+| [GDPR](/legal/gdpr) | Legal basis, data subject rights, how to exercise them |
+| [DPA](/legal/dpa) | The processing agreement institutions sign |
+| [Sub-processors](/legal/subprocessors) | Who else touches the data, and where |
+| [IRB compliance](/legal/irb) | What review boards typically ask about |
+| [Cookie policy](/legal/cookies) | What the site sets, and what you can decline |
 
-The speech-recognition providers we use apply **zero-retention** policies: your audio is processed and not kept, for training or anything else.
+Universities usually need the DPA and the sub-processor list before a tool may touch interview data. Both are available without a sales conversation, and if your legal team needs something signed or a security questionnaire answered, [contact us](/contact).
 
-On our side, your material stays as long as your account does. Deleting a document deletes it; deleting your account deletes everything associated with it.
+## The short answers
 
-## Where processing happens
+**What we store**: your account, your documents (transcripts and their metadata), and the audio you uploaded so you can replay and re-export it. With [end-to-end encryption](/docs/privacy/encryption) enabled, transcripts and audio are stored as ciphertext we cannot read.
 
-You choose EU or US processing per document, and the provider used is recorded on each one. See [Where your audio is processed](/docs/transcribe/advanced-options).
+**Retention at the transcription providers**: zero. The providers we use process your audio and do not keep it, for training or anything else.
 
-## GDPR, DPA and ethics boards
+**Where processing happens**: EU or US, your choice per document, recorded on each one. See [Advanced options](/docs/transcribe/advanced-options).
 
-- The [GDPR page](/legal/gdpr) sets out the legal basis, data subject rights and how to exercise them.
-- A [DPA](/legal/dpa) is available for institutions that need one, with the current [list of sub-processors](/legal/subprocessors). Universities usually require both before a tool can touch interview data.
-- The [IRB page](/legal/irb) covers what review boards typically ask: where data is processed, who can access it, what encryption is in place, and what happens at the end of the study.
+**How long we keep it**: as long as your account exists. Deleting a document deletes it; deleting your account deletes everything attached to it.
 
-Two arguments tend to carry a submission: end-to-end encryption means the provider cannot read the material, and self-hosting means it never leaves your institution at all.
+Two arguments tend to carry an ethics submission: end-to-end encryption means the provider cannot read the material, and [self-hosting](/docs/self-hosting/installation-guide) means it never leaves your institution at all.
 
 ## Deleting a document
 
-Delete it from the document actions or the sidebar; its transcript and audio go with it. Only the owner can delete a document — collaborators can only have their access revoked.
+Delete it from the document actions or the sidebar; its transcript and audio go with it. Only the owner can delete a document. Collaborators can only have their access revoked.
 
 Deletion is permanent. If the material may still be needed for a thesis appendix, a data-management plan or a retention obligation, [export it](/docs/transcribe/export) first.
 
@@ -38,8 +45,4 @@ Deletion is permanent. If the material may still be needed for a thesis appendix
 
 From **Account**, request deletion. You receive an email with a confirmation link, and the account and everything in it are deleted when you confirm. The two-step flow exists so a stray click cannot end your corpus.
 
-Documents you transferred to someone else belong to them and are not deleted with your account.
-
-## Still need something?
-
-[Contact us](/contact) — we answer institutional questionnaires and security reviews.
+Documents you transferred to someone else belong to them and are not deleted with your account. Transfer or delete them beforehand if they should not outlive you. See [Collaboration](/docs/organize/collaboration).

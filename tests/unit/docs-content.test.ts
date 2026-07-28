@@ -150,6 +150,19 @@ describe("docs translations", () => {
   });
 });
 
+describe("house style", () => {
+  // Em dashes are a deliberate ban: they read as an affectation in a product
+  // manual, and a comma or a colon always does the job.
+  it.each(slugs)("%s uses no em dash", (slug) => {
+    for (const locale of locales) {
+      const doc = getDoc(slug, locale as Locale);
+      expect(doc?.content.includes("—"), `${locale}/${slug}`).toBe(false);
+      expect(doc?.title.includes("—")).toBe(false);
+      expect(doc?.description.includes("—")).toBe(false);
+    }
+  });
+});
+
 describe("search index", () => {
   it("carries the body of every page", () => {
     const corpus = getDocsSearchCorpus(SOURCE);

@@ -40,4 +40,4 @@ Correcting a transcript is a two-handed job: one hand on the audio, one on the t
 
 ## Your own shortcuts
 
-You can bind a key combination to a piece of text — a recurring name, a code, a transcription convention like `[inaudible]`. Custom shortcuts are stored on your account and follow you across documents and devices. Manage them from the shortcuts dialog in the document actions.
+You can bind a key combination to a piece of text, a recurring name, a code, a transcription convention like `[inaudible]`. Custom shortcuts are stored on your account and follow you across documents and devices. Manage them from the shortcuts dialog in the document actions.

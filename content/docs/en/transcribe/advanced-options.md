@@ -13,17 +13,17 @@ Most of the quality of a transcript is decided before it starts, on the upload s
 
 Pick the language spoken in the recording. This is the single setting with the largest effect on accuracy, and the one worth double-checking.
 
-One language per document. A bilingual interview is transcribed in the language you pick, with the other-language passages coming out approximate — transcribe it twice, as two documents, if both matter to your analysis.
+One language per document. A bilingual interview is transcribed in the language you pick, and the other-language passages come out approximate. Transcribe it twice, as two documents, if both matter to your analysis.
 
 ## Number of speakers
 
-Speaker detection — *diarization* — separates who says what, and telling it how many people are in the room makes it noticeably more reliable than letting it guess.
+Speaker detection, *diarization*, separates who says what, and telling it how many people are in the room makes it noticeably more reliable than letting it guess.
 
 - **One speaker** for a lecture, a dictated memo or a field note.
 - **A number** when you know it: an interview with one participant is two.
 - **More than ten** for a focus group or a public meeting.
 
-Detection is never perfect on overlapping speech. You can rename, reassign and merge speakers afterwards — see [Navigation](/docs/transcribe/navigation).
+Detection is never perfect on overlapping speech. You can rename, reassign and merge speakers afterwards, see [Navigation](/docs/transcribe/navigation).
 
 ## Custom vocabulary
 
@@ -33,7 +33,7 @@ This is the highest-return field on the screen. Speech recognition fails predict
 
 ## Tag audio events
 
-Marks non-speech events — laughter, background noise — in the transcript.
+Marks non-speech events, laughter, background noise, in the transcript.
 
 Useful when paralinguistic material is part of your analysis, noise when it is not. If you are analysing what was said rather than how the room felt, leave it off.
 
@@ -41,9 +41,9 @@ Useful when paralinguistic material is part of your analysis, noise when it is n
 
 Speech recognition runs on a specialised provider, and you choose which region handles your audio. The selector appears when both are configured on your instance, and defaults to your account's residency preference, then to your last choice.
 
-**EU** — processed by a European provider under a zero-retention policy. The option to pick if your ethics board or DPA requires European processing. Per-file limit: **135 minutes**.
+**EU**: processed by a European provider under a zero-retention policy. The option to pick if your ethics board or DPA requires European processing. Per-file limit: **135 minutes**.
 
-**US** — processed by a US provider, also under a zero-retention policy. No per-file duration limit.
+**US**: processed by a US provider, also under a zero-retention policy. No per-file duration limit.
 
 The provider used is recorded on each document, so you can always tell where a given recording was processed. The account-wide preference is set during onboarding and can be changed in your account.
 
@@ -53,6 +53,6 @@ Note what encryption does and does not cover here: the audio has to be decrypted
 
 Pauses are a setting on the document rather than on the upload, in the pause configuration dialog.
 
-The editor counts pauses over **1 second** (short) and over **3 seconds** (long), and can insert a marker for each — `(pause)` and `(long pause)` by default, or wording of your own. The dialog tells you how many of each the recording contains before you commit to marking them.
+The editor counts pauses over **1 second** (short) and over **3 seconds** (long), and can insert a marker for each, `(pause)` and `(long pause)` by default, or wording of your own. The dialog tells you how many of each the recording contains before you commit to marking them.
 
 Turn it on when the length of a hesitation is data. Leave it off when it is noise.

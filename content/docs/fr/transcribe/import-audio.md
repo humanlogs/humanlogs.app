@@ -1,18 +1,19 @@
 ---
 title: Import audio
-description: Fichiers acceptés, écran de dépôt et déroulement du traitement.
-order: 2
+description: Fichiers acceptés, écran de dépôt, et ce qui se passe pendant la transcription.
+order: 1
 status: live
-updated: 2026-07-27
+updated: 2026-07-28
+related: transcribe/advanced-options, privacy/credits, transcribe/navigation
 ---
 
-L'écran de dépôt propose peu d'options, volontairement. Cette page détaille ce que vous pouvez envoyer, ce que change chaque réglage, et quoi faire quand un fichier échoue.
+Tout commence par **Nouvelle transcription**, depuis l'accueil. Cette page décrit ce que vous pouvez nous envoyer et ce qui se passe ensuite ; les réglages de cet écran sont détaillés dans [Options avancées](/docs/transcribe/advanced-options).
 
 ## Ce que vous pouvez déposer
 
-**Audio** — MP3, WAV, M4A, FLAC, AAC, OGG, Opus, WMA, AIFF.
+**Audio** : MP3, WAV, M4A, FLAC, AAC, OGG, Opus, WMA, AIFF.
 
-**Vidéo** — MP4, MOV, AVI, MKV, WebM, FLV, WMV, MPEG, 3GP. Seule la piste audio est extraite et envoyée ; la vidéo ne quitte pas votre ordinateur.
+**Vidéo** : MP4, MOV, AVI, MKV, WebM, FLV, WMV, MPEG, 3GP. Seule la piste audio est extraite et envoyée ; la vidéo ne quitte jamais votre ordinateur.
 
 Les fichiers que votre navigateur sait compresser avant l'envoi sont acceptés jusqu'à **4 Go** ; ceux envoyés tels quels doivent rester sous **300 Mo**. En pratique, un entretien de deux heures enregistré au téléphone tient largement dans les deux.
 
@@ -20,53 +21,19 @@ Les fichiers que votre navigateur sait compresser avant l'envoi sont acceptés j
 
 Glissez vos fichiers ou cliquez pour les sélectionner. Vous pouvez en mettre plusieurs à la suite : chaque enregistrement devient un document.
 
-Pour chacun, vous voyez le nom, la durée et la taille, et vous pouvez le renommer avant de lancer. Ce nom devient celui du document : `Entretien 04 — enseignante, école rurale` vaut mieux que `REC_0042.m4a` quand vous y reviendrez dans six mois.
+Pour chacun, vous voyez la durée et la taille, et vous pouvez le renommer avant de lancer. Ce nom devient celui du document : `Entretien 04 (enseignante, école rurale)` vaut mieux que `REC_0042.m4a` quand vous y reviendrez dans six mois.
 
-Les vidéos sont traitées localement : votre navigateur extrait et compresse l'audio, et seul celui-ci est envoyé. Voir Fichiers pris en charge pour les formats et les limites.
+## Avant de lancer
 
-## Langue
+L'écran affiche la durée totale, les crédits nécessaires et votre solde. Un crédit correspond à une minute d'audio, arrondie à l'unité supérieure par fichier, et vous êtes prévenu si le solde est insuffisant **avant** l'envoi, pas à mi-parcours. Voir [Crédits](/docs/privacy/credits).
 
-Choisissez la langue parlée dans l'enregistrement. C'est le réglage qui a le plus d'effet sur la qualité, et celui qu'il faut vérifier deux fois.
+C'est aussi là que vous réglez la langue, le nombre de locuteurs et le vocabulaire personnalisé : trois réglages qui déterminent l'essentiel de la qualité obtenue. Ils valent deux minutes : voir [Options avancées](/docs/transcribe/advanced-options).
 
-Une seule langue par document. Un entretien bilingue sera transcrit dans la langue choisie, les passages dans l'autre langue ressortant approximatifs : si les deux comptent pour votre analyse, transcrivez-le deux fois, en deux documents.
+## Pendant le traitement
 
-## Nombre de locuteurs
+Les fichiers sont convertis si nécessaire, puis envoyés, avec la progression pour les deux étapes. Comptez ensuite environ **dix minutes de traitement par heure d'audio**.
 
-La détection des locuteurs — la *diarisation* — sépare qui dit quoi. Lui indiquer combien de personnes parlent la rend nettement plus fiable que la laisser deviner.
-
-- **Un locuteur** pour un cours, une note dictée, un journal de terrain.
-- **Un nombre précis** quand vous le connaissez : un entretien avec un participant, c'est deux.
-- **Plus de dix** pour un focus group ou une réunion publique.
-
-La détection n'est jamais parfaite sur les prises de parole simultanées. Vous pourrez renommer, réattribuer et fusionner les locuteurs ensuite — voir [Locuteurs](/docs/transcribe/navigation).
-
-## Vocabulaire personnalisé
-
-Une liste de mots attendus : noms et pseudonymes des participants, institutions, termes techniques, toponymes, sigles de votre discipline.
-
-C'est le champ au meilleur rapport effort/résultat de l'écran. La reconnaissance vocale échoue de façon prévisible sur les noms propres rares, et une douzaine d'entrées ici évitent cent rechercher-remplacer plus tard. Si vous menez une série d'entretiens sur le même sujet, gardez votre liste dans une note et collez-la à chaque fois.
-
-## Marquer les événements sonores
-
-Signale dans la transcription ce qui n'est pas de la parole : rires, bruits de fond.
-
-Utile quand le paralangage fait partie de votre analyse, parasite sinon. Si vous analysez ce qui a été dit plutôt que l'ambiance de la pièce, laissez l'option désactivée.
-
-## Traitement UE ou US
-
-L'option apparaît lorsque les deux fournisseurs sont configurés. Elle détermine où l'audio est envoyé pour la reconnaissance, et se cale sur la préférence de votre compte puis sur votre dernier choix.
-
-Attention à la limite UE de **135 minutes par fichier** : les fichiers trop longs sont signalés avant le lancement, à vous de les découper ou de basculer sur le traitement américain. Voir [Où votre audio est traité](/docs/transcribe/advanced-options).
-
-## Crédits
-
-Avant de lancer, vous voyez la durée totale, les crédits estimés et votre solde. Un crédit correspond à une minute d'audio, arrondie à l'unité supérieure par fichier.
-
-Si le solde est insuffisant, l'interface vous le dit avant l'envoi plutôt que d'échouer à mi-parcours. Voir [Crédits](/docs/privacy/credits).
-
-## Lancement
-
-Une fois lancé, les fichiers sont convertis si nécessaire puis envoyés, avec la progression affichée pour les deux étapes. Le traitement prend ensuite une dizaine de minutes par heure d'audio et vous pouvez fermer la page. Voir Pendant la transcription.
+Vous pouvez fermer la page : le traitement se fait de notre côté, et vous recevez un e-mail dès que la transcription est prête. Le document apparaît de toute façon dans votre barre latérale.
 
 ## Quand un fichier échoue
 
@@ -79,6 +46,6 @@ Un document en échec affiche la raison et reste dans votre liste. Rien n'est pe
 
 Redéposer le fichier règle la plupart des échecs passagers. Si le même fichier échoue deux fois, [écrivez-nous](/contact) avec le nom du document : nous pouvons regarder ce que le fournisseur a renvoyé.
 
-## Importer plutôt que transcrire
+## Vous avez déjà une transcription ?
 
-Si vous disposez déjà d'une transcription, ne la repayez pas : basculez sur **Importer un document** depuis le même écran. Voir [Importer une transcription existante](/docs/transcribe/import-text).
+Ne la repayez pas : basculez sur **Importer un document** depuis le même écran. Voir [Import texte seul](/docs/transcribe/import-text).

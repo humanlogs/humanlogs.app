@@ -3,14 +3,15 @@ title: Démarrage rapide
 description: D'un enregistrement sur votre ordinateur à une transcription corrigée et exportée, en un quart d'heure.
 order: 2
 status: live
-updated: 2026-07-27
+updated: 2026-07-28
+related: transcribe/import-audio, transcribe/navigation, transcribe/export
 ---
 
 Ce guide suit un entretien complet, du début à la fin. Rien ici ne nécessite un abonnement : l'offre gratuite comprend 100 minutes par mois et toutes les fonctionnalités.
 
 ## 1. Déposer l'enregistrement
 
-Depuis l'accueil, choisissez **Nouvelle transcription** et déposez votre fichier. L'audio comme la vidéo fonctionnent — pour une vidéo, seule la piste audio est envoyée : l'extraction se fait dans votre navigateur, donc une capture d'écran de 2 Go ne devient pas un envoi de 2 Go.
+Depuis l'accueil, choisissez **Nouvelle transcription** et déposez votre fichier. L'audio comme la vidéo fonctionnent. Pour une vidéo, seule la piste audio est envoyée : l'extraction se fait dans votre navigateur, donc une capture d'écran de 2 Go ne devient pas un envoi de 2 Go.
 
 Pendant la lecture du fichier, l'interface affiche sa durée et le nombre de crédits nécessaires. Un crédit correspond à une minute d'audio.
 
@@ -18,9 +19,9 @@ Pendant la lecture du fichier, l'interface affiche sa durée et le nombre de cr�
 
 Trois réglages comptent vraiment, et les valeurs par défaut conviennent le plus souvent :
 
-- **La langue** — celle parlée dans l'enregistrement. C'est le réglage qui pèse le plus sur la qualité du résultat.
-- **Le nombre de locuteurs** — si vous savez qu'il y en avait deux, indiquez deux. La détection est bien meilleure quand elle ne devine pas.
-- **Le vocabulaire personnalisé** — noms propres, jargon, pseudonymes des participants. Une douzaine de mots ici, ce sont cent corrections en moins ensuite.
+- **La langue** : celle parlée dans l'enregistrement. C'est le réglage qui pèse le plus sur la qualité du résultat.
+- **Le nombre de locuteurs** : si vous savez qu'il y en avait deux, indiquez deux. La détection est bien meilleure quand elle ne devine pas.
+- **Le vocabulaire personnalisé** : noms propres, jargon, pseudonymes des participants. Une douzaine de mots ici, ce sont cent corrections en moins ensuite.
 
 Si votre instance propose les deux, vous choisissez aussi si l'audio est traité dans l'**UE** ou aux **États-Unis**. Voir [Où votre audio est traité](/docs/transcribe/advanced-options).
 
@@ -46,9 +47,9 @@ Une première passe sur un entretien d'une heure prend en général 30 à 45 min
 
 ## 5. Partager ou exporter
 
-Pour travailler à plusieurs : **Partager**, saisissez l'adresse e-mail, choisissez le droit — lecture, lecture + écoute, ou écriture. Voir [Partager un document](/docs/organize/collaboration).
+Pour travailler à plusieurs : **Partager**, saisissez l'adresse e-mail, puis choisissez le droit (lecture, lecture + écoute, ou écriture). Voir [Partager un document](/docs/organize/collaboration).
 
-Pour continuer ailleurs : **Télécharger en…** et choisissez le format — Word et PDF pour lire, NVivo ou MAXQDA pour coder, CSV ou JSON pour analyser, SRT ou WebVTT pour sous-titrer. Voir [Formats d'export](/docs/transcribe/export).
+Pour continuer ailleurs : **Télécharger en…** et choisissez le format, Word et PDF pour lire, NVivo ou MAXQDA pour coder, CSV ou JSON pour analyser, SRT ou WebVTT pour sous-titrer. Voir [Formats d'export](/docs/transcribe/export).
 
 ## Et ensuite
 
