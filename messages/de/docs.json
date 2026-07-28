@@ -1,0 +1,37 @@
+{
+  "docs": {
+    "index": {
+      "title": "Dokumentation",
+      "subtitle": "Interviews mit HumanLogs transkribieren, bearbeiten, teilen und schützen.",
+      "seeAll": "Alle {count} Seiten ansehen"
+    },
+    "nav": {
+      "title": "Dokumentation",
+      "searchPlaceholder": "Dokumentation durchsuchen…",
+      "noResults": "Keine Seite passt zu deiner Suche."
+    },
+    "toc": {
+      "title": "Auf dieser Seite"
+    },
+    "pager": {
+      "previous": "Zurück",
+      "next": "Weiter"
+    },
+    "related": "Verwandte Seiten",
+    "lastUpdated": "Zuletzt aktualisiert am {date}",
+    "fallbackNotice": "Diese Seite ist noch nicht übersetzt — du liest die englische Fassung.",
+    "status": {
+      "beta": "Beta",
+      "soon": "Demnächst"
+    },
+    "sections": {
+      "getting-started": "Erste Schritte",
+      "transcribe": "Transkribieren",
+      "coding": "Codieren",
+      "analysis": "Analyse",
+      "organize": "Organisation & Teilen",
+      "privacy": "Datenschutz & Konto",
+      "self-hosting": "Selbst hosten"
+    }
+  }
+}

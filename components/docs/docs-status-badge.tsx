@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils/utils";
 
 const STYLES: Record<DocStatus, string> = {
   live: "",
-  beta: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200",
-  soon: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200",
+  beta: "bg-amber-100 text-amber-800",
+  soon: "bg-blue-100 text-blue-800",
 };
 
 /**

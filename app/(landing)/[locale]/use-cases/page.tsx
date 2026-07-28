@@ -82,7 +82,7 @@ export default function UseCasesPage() {
           {
             title: "Privacy & Security",
             description: "Learn about our privacy-first approach",
-            href: "/resources",
+            href: "/docs/privacy/how-encryption-works",
           },
           {
             title: "I am a university",
@@ -92,7 +92,7 @@ export default function UseCasesPage() {
           {
             title: "Documentation",
             description: "Setup guides and best practices",
-            href: "/resources",
+            href: "/docs",
           },
         ]}
         columns={3}

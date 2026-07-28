@@ -1,4 +1,5 @@
 import { MetadataRoute } from "next";
+import { getAllDocSlugs } from "@/lib/utils/docs-utils";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   // Only use locale prefixes (no empty string since / redirects to /en)
@@ -48,12 +49,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
         priority: 0.8,
       },
       {
-        url: `${baseUrl}/resources`,
+        url: `${baseUrl}/docs`,
         lastModified: new Date(),
         changeFrequency: "weekly",
         priority: 0.7,
       },
     ];
+
+    // Every documentation page. Derived from the files so a new page is
+    // indexed by writing it, with no second list to remember.
+    getAllDocSlugs().forEach((slug) => {
+      routes.push({
+        url: `${baseUrl}/docs/${slug.join("/")}`,
+        lastModified: new Date(),
+        changeFrequency: "monthly",
+        priority: 0.6,
+      });
+    });
 
     // Alternative pages
     const alternatives = [

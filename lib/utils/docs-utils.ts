@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { parseFrontmatter, parseList } from "./frontmatter";
+import { extractHeadings, type DocHeading } from "./docs-headings";
 import type { Locale } from "./i18n";
 
 /**
@@ -21,6 +22,9 @@ import type { Locale } from "./i18n";
  * docs.json` under `docs.sections.<slug>`, so the sidebar is translated by the
  * same workflow as the rest of the app.
  */
+
+export { extractHeadings, slugifyHeading } from "./docs-headings";
+export type { DocHeading } from "./docs-headings";
 
 const DOCS_ROOT = path.join(process.cwd(), "content", "docs");
 const SOURCE_LOCALE = "en";
@@ -44,13 +48,9 @@ export interface DocMeta {
 export interface DocSection {
   slug: string;
   order: number;
+  /** Derived: a section is `beta`/`soon` when every page in it is. */
+  status: DocStatus;
   pages: DocMeta[];
-}
-
-export interface DocHeading {
-  id: string;
-  text: string;
-  level: 2 | 3;
 }
 
 export interface Doc extends DocMeta {
@@ -141,46 +141,6 @@ function readMeta(slug: string, locale: string): DocMeta | null {
   };
 }
 
-/**
- * Slugify a heading the same way `DocsMarkdown` does when it renders the
- * anchors — the table of contents is useless the moment these two drift, which
- * is why both sides call this function.
- */
-export function slugifyHeading(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-/** `##` and `###` headings, ignoring anything inside a fenced code block. */
-export function extractHeadings(markdown: string): DocHeading[] {
-  const headings: DocHeading[] = [];
-  let inFence = false;
-
-  for (const line of markdown.split("\n")) {
-    if (line.trimStart().startsWith("```")) {
-      inFence = !inFence;
-      continue;
-    }
-    if (inFence) continue;
-
-    const match = line.match(/^(#{2,3})\s+(.+?)\s*$/);
-    if (!match) continue;
-
-    const text = match[2].replace(/[*_`]/g, "");
-    headings.push({
-      id: slugifyHeading(text),
-      text,
-      level: match[1].length as 2 | 3,
-    });
-  }
-
-  return headings;
-}
-
 /** The full sidebar tree for a locale, sections and pages already ordered. */
 export function getDocsNav(locale: Locale): DocSection[] {
   const sectionOrder = readSectionOrder();
@@ -197,14 +157,22 @@ export function getDocsNav(locale: Locale): DocSection[] {
   return [...bySection.entries()]
     .map(([slug, pages]) => {
       const declared = sectionOrder.indexOf(slug);
+      const ordered = pages.sort(
+        (a, b) => a.order - b.order || a.title.localeCompare(b.title),
+      );
       return {
         slug,
         // Undeclared sections sort after the declared ones instead of
         // disappearing, so a new folder shows up even before it is listed.
         order: declared === -1 ? sectionOrder.length : declared,
-        pages: pages.sort(
-          (a, b) => a.order - b.order || a.title.localeCompare(b.title),
-        ),
+        // A section is labelled only when nothing in it has shipped; its first
+        // page then sets the label, so a beta feature whose later pages are
+        // still `soon` reads as beta rather than as two contradictory badges.
+        // One unfinished page inside a shipped section stays the page's business.
+        status: ordered.every((page) => page.status !== "live")
+          ? ordered[0].status
+          : "live",
+        pages: ordered,
       };
     })
     .sort((a, b) => a.order - b.order || a.slug.localeCompare(b.slug));
@@ -261,6 +229,10 @@ export interface DocSearchEntry {
   keywords: string;
 }
 
+/**
+ * The index rendered with the page: small enough to inline, so typing filters
+ * the navigation instantly, before the full-text index has been fetched.
+ */
 export function getDocsSearchIndex(locale: Locale): DocSearchEntry[] {
   return getOrderedDocs(locale).map((meta) => {
     const doc = getDoc(meta.slug, locale);
@@ -272,4 +244,38 @@ export function getDocsSearchIndex(locale: Locale): DocSearchEntry[] {
       keywords: (doc?.headings ?? []).map((h) => h.text).join(" "),
     };
   });
+}
+
+/** Markdown reduced to the words a reader would see — no syntax, no urls. */
+export function stripMarkdown(markdown: string): string {
+  return markdown
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`([^`]*)`/g, "$1")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+    .replace(/^\s{0,3}[-*+]\s+/gm, "")
+    .replace(/^\s{0,3}>\s?/gm, "")
+    .replace(/\|/g, " ")
+    .replace(/[*_~]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export interface DocSearchDocument {
+  slug: string;
+  text: string;
+}
+
+/**
+ * Full page text, served separately from the page (see the
+ * `/api/docs/[locale]/search-index` route) and fetched the first time someone
+ * uses the search field. Inlining it would put the whole corpus in the payload
+ * of every documentation page, for the minority of readers who search.
+ */
+export function getDocsSearchCorpus(locale: Locale): DocSearchDocument[] {
+  return getOrderedDocs(locale).map((meta) => ({
+    slug: meta.slug,
+    text: stripMarkdown(getDoc(meta.slug, locale)?.content ?? ""),
+  }));
 }

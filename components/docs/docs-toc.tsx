@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "@/components/locale-provider";
-import type { DocHeading } from "@/lib/utils/docs-utils";
+import type { DocHeading } from "@/lib/utils/docs-headings";
 import { cn } from "@/lib/utils/utils";
 
 /** Right-hand "on this page" rail, with the current section highlighted. */
@@ -38,19 +38,19 @@ export function DocsToc({ headings }: { headings: DocHeading[] }) {
   return (
     <aside className="hidden xl:block w-56 flex-shrink-0">
       <div className="sticky top-24">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-600">
           {t("toc.title")}
         </p>
-        <ul className="space-y-1 border-l">
+        <ul className="space-y-1 border-l border-gray-200">
           {headings.map((heading) => (
             <li key={heading.id}>
               <a
                 href={`#${heading.id}`}
                 className={cn(
-                  "block border-l -ml-px py-1 text-sm text-muted-foreground transition-colors hover:text-foreground",
+                  "block border-l border-gray-200 -ml-px py-1 text-sm text-gray-600 transition-colors hover:text-black",
                   heading.level === 2 ? "pl-3" : "pl-6",
                   activeId === heading.id &&
-                    "border-primary text-foreground font-medium",
+                    "border-blue-500 text-black font-medium",
                 )}
               >
                 {heading.text}

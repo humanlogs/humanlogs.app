@@ -84,7 +84,7 @@ export default async function BlogPostPage({
             )}
           </header>
 
-          <MarkdownViewer content={post.content} className="blog-post" />
+          <MarkdownViewer content={post.content} />
         </article>
 
         <div className="mt-16 pt-8 border-t">

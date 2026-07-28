@@ -4,8 +4,8 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Link from "next/link";
 import { Children, isValidElement, type ReactNode } from "react";
-import { markdownProseClasses } from "@/components/markdown-viewer";
-import { slugifyHeading } from "@/lib/utils/docs-utils";
+import { markdownBodyClass } from "@/components/markdown-viewer";
+import { slugifyHeading } from "@/lib/utils/docs-headings";
 import { cn } from "@/lib/utils/utils";
 
 /**
@@ -24,13 +24,7 @@ function textOf(node: ReactNode): string {
   return "";
 }
 
-function Heading({
-  level,
-  children,
-}: {
-  level: 2 | 3;
-  children?: ReactNode;
-}) {
+function Heading({ level, children }: { level: 2 | 3; children?: ReactNode }) {
   const id = slugifyHeading(textOf(children));
   const Tag = level === 2 ? "h2" : "h3";
 
@@ -41,7 +35,7 @@ function Heading({
         href={`#${id}`}
         aria-hidden
         tabIndex={-1}
-        className="ml-2 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 no-underline"
+        className="ml-2 text-gray-400 opacity-0 transition-opacity group-hover:opacity-100 no-underline"
       >
         #
       </a>
@@ -57,7 +51,7 @@ export function DocsMarkdown({
   className?: string;
 }) {
   return (
-    <div className={cn(markdownProseClasses, className)}>
+    <div className={cn(markdownBodyClass, className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{

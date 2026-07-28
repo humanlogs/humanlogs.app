@@ -7,6 +7,7 @@ export const i18nFiles = [
   "common",
   "codebook",
   "dialog",
+  "docs",
   "editor",
   "landing",
   "alternatives",

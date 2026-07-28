@@ -80,7 +80,7 @@ export default function Page() {
           requirements.
         </p>
         <p>
-          Learn more about our <Link href="/resources">security practices</Link>.
+          Learn more about our <Link href="/docs/privacy/how-encryption-works">security practices</Link>.
         </p>
 
         <h2>Who Needs a DPA?</h2>

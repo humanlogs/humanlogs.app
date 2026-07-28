@@ -81,7 +81,7 @@ export function HelpDialog() {
   }, [isOpen]);
 
   const handleOpenDocumentation = () => {
-    window.open("https://humanlogs.app", "_blank");
+    window.open("/docs", "_blank");
   };
 
   const handleOpenForum = () => {

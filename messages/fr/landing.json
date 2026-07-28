@@ -15,6 +15,7 @@
             "useCases": "Cas d'usage",
             "freeTools": "Outils gratuits",
             "pricing": "Tarifs",
+            "docs": "Docs",
             "github": "Github",
             "blog": "Blog",
             "contact": "Contact",
@@ -61,6 +62,7 @@
             "speakr": "vs Speakr"
         },
         "product": {
+            "docs": "Documentation",
             "blog": "Blog",
             "pricing": "Tarifs",
             "faq": "FAQ",

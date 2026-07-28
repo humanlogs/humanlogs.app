@@ -15,6 +15,28 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "300mb",
     },
   },
+  // `/resources` used to publish the repo's own `docs/` folder (setup guides
+  // written for developers). Product documentation now lives at `/docs`; these
+  // keep the old URLs alive and point them at their successor page. Both the
+  // bare and the locale-prefixed forms were indexed, hence each pair.
+  async redirects() {
+    const moved: Array<[string, string]> = [
+      ["", "/docs"],
+      ["/AUTH_SETUP", "/docs/self-hosting/configure"],
+      ["/LDAP_SETUP", "/docs/self-hosting/configure"],
+      ["/TESTING", "/docs/self-hosting/install"],
+      ["/:path*", "/docs/self-hosting/install"],
+    ];
+
+    return moved.flatMap(([suffix, destination]) => [
+      { source: `/resources${suffix}`, destination, permanent: true },
+      {
+        source: `/:locale(en|fr|es|de)/resources${suffix}`,
+        destination,
+        permanent: true,
+      },
+    ]);
+  },
   images: {
     remotePatterns: [
       {

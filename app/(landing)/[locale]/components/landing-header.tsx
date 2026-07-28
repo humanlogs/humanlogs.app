@@ -93,6 +93,13 @@ export const LandingHeader = () => {
             {t("nav.pricing")}
           </Link>
 
+          <Link
+            href="/docs"
+            className="text-sm font-medium text-black transition-colors hover:text-black"
+          >
+            {t("nav.docs")}
+          </Link>
+
           {/* Free Tools Dropdown */}
           <div className="hidden xl:block">
             <DropdownMenu
