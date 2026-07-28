@@ -40,6 +40,7 @@
     "@tiptap/pm": "^3.22.0",
     "@tiptap/react": "^3.22.0",
     "@tiptap/starter-kit": "^3.22.0",
+    "@tiptap/y-tiptap": "^3.0.3",
     "@types/fluent-ffmpeg": "^2.1.28",
     "@types/lodash": "^4.17.24",
     "archiver": "^7.0.1",
