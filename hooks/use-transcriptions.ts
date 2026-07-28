@@ -669,6 +669,71 @@ export function useUpdateSpeakerCodes(transcriptionId: string) {
   );
 }
 
+/**
+ * The same, for several documents at once — what coding a *person* means when
+ * the same name appears in five interviews. Each document keeps its own list;
+ * this only spares the caller five round trips and five cache updates.
+ */
+export function useUpdateSpeakerCodesAcross() {
+  const queryClient = useQueryClient();
+  const listKey = ["transcriptions"];
+
+  return useMutation({
+    mutationFn: async (
+      updates: Array<{
+        transcriptionId: string;
+        speakerCodes: SpeakerCodeRef[];
+      }>,
+    ) => {
+      const results = await Promise.all(
+        updates.map(async ({ transcriptionId, speakerCodes }) => {
+          const response = await fetchGateway(
+            `/api/transcriptions/${transcriptionId}`,
+            {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ speakerCodes }),
+            },
+          );
+          return response.ok;
+        }),
+      );
+      // One failure is worth reporting: the others went through, and the
+      // refetch below shows exactly which.
+      if (results.some((ok) => !ok)) throw new Error("Failed to save codes");
+    },
+    onMutate: async (updates) => {
+      await queryClient.cancelQueries({ queryKey: listKey });
+      const previousList = queryClient.getQueryData<Transcription[]>(listKey);
+      const byId = new Map(
+        updates.map((u) => [u.transcriptionId, u.speakerCodes]),
+      );
+      if (previousList) {
+        queryClient.setQueryData(
+          listKey,
+          previousList.map((doc) =>
+            byId.has(doc.id) ? { ...doc, speakerCodes: byId.get(doc.id) } : doc,
+          ),
+        );
+      }
+      return { previousList };
+    },
+    onError: (_error, _updates, context) => {
+      if (context?.previousList) {
+        queryClient.setQueryData(listKey, context.previousList);
+      }
+    },
+    onSettled: (_data, _error, updates) => {
+      queryClient.invalidateQueries({ queryKey: listKey });
+      for (const { transcriptionId } of updates) {
+        queryClient.invalidateQueries({
+          queryKey: ["transcriptions", transcriptionId],
+        });
+      }
+    },
+  });
+}
+
 // Revert transcription mutation
 export function useRevertTranscription(transcriptionId: string) {
   const queryClient = useQueryClient();

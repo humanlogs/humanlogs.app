@@ -10,7 +10,7 @@ import {
 } from "@/lib/codebooks/codebook";
 import { PROJECT_COLORS } from "@/lib/projects/appearance";
 import { cn } from "@/lib/utils/utils";
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, MinusIcon } from "lucide-react";
 
 /**
  * The pieces shared by every place codes are applied: the checkable list inside
@@ -37,17 +37,25 @@ function colorClass(code: Code): string {
 }
 
 /**
+ * How much of the target carries a code. "some" only happens where one row
+ * stands for several things — a person appearing in five interviews, coded in
+ * three of them — and it has to be visible, or clicking would look like it lost
+ * the codes it actually added.
+ */
+export type CodeState = "none" | "some" | "all";
+
+/**
  * One menu row per code, sub-codes indented under their parent. A header names
  * the codebook when several are listed: two codebooks may well hold codes with
  * the same label, and a flat list would not say which is which.
  */
 export function CodeCheckItems({
   codebooks,
-  isApplied,
+  stateOf,
   onToggle,
 }: {
   codebooks: DecryptedCodebook[];
-  isApplied: (codebookId: string, codeId: string) => boolean;
+  stateOf: (codebookId: string, codeId: string) => CodeState;
   onToggle: (codebookId: string, codeId: string) => void;
 }) {
   return (
@@ -78,8 +86,11 @@ export function CodeCheckItems({
                 />
                 <span className="truncate">{code.label}</span>
               </span>
-              {isApplied(codebook.id, code.id) && (
+              {stateOf(codebook.id, code.id) === "all" && (
                 <CheckIcon className="h-4 w-4 shrink-0" />
+              )}
+              {stateOf(codebook.id, code.id) === "some" && (
+                <MinusIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
               )}
             </DropdownMenuItem>
           ))}

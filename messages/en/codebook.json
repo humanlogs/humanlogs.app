@@ -69,9 +69,7 @@
       "documentCodes": "Document",
       "speakerCodes": "Codes",
       "speakerFallback": "Speaker {index}",
-      "noSpeakers": "No speaker in this document",
-      "revealSpeakers": "Load the {count} speakers",
-      "locked": "Encrypted — no key on this device",
+      "noSpeakers": "No speaker in this study yet",
       "empty": "No document in this study yet",
       "failed": "Could not save the codes",
       "noCodebook": {
@@ -79,7 +77,19 @@
         "description": "Coding a study needs a codebook whose codes apply to documents and speakers.",
         "action": "Create a codebook"
       },
-      "untitled": "Untitled codebook"
+      "untitled": "Untitled codebook",
+      "speakers": "People ({count})",
+      "speakersHint": "Speakers are grouped by name across the study: coding one applies to every interview they appear in.",
+      "documents": "Documents ({count})",
+      "inDocuments": "In {count} documents",
+      "loadRosters": "Load the speakers of {count} older documents",
+      "loadingRosters": "Loading the speakers of {count} documents…"
+    },
+    "document": {
+      "menu": "Document codes",
+      "create": "Create a codebook",
+      "untitled": "Untitled codebook",
+      "failed": "Could not save the document's codes"
     }
   }
 }

@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   encodeSpeakerCache,
+  groupSpeakersByName,
   parseSpeakers,
   readSpeakerCache,
   sameSpeakers,
+  speakerNameKey,
   validateSpeakerCache,
 } from "@/lib/transcriptions/speakers";
 import type { EncryptionUtils } from "@/lib/encryption/encryption-entities";
@@ -154,5 +156,85 @@ describe("validateSpeakerCache", () => {
   it("rejects anything else", () => {
     expect(validateSpeakerCache("nope")).toHaveProperty("error");
     expect(validateSpeakerCache(42)).toHaveProperty("error");
+  });
+});
+
+describe("groupSpeakersByName", () => {
+  const documents = [
+    {
+      id: "d1",
+      title: "Entretien 01",
+      speakers: [
+        { id: "speaker_0", name: "Enquêtrice" },
+        { id: "speaker_1", name: "Marie" },
+      ],
+    },
+    {
+      id: "d2",
+      title: "Entretien 02",
+      speakers: [
+        { id: "speaker_0", name: "  enquetrice " },
+        { id: "speaker_1", name: "Karim" },
+        { id: "speaker_2", name: null },
+      ],
+    },
+  ];
+
+  it("makes one row per person, whatever the casing, accents or spacing", () => {
+    const groups = groupSpeakersByName(documents);
+    const interviewer = groups.find((g) => g.key === "name:enquetrice")!;
+
+    expect(interviewer.occurrences).toEqual([
+      {
+        documentId: "d1",
+        documentTitle: "Entretien 01",
+        speakerId: "speaker_0",
+        index: 0,
+      },
+      {
+        documentId: "d2",
+        documentTitle: "Entretien 02",
+        speakerId: "speaker_0",
+        index: 0,
+      },
+    ]);
+    // The first spelling encountered is the one shown.
+    expect(interviewer.name).toBe("Enquêtrice");
+  });
+
+  it("keeps an unnamed speaker to itself — nothing identifies it elsewhere", () => {
+    const groups = groupSpeakersByName(documents);
+    const unnamed = groups.filter((g) => !g.named);
+
+    expect(unnamed).toHaveLength(1);
+    expect(unnamed[0].key).toBe("speaker:d2:speaker_2");
+    expect(unnamed[0].occurrences[0].index).toBe(2);
+  });
+
+  it("sorts named people alphabetically and leaves the unnamed last", () => {
+    expect(groupSpeakersByName(documents).map((g) => g.name)).toEqual([
+      "Enquêtrice",
+      "Karim",
+      "Marie",
+      null,
+    ]);
+  });
+
+  it("ignores a document whose roster is not loaded", () => {
+    expect(groupSpeakersByName([{ id: "d3", title: "Entretien 03" }])).toEqual(
+      [],
+    );
+  });
+});
+
+describe("speakerNameKey", () => {
+  it("matches the spellings a researcher means as one person", () => {
+    expect(speakerNameKey("Marie")).toBe(speakerNameKey("  marie "));
+    expect(speakerNameKey("Enquêtrice")).toBe(speakerNameKey("enquetrice"));
+    expect(speakerNameKey("Jean  Pierre")).toBe(speakerNameKey("Jean Pierre"));
+  });
+
+  it("keeps distinct people apart", () => {
+    expect(speakerNameKey("Marie")).not.toBe(speakerNameKey("Marie C."));
   });
 });

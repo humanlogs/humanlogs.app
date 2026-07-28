@@ -110,6 +110,99 @@ export async function encodeSpeakerCache(
   return (await utils.encrypt(reference, { speakers })) as EncryptedDataEntity;
 }
 
+/** One appearance of a person in the corpus: a speaker, inside a document. */
+export type SpeakerOccurrence = {
+  documentId: string;
+  documentTitle: string;
+  speakerId: string;
+  /** Position in that document's roster — what names an unnamed speaker. */
+  index: number;
+};
+
+/**
+ * A person across the study. `named` groups gather every speaker sharing a
+ * name; an unnamed speaker is a group of its own, since nothing identifies it
+ * beyond the document it sits in.
+ */
+export type SpeakerGroup = {
+  key: string;
+  /** The spelling to show — the first one encountered, casing included. */
+  name: string | null;
+  named: boolean;
+  occurrences: SpeakerOccurrence[];
+};
+
+/**
+ * The matching key for a name: same person whatever the casing, the accents or
+ * the spacing. Deliberately loose — a researcher typing "marie" in one document
+ * and "Marie" in the next means the same person, and the cost of being wrong is
+ * a code to remove, not lost data.
+ */
+export function speakerNameKey(name: string): string {
+  return name
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLocaleLowerCase();
+}
+
+/**
+ * Groups the speakers of a study by name: one row per person rather than per
+ * document, so coding "Marie" once covers every interview she appears in.
+ *
+ * Documents keep their own rosters in the database — this is a view over them,
+ * and applying a code to a group means writing it on each occurrence.
+ */
+export function groupSpeakersByName(
+  documents: Array<{
+    id: string;
+    title: string;
+    speakers?: SpeakerSummary[] | null;
+  }>,
+): SpeakerGroup[] {
+  const groups = new Map<string, SpeakerGroup>();
+
+  for (const document of documents) {
+    const roster = document.speakers ?? [];
+    roster.forEach((speaker, index) => {
+      const occurrence: SpeakerOccurrence = {
+        documentId: document.id,
+        documentTitle: document.title,
+        speakerId: speaker.id,
+        index,
+      };
+      const named = !!speaker.name;
+      const key = named
+        ? `name:${speakerNameKey(speaker.name!)}`
+        : `speaker:${document.id}:${speaker.id}`;
+
+      const existing = groups.get(key);
+      if (existing) {
+        existing.occurrences.push(occurrence);
+      } else {
+        groups.set(key, {
+          key,
+          name: speaker.name,
+          named,
+          occurrences: [occurrence],
+        });
+      }
+    });
+  }
+
+  // Named people first, alphabetically; the unnamed ones trail in the order
+  // their documents brought them.
+  return Array.from(groups.values()).sort((a, b) => {
+    if (a.named !== b.named) return a.named ? -1 : 1;
+    if (!a.named || !b.named) return 0;
+    return (a.name ?? "").localeCompare(b.name ?? "", undefined, {
+      numeric: true,
+      sensitivity: "base",
+    });
+  });
+}
+
 /**
  * Guards the `speakers` field of a transcription update. The client sends it
  * already encrypted for E2E documents, so an entity is taken as-is: like the

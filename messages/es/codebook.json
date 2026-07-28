@@ -69,9 +69,7 @@
       "documentCodes": "Documento",
       "speakerCodes": "Códigos",
       "speakerFallback": "Hablante {index}",
-      "noSpeakers": "Ningún hablante en este documento",
-      "revealSpeakers": "Cargar los {count} hablantes",
-      "locked": "Cifrado — sin clave en este dispositivo",
+      "noSpeakers": "Todavía no hay hablantes en este estudio",
       "empty": "Todavía no hay documentos en este estudio",
       "failed": "No se han podido guardar los códigos",
       "noCodebook": {
@@ -79,7 +77,19 @@
         "description": "Codificar un estudio requiere un codebook cuyos códigos se apliquen a documentos y hablantes.",
         "action": "Crear un codebook"
       },
-      "untitled": "Codebook sin nombre"
+      "untitled": "Codebook sin nombre",
+      "speakers": "Personas ({count})",
+      "speakersHint": "Los hablantes se agrupan por nombre en todo el estudio: codificar a una persona se aplica a todas las entrevistas en las que aparece.",
+      "documents": "Documentos ({count})",
+      "inDocuments": "En {count} documentos",
+      "loadRosters": "Cargar los hablantes de {count} documentos antiguos",
+      "loadingRosters": "Cargando los hablantes de {count} documentos…"
+    },
+    "document": {
+      "menu": "Códigos del documento",
+      "create": "Crear un codebook",
+      "untitled": "Codebook sin nombre",
+      "failed": "No se han podido guardar los códigos del documento"
     }
   }
 }

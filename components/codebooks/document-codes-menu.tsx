@@ -13,75 +13,61 @@ import {
 import { useCodebooks } from "@/hooks/use-codebooks";
 import {
   useTranscription,
-  useUpdateSpeakerCodes,
+  useUpdateDocumentCodes,
 } from "@/hooks/use-transcriptions";
 import {
   codebooksInScopeForProject,
   speakerCodebooks,
-  type SpeakerCodeRef,
+  type CodeRef,
 } from "@/lib/codebooks/codebook";
 import { PlusIcon, TagsIcon } from "lucide-react";
 import { toast } from "sonner";
 
 /**
- * The codes carried by one speaker of a document, as a submenu of the speaker
- * badge — the place where that speaker already is.
+ * The codes carried by the document as a whole, as a submenu of the document's
+ * own menu — the counterpart of the speaker badge submenu, one level up.
  *
- * Only speaker codebooks show up: a verbatim codebook codes what is said, and
- * is applied to a passage of the text rather than to the person saying it.
+ * Same codebooks as the speakers: a speaker codebook codes the people *and* the
+ * interview they are in, the interview being the coarsest of the two.
  */
-export function SpeakerCodesMenu({
+export function DocumentCodesMenu({
   transcriptionId,
   projectId,
-  speakerId,
 }: {
   transcriptionId: string;
   projectId?: string | null;
-  speakerId: string;
 }) {
-  const t = useTranslations("codebook.speaker");
+  const t = useTranslations("codebook.document");
   const { data: codebooks = [] } = useCodebooks();
   const { data: transcription } = useTranscription(transcriptionId);
   const { openCreate } = useCodebookModal();
-  const updateCodes = useUpdateSpeakerCodes(transcriptionId);
+  const updateCodes = useUpdateDocumentCodes(transcriptionId);
 
   const inScope = speakerCodebooks(
     codebooksInScopeForProject(codebooks, projectId),
   );
 
-  const applied: SpeakerCodeRef[] = transcription?.speakerCodes ?? [];
-  const isApplied = (codebookId: string, codeId: string) =>
-    applied.some(
-      (ref) =>
-        ref.speakerId === speakerId &&
-        ref.codebookId === codebookId &&
-        ref.codeId === codeId,
-    );
-  // One speaker in one document: a code is either on it or not.
+  const applied: CodeRef[] = transcription?.codes ?? [];
   const stateOf = (codebookId: string, codeId: string): CodeState =>
-    isApplied(codebookId, codeId) ? "all" : "none";
+    applied.some(
+      (ref) => ref.codebookId === codebookId && ref.codeId === codeId,
+    )
+      ? "all"
+      : "none";
 
-  // The whole list is replaced on every toggle: the other speakers' codes
-  // travel untouched, which is what keeps this a single write — and why nothing
-  // is written before the document is loaded, which would post an empty list
-  // over the codes already there.
   const toggle = (codebookId: string, codeId: string) => {
+    // Nothing is written before the document is loaded: an empty list would go
+    // over the codes already there.
     if (!transcription) return;
 
-    const next = isApplied(codebookId, codeId)
-      ? applied.filter(
-          (ref) =>
-            !(
-              ref.speakerId === speakerId &&
-              ref.codebookId === codebookId &&
-              ref.codeId === codeId
-            ),
-        )
-      : [...applied, { speakerId, codebookId, codeId }];
+    const next =
+      stateOf(codebookId, codeId) === "all"
+        ? applied.filter(
+            (ref) => !(ref.codebookId === codebookId && ref.codeId === codeId),
+          )
+        : [...applied, { codebookId, codeId }];
 
-    updateCodes.mutate(next, {
-      onError: () => toast.error(t("failed")),
-    });
+    updateCodes.mutate(next, { onError: () => toast.error(t("failed")) });
   };
 
   return (
@@ -100,8 +86,6 @@ export function SpeakerCodesMenu({
         </DropdownMenuItem>
       ) : (
         <CodeCheckItems
-          // A codebook with no readable name is one this device has no key for;
-          // its codes still apply, so it keeps a header rather than vanishing.
           codebooks={inScope.map((c) =>
             c.name ? c : { ...c, name: t("untitled") },
           )}

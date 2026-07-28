@@ -69,9 +69,7 @@
       "documentCodes": "Dokument",
       "speakerCodes": "Codes",
       "speakerFallback": "Sprechende Person {index}",
-      "noSpeakers": "Keine sprechende Person in diesem Dokument",
-      "revealSpeakers": "Die {count} sprechenden Personen laden",
-      "locked": "Verschlüsselt — kein Schlüssel auf diesem Gerät",
+      "noSpeakers": "Noch keine sprechenden Personen in dieser Studie",
       "empty": "Noch kein Dokument in dieser Studie",
       "failed": "Die Codes konnten nicht gespeichert werden",
       "noCodebook": {
@@ -79,7 +77,19 @@
         "description": "Zum Codieren einer Studie braucht es ein Codebook, dessen Codes für Dokumente und sprechende Personen gelten.",
         "action": "Codebook erstellen"
       },
-      "untitled": "Unbenanntes Codebook"
+      "untitled": "Unbenanntes Codebook",
+      "speakers": "Personen ({count})",
+      "speakersHint": "Sprechende Personen werden studienweit nach Namen gruppiert: eine Person zu codieren gilt für alle Interviews, in denen sie vorkommt.",
+      "documents": "Dokumente ({count})",
+      "inDocuments": "In {count} Dokumenten",
+      "loadRosters": "Sprechende Personen von {count} älteren Dokumenten laden",
+      "loadingRosters": "Sprechende Personen von {count} Dokumenten werden geladen…"
+    },
+    "document": {
+      "menu": "Codes des Dokuments",
+      "create": "Codebook erstellen",
+      "untitled": "Unbenanntes Codebook",
+      "failed": "Die Codes des Dokuments konnten nicht gespeichert werden"
     }
   }
 }

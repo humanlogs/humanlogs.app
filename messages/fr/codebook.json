@@ -69,9 +69,7 @@
       "documentCodes": "Document",
       "speakerCodes": "Codes",
       "speakerFallback": "Locuteur {index}",
-      "noSpeakers": "Aucun locuteur dans ce document",
-      "revealSpeakers": "Charger les {count} locuteurs",
-      "locked": "Chiffré — aucune clé sur cet appareil",
+      "noSpeakers": "Aucun locuteur dans cette étude",
       "empty": "Aucun document dans cette étude",
       "failed": "Impossible d'enregistrer les codes",
       "noCodebook": {
@@ -79,7 +77,19 @@
         "description": "Coder une étude demande un codebook dont les codes s'appliquent aux documents et aux locuteurs.",
         "action": "Créer un codebook"
       },
-      "untitled": "Codebook sans nom"
+      "untitled": "Codebook sans nom",
+      "speakers": "Personnes ({count})",
+      "speakersHint": "Les locuteurs sont regroupés par nom sur toute l'étude : coder une personne s'applique à tous les entretiens où elle apparaît.",
+      "documents": "Documents ({count})",
+      "inDocuments": "Dans {count} documents",
+      "loadRosters": "Charger les locuteurs de {count} anciens documents",
+      "loadingRosters": "Chargement des locuteurs de {count} documents…"
+    },
+    "document": {
+      "menu": "Codes du document",
+      "create": "Créer un codebook",
+      "untitled": "Codebook sans nom",
+      "failed": "Impossible d'enregistrer les codes du document"
     }
   }
 }
