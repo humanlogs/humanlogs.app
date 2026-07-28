@@ -12,6 +12,7 @@ import {
   EncryptionUtils,
   type EncryptedDataEntity,
 } from "@/lib/encryption/encryption-entities";
+import { primeRoomGrant } from "@/lib/sockets/room-grant.browser";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { browserCrypto } from "../lib/encryption/encryption-entities.browser";
@@ -206,7 +207,12 @@ export function useTranscription(id: string) {
       }
       const raw = (await response.json()) as Record<string, unknown> & {
         speakers?: unknown;
+        roomGrant?: { token: string; expiresAt: number };
       };
+      // The payload carries the capability to join this transcription's socket
+      // rooms; stash it before anything else so the editor's provider finds it
+      // waiting rather than having to fetch one of its own.
+      primeRoomGrant(id, raw.roomGrant);
       const { speakers, ...rest } = raw;
       try {
         const decoded = await decrypt<TranscriptionDetail>(rest as never);

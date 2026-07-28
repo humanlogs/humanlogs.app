@@ -1,6 +1,7 @@
 import { Server as HTTPServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { verifySocketAuth, type SocketAuthResult } from "./socket-auth";
+import { verifyRoomGrant } from "./room-grant";
 
 let io: SocketIOServer | null = null;
 
@@ -114,14 +115,14 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
 
     // Rooms this socket has JOINED, and with what rights. Authentication only
     // proves who the user is; a transcription id travels in URLs, exports and
-    // emails, so it is no kind of secret — every join is checked against the
-    // transcription's owner/shared list.
+    // emails, so it is no kind of secret — every join must present a room grant
+    // for THIS user and THIS transcription (see room-grant.ts).
     //
     // The map holds the in-flight promise, not the resolved value: a client emits
     // its first document update moments after joining, and that message must wait
     // for the authorization it races rather than be dropped (a lost Yjs update
     // never comes back). Only a socket that joined — and has not left — is in here,
-    // so relaying costs no database round-trip after the first check.
+    // so relaying costs nothing after the first verification.
     type Membership = { canWrite: boolean };
     const memberships = new Map<string, Promise<Membership | null>>();
 
@@ -136,28 +137,32 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
     // the document. A leave is honoured only for the session that is still in.
     const joinSessions = new Map<string, string>();
 
-    const joinRoom = (transcriptionId: string): Promise<Membership | null> => {
+    // A seat, once taken, is kept for the life of the socket (or until the client
+    // leaves) — re-presenting a grant for a room already joined does not re-open
+    // the question. That is deliberate and matches what the database check it
+    // replaced did: it ran once per join and was cached the same way. Access
+    // changes therefore land on the next connection, not mid-session.
+    const joinRoom = (
+      transcriptionId: string,
+      grant: unknown,
+    ): Promise<Membership | null> => {
       const pending = memberships.get(transcriptionId);
       if (pending) return pending;
 
-      // Temporarily bypass the db because we don't have a working prisma client in the socket server yet. The
-      const authorized = new Promise<Membership | null>((resolve) =>
-        resolve({
-          canWrite: true,
-        }),
+      const authorized = verifyRoomGrant(grant, { userId, transcriptionId }).then(
+        (claims) => {
+          if (!claims) {
+            log(`Denied ${userId} access to transcription ${transcriptionId}`);
+            socket.emit("transcription:denied", { transcriptionId });
+            // Forget the refusal, so a client that comes back with a valid grant
+            // (it was just shared with, its grant had expired) is not stuck with
+            // this answer for the life of the socket.
+            memberships.delete(transcriptionId);
+            return null;
+          }
+          return { canWrite: claims.canWrite };
+        },
       );
-      /*getTranscriptionAccessFor(
-        userId,
-        transcriptionId,
-      ).then((access) => {
-        if (!access.hasAccess) {
-          log(`Denied ${userId} access to transcription ${transcriptionId}`);
-          socket.emit("transcription:denied", { transcriptionId });
-          memberships.delete(transcriptionId);
-          return null;
-        }
-        return { canWrite: access.isOwner || access.role === "write" };
-      });*/
 
       memberships.set(transcriptionId, authorized);
       return authorized;
@@ -166,15 +171,16 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
     /**
      * Authorize a join and make sure the seat SURVIVES it.
      *
-     * Authorization is a round-trip to the database, and messages keep arriving
-     * while it is in flight — including the goodbye of the provider instance this
-     * join replaces, which erases the very entry `joinRoom` just registered. The
-     * join is the newer intent, so it puts its seat back.
+     * Verifying a grant is asynchronous, and messages keep arriving while it is in
+     * flight — including the goodbye of the provider instance this join replaces,
+     * which erases the very entry `joinRoom` just registered. The join is the newer
+     * intent, so it puts its seat back.
      */
     const joinRoomAndHold = async (
       transcriptionId: string,
+      grant: unknown,
     ): Promise<Membership | null> => {
-      const membership = await joinRoom(transcriptionId);
+      const membership = await joinRoom(transcriptionId, grant);
       if (!membership) return null;
       if (!memberships.has(transcriptionId)) {
         memberships.set(transcriptionId, Promise.resolve(membership));
@@ -189,13 +195,18 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
       memberships.get(transcriptionId) ?? Promise.resolve(null);
 
     // --- Presence + cursor room (drives the custom text/audio cursors) ----------
-    socket.on("transcription:join", async (transcriptionId: string) => {
-      if (!(await joinRoomAndHold(transcriptionId))) return;
-      socket.join(`transcription:${transcriptionId}`);
-      socket
-        .to(`transcription:${transcriptionId}`)
-        .emit("transcription:user-joined", { userId, socketId: socket.id });
-    });
+    socket.on(
+      "transcription:join",
+      async (data: { transcriptionId: string; grant?: string }) => {
+        const { transcriptionId } = data ?? {};
+        if (!transcriptionId) return;
+        if (!(await joinRoomAndHold(transcriptionId, data.grant))) return;
+        socket.join(`transcription:${transcriptionId}`);
+        socket
+          .to(`transcription:${transcriptionId}`)
+          .emit("transcription:user-joined", { userId, socketId: socket.id });
+      },
+    );
 
     socket.on("transcription:leave", (transcriptionId: string) => {
       socket.leave(`transcription:${transcriptionId}`);
@@ -223,14 +234,18 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
     // --- Blind Yjs relay — opaque payloads, seeding-authority coordination ------
     socket.on(
       "yjs:join",
-      async (data: { transcriptionId: string; session?: string }) => {
+      async (data: {
+        transcriptionId: string;
+        session?: string;
+        grant?: string;
+      }) => {
         const { transcriptionId } = data;
-        console.log(`yjs:join ${transcriptionId} (session ${data.session})`);
+        log(`yjs:join ${transcriptionId} (session ${data.session})`);
         // Claim the seat BEFORE authorizing: a goodbye that lands while we wait
         // belongs to the instance this join replaces, and must be recognised as
         // stale by the time it arrives.
         if (data.session) joinSessions.set(transcriptionId, data.session);
-        if (!(await joinRoomAndHold(transcriptionId))) return;
+        if (!(await joinRoomAndHold(transcriptionId, data.grant))) return;
         socket.join(`transcription:${transcriptionId}`);
         let room = collabRooms.get(transcriptionId);
         if (!room) {
@@ -250,10 +265,10 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
         // which Yjs merges into a no-op.
         if (!room.authority || room.authority === socket.id) {
           room.authority = socket.id;
-          console.log(`yjs:join ${transcriptionId} → seed (authority)`);
+          log(`yjs:join ${transcriptionId} → seed (authority)`);
           socket.emit("yjs:role", { transcriptionId, role: "seed" });
         } else {
-          console.log(`yjs:join ${transcriptionId} → sync (peer)`);
+          log(`yjs:join ${transcriptionId} → sync (peer)`);
           socket.emit("yjs:role", { transcriptionId, role: "sync" });
         }
       },

@@ -12,6 +12,7 @@ import {
   failTranscription,
 } from "@/lib/stt/transcription-completion";
 import { checkAccess } from "@/lib/transcriptions/access";
+import { createRoomGrant, type RoomRole } from "@/lib/sockets/room-grant";
 import {
   validateCodeRefs,
   validateSpeakerCodeRefs,
@@ -58,12 +59,21 @@ export const GET = withAuthRateLimit(
         transcription = await pollPendingTranscriptions(transcription);
       }
 
-      // Return the transcription with access information
+      // Return the transcription with access information, plus the grant that lets
+      // this user into its socket rooms. Bundling it here is what keeps the socket
+      // server free of database access: fetching a transcript is already an
+      // authorization check, so it may as well hand out the proof (room-grant.ts).
       const details = mapTransactionDetails(transcription);
+      const roomGrant = await createRoomGrant({
+        userId: user.id,
+        transcriptionId: id,
+        role: (access.isOwner ? "owner" : access.role) as RoomRole,
+      });
       return NextResponse.json({
         ...details,
         isOwner: access.isOwner,
         role: access.role,
+        roomGrant,
         // Only include shared list for owners
         shared: details.shared,
       });

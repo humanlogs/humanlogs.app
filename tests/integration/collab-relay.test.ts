@@ -13,7 +13,6 @@ vi.mock("@/lib/prisma", async () => {
 
 import { io as ioClient, type Socket } from "socket.io-client";
 import * as Y from "yjs";
-import { createSocketToken } from "@/lib/auth/utils";
 import { plaintextCodec } from "@/lib/sockets/yjs-collab-provider";
 import {
   type CollabClient,
@@ -107,14 +106,22 @@ describe("connection & authentication", () => {
     socket.disconnect();
   });
 
-  it("rejects a handshake whose user no longer exists", async () => {
-    const socket = ioClient(server.url, {
-      path: "/api/socket",
-      transports: ["websocket"],
-      auth: { token: await createSocketToken("user-deleted") },
-      reconnection: false,
-    });
-    await expect(expectRejected(socket)).resolves.toBe("Authentication required");
+  it("gives a token for an unknown user no access to anything", async () => {
+    // The handshake no longer looks the account up — the token is signed with the
+    // session secret, so it IS the proof of who the bearer is, and the socket
+    // server has no database to consult anyway. Existing is not what opens a
+    // document: the room grant is, and there is none to be had here.
+    const socket = await connectSocket(server, "user-deleted");
+    const denied: string[] = [];
+    const roles: string[] = [];
+    socket.on("transcription:denied", (d) => denied.push(d.transcriptionId));
+    socket.on("yjs:role", (d) => roles.push(d.role));
+
+    const id = nextTranscriptionId();
+    socket.emit("yjs:join", { transcriptionId: id });
+
+    await waitFor(() => denied.length > 0, { label: "a denial" });
+    expect(roles).toEqual([]);
     socket.disconnect();
   });
 

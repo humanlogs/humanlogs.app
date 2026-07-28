@@ -10,6 +10,12 @@ import {
   type YjsCodec,
 } from "@/lib/sockets/yjs-collab-provider";
 import {
+  createRoomGrant,
+  type RoomRole,
+} from "@/lib/sockets/room-grant";
+import { checkAccess } from "@/lib/transcriptions/access";
+import {
+  getFixtureTranscription,
   registerTranscription,
   registerUser,
   type FixtureShare,
@@ -45,6 +51,33 @@ export async function startCollabServer(): Promise<CollabServer> {
         http.close(() => resolve());
       }),
   };
+}
+
+/**
+ * Mint a room grant exactly as the API does: read the transcription, check the
+ * caller's access, sign what it finds. Null when there is nothing to grant —
+ * which is how an unauthorized client ends up joining empty-handed and refused.
+ *
+ * This stands in for `GET /api/transcriptions/:id`, the only part of the flow
+ * these tests cannot run for real (it needs an HTTP layer and a database). The
+ * rule it applies is the app's own `checkAccess`, not a copy of it.
+ */
+export async function mintRoomGrant(
+  userId: string,
+  transcriptionId: string,
+  opts: { ttlSeconds?: number } = {},
+): Promise<string | null> {
+  const transcription = getFixtureTranscription(transcriptionId);
+  if (!transcription) return null;
+  const access = checkAccess(transcription, userId);
+  if (!access.hasAccess) return null;
+  const { token } = await createRoomGrant({
+    userId,
+    transcriptionId,
+    role: (access.isOwner ? "owner" : access.role) as RoomRole,
+    ttlSeconds: opts.ttlSeconds,
+  });
+  return token;
 }
 
 /** Connect a raw authenticated socket (no Yjs provider attached). */
@@ -116,6 +149,8 @@ export async function joinCollab(
   };
 
   const provider = new YjsCollabProvider(socket, transcriptionId, doc, opts.codec, {
+    // Per-client, because several users share one process here (see mintRoomGrant).
+    grant: () => mintRoomGrant(userId, transcriptionId),
     onSeed: () => {
       client.role = "seed";
       client.seeded = true;

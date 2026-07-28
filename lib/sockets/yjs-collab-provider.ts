@@ -8,6 +8,7 @@ import {
 } from "y-protocols/awareness";
 import { EncryptionUtils } from "@/lib/encryption/encryption-entities";
 import { browserCrypto } from "@/lib/encryption/encryption-entities.browser";
+import { getRoomGrant } from "./room-grant.browser";
 
 /**
  * Pluggable transport codec. Non-E2E transcriptions use the plaintext (base64)
@@ -137,6 +138,16 @@ export class YjsCollabProvider {
   private stateAttempts = 0;
   private awaitingState = false;
   private destroyed = false;
+  /**
+   * The most recent `yjs:join`, resolved once it has actually gone out.
+   *
+   * Joining is asynchronous now (it presents a room grant, which may have to be
+   * refreshed first), and the server drops any message from a socket that has not
+   * joined the room. Everything we emit therefore waits on this — otherwise an
+   * awareness packet encoded while the grant was being fetched would overtake the
+   * join and be discarded, leaving our caret invisible until the next keystroke.
+   */
+  private joined: Promise<void> = Promise.resolve();
 
   constructor(
     private readonly socket: Socket,
@@ -151,6 +162,13 @@ export class YjsCollabProvider {
       onSynced?: () => void;
       /** Awareness instance to relay (for CollaborationCursor). */
       awareness?: Awareness;
+      /**
+       * Where to get the room grant presented on join. Defaults to the browser
+       * store, which is keyed by transcription alone — correct in a tab, which
+       * has exactly one user, but not somewhere several users share a process
+       * (the integration tests), hence the seam.
+       */
+      grant?: () => Promise<string | null>;
       /** Enable verbose console diagnostics. */
       debug?: boolean;
     },
@@ -251,7 +269,7 @@ export class YjsCollabProvider {
     // joined. Rejoining is idempotent (Yjs merges any re-synced state).
     this.handleConnect = () => {
       this.log("(re)connect → join", transcriptionId);
-      socket.emit("yjs:join", { transcriptionId, session: this.session });
+      void this.join();
       this.broadcastLocalAwareness();
       // Re-announce everything we hold. A reconnect gives us a fresh server-side
       // session that knows nothing about this client, and anything typed while
@@ -265,9 +283,31 @@ export class YjsCollabProvider {
     // If already connected, join now (handleConnect only fires on future connects).
     if (socket.connected) {
       this.log("join", transcriptionId, "(already connected)");
-      socket.emit("yjs:join", { transcriptionId, session: this.session });
+      void this.join();
       this.broadcastLocalAwareness();
     }
+  }
+
+  /**
+   * Ask to enter the room, presenting this user's grant for this transcription.
+   *
+   * Assigns `this.joined` synchronously, before awaiting anything, so a caller
+   * that emits straight afterwards queues behind THIS join rather than behind a
+   * previous one that has already resolved.
+   */
+  private join(): Promise<void> {
+    this.joined = (async () => {
+      const grant = await (this.opts.grant
+        ? this.opts.grant()
+        : getRoomGrant(this.transcriptionId));
+      if (this.destroyed) return;
+      this.socket.emit("yjs:join", {
+        transcriptionId: this.transcriptionId,
+        session: this.session,
+        grant,
+      });
+    })();
+    return this.joined;
   }
 
   /**
@@ -282,8 +322,13 @@ export class YjsCollabProvider {
   private requestState() {
     if (this.destroyed) return;
     this.awaitingState = true;
-    this.socket.emit("yjs:state-request", {
-      transcriptionId: this.transcriptionId,
+    // Behind the join for the same reason document messages are: the relay serves
+    // state only to a socket it has admitted into the room.
+    void this.joined.then(() => {
+      if (this.destroyed) return;
+      this.socket.emit("yjs:state-request", {
+        transcriptionId: this.transcriptionId,
+      });
     });
     this.clearStateTimer();
     if (this.stateAttempts >= STATE_MAX_ATTEMPTS) return;
@@ -294,10 +339,7 @@ export class YjsCollabProvider {
       if (this.destroyed || !this.awaitingState) return;
       this.stateAttempts++;
       this.log("no state after", wait, "ms — retry", this.stateAttempts);
-      this.socket.emit("yjs:join", {
-        transcriptionId: this.transcriptionId,
-        session: this.session,
-      });
+      void this.join();
       this.requestState();
     }, wait);
   }
@@ -338,6 +380,8 @@ export class YjsCollabProvider {
   private async emitMsg(t: "sync" | "awareness", bytes: Uint8Array) {
     this.log("send yjs:msg", t, bytes.length, "b");
     const d = await this.codec.encode(bytes);
+    // Never emit into a room we have not finished asking to join (see `joined`).
+    await this.joined;
     this.socket.emit("yjs:msg", {
       transcriptionId: this.transcriptionId,
       t,

@@ -12,6 +12,7 @@ import {
   type CollabServer,
   connectSocket,
   joinCollab,
+  mintRoomGrant,
   nextTranscriptionId,
   registerTestUsers,
   settle,
@@ -84,13 +85,25 @@ describe("encrypted collaboration", () => {
     await alice.ready;
 
     // A raw socket in the same room, capturing exactly what the server forwards.
+    // Eve is a LEGITIMATE participant here — she presents a real grant and is
+    // admitted. That is the point: being allowed in the room buys you ciphertext.
     const wire: { t: string; enc: boolean; d: string }[] = [];
     const eavesdropper = await connectSocket(server, "user-eve");
     eavesdropper.on("yjs:msg", (data) => wire.push(data));
     eavesdropper.on("yjs:state", (data) =>
       wire.push({ t: "state", enc: data.enc, d: data.d }),
     );
-    eavesdropper.emit("yjs:join", { transcriptionId: id });
+    // Wait to be actually admitted before provoking traffic: the relay only
+    // forwards to sockets already in the room, and admission is asynchronous
+    // (the grant is verified). Typing before that would simply be missed.
+    const admitted = new Promise<void>((resolve) =>
+      eavesdropper.once("yjs:role", () => resolve()),
+    );
+    eavesdropper.emit("yjs:join", {
+      transcriptionId: id,
+      grant: await mintRoomGrant("user-eve", id),
+    });
+    await admitted;
     eavesdropper.emit("yjs:state-request", { transcriptionId: id });
 
     alice.append(" et un détail confidentiel");
@@ -174,7 +187,14 @@ describe("encrypted collaboration", () => {
     const wire: { t: string; enc: boolean; d: string }[] = [];
     const eavesdropper = await connectSocket(server, "user-eve");
     eavesdropper.on("yjs:msg", (data) => wire.push(data));
-    eavesdropper.emit("yjs:join", { transcriptionId: id });
+    const admitted = new Promise<void>((resolve) =>
+      eavesdropper.once("yjs:role", () => resolve()),
+    );
+    eavesdropper.emit("yjs:join", {
+      transcriptionId: id,
+      grant: await mintRoomGrant("user-eve", id),
+    });
+    await admitted;
 
     alice.awareness.setLocalStateField("user", { name: "Alice Dupont" });
     await waitFor(() => wire.some((m) => m.t === "awareness"), {
