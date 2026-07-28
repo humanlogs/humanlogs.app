@@ -27,7 +27,9 @@ import {
   BriefcaseIcon,
   RepeatIcon,
   GiftIcon,
+  MailIcon,
 } from "lucide-react";
+import { NewsletterTab } from "@/components/admin/newsletter-tab";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { ResponsivePie } from "@nivo/pie";
@@ -369,6 +371,10 @@ export default function AdminPage() {
           <TabsTrigger value="referrals">
             <GiftIcon className="h-4 w-4" />
             Referrals
+          </TabsTrigger>
+          <TabsTrigger value="newsletter">
+            <MailIcon className="h-4 w-4" />
+            Newsletter
           </TabsTrigger>
           <TabsTrigger value="feedback">
             <MessageSquareIcon className="h-4 w-4" />
@@ -1515,6 +1521,11 @@ export default function AdminPage() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* ---------- Newsletter ---------- */}
+        <TabsContent value="newsletter" className="space-y-6">
+          <NewsletterTab />
         </TabsContent>
 
         {/* ---------- Feedback ---------- */}
