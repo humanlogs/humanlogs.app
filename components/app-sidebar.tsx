@@ -86,7 +86,8 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
   const updateLanguage = useUpdateUser();
   const { prefs, update } = useDocumentViewPrefs();
 
-  // Only roots that cover every study are offered as a grouping axis.
+  // Only codebooks covering every study, and only those whose codes land on a
+  // document — its own codes, or the codes of its participants.
   const groupingCodebooks = React.useMemo(
     () => groupableCodebooks(codebooks),
     [codebooks],

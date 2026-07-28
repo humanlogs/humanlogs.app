@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { notifyTranscriptionReverted } from "@/lib/sockets/socket-helpers";
 import { NextResponse } from "next/server";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
+import { parseSpeakers } from "@/lib/transcriptions/speakers";
 
 type SharedUser = { userId: string; role: "read" | "read+listen" | "write" };
 
@@ -74,11 +75,16 @@ export const POST = withAuthRateLimit(
         });
       }
 
-      // Update the transcription with the old version
+      // Update the transcription with the old version. The roster cache goes
+      // back with it when the version is readable; an encrypted one is left
+      // alone and refreshed by the first client that opens the document.
+      const speakers = parseSpeakers(version.transcription);
+
       const updated = await prisma.transcription.update({
         where: { id },
         data: {
           transcription: version.transcription as never,
+          ...(speakers ? { speakers: speakers as never } : {}),
           updatedBy: user.id,
         },
       });

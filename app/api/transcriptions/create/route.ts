@@ -11,6 +11,7 @@ import { isBillableVersion } from "@/lib/billing/stripe";
 import { prisma } from "@/lib/prisma";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 import { generateAudioKey, getStorage } from "@/lib/storage";
+import { parseSpeakers } from "@/lib/transcriptions/speakers";
 import {
   getSTTService,
   resolveSttProvider,
@@ -546,6 +547,7 @@ async function processTranscription(
         data: {
           state: "COMPLETED",
           transcription: result as never,
+          speakers: (parseSpeakers(result) ?? null) as never,
           completedAt: new Date(),
         },
       });

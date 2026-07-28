@@ -6,7 +6,12 @@ import { EncryptedDataEntity } from "../../../lib/encryption/encryption-entities
 import { pollPendingTranscriptions } from "./[id]/route";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 import { findTranscriptionsSharedWith } from "@/lib/transcriptions/access";
-import { parseCodeRefs } from "@/lib/codebooks/codebook";
+import { parseCodeRefs, parseSpeakerCodeRefs } from "@/lib/codebooks/codebook";
+import {
+  parseSpeakers,
+  readSpeakerCache,
+  type SpeakerCache,
+} from "@/lib/transcriptions/speakers";
 
 export const GET = withAuthRateLimit(async (request, user) => {
   try {
@@ -104,18 +109,15 @@ const formatTranscriptionList = (t: Transcription, userId: string) => {
   const isOwner = t.userId === userId;
   const sharedUser = shared.find((s) => s.userId === userId);
 
-  // Speaker names live inside the (possibly large) transcription content JSON,
-  // which is already loaded here. Surface just the names so the documents list
-  // can show them for small panels. E2E-encrypted content has no readable
-  // `speakers` array, so this is simply undefined there and the UI falls back
-  // to the speaker count.
-  const content = t.transcription as {
-    speakers?: { id: string; name?: string | null }[];
-  } | null;
-  const speakers = content?.speakers;
-  const speakerNames = Array.isArray(speakers)
-    ? speakers.map((s) => s.name?.trim() || null)
-    : undefined;
+  // The roster comes from its own column rather than from the (possibly large,
+  // possibly encrypted) content: that is what the cache is for. It travels as
+  // stored — an EncryptedDataEntity for an E2E document, which the client
+  // decrypts on its own, cheaply. Falling back to the content covers a document
+  // whose cache was never written.
+  const speakers =
+    (t.speakers as SpeakerCache | null) ?? parseSpeakers(t.transcription);
+  const readable = readSpeakerCache(speakers);
+  const speakerNames = readable?.map((s) => s.name);
 
   return {
     id: t.id,
@@ -127,9 +129,13 @@ const formatTranscriptionList = (t: Transcription, userId: string) => {
     projectId: t.projectId,
     speakerCount: t.speakerCount,
     speakerNames,
+    speakers,
     mediaType: t.mediaType,
     // Opaque { codebookId, codeId } refs; the sidebar groups on them.
     codes: parseCodeRefs(t.codes),
+    // Same, pinned on a speaker of the document — a speaker codebook groups the
+    // list on both.
+    speakerCodes: parseSpeakerCodeRefs(t.speakerCodes),
     state: t.state,
     errorMessage: t.errorMessage,
     isEncrypted: (t.audioFileEncryption as EncryptedDataEntity)?.privateKeys

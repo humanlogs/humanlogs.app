@@ -1,5 +1,6 @@
 "use client";
 
+import { DocumentCodesMenu } from "@/components/codebooks/document-codes-menu";
 import { useTranslations } from "@/components/locale-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -533,6 +534,15 @@ export function TranscriptionActions({
                 {t("actions.setProject")}
               </DropdownMenuItem>
             </>
+          )}
+
+          {/* Codes of the document itself — the speakers have theirs on their
+              badge, this is the same gesture one level up. */}
+          {hasWriteAccess && (
+            <DocumentCodesMenu
+              transcriptionId={transcriptionId}
+              projectId={projectId}
+            />
           )}
           <DropdownMenuSub
             trigger={

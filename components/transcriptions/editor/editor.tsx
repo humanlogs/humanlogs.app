@@ -17,6 +17,7 @@ import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import {
   TranscriptionDetail,
+  useSpeakerCacheSync,
   useTranscriptionAesKey,
 } from "../../../hooks/use-transcriptions";
 import { InteractiveAudio } from "./audio";
@@ -100,6 +101,9 @@ export function TranscriptEditor({
   const [editorAPI] = useState(() => new EditorAPI());
   const { cursors, updateCursorPosition, updateAudioPosition } =
     useTranscriptionCursors(transcription.id);
+  // Opening a document is the one moment its roster is certainly readable —
+  // the chance to fix a cache that predates it or drifted from the transcript.
+  useSpeakerCacheSync(transcription.id, hasWriteAccess);
   const [audioControls, setAudioControls] = useState<AudioControls | null>(
     null,
   );
@@ -473,7 +477,12 @@ export function TranscriptEditor({
 
         {/* Scrollable content area */}
         <div className="flex flex-row px-4 gap-2 flex-1 min-w-0 overflow-hidden pb-6 pt-4 pb-16">
-          <SpeakerColumn editorAPI={editorAPI} readOnly={!canWrite} />
+          <SpeakerColumn
+            editorAPI={editorAPI}
+            readOnly={!canWrite}
+            transcriptionId={transcription.id}
+            projectId={transcription.projectId}
+          />
           <div className="flex-[1_1_0%] px-2 min-w-0 flex gap-4 overflow-hidden">
             <div className="relative flex-[1_1_0%] min-w-0 overflow-visible">
               {/* Text carets come from CollabCaret (awareness); the custom socket

@@ -12,7 +12,8 @@
       "allStudies": "Alle Studien",
       "studyCount": "{count} Studien",
       "codeCount": "{count} Codes",
-      "locked": "Verschlüsselt — kein Schlüssel auf diesem Gerät"
+      "locked": "Verschlüsselt — kein Schlüssel auf diesem Gerät",
+      "code": "Studie codieren"
     },
     "editor": {
       "createTitle": "Neues Codebuch",
@@ -25,10 +26,12 @@
       "scopeSelected": "Ausgewählte Studien",
       "target": "Gilt für",
       "targets": {
-        "document": "Ganzes Dokument",
-        "sentence": "Satz",
-        "subsentence": "Satzteil",
-        "word": "Wort"
+        "speaker": "Sprechende Person",
+        "verbatim": "Verbatim"
+      },
+      "targetHints": {
+        "speaker": "Codes für die Personen: gelten für ein ganzes Dokument und für jede sprechende Person darin (Rolle, Gruppe, Profil).",
+        "verbatim": "Codes für das Gesagte: gelten für eine Passage des Transkripts, vom Wort bis zum ganzen Satz."
       },
       "codes": "Codes",
       "addCode": "Code hinzufügen",
@@ -51,6 +54,43 @@
       "description": "Eine Vorlage füllt das Formular aus — prüfen und anpassen, bevor Sie speichern.",
       "manual": "Manuell fortfahren",
       "back": "Zurück zu den Vorlagen"
+    },
+    "speaker": {
+      "menu": "Codes der sprechenden Person",
+      "create": "Sprecher-Codebook erstellen",
+      "failed": "Die Codes der sprechenden Person konnten nicht gespeichert werden",
+      "untitled": "Unbenanntes Codebook"
+    },
+    "board": {
+      "title": "Codierung",
+      "description": "Weisen Sie die Codes eines Codebooks allen Dokumenten der Studie und den Personen darin zu.",
+      "codebook": "Codebook",
+      "hint": "Nur Sprecher-Codebooks werden gelistet: Verbatim-Codes werden im Editor auf den Text gesetzt.",
+      "documentCodes": "Dokument",
+      "speakerCodes": "Codes",
+      "speakerFallback": "Sprechende Person {index}",
+      "noSpeakers": "Noch keine sprechenden Personen in dieser Studie",
+      "empty": "Noch kein Dokument in dieser Studie",
+      "failed": "Die Codes konnten nicht gespeichert werden",
+      "noCodebook": {
+        "title": "Noch kein Sprecher-Codebook",
+        "description": "Zum Codieren einer Studie braucht es ein Codebook, dessen Codes für Dokumente und sprechende Personen gelten.",
+        "action": "Codebook erstellen"
+      },
+      "untitled": "Unbenanntes Codebook",
+      "speakers": "Personen ({count})",
+      "speakersHint": "Sprechende Personen werden studienweit nach Namen gruppiert: eine Person zu codieren gilt für alle Interviews, in denen sie vorkommt.",
+      "documents": "Dokumente ({count})",
+      "inDocuments": "In {count} Dokumenten",
+      "loadRosters": "Sprechende Personen von {count} älteren Dokumenten laden",
+      "loadingRosters": "Sprechende Personen von {count} Dokumenten werden geladen…",
+      "beta": "Codebooks sind noch in der Beta — aktivieren Sie sie in Ihrem Konto, um die Codierung zu nutzen."
+    },
+    "document": {
+      "menu": "Codes des Dokuments",
+      "create": "Codebook erstellen",
+      "untitled": "Unbenanntes Codebook",
+      "failed": "Die Codes des Dokuments konnten nicht gespeichert werden"
     }
   }
 }

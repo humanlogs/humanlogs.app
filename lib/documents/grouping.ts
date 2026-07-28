@@ -7,7 +7,13 @@
  * translated strings so it stays free of i18n and of React.
  */
 
-import { flattenCodes, type Code, type CodeRef } from "@/lib/codebooks/codebook";
+import {
+  flattenCodes,
+  type Code,
+  type CodebookTarget,
+  type CodeRef,
+  type SpeakerCodeRef,
+} from "@/lib/codebooks/codebook";
 
 export const TIME_BUCKETS = [
   "today",
@@ -19,7 +25,11 @@ export const TIME_BUCKETS = [
 
 export type TimeBucket = (typeof TIME_BUCKETS)[number];
 
-export type GroupBy = "study" | "updatedAt" | "createdAt" | `codebook:${string}`;
+export type GroupBy =
+  | "study"
+  | "updatedAt"
+  | "createdAt"
+  | `codebook:${string}`;
 
 export type SortBy = "alphabetical" | "updatedAt" | "createdAt";
 
@@ -28,7 +38,9 @@ export const DEFAULT_SORT_BY: SortBy = "alphabetical";
 
 /** The codebook id encoded in a `codebook:<id>` grouping, or null. */
 export function codebookIdFromGroupBy(groupBy: GroupBy): string | null {
-  return groupBy.startsWith("codebook:") ? groupBy.slice("codebook:".length) : null;
+  return groupBy.startsWith("codebook:")
+    ? groupBy.slice("codebook:".length)
+    : null;
 }
 
 export type GroupableDocument = {
@@ -38,7 +50,25 @@ export type GroupableDocument = {
   updatedAt: string;
   projectId?: string | null;
   codes?: CodeRef[];
+  /** Codes carried by the document's speakers, not by the document itself. */
+  speakerCodes?: SpeakerCodeRef[];
 };
+
+/**
+ * The refs a codebook grouping reads. A speaker codebook codes the document
+ * *and* its speakers, so both lists count: a study grouped by "rôle" shows an
+ * interview under the codes of the people in it as much as under the ones put
+ * on the interview itself. A verbatim codebook has no document-level refs at
+ * all — it only ever lands in the "uncoded" group, which is why it is kept out
+ * of the grouping menu.
+ */
+function refsFor(
+  document: GroupableDocument,
+  target: CodebookTarget | undefined,
+): CodeRef[] {
+  if (target === "verbatim") return [];
+  return [...(document.codes ?? []), ...(document.speakerCodes ?? [])];
+}
 
 /**
  * What a group header stands for. The component turns this into a translated
@@ -120,7 +150,7 @@ export type GroupDocumentsOptions<T extends GroupableDocument> = {
   /** Studies in display order; groups follow it. */
   projects: Array<{ id: string }>;
   /** Decrypted codebooks, needed only for `codebook:<id>` groupings. */
-  codebooks?: Array<{ id: string; codes: Code[] }>;
+  codebooks?: Array<{ id: string; codes: Code[]; target?: CodebookTarget }>;
   groupBy: GroupBy;
   sortBy: SortBy;
   /** Injectable clock, so bucket boundaries can be tested. */
@@ -130,7 +160,9 @@ export type GroupDocumentsOptions<T extends GroupableDocument> = {
 /**
  * Groups documents and sorts each group's contents. Empty groups are dropped;
  * a document carrying several codes of the grouping codebook appears in each of
- * their groups.
+ * their groups — including the codes of its speakers, since a speaker codebook
+ * codes both. A document whose two speakers are coded differently is therefore
+ * listed under both, once each.
  */
 export function groupDocuments<T extends GroupableDocument>({
   documents,
@@ -167,7 +199,7 @@ export function groupDocuments<T extends GroupableDocument>({
           label: path.join(" › "),
         },
         documents.filter((doc) =>
-          (doc.codes ?? []).some(
+          refsFor(doc, codebook?.target).some(
             (ref) => ref.codebookId === codebookId && ref.codeId === code.id,
           ),
         ),
@@ -181,7 +213,7 @@ export function groupDocuments<T extends GroupableDocument>({
       { type: "code", codebookId, codeId: null, label: "" },
       documents.filter(
         (doc) =>
-          !(doc.codes ?? []).some(
+          !refsFor(doc, codebook?.target).some(
             (ref) => ref.codebookId === codebookId && codeIds.has(ref.codeId),
           ),
       ),
