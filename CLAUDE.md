@@ -119,7 +119,7 @@ Markdown in `content/docs/<locale>/<section>/<page>.md`, served by `lib/utils/do
 - **TypeScript strict** is on. `@typescript-eslint/no-explicit-any` is **disabled** and `console.log` is allowed; unused vars must be prefixed `_`. Prettier: 2-space indent, no tabs.
 - Large uploads: Next is configured for `300mb` body limits (`next.config.ts` `proxyClientMaxBodySize` / `serverActions.bodySizeLimit`); the prod container sets `NODE_OPTIONS=--max-old-space-size=4096` and bundles `ffmpeg`.
 - The custom server means changes to `server.ts`, Socket.io handlers, or cron jobs require a full restart, not just HMR.
-- Deployment: pushing to `main` triggers `.github/workflows/deploy.yml`, which builds the Docker image and pushes to AWS ECR (→ ECS). Don't push to `main` unless asked.
+- Deployment: `.github/workflows/ci.yml` is the only pipeline — lint/types/Vitest and Playwright run on every PR, and on `main` they gate two further jobs (`needs:`): mirroring to the public repo, and building the Docker image → AWS ECR → ECS. So `main` cannot ship a red commit. A manual `workflow_dispatch` runs the checks alone unless its `release` input is ticked. Don't push to `main` unless asked.
 
 ## Further docs
 

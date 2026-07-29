@@ -9,7 +9,9 @@ Two runners, deliberately split by what they can protect:
 
 Both run in CI on every pull request (`.github/workflows/ci.yml`), alongside
 `npm run lint` and `npm run typecheck`. Neither needs Docker, a database server
-or any API key.
+or any API key. On `main` the same workflow gates the release jobs behind them —
+a failing suite stops the public mirror and the ECS deploy, rather than running
+alongside them.
 
 ## Why collaboration gets this much attention
 

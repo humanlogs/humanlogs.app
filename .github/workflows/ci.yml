@@ -1,9 +1,18 @@
 name: CI
 
-# Quality gate for every change: lint, types, the Vitest suites (unit + the
-# collaboration protocol integration tests) and the Playwright end-to-end suite.
+# One pipeline for a change's whole life: prove it, then ship it.
 #
-# No external services are required — the tests that need a database boot an
+#   checks ─┐
+#           ├─► mirror   (public repo)
+#   e2e   ──┘
+#           └─► deploy   (ECR → ECS)
+#
+# Mirroring and deploying used to be separate workflows triggered by the same
+# push as CI, which meant they raced it: a commit could be on the public repo and
+# in production before the suite that would have rejected it had finished. They
+# are `needs:`-gated behind the checks now, so `main` cannot ship red.
+#
+# The tests require no external services — those that need a database boot an
 # ephemeral PostgreSQL in-process (PGlite), so there is no `services:` block and
 # nothing to keep in sync with production credentials.
 
@@ -12,13 +21,22 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      release:
+        description: "Also mirror and deploy (main only). Off = checks alone."
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # A superseded pull-request run is wasted work, so drop it. On main the run can
+  # deploy, so it is queued rather than cancelled: killing a run midway could
+  # leave an image pushed to ECR with no service update behind it, and two
+  # concurrent runs could push their images out of order.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   checks:
@@ -81,3 +99,139 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  # --- Release. Only on main, only once the checks above are green. ------------
+  # A manual run is checks-only unless `release` is ticked, so re-running the
+  # suite on main never publishes or deploys as a side effect.
+
+  mirror:
+    name: Mirror to public repo
+    needs: [checks, e2e]
+    if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || inputs.release) }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.email "github-actions@github.com"
+          git config user.name "GitHub Actions"
+
+      - name: Remove private content
+        run: |
+          PRIVATE_PATHS=(
+            "app/(landing)"
+            "app/sitemap.ts"
+            "public/landing"
+            ".github/workflows"
+            "content/blog"
+            "growth"
+            "pipeline"
+            ".claude"
+            ".vscode"
+          )
+
+          CHANGED=false
+          for path in "${PRIVATE_PATHS[@]}"; do
+            if [ -e "$path" ]; then
+              git rm -rf --cached "$path"
+              rm -rf "$path"
+              CHANGED=true
+            fi
+          done
+
+          if [ "$CHANGED" = true ]; then
+            git commit -m "chore: strip private content for public mirror"
+          fi
+
+      - name: Push to public repo
+        env:
+          PUBLIC_REPO_PAT: ${{ secrets.PUBLIC_REPO_PAT }}
+        run: |
+          # actions/checkout injects a GITHUB_TOKEN extraheader that overrides
+          # any credentials in the URL — unset it so the PAT takes effect.
+          git config --unset-all http.https://github.com/.extraheader || true
+          git remote add public https://x-access-token:${PUBLIC_REPO_PAT}@github.com/humanlogs/humanlogs.app.git
+          git push public HEAD:main --force
+
+  deploy:
+    name: Deploy backend to ECS
+    needs: [checks, e2e]
+    if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || inputs.release) }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Log in to AWS
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+          aws configure set region $AWS_REGION
+
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registries: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: Get version from package.json
+        id: package-version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Clean AI artifacts from blog content
+        run: node pipeline/clean-ai-artifacts.mjs content/blog/*
+
+      - name: Build and Tag Docker Image
+        run: |
+          docker buildx create --use
+          docker buildx build --load --cache-from=type=local,src=/tmp/.buildx-cache --cache-to=type=local,dest=/tmp/.buildx-cache-new,mode=max --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} -t humanlogs.app .
+          docker tag humanlogs.app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+          docker tag humanlogs.app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ steps.package-version.outputs.version }}
+          # Move the new cache to the expected cache directory
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Push Docker Image to ECR
+        run: |
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ steps.package-version.outputs.version }}
+
+      - name: Clean up old ECR images
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          # Keep the latest 5 images and delete the rest
+          IMAGES_TO_DELETE=$(aws ecr list-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'imageIds[?type(imageTag)!=`string`].[imageDigest]' --output text)
+          if [ ! -z "$IMAGES_TO_DELETE" ]; then
+            aws ecr batch-delete-image --repository-name ${{ secrets.ECR_REPOSITORY }} --image-ids $(echo $IMAGES_TO_DELETE | sed 's/\s\+/,/g' | sed 's/^/imageDigest=/g' | sed 's/,/ imageDigest=/g')
+          fi
+
+          # Keep only the 5 most recent tagged images
+          IMAGES_TO_DELETE=$(aws ecr list-images --repository-name ${{ secrets.ECR_REPOSITORY }} --filter tagStatus=TAGGED --query 'imageIds[:-5].[imageDigest, imageTag]' --output text)
+          if [ ! -z "$IMAGES_TO_DELETE" ]; then
+            aws ecr batch-delete-image --repository-name ${{ secrets.ECR_REPOSITORY }} --image-ids $(echo "$IMAGES_TO_DELETE" | awk '{printf "imageDigest=%s,imageTag=%s ", $1, $2}')
+          fi
