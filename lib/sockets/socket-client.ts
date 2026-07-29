@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUserProfile } from "@/hooks/use-api";
+import { clearAllRoomGrants, getRoomGrant } from "./room-grant.browser";
 
 type DatabaseChangeEvent = {
   table: string;
@@ -98,7 +99,7 @@ export function useSocket() {
 
         pendingOperations.forEach((operation) => {
           if (operation.type === "join") {
-            socket?.emit("transcription:join", operation.transcriptionId);
+            void emitPresenceJoin(operation.transcriptionId);
           } else if (operation.type === "leave") {
             socket?.emit("transcription:leave", operation.transcriptionId);
           }
@@ -164,6 +165,8 @@ export function disconnectSocket() {
     socket.disconnect();
     socket = null;
   }
+  // Grants are per-user capabilities; whoever connects next must present their own.
+  clearAllRoomGrants();
 }
 
 // Helper to get the socket instance
@@ -171,10 +174,20 @@ export function getSocket(): Socket | null {
   return socket;
 }
 
+/**
+ * Enter the presence room, presenting this user's room grant — the server admits
+ * nobody who cannot show one for that transcription (see room-grant.ts). The grant
+ * may need refreshing first, hence the async hop.
+ */
+async function emitPresenceJoin(transcriptionId: string) {
+  const grant = await getRoomGrant(transcriptionId);
+  socket?.emit("transcription:join", { transcriptionId, grant });
+}
+
 // Transcription room management
 export function joinTranscriptionRoom(transcriptionId: string) {
   if (socket?.connected) {
-    socket.emit("transcription:join", transcriptionId);
+    void emitPresenceJoin(transcriptionId);
     // Remove from pending operations if it was cached
     pendingOperations.delete(transcriptionId);
   } else {

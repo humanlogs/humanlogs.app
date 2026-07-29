@@ -43,8 +43,12 @@ export const GET = withAuthRateLimit(async (request, user) => {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Generate socket token for real-time connections
-    const socketToken = await createSocketToken(user.id);
+    // Generate socket token for real-time connections. The identity travels in the
+    // token: the socket server verifies it without a database (see socket-auth.ts).
+    const socketToken = await createSocketToken(user.id, {
+      email: dbUser.email,
+      name: dbUser.name,
+    });
 
     return NextResponse.json({
       ...dbUser,

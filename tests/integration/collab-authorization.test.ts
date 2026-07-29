@@ -6,13 +6,16 @@ vi.mock("@/lib/prisma", async () => {
 });
 
 import * as Y from "yjs";
+import { SignJWT } from "jose";
 import type { Socket } from "socket.io-client";
+import { createSocketToken } from "@/lib/auth/utils";
 import { plaintextCodec } from "@/lib/sockets/yjs-collab-provider";
 import {
   type CollabClient,
   type CollabServer,
   connectSocket,
   joinCollab,
+  mintRoomGrant,
   nextTranscriptionId,
   registerTestUsers,
   settle,
@@ -237,7 +240,13 @@ describe("writing to a collaboration room", () => {
     const id = privateTranscription();
     const alice = await join(id, "user-alice", ["Texte"]);
     await alice.ready;
-    alice.socket.emit("transcription:join", id);
+    // Alice joins the presence room for real, so an empty result means the
+    // intruder's cursor was dropped — not merely that nobody was listening.
+    alice.socket.emit("transcription:join", {
+      transcriptionId: id,
+      grant: await mintRoomGrant("user-alice", id),
+    });
+    await sleep(100);
 
     const seen: unknown[] = [];
     alice.socket.on("transcription:cursor-position", (d) => seen.push(d));
@@ -257,6 +266,124 @@ describe("writing to a collaboration room", () => {
     await sleep(300);
 
     expect(seen).toEqual([]);
+  });
+
+  it("relays a cursor from a participant of the same room", async () => {
+    // The control for the test above: same setup, legitimate sender. Without it,
+    // a silent presence relay would pass the negative case for the wrong reason.
+    const id = privateTranscription();
+    const alice = await join(id, "user-alice", ["Texte"]);
+    await alice.ready;
+    alice.socket.emit("transcription:join", {
+      transcriptionId: id,
+      grant: await mintRoomGrant("user-alice", id),
+    });
+
+    const seen: { userId: string }[] = [];
+    alice.socket.on("transcription:cursor-position", (d) => seen.push(d));
+
+    const bob = await rawSocket("user-bob");
+    bob.emit("transcription:join", {
+      transcriptionId: id,
+      grant: await mintRoomGrant("user-bob", id),
+    });
+    await sleep(100);
+    bob.emit("transcription:cursor-update", {
+      transcriptionId: id,
+      position: {
+        userId: "user-bob",
+        userName: "Bob",
+        startOffset: 0,
+        endOffset: 0,
+        timestamp: 1,
+        hasWriteAccess: true,
+      },
+    });
+
+    await waitFor(() => seen.some((c) => c.userId === "user-bob"), {
+      label: "bob's cursor to reach alice",
+    });
+  });
+});
+
+/**
+ * Attacks on the grant itself.
+ *
+ * The socket server's whole authorization now rests on this token, so each of
+ * these is a way the scheme could have been hollow: a grant that works for
+ * anyone, or for any document, or forever, would give the intruder exactly what
+ * the owner/shared list is there to deny.
+ */
+describe("forging a room grant", () => {
+  /** Join with `grant` and report whether the server let us in. */
+  const tryJoin = async (
+    userId: string,
+    transcriptionId: string,
+    grant: unknown,
+  ): Promise<"admitted" | "denied"> => {
+    const socket = await rawSocket(userId);
+    const outcome = new Promise<"admitted" | "denied">((resolve) => {
+      socket.on("yjs:role", () => resolve("admitted"));
+      socket.on("transcription:denied", () => resolve("denied"));
+    });
+    socket.emit("yjs:join", { transcriptionId, grant });
+    return outcome;
+  };
+
+  it("refuses a join with no grant at all", async () => {
+    const id = privateTranscription();
+    // Bob genuinely has write access — but access is claimed by presenting the
+    // grant, not by being on a list the socket server cannot read.
+    expect(await tryJoin("user-bob", id, undefined)).toBe("denied");
+  });
+
+  it("refuses a grant issued to someone else", async () => {
+    const id = privateTranscription();
+    // A grant intercepted from Bob (who may open this transcript) is worthless
+    // to the outsider: it is bound to Bob's identity, which the socket proves
+    // separately at handshake time.
+    const bobsGrant = await mintRoomGrant("user-bob", id);
+    expect(await tryJoin("user-outsider", id, bobsGrant)).toBe("denied");
+  });
+
+  it("refuses a grant issued for another transcription", async () => {
+    // The outsider's own transcript gets them a perfectly valid grant — for
+    // their own transcript. It must not open Alice's.
+    const mine = nextTranscriptionId({ owner: "user-outsider", shared: [] });
+    const theirs = privateTranscription();
+    const myGrant = await mintRoomGrant("user-outsider", mine);
+    expect(await tryJoin("user-outsider", theirs, myGrant)).toBe("denied");
+  });
+
+  it("refuses an expired grant", async () => {
+    const id = privateTranscription();
+    const stale = await mintRoomGrant("user-bob", id, { ttlSeconds: -60 });
+    expect(await tryJoin("user-bob", id, stale)).toBe("denied");
+  });
+
+  it("refuses a hand-made grant signed with the wrong secret", async () => {
+    const id = privateTranscription();
+    const forged = await new SignJWT({ type: "room", tid: id, role: "owner" })
+      .setProtectedHeader({ alg: "HS256" })
+      .setSubject("user-outsider")
+      .setIssuedAt()
+      .setExpirationTime("1h")
+      .sign(new TextEncoder().encode("not-the-session-secret"));
+    expect(await tryJoin("user-outsider", id, forged)).toBe("denied");
+  });
+
+  it("refuses a socket token replayed as a grant", async () => {
+    // Both are signed with the session secret, so only the claim type separates
+    // "this is who I am" from "I may open this document".
+    const id = privateTranscription();
+    const token = await createSocketToken("user-outsider");
+    expect(await tryJoin("user-outsider", id, token)).toBe("denied");
+  });
+
+  it("admits a grant that is exactly what it says it is", async () => {
+    const id = privateTranscription();
+    const grant = await mintRoomGrant("user-bob", id);
+    expect(await tryJoin("user-bob", id, grant)).toBe("admitted");
   });
 });
 

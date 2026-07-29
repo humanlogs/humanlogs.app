@@ -9,7 +9,9 @@ Two runners, deliberately split by what they can protect:
 
 Both run in CI on every pull request (`.github/workflows/ci.yml`), alongside
 `npm run lint` and `npm run typecheck`. Neither needs Docker, a database server
-or any API key.
+or any API key. On `main` the same workflow gates the release jobs behind them —
+a failing suite stops the public mirror and the ECS deploy, rather than running
+alongside them.
 
 ## Why collaboration gets this much attention
 
@@ -66,7 +68,11 @@ Y.Docs** through the app's own provider. Only the database is stubbed.
   transcript. Joining, pulling the state, injecting an update and pushing a
   cursor must all be refused, a read-only collaborator's document updates must be
   dropped while their caret still gets through, and a newly granted collaborator
-  must get in.
+  must get in. Since access is claimed by presenting a **room grant**
+  (`lib/sockets/room-grant.ts`), it also forges them: a grant issued to someone
+  else, one for another transcription, an expired one, one signed with the wrong
+  secret, and a socket token replayed as a grant. The harness mints grants the
+  way the API does, from the same `checkAccess` rule.
 - **`collab-adversarial.test.ts`** — the awkward schedule: five clients opening
   the same empty room in the same tick (exactly one may seed), the authority
   vanishing before answering a state request, a duplicate join from a socket that
@@ -115,6 +121,11 @@ fires — and that the transcript keeps its speakers instead of collapsing onto
 Note the two suites use different attack surfaces on purpose: the REST route and
 the socket are separate doors, and only testing the first one is how the second
 stayed unlocked.
+
+`tests/unit/socket-server-deps.test.ts` guards the constraint that shapes the
+socket server's design: it must reach no Prisma anywhere in its import graph, or
+it breaks at runtime in the custom server. The test walks the real graph, and
+proves it can fail by pointing itself at a module that does use Prisma.
 
 If your environment ships its own Chromium instead of the build Playwright
 downloads:

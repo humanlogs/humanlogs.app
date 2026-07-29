@@ -37,6 +37,13 @@ export function registerTranscription(
   return transcription;
 }
 
+/** The stored row, as the API routes would read it before minting a grant. */
+export function getFixtureTranscription(
+  id: string,
+): FixtureTranscription | undefined {
+  return transcriptions.get(id);
+}
+
 export function updateShares(id: string, shared: FixtureShare[]) {
   const transcription = transcriptions.get(id);
   if (transcription) transcription.shared = shared;
