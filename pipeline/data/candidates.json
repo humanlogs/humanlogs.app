@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-21T07:07:14.673Z",
+  "generatedAt": "2026-07-29T07:08:55.783Z",
   "candidates": [
     {
       "keyword": "analyse qualitative",
@@ -120,16 +120,6 @@
       "intent": "informational",
       "pillar": "these-master",
       "score": 3.4
-    },
-    {
-      "keyword": "how to analyse qualitative interview data",
-      "searchVolume": 50,
-      "difficulty": 6,
-      "cpc": 0,
-      "competition": 0.08,
-      "intent": "informational",
-      "pillar": "recherche-qualitative",
-      "score": 2.81
     },
     {
       "keyword": "transcribe audio to text free online google",
@@ -262,6 +252,26 @@
       "score": 1.5
     },
     {
+      "keyword": "how to analyse qualitative data from interviews",
+      "searchVolume": 50,
+      "difficulty": 20,
+      "cpc": 0,
+      "competition": 0.08,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 1.5
+    },
+    {
+      "keyword": "how to analyse qualitative interview data",
+      "searchVolume": 50,
+      "difficulty": 20,
+      "cpc": 0,
+      "competition": 0.08,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 1.5
+    },
+    {
       "keyword": "how to analyse qualitative data from an interview",
       "searchVolume": 50,
       "difficulty": 20,
@@ -314,12 +324,12 @@
     {
       "keyword": "transcription audio en texte gratuit",
       "searchVolume": 30,
-      "difficulty": 13,
+      "difficulty": 12,
       "cpc": 2.04,
       "competition": 0.63,
       "intent": "informational",
       "pillar": "transcription",
-      "score": 1.3
+      "score": 1.36
     },
     {
       "keyword": "how to analyse qualitative survey data",
@@ -360,16 +370,6 @@
       "intent": "informational",
       "pillar": "these-master",
       "score": 1.21
-    },
-    {
-      "keyword": "how to analyse qualitative data from interviews",
-      "searchVolume": 50,
-      "difficulty": 30,
-      "cpc": 0,
-      "competition": 0.08,
-      "intent": "informational",
-      "pillar": "recherche-qualitative",
-      "score": 1.13
     },
     {
       "keyword": "transcription d'un entretien",
@@ -1312,6 +1312,16 @@
       "score": 0.45
     },
     {
+      "keyword": "how to analyse interview data qualitative",
+      "searchVolume": 10,
+      "difficulty": 20,
+      "cpc": 0,
+      "competition": 0,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.3
+    },
+    {
       "keyword": "intelligence artificielle exposé",
       "searchVolume": 10,
       "difficulty": 24,
@@ -1320,16 +1330,6 @@
       "intent": "informational",
       "pillar": "productivite-recherche",
       "score": 0.24
-    },
-    {
-      "keyword": "how to analyse interview data qualitative",
-      "searchVolume": 10,
-      "difficulty": 30,
-      "cpc": 0,
-      "competition": 0,
-      "intent": "informational",
-      "pillar": "recherche-qualitative",
-      "score": 0.23
     },
     {
       "keyword": "how to analyse qualitative questionnaire data",
