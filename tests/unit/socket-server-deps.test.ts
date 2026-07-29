@@ -20,6 +20,7 @@ import { dirname, join, relative, resolve } from "path";
 
 const ROOT = resolve(__dirname, "../..");
 const ENTRY = join(ROOT, "lib/sockets/socket-server.ts");
+const SERVER_ENTRY = join(ROOT, "server.ts");
 
 const FORBIDDEN = ["@prisma/client", "@/lib/prisma", ".prisma/client"];
 
@@ -42,7 +43,8 @@ function importsOf(source: string): string[] {
 function resolveLocal(specifier: string, fromFile: string): string | null {
   let base: string;
   if (specifier.startsWith("@/")) base = join(ROOT, specifier.slice(2));
-  else if (specifier.startsWith(".")) base = resolve(dirname(fromFile), specifier);
+  else if (specifier.startsWith("."))
+    base = resolve(dirname(fromFile), specifier);
   else return null;
 
   for (const candidate of [
@@ -64,8 +66,14 @@ function resolveLocal(specifier: string, fromFile: string): string | null {
   return null;
 }
 
-/** Walk the graph, returning every "importer → forbidden specifier" it finds. */
-function findPrismaDependencies(entry: string): string[] {
+/**
+ * Walk the graph from `entry`, calling `offends` on every (file, specifier) pair.
+ * A specifier that offends is reported and not followed.
+ */
+function walkImports(
+  entry: string,
+  offends: (specifier: string) => boolean,
+): string[] {
   const offences: string[] = [];
   const seen = new Set<string>();
   const queue = [entry];
@@ -77,7 +85,7 @@ function findPrismaDependencies(entry: string): string[] {
 
     const source = readFileSync(file, "utf8");
     for (const specifier of importsOf(source)) {
-      if (FORBIDDEN.some((f) => specifier === f || specifier.startsWith(`${f}/`))) {
+      if (offends(specifier)) {
         offences.push(`${relative(ROOT, file)} → ${specifier}`);
         continue;
       }
@@ -87,6 +95,18 @@ function findPrismaDependencies(entry: string): string[] {
   }
 
   return offences;
+}
+
+/** Every "importer → forbidden specifier" reachable from `entry`. */
+function findPrismaDependencies(entry: string): string[] {
+  return walkImports(entry, (specifier) =>
+    FORBIDDEN.some((f) => specifier === f || specifier.startsWith(`${f}/`)),
+  );
+}
+
+/** Every "importer → `@/…` specifier" reachable from `entry`. */
+function findAliasImports(entry: string): string[] {
+  return walkImports(entry, (specifier) => specifier.startsWith("@/"));
 }
 
 describe("socket server dependencies", () => {
@@ -99,6 +119,28 @@ describe("socket server dependencies", () => {
     // that legitimately uses Prisma and it must say so.
     const offences = findPrismaDependencies(
       join(ROOT, "lib/transcriptions/access.ts"),
+    );
+    expect(offences.length).toBeGreaterThan(0);
+  });
+
+  /**
+   * The other way a module can be fine everywhere except production: the `@/*`
+   * path alias.
+   *
+   * Everything reachable from server.ts is loaded from source by tsx, and tsx
+   * resolves `@/…` out of tsconfig.json — which the runtime image does not ship
+   * (the Dockerfile copies lib/, config/, server.ts, not the tsconfig). So an
+   * alias import works in dev, works in the Next bundle, passes typecheck, and
+   * then throws MODULE_NOT_FOUND at boot in the container. Relative imports
+   * resolve the same everywhere; that is why this graph uses them.
+   */
+  it("uses no `@/` path aliases anywhere the custom server loads", () => {
+    expect(findAliasImports(SERVER_ENTRY)).toEqual([]);
+  });
+
+  it("detects a path alias when there is one", () => {
+    const offences = findAliasImports(
+      join(ROOT, "lib/sockets/socket-client.ts"),
     );
     expect(offences.length).toBeGreaterThan(0);
   });
