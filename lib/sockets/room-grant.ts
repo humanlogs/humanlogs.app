@@ -1,5 +1,9 @@
 import { SignJWT, jwtVerify } from "jose";
-import { authConfig } from "@/lib/config";
+// Relative, not `@/lib/config`: this module is loaded by the custom server under
+// tsx, and the production image ships no tsconfig.json, so the `@/*` path alias
+// does not resolve there. See the import-graph guard in
+// tests/unit/socket-server-deps.test.ts.
+import { authConfig } from "../config";
 
 /**
  * Room grants — the socket server's authorization, without a database.
