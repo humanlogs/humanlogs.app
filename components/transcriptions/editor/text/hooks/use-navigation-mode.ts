@@ -19,6 +19,19 @@ import { AudioControls } from "../../audio/helpers";
 export type NavigationState = "edit" | "navigate";
 
 /**
+ * `?keydebug` in the URL turns on a running log of what the keyboard is doing.
+ *
+ * Navigation is the part of this editor that cannot be inspected from the outside —
+ * a combination that "does nothing" may have been filtered here, may never have
+ * reached the page at all (window managers take Ctrl+arrow on macOS), or may have
+ * moved somewhere unexpected. The log says which.
+ */
+function keyDebugEnabled(): boolean {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).has("keydebug");
+}
+
+/**
  * Smart window scroll that automatically uses instant scroll if called
  * multiple times within the animation delay period.
  */
@@ -75,9 +88,11 @@ export function useNavigationMode(
   // churn on the hottest path in the editor.
   const stateRef = useRef(state);
   const currentIndexRef = useRef(currentIndex);
+  const selectionAnchorRef = useRef(selectionAnchor);
   useEffect(() => {
     stateRef.current = state;
     currentIndexRef.current = currentIndex;
+    selectionAnchorRef.current = selectionAnchor;
   });
 
   useEffect(() => {
@@ -278,21 +293,49 @@ export function useNavigationMode(
   // combination instead of twelve registered strings.
   useEffect(() => {
     const ARROWS = ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"];
+    const debug = keyDebugEnabled();
+
+    // With `?keydebug`, log EVERY keydown before any of our filtering. If a
+    // combination never shows up here, the browser never received it — on macOS
+    // Ctrl+arrow is taken by Mission Control before the page sees it, and no amount
+    // of JavaScript will get it back.
+    const onAnyKeyDown = (event: KeyboardEvent) => {
+      const el = (event.target as HTMLElement) ?? null;
+      console.log("[nav] keydown", {
+        key: event.key,
+        code: event.code,
+        ctrl: event.ctrlKey,
+        shift: event.shiftKey,
+        alt: event.altKey,
+        meta: event.metaKey,
+        target: el?.tagName,
+        contentEditable: !!el?.isContentEditable,
+        state: stateRef.current,
+        currentIndex: currentIndexRef.current,
+        selectionAnchor: selectionAnchorRef.current,
+        isModalOpen,
+      });
+    };
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (isModalOpen) return;
       if (!ARROWS.includes(event.key)) return;
-      if (event.altKey) return; // held Alt is the playback-speed modifier
 
       const el = (event.target as HTMLElement) ?? null;
       const tag = el?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-      // Typing: the arrows belong to the caret.
-      if (el?.isContentEditable) return;
-      if (stateRef.current !== "navigate") return;
+      const skip =
+        (isModalOpen && "modal open") ||
+        (event.altKey && "alt is the playback-speed modifier") ||
+        ((tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") &&
+          "typing in a form field") ||
+        (el?.isContentEditable && "typing in the editor") ||
+        (stateRef.current !== "navigate" && "not in navigate mode") ||
+        (editorAPI.getSegments().length === 0 && "no segments");
+      if (skip) {
+        if (debug) console.log("[nav] arrow ignored:", skip, event.key);
+        return;
+      }
 
       const segments = editorAPI.getSegments();
-      if (segments.length === 0) return;
 
       event.preventDefault();
       lastNavigationTime.current = Date.now();
@@ -307,6 +350,22 @@ export function useNavigationMode(
       const vertical = event.key === "ArrowUp" || event.key === "ArrowDown";
       const bySentence = event.ctrlKey || event.metaKey;
       const current = currentIndexRef.current;
+      const anchor = selectionAnchorRef.current;
+
+      // A plain arrow on a selection CANCELS it rather than moving on from it: the
+      // way out of a selection you no longer want is the same key that would have
+      // grown it, without Shift. It collapses onto the edge you are heading for, so
+      // the next press carries on from where you were looking.
+      if (!event.shiftKey && anchor !== null && current !== -1) {
+        const range = orderedRange(anchor, current);
+        const edge = forward ? range.to : range.from;
+        if (debug) console.log("[nav] collapse selection to", edge);
+        setSelectionAnchor(null);
+        setCurrentIndex(edge);
+        audioControls?.seekTo(segments[edge]?.start || 0);
+        return;
+      }
+
       let next = 0;
 
       if (current !== -1) {
@@ -340,6 +399,23 @@ export function useNavigationMode(
         setSelectionAnchor(null);
       }
 
+      if (debug) {
+        console.log("[nav] arrow", event.key, {
+          mode: bySentence
+            ? "sentence"
+            : event.shiftKey
+              ? vertical
+                ? "extend-to-punctuation"
+                : "extend-word"
+              : vertical
+                ? "line"
+                : "word",
+          from: current,
+          to: next,
+          text: segments[next]?.text,
+        });
+      }
+
       audioControls?.seekTo(
         segments[Math.max(0, Math.min(segments.length - 1, next))].start || 0,
       );
@@ -347,8 +423,12 @@ export function useNavigationMode(
     };
 
     document.addEventListener("keydown", onKeyDown, { capture: true });
-    return () =>
+    if (debug) document.addEventListener("keydown", onAnyKeyDown, { capture: true });
+    return () => {
       document.removeEventListener("keydown", onKeyDown, { capture: true });
+      if (debug)
+        document.removeEventListener("keydown", onAnyKeyDown, { capture: true });
+    };
   }, [audioControls, editorAPI, isModalOpen]);
 
   /**
@@ -397,12 +477,20 @@ export function useNavigationMode(
       ? null
       : orderedRange(selectionAnchor, currentIndex);
 
+  // Mirror it into the document. Only on a transition: pushing a collapsed selection
+  // on every arrow press would fight the click-to-select the mouse still does, so the
+  // editor is left alone until a keyboard selection appears — and cleared once, when
+  // it goes away, because the overlay that draws it reads the document selection.
+  const hadSelectionRef = useRef(false);
   useEffect(() => {
     if (state !== "navigate") return;
-    if (selection) editorAPI.selectSegmentRange(selection.from, selection.to);
-    // A collapsed selection is not pushed back into the editor: navigate mode
-    // already draws the active word itself, and clearing the document selection on
-    // every arrow press would fight the click-to-select the mouse still does.
+    if (selection) {
+      hadSelectionRef.current = true;
+      editorAPI.selectSegmentRange(selection.from, selection.to);
+    } else if (hadSelectionRef.current) {
+      hadSelectionRef.current = false;
+      editorAPI.collapseSelection();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selection?.from, selection?.to, state]);
 
@@ -415,10 +503,16 @@ export function useNavigationMode(
       if (state !== "navigate") return;
       event.preventDefault();
 
-      // Select the current segment and focus the editor
-      editorAPI.focus(currentIndex, true); // true = select the segment content
+      // Select what is to be deleted — the keyboard selection when there is one,
+      // the active word otherwise — and focus the editor on it.
+      if (selectionAnchor !== null && currentIndex !== -1) {
+        const range = orderedRange(selectionAnchor, currentIndex);
+        editorAPI.selectSegmentRange(range.from, range.to);
+        editorAPI.focus();
+      } else {
+        editorAPI.focus(currentIndex, true); // true = select the segment content
+      }
 
-      // If a letter was typed or there's a custom shortcut replacement, insert that text
       editorAPI.execCommand("delete");
 
       const nextDomElement =
@@ -437,7 +531,7 @@ export function useNavigationMode(
       }
     },
     {},
-    [isModalOpen, readOnly, state, currentIndex],
+    [isModalOpen, readOnly, state, currentIndex, selectionAnchor],
   );
 
   // "Enter" key enters in focus mode and select the current word
@@ -489,7 +583,17 @@ export function useNavigationMode(
 
       // Set the selection range
       if (state === "navigate") {
-        editorAPI.focus(currentIndex, true); // true = select the segment content
+        // A keyboard selection carries into edit mode WHOLE: Shift+arrows is how you
+        // pick the passage you are about to retype, so entering the text with only
+        // its last word selected would throw that away. Without one, it is the
+        // active word, as it has always been.
+        if (selectionAnchor !== null && currentIndex !== -1) {
+          const range = orderedRange(selectionAnchor, currentIndex);
+          editorAPI.selectSegmentRange(range.from, range.to);
+          editorAPI.focus(); // no argument: keeps the selection we just set
+        } else {
+          editorAPI.focus(currentIndex, true); // true = select the segment content
+        }
       } else {
         // In edit mode, just focus to maintain existing selection
         editorAPI.focus();
@@ -506,7 +610,7 @@ export function useNavigationMode(
       enableOnContentEditable: true,
       enableOnFormTags: true,
     },
-    [isModalOpen, readOnly, state, currentIndex, customShortcuts],
+    [isModalOpen, readOnly, state, currentIndex, selectionAnchor, customShortcuts],
   );
 
   /**

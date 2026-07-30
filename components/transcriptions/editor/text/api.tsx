@@ -248,6 +248,21 @@ export class EditorAPI extends EventEmitter {
   }
 
   /**
+   * Collapse the document selection to a caret, without focusing.
+   *
+   * Navigate mode draws its selection from the document's, so letting go of a keyboard
+   * selection has to reach the document too — otherwise the outline stays on screen
+   * over a passage nothing is pointing at any more.
+   */
+  collapseSelection() {
+    const editor = this.editorRef.current;
+    if (!editor) return;
+    const { from, to } = editor.state.selection;
+    if (to === from) return;
+    editor.commands.setTextSelection(from);
+  }
+
+  /**
    * Select whole segments `from`..`to` (inclusive) WITHOUT focusing the editor.
    *
    * This is how the keyboard selection of navigate mode reaches the document: the

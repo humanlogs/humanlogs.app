@@ -110,6 +110,20 @@
     cursor: pointer;
 }
 
+/* The browser's own selection highlight is switched off while coding: the selection
+   is drawn by the overlay instead (see components/highlight-box.tsx), snapped to whole
+   words and outlined rather than filled. Two selections over the same text — one blue
+   block ending mid-word, one outline ending at the word — read as a bug, and the block
+   buries the code colours underneath. Scoped to the transcript itself, so the comment
+   rail's own text stays selectable-looking. */
+.phase-coding .tiptap ::selection {
+    background-color: transparent;
+}
+
+.phase-coding .tiptap ::-moz-selection {
+    background-color: transparent;
+}
+
 /* Word span styles for audio sync */
 .word-span, .spacing-span {
     display: inline;

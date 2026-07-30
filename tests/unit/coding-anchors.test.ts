@@ -14,7 +14,10 @@ import {
   getCodingRanges,
   removeCodingMark,
 } from "@/components/transcriptions/editor/text/utils/coding-actions";
-import { applyCommentMark } from "@/components/transcriptions/editor/text/utils/comment-actions";
+import {
+  applyCommentMark,
+  wordRange,
+} from "@/components/transcriptions/editor/text/utils/comment-actions";
 import { docToSegments } from "@/components/transcriptions/editor/text/collab/doc-to-segments";
 import { segmentsToHtml } from "@/components/transcriptions/editor/text/utils/html";
 
@@ -186,5 +189,43 @@ describe("coding anchors", () => {
     // ONE span carrying both ids: nested spans would come back from the parser as a
     // single mark, silently dropping a coding on reload.
     expect(html).toContain('<span data-coding-id="c1 c2">chat</span>');
+  });
+});
+
+/**
+ * Snapping a range out to whole words.
+ *
+ * The coding phase runs this on every selection change, so what the researcher sees
+ * selected is what will be coded. It used to happen only at the moment of applying,
+ * which meant aiming at one thing and silently getting another.
+ */
+describe("wordRange", () => {
+  const editor = makeEditor(LINE);
+  const textOf = (range: { from: number; to: number } | null) =>
+    range ? editor.state.doc.textBetween(range.from, range.to) : null;
+
+  it("grows a range that starts and ends mid-word", () => {
+    expect(textOf(wordRange(editor, { from: 5, to: 11 }))).toBe("chat dort");
+  });
+
+  it("drops whitespace a sloppy drag picked up", () => {
+    // " chat " must not pull in the words on either side of the spaces.
+    expect(textOf(wordRange(editor, { from: 3, to: 9 }))).toBe("chat");
+  });
+
+  it("returns the word under a collapsed range", () => {
+    expect(textOf(wordRange(editor, { from: 6, to: 6 }))).toBe("chat");
+  });
+
+  it("is idempotent, so snapping cannot loop on its own result", () => {
+    const once = wordRange(editor, { from: 5, to: 11 })!;
+    expect(wordRange(editor, once)).toEqual(once);
+  });
+
+  it("has nothing to snap to on whitespace alone", () => {
+    // An empty paragraph, or a caret between two spaces: there is no word to round
+    // out to, and coding must refuse rather than mark the whitespace.
+    const spaces = makeEditor("a   b");
+    expect(wordRange(spaces, { from: 3, to: 4 })).toBeNull();
   });
 });

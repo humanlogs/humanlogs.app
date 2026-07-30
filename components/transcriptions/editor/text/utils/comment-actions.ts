@@ -14,17 +14,22 @@ import {
 const WORD_CHAR = /[\w'’-]/;
 
 /**
- * Grow a range so it covers whole words — a comment should never be anchored to
- * "…faudr|ait reformuler la conclu|sion". Both ends are pushed out to the nearest word
- * boundary, after trimming any whitespace the drag picked up; an empty selection
- * becomes the word under the caret, which is what the bold/italic buttons do.
- * Returns null when there is no word to anchor to (e.g. an empty line).
+ * The whole-word range containing `from`..`to` — a comment should never be anchored to
+ * "…faudr|ait reformuler la conclu|sion", and neither should a code. Both ends are
+ * pushed out to the nearest word boundary, after trimming any whitespace the drag
+ * picked up; an empty range becomes the word under the caret, which is what the
+ * bold/italic buttons do. Returns null when there is no word there (an empty line).
+ *
+ * Computes without dispatching, so a caller can compare it against the current
+ * selection and stay quiet when it already matches — which is what keeps the coding
+ * phase's live snapping from looping on its own transactions.
  */
-export function expandSelectionToWord(
+export function wordRange(
   editor: Editor,
+  range: { from: number; to: number },
 ): { from: number; to: number } | null {
   const { doc } = editor.state;
-  let { from, to } = editor.state.selection;
+  let { from, to } = range;
 
   // Drop leading/trailing whitespace so a sloppy drag doesn't pull in the next word.
   while (to > from && /\s/.test(doc.textBetween(to - 1, to))) to--;
@@ -47,9 +52,17 @@ export function expandSelectionToWord(
   }
 
   if (from >= to) return null;
-
-  editor.commands.setTextSelection({ from, to });
   return { from, to };
+}
+
+/** {@link wordRange} applied to the current selection, and set back on the editor. */
+export function expandSelectionToWord(
+  editor: Editor,
+): { from: number; to: number } | null {
+  const range = wordRange(editor, editor.state.selection);
+  if (!range) return null;
+  editor.commands.setTextSelection(range);
+  return range;
 }
 
 /**

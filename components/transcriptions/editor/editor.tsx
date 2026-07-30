@@ -37,6 +37,7 @@ import { useAudioSync } from "./text/hooks/use-audio-sync";
 import { useCoding } from "./text/hooks/use-coding";
 import { useCodingShortcuts } from "./text/hooks/use-coding-shortcuts";
 import { useCommentThreads } from "./text/hooks/use-comment-threads";
+import { useWordSnappedSelection } from "./text/hooks/use-word-snapped-selection";
 import { SaveStatus, useAutoSave } from "./text/hooks/use-auto-save";
 import { useFormat } from "./text/hooks/use-format";
 import { useNavigationMode } from "./text/hooks/use-navigation-mode";
@@ -47,6 +48,8 @@ import {
   sortByInnermost,
 } from "./text/utils/comment-actions";
 import { parseCommentIds } from "./text/extensions/comment-mark";
+import { parseCodingIds } from "./text/extensions/coding-mark";
+import { getCodingRanges } from "./text/utils/coding-actions";
 import { segmentsToHtml } from "./text/utils/html";
 import { AudioControls } from "./audio/helpers";
 import type { DocumentPhase } from "./phase";
@@ -304,11 +307,47 @@ export function TranscriptEditor({
     if (range) goToOffset(range.from - 1);
   };
 
+  /**
+   * Clicking a coded passage selects the whole of it.
+   *
+   * A coding is a unit — the researcher chose those words together — so pointing at it
+   * should hand it back whole, ready to be coded again, commented, or taken off. Having
+   * to re-drag over a passage that is already marked out was busywork the document
+   * already knew the answer to.
+   *
+   * The narrowest coding under the pointer wins: overlapping codings share a span, so a
+   * click lands on all of them, and the tightest is the one being aimed at.
+   */
+  const selectCodingAtClick = (target: HTMLElement | null): boolean => {
+    const editor = editorAPI.getEditor();
+    const span = target?.closest?.("span[data-coding-id]");
+    const ids = parseCodingIds(span?.getAttribute("data-coding-id"));
+    if (!editor || ids.length === 0) return false;
+
+    const ranges = getCodingRanges(editor).filter((r) =>
+      ids.includes(r.codingId),
+    );
+    if (ranges.length === 0) return false;
+    const innermost = ranges.reduce((a, b) =>
+      b.to - b.from < a.to - a.from ? b : a,
+    );
+    editor.commands.setTextSelection({
+      from: innermost.from,
+      to: innermost.to,
+    });
+    return true;
+  };
+
   // Focus a thread when its highlighted text is clicked in the editor.
   useEffect(() => {
     let bound: HTMLElement | null = null;
     const onClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
+      // In the coding phase a coded passage is the unit being worked on, so it wins
+      // over the comment underneath it — the thread stays one click away on its own
+      // underline where the two do not overlap.
+      if (coding && selectCodingAtClick(target)) return;
+
       const span = target?.closest?.("span[data-comment-id]");
       const ids = parseCommentIds(span?.getAttribute("data-comment-id"));
       if (ids.length === 0) return;
@@ -318,6 +357,18 @@ export function TranscriptEditor({
       const anchorId = editor ? sortByInnermost(editor, ids)[0] : ids[0];
       commentThreads.openThread(anchorId);
       focusThreadAnchor(anchorId);
+      // Coding reads a selection, so give it the commented passage whole too.
+      if (coding) {
+        const range = getCommentRanges(editor!).find(
+          (r) => r.anchorId === anchorId,
+        );
+        if (range) {
+          editor!.commands.setTextSelection({
+            from: range.from,
+            to: range.to,
+          });
+        }
+      }
     };
     const bind = () => {
       const el = editorAPI.getEditorElement();
@@ -333,7 +384,7 @@ export function TranscriptEditor({
       bound?.removeEventListener("click", onClick);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editorAPI, commentThreads.openThread, goToOffset]);
+  }, [editorAPI, commentThreads.openThread, goToOffset, coding]);
 
   // Stable session AES key (E2E). The collab provider must not start until this is
   // resolved for an encrypted transcription, so content is never relayed in clear.
@@ -467,6 +518,10 @@ export function TranscriptEditor({
       ? codingController.appliedAtSelection()
       : new Set<string>();
   })();
+
+  // Coding rounds every range out to whole words when it applies it; snapping the
+  // selection as it is made is what lets the researcher see that before committing.
+  useWordSnappedSelection({ editor: tiptapEditor, enabled: coding });
 
   const codingShortcuts = useCodingShortcuts({
     enabled: coding && canWrite && !!documentSelection,
