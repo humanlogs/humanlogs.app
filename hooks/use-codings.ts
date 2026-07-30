@@ -36,10 +36,10 @@ export type NewCoding = {
 /**
  * Apply a code to the passage anchored by `id`.
  *
- * The mark is written into the document first (that is what the researcher sees), so
- * this is optimistic by construction: the new coding is pushed into the cache
- * immediately and reconciled when the request lands. A failure rolls the cache back —
- * the caller is responsible for taking the mark out again.
+ * The response is written STRAIGHT INTO the cache rather than invalidating it. Coding
+ * is a rapid-fire action — a code every second or two through a whole interview — and
+ * the server has just told us exactly what it stored, so refetching the document's
+ * whole coding list after each one is a round trip whose answer we already hold.
  */
 export function useAddCoding(transcriptionId: string) {
   const queryClient = useQueryClient();
@@ -60,15 +60,25 @@ export function useAddCoding(transcriptionId: string) {
       }
       return (await response.json()) as { coding: CodingDTO };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["codings", transcriptionId],
-      });
+    onSuccess: ({ coding }) => {
+      queryClient.setQueryData<CodingDTO[]>(
+        ["codings", transcriptionId],
+        (current) =>
+          current
+            ? // Guard against a concurrent refetch having already brought it in.
+              current.some((c) => c.id === coding.id)
+              ? current
+              : [...current, coding]
+            : [coding],
+      );
     },
   });
 }
 
-/** Remove one coding (author only, enforced server-side). */
+/**
+ * Remove one coding (author only, enforced server-side). Dropped from the cache
+ * directly, for the same reason {@link useAddCoding} writes into it.
+ */
 export function useDeleteCoding(transcriptionId: string) {
   const queryClient = useQueryClient();
 
@@ -81,10 +91,11 @@ export function useDeleteCoding(transcriptionId: string) {
       if (!response.ok) throw new Error("Failed to delete coding");
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["codings", transcriptionId],
-      });
+    onSuccess: (_data, codingId) => {
+      queryClient.setQueryData<CodingDTO[]>(
+        ["codings", transcriptionId],
+        (current) => current?.filter((c) => c.id !== codingId) ?? [],
+      );
     },
   });
 }

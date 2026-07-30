@@ -48,7 +48,9 @@ export const DELETE = withAuthRateLimit(
 
     await prisma.coding.delete({ where: { id: codingId } });
 
+    // Everyone but the author — see the create route.
     for (const uid of participantIds(transcription)) {
+      if (uid === user.id) continue;
       notifyDatabaseChange(uid, "coding", "delete", { transcriptionId: id });
     }
 

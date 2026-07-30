@@ -122,7 +122,12 @@ export const POST = withAuthRateLimit(
       include: { user: { select: { id: true, name: true, email: true } } },
     });
 
+    // Everyone BUT the author: their own client wrote this into its cache the moment
+    // the response came back, so telling it to refetch the whole coding list would be
+    // a round trip for something it already holds. Coding is a rapid-fire action, and
+    // this is per code applied.
     for (const uid of participantIds(transcription)) {
+      if (uid === user.id) continue;
       notifyDatabaseChange(uid, "coding", "create", { transcriptionId: id });
     }
 

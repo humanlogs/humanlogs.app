@@ -84,13 +84,16 @@ export function useAutoSave({
         speakers: editorAPI.getSpeakers(),
       });
 
-      // Keep cache warm and fresh for fast back navigation to this transcription.
+      // Mark the cached copy stale so coming back to this document later reloads
+      // it — but do NOT refetch now. We are the ones who just wrote it, so the
+      // answer would be what we sent, and query keys match by PREFIX: this key
+      // covers the participants and the thread subscriptions too, so every save
+      // was pulling three unrelated lists down the wire. On a coding pass, where a
+      // save follows every code, that is the whole network tab.
       await queryClient.invalidateQueries({
         queryKey: ["transcriptions", transcriptionId],
-      });
-      await queryClient.refetchQueries({
-        queryKey: ["transcriptions", transcriptionId],
-        type: "all",
+        exact: true,
+        refetchType: "none",
       });
 
       lastSavedRef.current = currentState;

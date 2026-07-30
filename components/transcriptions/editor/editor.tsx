@@ -65,6 +65,14 @@ const HEADER_SAFE_TOP = 140;
  */
 const SELECTION_TOOLBAR_ENABLED = false;
 
+/**
+ * How long the transcript save waits after an anchor changes, and how long it may be
+ * pushed back by a run of them. The delay has to clear the segment projection's own
+ * 300ms debounce, or the save would go out without the mark that triggered it.
+ */
+const ANCHOR_FLUSH_DELAY_MS = 1200;
+const ANCHOR_FLUSH_MAX_WAIT_MS = 5000;
+
 function SegmentsHtmlDebugPanel({ editorAPI }: { editorAPI: EditorAPI }) {
   const [html, setHtml] = useState("");
 
@@ -411,15 +419,38 @@ export function TranscriptEditor({
   });
 
   /**
-   * A note is stored the moment it is sent, but its anchor lives in the transcript,
-   * which only autosaves after a debounce — closing the tab in between would leave the
-   * note with nothing to attach to. So persist the transcript as soon as an anchor
-   * appears or disappears, after letting the (debounced) segment projection catch up
-   * with the mark that was just added or removed.
+   * A note or a coding is stored the moment it is made, but its anchor lives in the
+   * transcript, which only autosaves after a debounce — closing the tab in between
+   * would leave the row with nothing to attach to. So persist the transcript as soon
+   * as an anchor appears or disappears, after letting the (debounced) segment
+   * projection catch up with the mark.
+   *
+   * COALESCED, because coding is a burst: a code every second or two through a whole
+   * interview, and one save each meant a full transcript upload — and the refetches
+   * that follow it — per code. Repeated calls push the save back, up to a ceiling so a
+   * long uninterrupted run still gets written down along the way.
    */
+  const anchorFlushRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const anchorFlushDeadlineRef = useRef<number>(0);
   const flushAnchors = () => {
-    setTimeout(() => flushSave(), 500);
+    const now = Date.now();
+    if (!anchorFlushRef.current) {
+      anchorFlushDeadlineRef.current = now + ANCHOR_FLUSH_MAX_WAIT_MS;
+    } else if (now + ANCHOR_FLUSH_DELAY_MS > anchorFlushDeadlineRef.current) {
+      return; // already scheduled at the ceiling; pushing it back would starve it
+    } else {
+      clearTimeout(anchorFlushRef.current);
+    }
+    anchorFlushRef.current = setTimeout(() => {
+      anchorFlushRef.current = null;
+      flushSave();
+    }, ANCHOR_FLUSH_DELAY_MS);
   };
+  useEffect(() => {
+    return () => {
+      if (anchorFlushRef.current) clearTimeout(anchorFlushRef.current);
+    };
+  }, []);
 
   // A coding row is stored the moment it is applied, but its anchor lives in the
   // transcript — same race as a comment anchor, same answer.
