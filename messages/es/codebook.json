@@ -91,6 +91,20 @@
       "create": "Crear un codebook",
       "untitled": "Codebook sin nombre",
       "failed": "No se han podido guardar los códigos del documento"
+    },
+    "coding": {
+      "phase": {
+        "label": "Fase",
+        "transcription": "Transcripción",
+        "coding": "Codificación"
+      },
+      "apply": "Codificar",
+      "comment": "Comentar",
+      "noCodes": "Ningún codebook de verbatim cubre todavía este estudio.",
+      "scope": {
+        "mine": "Mis códigos",
+        "everyone": "Los códigos de todos"
+      }
     }
   }
 }

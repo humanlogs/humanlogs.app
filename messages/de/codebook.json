@@ -91,6 +91,20 @@
       "create": "Codebook erstellen",
       "untitled": "Unbenanntes Codebook",
       "failed": "Die Codes des Dokuments konnten nicht gespeichert werden"
+    },
+    "coding": {
+      "phase": {
+        "label": "Phase",
+        "transcription": "Transkript",
+        "coding": "Codierung"
+      },
+      "apply": "Codieren",
+      "comment": "Kommentieren",
+      "noCodes": "Noch kein Verbatim-Codebook deckt diese Studie ab.",
+      "scope": {
+        "mine": "Meine Codes",
+        "everyone": "Codes aller"
+      }
     }
   }
 }

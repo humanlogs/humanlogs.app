@@ -279,9 +279,20 @@ export function DropdownMenuItem({
 type DropdownMenuSubProps = {
   trigger: React.ReactNode;
   children: React.ReactNode;
+  /**
+   * Makes the row itself actionable, not just a gateway to the submenu. Needed when a
+   * parent entry means something on its own — a code that can be applied AND has
+   * sub-codes — where "hover to open, click to pick" is the only reading that does not
+   * force a redundant "the parent itself" entry into every submenu.
+   */
+  onTriggerClick?: () => void;
 };
 
-export function DropdownMenuSub({ trigger, children }: DropdownMenuSubProps) {
+export function DropdownMenuSub({
+  trigger,
+  children,
+  onTriggerClick,
+}: DropdownMenuSubProps) {
   const [isSubOpen, setIsSubOpen] = React.useState(false);
   const [isMounted, setIsMounted] = React.useState(false);
   const [isPositioned, setIsPositioned] = React.useState(false);
@@ -452,6 +463,7 @@ export function DropdownMenuSub({ trigger, children }: DropdownMenuSubProps) {
         type="button"
         onMouseEnter={handleTriggerEnter}
         onMouseLeave={handleTriggerLeave}
+        onClick={onTriggerClick}
       >
         {trigger}
         <svg

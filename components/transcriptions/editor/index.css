@@ -40,62 +40,68 @@
     text-decoration: underline;
 }
 
-/* Comment anchors: a soft yellow highlight behind the commented text — the same
-   treatment as search hits and the collaboration highlights, with the rounded padding
-   used by .word-span so every highlight sits on the text identically. The thread whose
-   panel is open is emphasised via .hl-comment-active. */
+/* Comment anchors: a yellow underline rather than a highlight.
+   Coding paints the BACKGROUND of a passage (see .hl-coding below), and a document is
+   read with both at once — two backgrounds fighting over the same words made neither
+   legible. An underline sits under the codes' colours instead of competing with them,
+   and still reads as "there is a note here". The thread whose panel is open is
+   emphasised by a rule generated in editor.tsx. */
 .hl-comment {
-    background-color: color-mix(in oklab, var(--color-yellow-300) 45%, transparent);
-    border-radius: 5px;
-    padding: 0 1px;
-    margin: 0 -1px;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, var(--color-yellow-500) 85%, transparent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+    text-decoration-skip-ink: none;
     cursor: pointer;
-    transition: background-color 0.15s ease-out;
+    transition: text-decoration-color 0.15s ease-out;
 }
 
 .hl-comment:hover {
-    background-color: color-mix(in oklab, var(--color-yellow-400) 70%, transparent);
+    text-decoration-color: var(--color-yellow-600);
 }
 
 .dark .hl-comment {
-    background-color: color-mix(in oklab, var(--color-yellow-500) 30%, transparent);
+    text-decoration-color: color-mix(in oklab, var(--color-yellow-400) 75%, transparent);
 }
 
 .dark .hl-comment:hover {
-    background-color: color-mix(in oklab, var(--color-yellow-500) 50%, transparent);
+    text-decoration-color: var(--color-yellow-300);
 }
 
 /* Overlapping threads share a single span (one mark per character), so they cannot be
-   drawn nested — a deeper tint is what signals "several comments here". */
+   drawn nested — a double underline is what signals "several comments here". */
 .hl-comment[data-comment-id*=" "] {
-    background-color: color-mix(in oklab, var(--color-yellow-400) 60%, transparent);
-}
-
-.dark .hl-comment[data-comment-id*=" "] {
-    background-color: color-mix(in oklab, var(--color-yellow-500) 42%, transparent);
+    text-decoration-style: double;
+    text-decoration-thickness: 1px;
 }
 
 /* Rail closed: the reader is on the transcript, not on the notes. The anchors stay
    visible enough to be found and clicked, but faint enough to read through — hover
    brings them back to full strength. */
 .comments-idle .hl-comment {
-    background-color: color-mix(in oklab, var(--color-yellow-300) 18%, transparent);
-}
-
-.comments-idle .hl-comment[data-comment-id*=" "] {
-    background-color: color-mix(in oklab, var(--color-yellow-400) 26%, transparent);
+    text-decoration-color: color-mix(in oklab, var(--color-yellow-500) 40%, transparent);
 }
 
 .comments-idle .hl-comment:hover {
-    background-color: color-mix(in oklab, var(--color-yellow-400) 55%, transparent);
+    text-decoration-color: var(--color-yellow-600);
 }
 
 .dark .comments-idle .hl-comment {
-    background-color: color-mix(in oklab, var(--color-yellow-500) 14%, transparent);
+    text-decoration-color: color-mix(in oklab, var(--color-yellow-400) 35%, transparent);
 }
 
-.dark .comments-idle .hl-comment:hover {
-    background-color: color-mix(in oklab, var(--color-yellow-500) 40%, transparent);
+/* Coded passages. The background itself is NOT set here: it depends on which codes
+   cover the run and on which of them the researcher is currently looking at, so it is
+   generated per attribute value by <CodingHighlightStyles>. This rule only carries what
+   every coded passage shares, plus the neutral fallback for a run whose codes are all
+   filtered out or no longer exist — which must look untouched, not grey. */
+.hl-coding {
+    border-radius: 5px;
+    padding: 0 1px;
+    margin: 0 -1px;
+    cursor: pointer;
+    background-color: transparent;
+    transition: background-color 0.15s ease-out;
 }
 
 /* Word span styles for audio sync */

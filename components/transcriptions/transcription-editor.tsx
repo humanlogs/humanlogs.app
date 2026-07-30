@@ -8,6 +8,7 @@ import {
 } from "../dialogs/tutorial-welcome-dialog";
 import { AudioProvider } from "./editor/audio/audio-context";
 import { TranscriptEditor } from "./editor/editor";
+import type { DocumentPhase } from "./editor/phase";
 import { EditorAPI } from "./editor/text/api";
 import { SaveStatus } from "./editor/text/hooks/use-auto-save";
 
@@ -15,6 +16,7 @@ type TranscriptionEditorProps = {
   hasWriteAccess: boolean;
   hasListenAccess: boolean;
   transcription: TranscriptionDetail;
+  phase?: DocumentPhase;
   onEditorReady?: (editorAPI: EditorAPI) => void;
   onSaveStatusChange?: (status: SaveStatus) => void;
 };
@@ -23,6 +25,7 @@ export function TranscriptionEditor({
   hasWriteAccess,
   hasListenAccess,
   transcription,
+  phase,
   onEditorReady,
   onSaveStatusChange,
 }: TranscriptionEditorProps) {
@@ -47,6 +50,7 @@ export function TranscriptionEditor({
           hasWriteAccess={hasWriteAccess}
           hasListenAccess={hasListenAccess}
           transcription={transcription}
+          phase={phase}
           onEditorReady={onEditorReady}
           onSaveStatusChange={onSaveStatusChange}
         />

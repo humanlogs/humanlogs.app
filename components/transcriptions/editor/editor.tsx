@@ -23,13 +23,19 @@ import {
 import { InteractiveAudio } from "./audio";
 import { EditorAPI } from "./text/api";
 import { ActiveSegmentHighlight } from "./text/components/active-segment-highlight";
+import { CodingBar } from "./text/components/coding-bar";
+import { CodingHighlightStyles } from "./text/components/coding-highlight-styles";
+import { CodingSelectionToolbar } from "./text/components/coding-selection-toolbar";
 import { CommentRail } from "./text/components/comment-rail";
 import { EditorToolbar } from "./text/components/editor-toolbar";
 import { SearchHighlights } from "./text/components/search-highlights";
+import { SelectionRangeHighlight } from "./text/components/selection-range-highlight";
 import { SelectionToolbar } from "./text/components/selection-toolbar";
 import { SpeakerColumn } from "./text/components/speaker-column";
 import { SpeakerRenameDialog } from "./text/components/speaker-rename-dialog";
 import { useAudioSync } from "./text/hooks/use-audio-sync";
+import { useCoding } from "./text/hooks/use-coding";
+import { useCodingShortcuts } from "./text/hooks/use-coding-shortcuts";
 import { useCommentThreads } from "./text/hooks/use-comment-threads";
 import { SaveStatus, useAutoSave } from "./text/hooks/use-auto-save";
 import { useFormat } from "./text/hooks/use-format";
@@ -43,6 +49,7 @@ import {
 import { parseCommentIds } from "./text/extensions/comment-mark";
 import { segmentsToHtml } from "./text/utils/html";
 import { AudioControls } from "./audio/helpers";
+import type { DocumentPhase } from "./phase";
 
 /** Roughly where the sticky header ends, used to probe the first visible line. */
 const HEADER_SAFE_TOP = 140;
@@ -94,15 +101,19 @@ export function TranscriptEditor({
   hasWriteAccess,
   hasListenAccess,
   transcription,
+  phase = "transcription",
   onEditorReady,
   onSaveStatusChange,
 }: {
   hasWriteAccess: boolean;
   hasListenAccess: boolean;
   transcription: TranscriptionDetail;
+  /** Which pass over the document the researcher is making (see ./phase). */
+  phase?: DocumentPhase;
   onEditorReady?: (editorAPI: EditorAPI) => void;
   onSaveStatusChange?: (status: SaveStatus) => void;
 }) {
+  const coding = phase === "coding";
   const containerRef = useRef<HTMLDivElement | null>(null);
   // Lazy initialiser: constructed once, stable identity, and never re-created
   // on re-render (which `useRef(new EditorAPI())` would do, then discard).
@@ -116,9 +127,10 @@ export function TranscriptEditor({
     null,
   );
   const { selectionUpdate } = useAudioSync(editorAPI);
-  const { state, currentIndex, goToOffset } = useNavigationMode(
+  const { state, currentIndex, selection, goToOffset } = useNavigationMode(
     editorAPI,
     audioControls,
+    { readOnly: coding },
   );
   const {
     applyFormat,
@@ -358,6 +370,17 @@ export function TranscriptEditor({
     setTimeout(() => flushSave(), 500);
   };
 
+  // A coding row is stored the moment it is applied, but its anchor lives in the
+  // transcript — same race as a comment anchor, same answer.
+  useEffect(() => {
+    const onCodingsChange = () => flushAnchors();
+    editorAPI.addListener("codingsChange", onCodingsChange);
+    return () => {
+      editorAPI.removeListener("codingsChange", onCodingsChange);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editorAPI, flushSave]);
+
   // When this client becomes the save leader (authority handoff), persist the
   // current state immediately so no edits sit in an unsaved window.
   useEffect(() => {
@@ -417,6 +440,40 @@ export function TranscriptEditor({
     onSaveStatusChange?.(saveStatus);
   }, [saveStatus, onSaveStatusChange]);
 
+  // --- Verbatim coding -------------------------------------------------------
+  // The codes on offer for this document and what applying one does. Kept out of the
+  // `coding` guard: the highlights of a coded document are drawn in both phases (it is
+  // the same document), only the controls are phase-specific.
+  const codingController = useCoding({
+    transcriptionId: transcription.id,
+    projectId: transcription.projectId,
+    editorAPI,
+    canWrite,
+  });
+
+  // The document selection is the coding target, and it moves for reasons React cannot
+  // see (a keyboard range, a drag, a thread being opened). This ticks on every
+  // selection update so what the menus tick, and whether there is anything to code, are
+  // re-read from the editor rather than mirrored into a second source of truth.
+  const [selectionTick, setSelectionTick] = useState(0);
+  const codingSelection = (() => {
+    void selectionTick;
+    const sel = tiptapEditor?.state.selection;
+    return sel && sel.to > sel.from ? sel : null;
+  })();
+  const appliedCodeKeys = (() => {
+    void selectionTick;
+    return codingSelection
+      ? codingController.appliedAtSelection()
+      : new Set<string>();
+  })();
+
+  const codingShortcuts = useCodingShortcuts({
+    enabled: coding && canWrite && !!codingSelection,
+    options: codingController.options,
+    onPick: codingController.toggleCode,
+  });
+
   return (
     <div
       ref={containerRef}
@@ -440,6 +497,14 @@ export function TranscriptEditor({
       )}
       <SpeakerRenameDialog />
 
+      {/* Coded passages are painted from a generated stylesheet — see the component
+          for why the colour cannot live on the mark itself. */}
+      <CodingHighlightStyles
+        editorAPI={editorAPI}
+        options={codingController.options}
+        visibleCodings={codingController.visibleCodings}
+      />
+
       {/* Emphasising the hovered/focused thread as a CSS rule rather than a class on the
           spans: those are ProseMirror-managed, so any class set imperatively is dropped
           the next time it redraws them. A rule keyed on the id always matches, however
@@ -447,10 +512,12 @@ export function TranscriptEditor({
       {emphasisedAnchorId && /^[\w-]+$/.test(emphasisedAnchorId) && (
         <style>{`
           .hl-comment[data-comment-id~="${emphasisedAnchorId}"] {
-            background-color: color-mix(in oklab, var(--color-yellow-400) 70%, transparent);
+            text-decoration-color: var(--color-yellow-600);
+            text-decoration-thickness: 3px;
           }
           .dark .hl-comment[data-comment-id~="${emphasisedAnchorId}"] {
-            background-color: color-mix(in oklab, var(--color-yellow-500) 50%, transparent);
+            text-decoration-color: var(--color-yellow-300);
+            text-decoration-thickness: 3px;
           }
         `}</style>
       )}
@@ -471,15 +538,27 @@ export function TranscriptEditor({
               <div className="pt-2"></div>
             )}
             <div className="px-4 pb-2">
-              <EditorToolbar
-                applyFormat={applyFormat}
-                activeFormats={activeFormats}
-                searchReplace={searchReplace}
-                audioControls={audioControls}
-                hasWriteAccess={canWrite}
-                hasListenAccess={hasListenAccess}
-                onComment={commentThreads.startNewComment}
-              />
+              {coding ? (
+                <CodingBar
+                  options={codingController.options}
+                  appliedKeys={appliedCodeKeys}
+                  onPick={codingController.toggleCode}
+                  scope={codingController.scope}
+                  onScopeChange={codingController.setScope}
+                  pending={codingShortcuts.pending}
+                  disabled={!canWrite || !codingSelection}
+                />
+              ) : (
+                <EditorToolbar
+                  applyFormat={applyFormat}
+                  activeFormats={activeFormats}
+                  searchReplace={searchReplace}
+                  audioControls={audioControls}
+                  hasWriteAccess={canWrite}
+                  hasListenAccess={hasListenAccess}
+                  onComment={commentThreads.startNewComment}
+                />
+              )}
             </div>
           </div>,
           document.getElementById("header-sub-portal")!,
@@ -501,24 +580,50 @@ export function TranscriptEditor({
               <ActiveSegmentHighlight
                 editorAPI={editorAPI}
                 segmentIndex={currentIndex}
-                visible={state === "navigate" && currentIndex >= 0}
+                // While a range is selected the range IS the highlight; drawing the
+                // moving end on top of it just reads as a seam in the band.
+                visible={
+                  state === "navigate" && currentIndex >= 0 && !selection
+                }
               />
-              {/* The floating selection toolbar is disabled for now: it lands on
-                  top of the transcript and hides the very text being edited,
-                  which is what users reported. Nothing is lost meanwhile — the
-                  header toolbar carries the same formats and the same comment
-                  action (with its shortcut), which is what the bubble mirrored.
-                  Flip SELECTION_TOOLBAR_ENABLED back on once it can be placed
-                  without covering the line. */}
-              {SELECTION_TOOLBAR_ENABLED && (
-                <SelectionToolbar
+              <SelectionRangeHighlight
+                editor={tiptapEditor}
+                editorAPI={editorAPI}
+                visible={coding}
+              />
+              {/* The transcription phase's floating toolbar is disabled for now:
+                  it lands on top of the transcript and hides the very text being
+                  edited, which is what users reported. Nothing is lost meanwhile
+                  — the header toolbar carries the same formats and the same
+                  comment action (with its shortcut), which is what the bubble
+                  mirrored. Flip SELECTION_TOOLBAR_ENABLED back on once it can be
+                  placed without covering the line.
+
+                  The CODING toolbar is not covered by that: it appears over a
+                  transcript that is read-only, where nothing is being typed
+                  underneath it, and it is the only way to apply a code with the
+                  mouse. */}
+              {coding ? (
+                <CodingSelectionToolbar
                   editor={tiptapEditor}
                   editorAPI={editorAPI}
-                  canWrite={canWrite}
-                  applyFormat={applyFormat}
-                  activeFormats={activeFormats}
+                  options={codingController.options}
+                  appliedKeys={appliedCodeKeys}
+                  onPick={codingController.toggleCode}
                   onComment={commentThreads.startNewComment}
+                  canWrite={canWrite}
                 />
+              ) : (
+                SELECTION_TOOLBAR_ENABLED && (
+                  <SelectionToolbar
+                    editor={tiptapEditor}
+                    editorAPI={editorAPI}
+                    canWrite={canWrite}
+                    applyFormat={applyFormat}
+                    activeFormats={activeFormats}
+                    onComment={commentThreads.startNewComment}
+                  />
+                )
               )}
               <div className="w-full min-w-0 max-w-full overflow-hidden">
                 <TranscriptEditorContentTipTap
@@ -541,8 +646,12 @@ export function TranscriptEditor({
                     );
                     selectionUpdate();
                     formatSelectionUpdate(editor);
+                    setSelectionTick((tick) => tick + 1);
                   }}
                   hasWriteAccess={canWrite}
+                  // Coding is a reading pass: the transcript is fixed, so the editor
+                  // is read-only even for someone who could write it.
+                  editable={canWrite && !coding}
                 />
               </div>
             </div>

@@ -20,9 +20,23 @@ export const defaultShortcuts = [
     category: "Navigation",
     shortcuts: [
       { keys: ["Arrow keys"], description: "Navigate word" },
-      { keys: ["Shift + Arrow keys"], description: "Navigate sentence" },
+      // Sentence navigation moved from Shift to Ctrl when Shift took over
+      // selection — the meaning it has in every other text surface.
+      { keys: ["Ctrl + Arrow keys"], description: "Navigate sentence" },
       { keys: ["Enter"], description: "Enter edit mode" },
-      { keys: ["Escape"], description: "Exit edit mode" },
+      { keys: ["Escape"], description: "Exit edit mode / clear selection" },
+    ],
+  },
+  {
+    category: "Selection",
+    shortcuts: [
+      { keys: ["Shift + ← / →"], description: "Select one more word" },
+      {
+        keys: ["Shift + ↑ / ↓"],
+        description: "Select up to the next punctuation",
+      },
+      { keys: ["A", "B", "…"], description: "Apply the matching code (coding)" },
+      { keys: ["A then B"], description: "Apply a sub-code (coding)" },
     ],
   },
 ];

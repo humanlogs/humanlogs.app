@@ -17,6 +17,11 @@ interface TranscriptEditorContentProps {
   encryptionReady?: boolean;
   onChange: (segments: TranscriptionSegment[]) => void;
   hasWriteAccess: boolean;
+  /**
+   * Whether the document accepts edits. Defaults to `hasWriteAccess`; the coding phase
+   * passes false so a researcher who *could* write is still only reading.
+   */
+  editable?: boolean;
   onSelectionUpdate: (editor: Editor) => void;
 }
 
@@ -30,6 +35,7 @@ export function TranscriptEditorContentTipTap({
   encryptionReady,
   onChange,
   hasWriteAccess,
+  editable,
   onSelectionUpdate,
 }: TranscriptEditorContentProps) {
   const { editor: tiptapEditor, segmentsRef } = useTiptapEditor({
@@ -40,7 +46,7 @@ export function TranscriptEditorContentTipTap({
     encryptionReady,
     onChange,
     editorAPI,
-    editable: hasWriteAccess,
+    editable: editable ?? hasWriteAccess,
     onSelectionUpdate,
   });
 

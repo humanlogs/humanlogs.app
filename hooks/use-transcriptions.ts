@@ -106,6 +106,11 @@ export type TranscriptionSegment = {
   // which range is anchored so it survives save → reseed and is versioned with the
   // transcript. A token normally has at most one (a mark type is unique per position).
   comments?: string[];
+  // Coding ids anchored on this token (the `codingIds` of any `coding` mark covering
+  // it). Which code each one stands for, and who applied it, lives in the Coding
+  // table; this only records which passage is coded, for the same reasons as
+  // `comments` above.
+  codings?: string[];
 };
 
 export type HistoryEntry = {

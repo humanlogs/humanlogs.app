@@ -1,20 +1,25 @@
 "use client";
 
 import { CannotAccessTranscription } from "@/components/encryption";
+import { DocumentPhaseSwitch } from "@/components/transcriptions/document-phase-switch";
+import {
+  parseDocumentPhase,
+  type DocumentPhase,
+} from "@/components/transcriptions/editor/phase";
 import { TranscriptionActions } from "@/components/transcriptions/transcription-actions";
 import { TranscriptionEditor } from "@/components/transcriptions/transcription-editor";
 import { TranscriptionFailed } from "@/components/transcriptions/transcription-failed";
 import { TranscriptionLoading } from "@/components/transcriptions/transcription-loading";
 import { ProjectBadge } from "@/components/projects/project-badge";
-import { useProjects } from "@/hooks/use-api";
+import { useBetaFeatures, useProjects } from "@/hooks/use-api";
 import { useDocumentTitle } from "@/hooks/use-document-title";
 import { useEncryptionStatus } from "@/hooks/use-encryption";
 import { useTranscription, useTranscriptions } from "@/hooks/use-transcriptions";
 import { useTranscriptionDeleteModal } from "@/components/transcriptions/dialogs/transcription-delete-dialog";
 import { PencilIcon } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { use, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, use, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { useTranscriptionRenameModal } from "../../../../../components/transcriptions/dialogs/transcription-rename-dialog";
@@ -27,7 +32,7 @@ type TranscriptionPageProps = {
   }>;
 };
 
-export default function TranscriptionPage({ params }: TranscriptionPageProps) {
+function TranscriptionPageContent({ params }: TranscriptionPageProps) {
   const { id } = use(params);
   const {
     data: transcription,
@@ -45,6 +50,24 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [editorAPI, setEditorAPI] = useState<any>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const betaFeatures = useBetaFeatures();
+
+  // The phase lives in the URL so a reload — or a link sent to a colleague — lands on
+  // the same pass over the document. Coding is part of the codebooks beta, so without
+  // the opt-in there is only one phase and no switch to show.
+  const phase: DocumentPhase = betaFeatures
+    ? parseDocumentPhase(searchParams.get("phase"))
+    : "transcription";
+  const setPhase = (next: DocumentPhase) => {
+    const query = new URLSearchParams(searchParams.toString());
+    if (next === "transcription") query.delete("phase");
+    else query.set("phase", next);
+    const suffix = query.toString();
+    router.replace(`/app/transcription/${id}${suffix ? `?${suffix}` : ""}`, {
+      scroll: false,
+    });
+  };
 
   const isEncryptionError = error?.message === "error_encrypted";
 
@@ -162,6 +185,9 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
                     </Button>
                   )}
                 </span>
+                {betaFeatures && transcription.state === "COMPLETED" && (
+                  <DocumentPhaseSwitch phase={phase} onChange={setPhase} />
+                )}
               </div>
               <TranscriptionActions
                 hasWriteAccess={!!hasWriteAccess}
@@ -206,10 +232,20 @@ export default function TranscriptionPage({ params }: TranscriptionPageProps) {
           hasWriteAccess={!!hasWriteAccess}
           hasListenAccess={!!hasListenAccess}
           transcription={transcription}
+          phase={phase}
           onEditorReady={setEditorAPI}
           onSaveStatusChange={setSaveStatus}
         />
       )}
     </>
+  );
+}
+
+// useSearchParams() must be wrapped in a Suspense boundary for the production build.
+export default function TranscriptionPage(props: TranscriptionPageProps) {
+  return (
+    <Suspense fallback={null}>
+      <TranscriptionPageContent {...props} />
+    </Suspense>
   );
 }

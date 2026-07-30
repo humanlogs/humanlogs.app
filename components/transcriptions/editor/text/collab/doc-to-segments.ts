@@ -2,6 +2,7 @@ import type { Node as PMNode } from "@tiptap/pm/model";
 import type { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { normalizeEditorSegments } from "../hooks/use-normalize-editor-segments";
 import { parseCommentIds } from "../extensions/comment-mark";
+import { parseCodingIds } from "../extensions/coding-mark";
 
 /**
  * Deterministic, idempotent, order-independent repair of a token sequence's
@@ -102,6 +103,22 @@ function marksToComments(node: PMNode): string[] | undefined {
   return ids.length ? ids : undefined;
 }
 
+/**
+ * Collect coding ids from a node's `coding` mark. As with comments there is at most one
+ * such mark, listing every coding covering the run — so a passage carrying three codes
+ * (possibly from three researchers) lands whole in the projection.
+ */
+function marksToCodings(node: PMNode): string[] | undefined {
+  const ids: string[] = [];
+  for (const m of node.marks) {
+    if (m.type.name !== "coding") continue;
+    for (const id of parseCodingIds(m.attrs?.codingIds)) {
+      if (!ids.includes(id)) ids.push(id);
+    }
+  }
+  return ids.length ? ids : undefined;
+}
+
 /** Split a text run into word / spacing tokens, inheriting speaker + modifiers. */
 function pushTextRun(
   out: TranscriptionSegment[],
@@ -109,6 +126,7 @@ function pushTextRun(
   speakerId: string,
   modifiers: ("b" | "i" | "u" | "s")[] | undefined,
   comments: string[] | undefined,
+  codings: string[] | undefined,
 ) {
   if (!text) return;
   for (const part of text.split(/(\s+)/)) {
@@ -121,6 +139,7 @@ function pushTextRun(
         text: part,
         speakerId,
         ...(comments ? { comments } : {}),
+        ...(codings ? { codings } : {}),
       });
     } else {
       out.push({
@@ -129,6 +148,7 @@ function pushTextRun(
         speakerId,
         ...(modifiers ? { modifiers } : {}),
         ...(comments ? { comments } : {}),
+        ...(codings ? { codings } : {}),
       });
     }
   }
@@ -158,6 +178,7 @@ function docToStructureSegments(doc: PMNode): TranscriptionSegment[] {
           speakerId,
           marksToMods(inline),
           marksToComments(inline),
+          marksToCodings(inline),
         );
       } else if (inline.type.name === "hardBreak") {
         out.push({ type: "spacing", text: "\n", speakerId });

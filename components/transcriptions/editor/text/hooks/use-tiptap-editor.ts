@@ -36,6 +36,7 @@ import {
   isUnsyncedBlank,
 } from "../collab/timing-reference";
 import { AutoWrapExtension } from "../extensions/auto-wrap-extension";
+import { CodingMark } from "../extensions/coding-mark";
 import { CommentMark } from "../extensions/comment-mark";
 import { segmentsToHtml } from "../utils/html";
 import {
@@ -282,6 +283,7 @@ export function useTiptapEditor({
         StrikeNoShortcut,
         UnderlineNoShortcut,
         CommentMark,
+        CodingMark,
         SpeakerParagraph,
         Placeholder.configure({
           placeholder: "Start typing…",

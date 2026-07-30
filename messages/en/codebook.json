@@ -91,6 +91,20 @@
       "create": "Create a codebook",
       "untitled": "Untitled codebook",
       "failed": "Could not save the document's codes"
+    },
+    "coding": {
+      "phase": {
+        "label": "Phase",
+        "transcription": "Transcript",
+        "coding": "Coding"
+      },
+      "apply": "Code",
+      "comment": "Comment",
+      "noCodes": "No verbatim codebook covers this study yet.",
+      "scope": {
+        "mine": "My codes",
+        "everyone": "Everyone's codes"
+      }
     }
   }
 }
