@@ -111,6 +111,12 @@ export function useCoding({
     trail.length > 0 ? trail[trail.length - 1].children : options;
 
   const back = useCallback(() => setTrail((t) => t.slice(0, -1)), []);
+  // Identity-preserving when already at the top level, so callers can fire it on
+  // every selection change without re-rendering the bar for nothing.
+  const resetTrail = useCallback(
+    () => setTrail((t) => (t.length === 0 ? t : [])),
+    [],
+  );
 
   const visibleCodings = useMemo(
     () =>
@@ -310,6 +316,7 @@ export function useCoding({
     level,
     trail,
     back,
+    resetTrail,
     pick,
     undo,
     availableCodebooks,

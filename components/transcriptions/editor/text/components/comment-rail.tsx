@@ -163,11 +163,15 @@ export function CommentRail({
   return (
     <div
       ref={railRef}
-      // A tinted column rather than cards floating on the page background: it gives
-      // the notes a place of their own next to the transcript, and it gives the close
-      // control — which is pinned, so it is the one thing not sitting on a card —
-      // something to sit on. Yellow, matching the underline a comment anchor draws in
-      // the text, so the two read as the same feature.
+      /* A tinted column rather than cards floating on the page background: it gives
+         the notes a place of their own next to the transcript, and it gives the close
+         control — which is pinned, so it is the one thing not sitting on a card —
+         something to sit on. Yellow, matching the underline a comment anchor draws in
+         the text, so the two read as the same feature.
+
+         Its inside margin cannot come from padding here: cards are positioned from the
+         top of this column, and padding would offset every measured position. Each card
+         carries it (RAIL_INSET), and the pinned controls are inset to match. */
       className="group/rail relative shrink-0 rounded-lg border border-yellow-400/25 bg-yellow-50/70 dark:border-yellow-400/15 dark:bg-yellow-400/[0.04]"
       style={{ width: RAIL_WIDTH }}
       data-comment-rail=""
@@ -185,7 +189,10 @@ export function CommentRail({
           title={t("comments.hide")}
           aria-label={t("comments.hide")}
           className={`${PIN_CLASS} text-muted-foreground hover:text-foreground h-6 w-6 opacity-60 hover:opacity-100 focus-visible:opacity-100`}
-          style={{ left: pins.right - PIN_SIZE, top: pins.top }}
+          style={{
+            left: pins.right - PIN_SIZE - RAIL_INSET,
+            top: pins.top + RAIL_INSET,
+          }}
         >
           <X className="h-3.5 w-3.5" />
         </button>
@@ -200,7 +207,7 @@ export function CommentRail({
             if (el) cardRefs.current.set(anchor.anchorId, el);
             else cardRefs.current.delete(anchor.anchorId);
           }}
-          className="absolute left-0 w-full transition-[top] duration-150 ease-out"
+          className="absolute left-0 w-full px-2 transition-[top] duration-150 ease-out"
           style={{ top: tops.get(anchor.anchorId) ?? anchor.anchorTop }}
         >
           <CommentCard
@@ -229,6 +236,12 @@ const BAND_PADDING = 8;
 /** Comment chip / jump arrow (h-5 w-5) and the close button (h-6 w-6). */
 const CHIP_SIZE = 20;
 const PIN_SIZE = 24;
+
+/**
+ * The breathing room between the rail's edge and what sits inside it — the cards, and
+ * the close control that has no card to sit on.
+ */
+const RAIL_INSET = 8;
 
 /**
  * The comment chip: soft yellow disc, amber glyph. Shared by the gutter dots and the

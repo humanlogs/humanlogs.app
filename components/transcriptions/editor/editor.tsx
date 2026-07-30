@@ -230,6 +230,17 @@ export function TranscriptEditor({
   // Comment threads: creating/focusing threads, and dropping abandoned anchors.
   const commentThreads = useCommentThreads({ editorAPI, canWrite });
 
+  // --- Verbatim coding -------------------------------------------------------
+  // The codes on offer for this document and what applying one does. Declared up here
+  // with the other controllers because the click handling below reads it — clicking a
+  // coded passage selects it, and only what is actually shown may be selected.
+  const codingController = useCoding({
+    transcriptionId: transcription.id,
+    projectId: transcription.projectId,
+    editorAPI,
+    canWrite,
+  });
+
   // Notifications about this document are about its comments, so they are cleared when
   // the rail is actually opened — not merely by landing on the page, which would wipe
   // the sidebar badge before the user has seen what it was pointing at. Guarded on the
@@ -323,13 +334,24 @@ export function TranscriptEditor({
    * to re-drag over a passage that is already marked out was busywork the document
    * already knew the answer to.
    *
+   * Only what is actually SHOWN counts. A mark can outlive what made it visible: a
+   * coding by a colleague while reading your own pass, one made through another prism,
+   * one whose code has since been deleted. The passage then looks like plain text, and
+   * grabbing a whole sentence off a click there is the editor acting on something the
+   * researcher cannot see.
+   *
    * The narrowest coding under the pointer wins: overlapping codings share a span, so a
    * click lands on all of them, and the tightest is the one being aimed at.
    */
   const selectCodingAtClick = (target: HTMLElement | null): boolean => {
     const editor = editorAPI.getEditor();
     const span = target?.closest?.("span[data-coding-id]");
-    const ids = parseCodingIds(span?.getAttribute("data-coding-id"));
+    const visible = new Set(
+      codingController.visibleCodings.map((coding) => coding.id),
+    );
+    const ids = parseCodingIds(span?.getAttribute("data-coding-id")).filter(
+      (id) => visible.has(id),
+    );
     if (!editor || ids.length === 0) return false;
 
     const ranges = getCodingRanges(editor).filter((r) =>
@@ -392,7 +414,13 @@ export function TranscriptEditor({
       bound?.removeEventListener("click", onClick);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editorAPI, commentThreads.openThread, goToOffset, coding]);
+  }, [
+    editorAPI,
+    commentThreads.openThread,
+    goToOffset,
+    coding,
+    codingController.visibleCodings,
+  ]);
 
   // Stable session AES key (E2E). The collab provider must not start until this is
   // resolved for an encrypted transcription, so content is never relayed in clear.
@@ -522,17 +550,6 @@ export function TranscriptEditor({
     onSaveStatusChange?.(saveStatus);
   }, [saveStatus, onSaveStatusChange]);
 
-  // --- Verbatim coding -------------------------------------------------------
-  // The codes on offer for this document and what applying one does. Kept out of the
-  // `coding` guard: the highlights of a coded document are drawn in both phases (it is
-  // the same document), only the controls are phase-specific.
-  const codingController = useCoding({
-    transcriptionId: transcription.id,
-    projectId: transcription.projectId,
-    editorAPI,
-    canWrite,
-  });
-
   // The document selection is the coding target, and it moves for reasons React cannot
   // see (a keyboard range, a drag, a thread being opened). This ticks on every
   // selection update so what the menus tick, and whether there is anything to code, are
@@ -553,6 +570,14 @@ export function TranscriptEditor({
   // Coding rounds every range out to whole words when it applies it; snapping the
   // selection as it is made is what lets the researcher see that before committing.
   useWordSnappedSelection({ editor: tiptapEditor, enabled: coding });
+
+  // A new passage starts from the themes again. Opening a group is about the passage
+  // in front of you — carrying it over to the next one leaves the researcher typing a
+  // letter against sub-codes they had forgotten they were inside.
+  useEffect(() => {
+    codingController.resetTrail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documentSelection?.from, documentSelection?.to]);
 
   // Bound for the whole coding phase, not only when something is selected: the
   // letters open groups as well as applying codes, so browsing the tree with the
