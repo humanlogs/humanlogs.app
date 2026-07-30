@@ -554,10 +554,16 @@ export function TranscriptEditor({
   // selection as it is made is what lets the researcher see that before committing.
   useWordSnappedSelection({ editor: tiptapEditor, enabled: coding });
 
-  const codingShortcuts = useCodingShortcuts({
-    enabled: coding && canWrite && !!documentSelection,
-    options: codingController.options,
-    onPick: codingController.toggleCode,
+  // Bound for the whole coding phase, not only when something is selected: the
+  // letters open groups as well as applying codes, so browsing the tree with the
+  // keyboard has to work before a passage is chosen. Applying to nothing is a no-op.
+  useCodingShortcuts({
+    enabled: coding && canWrite,
+    level: codingController.level,
+    onPick: codingController.pick,
+    onBack: codingController.back,
+    onUndo: codingController.undo,
+    canGoBack: codingController.trail.length > 0,
   });
 
   return (
@@ -631,15 +637,16 @@ export function TranscriptEditor({
             <div className="px-4 pb-2">
               {coding ? (
                 <CodingBar
-                  options={codingController.options}
+                  level={codingController.level}
+                  trail={codingController.trail}
+                  onBack={codingController.back}
                   appliedKeys={appliedCodeKeys}
-                  onPick={codingController.toggleCode}
+                  onPick={codingController.pick}
                   codebooks={codingController.availableCodebooks}
                   codebookId={codingController.codebook?.id ?? null}
                   onCodebookChange={codingController.selectCodebook}
                   scope={codingController.scope}
                   onScopeChange={codingController.setScope}
-                  pending={codingShortcuts.pending}
                   disabled={!canWrite || !documentSelection}
                 />
               ) : (
@@ -708,9 +715,11 @@ export function TranscriptEditor({
                 <CodingSelectionToolbar
                   editor={tiptapEditor}
                   editorAPI={editorAPI}
-                  options={codingController.options}
+                  level={codingController.level}
+                  trail={codingController.trail}
+                  onBack={codingController.back}
                   appliedKeys={appliedCodeKeys}
-                  onPick={codingController.toggleCode}
+                  onPick={codingController.pick}
                   onComment={commentThreads.startNewComment}
                   canWrite={canWrite}
                 />

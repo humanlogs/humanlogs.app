@@ -13,7 +13,7 @@ import {
   type CodingOption,
   type CodingScope,
 } from "@/lib/codebooks/coding";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { EditorAPI } from "../api";
 import {
   applyCodingMark,
@@ -88,6 +88,30 @@ export function useCoding({
     [codebook],
   );
 
+  /**
+   * The codes we have opened into, outermost first — empty at the top level.
+   *
+   * Sub-codes replace the list rather than living in a submenu. A theme is then always
+   * one keystroke away, whether or not you go on to refine it: "A" applies the theme
+   * AND puts its sub-themes where the themes were, so the next letter reads against
+   * them. Escape (or the back row) comes back out.
+   */
+  const [trail, setTrail] = useState<CodingOption[]>([]);
+  // The trail belongs to the codebook it was opened in; keeping it across a change of
+  // prism would show one codebook's sub-codes under another's heading. Adjusted during
+  // render rather than in an effect, so no frame is ever painted with the mismatch.
+  const [trailCodebookId, setTrailCodebookId] = useState(codebook?.id ?? null);
+  if (trailCodebookId !== (codebook?.id ?? null)) {
+    setTrailCodebookId(codebook?.id ?? null);
+    setTrail([]);
+  }
+
+  /** The codes currently shown: the top level, or the children we have opened into. */
+  const level =
+    trail.length > 0 ? trail[trail.length - 1].children : options;
+
+  const back = useCallback(() => setTrail((t) => t.slice(0, -1)), []);
+
   const visibleCodings = useMemo(
     () =>
       codingsInScope(codings, scope, profile?.id).filter(
@@ -130,6 +154,28 @@ export function useCoding({
    * same way carries two rows, and one of them stepping back must not erase the other's
    * reading.
    */
+  /**
+   * What has been done to this document in this session, newest last.
+   *
+   * Coding cannot ride the editor's undo stack: the marks are written with
+   * `addToHistory: false` precisely because Ctrl+Z only knows about the document and
+   * would leave the database row pointing at nothing. So coding keeps its own, in
+   * which one step is one code applied or retracted — which is what "undo" means to
+   * someone coding anyway, whatever the transcript's own history holds.
+   */
+  const historyRef = useRef<
+    Array<
+      | { type: "apply"; codingId: string }
+      | {
+          type: "remove";
+          codebookId: string;
+          codeId: string;
+          from: number;
+          to: number;
+        }
+    >
+  >([]);
+
   const toggleCode = useCallback(
     (option: Pick<CodingOption, "codebookId"> & { code: { id: string } }) => {
       const editor = editorAPI.getEditor();
@@ -155,6 +201,13 @@ export function useCoding({
           removeCodingMark(editor, id);
           deleteCoding.mutate(id);
         }
+        historyRef.current.push({
+          type: "remove",
+          codebookId: option.codebookId,
+          codeId: option.code.id,
+          from,
+          to,
+        });
         editorAPI.emit("codingsChange");
         return;
       }
@@ -164,6 +217,7 @@ export function useCoding({
           ? crypto.randomUUID()
           : `coding-${Date.now()}-${Math.random().toString(36).slice(2)}`;
       if (!applyCodingMark(editor, id)) return; // nothing to anchor (empty line)
+      historyRef.current.push({ type: "apply", codingId: id });
       editorAPI.emit("codingsChange");
       addCoding.mutate(
         { id, codebookId: option.codebookId, codeId: option.code.id },
@@ -172,6 +226,9 @@ export function useCoding({
             // The row never landed: take the highlight back out rather than leave a
             // coded-looking passage that no query would ever return.
             removeCodingMark(editor, id);
+            historyRef.current = historyRef.current.filter(
+              (entry) => !(entry.type === "apply" && entry.codingId === id),
+            );
             editorAPI.emit("codingsChange");
           },
         },
@@ -188,8 +245,73 @@ export function useCoding({
     ],
   );
 
+  /**
+   * Choosing a code: apply it, and — when it has sub-codes — open them in place of
+   * the level it was on. That is what makes one keystroke enough for a theme while
+   * leaving its refinements one more keystroke away. A leaf closes the trail, so the
+   * next passage starts from the themes again.
+   */
+  const pick = useCallback(
+    (option: CodingOption) => {
+      toggleCode(option);
+      setTrail((current) =>
+        option.children.length > 0 ? [...current, option] : [],
+      );
+    },
+    [toggleCode],
+  );
+
+  /**
+   * Take back the last thing coded here. Applying becomes retracting and retracting
+   * becomes applying — with a fresh id, since the row is gone and a coding is
+   * identified by the anchor it created.
+   */
+  const undo = useCallback(() => {
+    const editor = editorAPI.getEditor();
+    if (!editor || !canWrite) return;
+    const entry = historyRef.current.pop();
+    if (!entry) return;
+
+    if (entry.type === "apply") {
+      removeCodingMark(editor, entry.codingId);
+      deleteCoding.mutate(entry.codingId);
+      editorAPI.emit("codingsChange");
+      return;
+    }
+
+    // Put the passage back and code it again. The range may have moved under a
+    // collaborator's edit; clamping is the honest answer — better a coding an
+    // approximate word wide than none at all.
+    const size = editor.state.doc.content.size;
+    const from = Math.min(entry.from, size);
+    const to = Math.min(entry.to, size);
+    if (to <= from) return;
+    editor.commands.setTextSelection({ from, to });
+
+    const id =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `coding-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    if (!applyCodingMark(editor, id)) return;
+    editorAPI.emit("codingsChange");
+    addCoding.mutate(
+      { id, codebookId: entry.codebookId, codeId: entry.codeId },
+      {
+        onError: () => {
+          removeCodingMark(editor, id);
+          editorAPI.emit("codingsChange");
+        },
+      },
+    );
+  }, [editorAPI, canWrite, addCoding, deleteCoding]);
+
   return {
     options,
+    level,
+    trail,
+    back,
+    pick,
+    undo,
     availableCodebooks,
     codebook,
     selectCodebook,

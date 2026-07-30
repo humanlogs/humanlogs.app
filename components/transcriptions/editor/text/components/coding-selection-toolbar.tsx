@@ -1,6 +1,9 @@
 "use client";
 
-import { CodingMenuItems } from "@/components/codebooks/coding-menu";
+import {
+  CodingBackRow,
+  CodingLevelList,
+} from "@/components/codebooks/coding-menu";
 import { useTranslations } from "@/components/locale-provider";
 import type { CodingOption } from "@/lib/codebooks/coding";
 import type { Editor } from "@tiptap/react";
@@ -33,7 +36,9 @@ const WIDTH = 260;
 export function CodingSelectionToolbar({
   editor,
   editorAPI,
-  options,
+  level,
+  trail,
+  onBack,
   appliedKeys,
   onPick,
   onComment,
@@ -41,7 +46,10 @@ export function CodingSelectionToolbar({
 }: {
   editor: Editor | null;
   editorAPI: EditorAPI;
-  options: CodingOption[];
+  /** The codes currently shown: the top level, or the sub-codes we opened into. */
+  level: CodingOption[];
+  trail: CodingOption[];
+  onBack: () => void;
   appliedKeys: Set<string>;
   onPick: (option: CodingOption) => void;
   onComment: () => void;
@@ -106,12 +114,21 @@ export function CodingSelectionToolbar({
         {/* Bounded: a codebook with thirty codes must not push the comment action
             off the screen, and the list is the part that can grow. */}
         <div className="max-h-[40vh] overflow-y-auto">
-          <CodingMenuItems
-            options={options}
+          {trail.length > 0 && (
+            <>
+              <CodingBackRow
+                parent={trail[trail.length - 1]}
+                onBack={onBack}
+              />
+              <div className="my-1 h-px bg-border" />
+            </>
+          )}
+          <CodingLevelList
+            level={level}
             appliedKeys={appliedKeys}
             onPick={onPick}
           />
-          {options.length === 0 && (
+          {level.length === 0 && (
             <p className="px-2 py-2 text-xs text-muted-foreground">
               {t("noCodes")}
             </p>

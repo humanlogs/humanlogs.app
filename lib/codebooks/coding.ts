@@ -47,7 +47,12 @@ export function verbatimCodebooks<T extends { target?: CodebookTarget }>(
 
 /**
  * One entry of the coding menu: a code, the codebook it came from, the colour its
- * highlight is painted with, and the keystrokes that reach it.
+ * highlight is painted with, and the letter that reaches it.
+ *
+ * The letter is per LEVEL, not a path from the root. Picking a code that has sub-codes
+ * applies it AND opens its children in place — so the next letter is read against
+ * them, and a theme is never more than one keystroke away whether or not you go on to
+ * refine it.
  */
 export type CodingOption = {
   codebookId: string;
@@ -55,8 +60,6 @@ export type CodingOption = {
   code: Code;
   /** The letter typed at this level, e.g. "B". Null past the 26th sibling. */
   letter: string | null;
-  /** The full sequence from the root, e.g. "AB" — null as soon as one level has none. */
-  sequence: string | null;
   /**
    * The palette key the highlight uses. Sub-codes carry no colour of their own for
    * now, so they inherit their parent's: a passage coded with a sub-theme still reads
@@ -72,39 +75,32 @@ function buildLevel(
   codes: Code[] | undefined,
   codebookId: string,
   codebookName: string,
-  parentSequence: string | null,
   inheritedColor: string | null,
 ): CodingOption[] {
   if (!Array.isArray(codes)) return [];
   return codes.map((code, index) => {
-    const letter = index < LETTERS.length ? LETTERS[index] : null;
-    // A level past the 26th sibling has no letter, and neither has anything under it:
-    // there is no sequence to type that would reach it.
-    const sequence =
-      letter !== null && parentSequence !== null
-        ? `${parentSequence}${letter}`
-        : null;
     const color = code.color ?? inheritedColor;
     return {
       codebookId,
       codebookName,
       code,
-      letter,
-      sequence,
+      // Past the 26th sibling there is no letter left; the entry is still there to
+      // be clicked.
+      letter: index < LETTERS.length ? LETTERS[index] : null,
       color,
-      children: buildLevel(code.children, codebookId, codebookName, sequence, color),
+      children: buildLevel(code.children, codebookId, codebookName, color),
     };
   });
 }
 
 /**
  * The coding menu for a set of codebooks: codes in their authored order, sub-codes
- * nested, each reachable by typing its letter sequence.
+ * nested under them, each reachable by its letter within its own level.
  *
- * Letters run across the WHOLE top level rather than restarting per codebook — the
- * researcher types "A" without first choosing a codebook, so two codes answering to
- * "A" would make the shortcut ambiguous. Within a code, its sub-codes restart at "A",
- * which is what makes "AB" mean "second sub-code of the first code".
+ * Letters run across the WHOLE top level rather than restarting per codebook. In
+ * practice the editor codes through one codebook at a time, but nothing here depends
+ * on that, and two codes answering to "A" would make the shortcut ambiguous if it
+ * ever showed more.
  */
 export function buildCodingOptions(
   codebooks: DecryptedCodebook[],
@@ -113,24 +109,16 @@ export function buildCodingOptions(
   let topIndex = 0;
   for (const codebook of codebooks) {
     for (const code of codebook.codes ?? []) {
-      const letter = topIndex < LETTERS.length ? LETTERS[topIndex] : null;
-      topIndex++;
       const color = code.color ?? null;
       options.push({
         codebookId: codebook.id,
         codebookName: codebook.name,
         code,
-        letter,
-        sequence: letter,
+        letter: topIndex < LETTERS.length ? LETTERS[topIndex] : null,
         color,
-        children: buildLevel(
-          code.children,
-          codebook.id,
-          codebook.name,
-          letter,
-          color,
-        ),
+        children: buildLevel(code.children, codebook.id, codebook.name, color),
       });
+      topIndex++;
     }
   }
   return options;
@@ -148,38 +136,13 @@ export function flattenCodingOptions(
   return flat;
 }
 
-/** The option a typed letter sequence lands on, or null when nothing matches. */
-export function optionForSequence(
-  options: CodingOption[],
-  sequence: string,
+/** The option a letter reaches at the level currently shown, if any. */
+export function optionForLetter(
+  level: CodingOption[],
+  letter: string,
 ): CodingOption | null {
-  const wanted = sequence.toUpperCase();
-  return (
-    flattenCodingOptions(options).find((o) => o.sequence === wanted) ?? null
-  );
-}
-
-/** Whether more letters could still extend `sequence` into a real option. */
-export function sequenceHasContinuation(
-  options: CodingOption[],
-  sequence: string,
-): boolean {
-  const wanted = sequence.toUpperCase();
-  return flattenCodingOptions(options).some(
-    (o) => o.sequence !== null && o.sequence.length > wanted.length && o.sequence.startsWith(wanted),
-  );
-}
-
-/** Index the built menu by `codebookId:codeId`, for resolving stored codings. */
-export function indexCodingOptions(
-  options: CodingOption[],
-): Map<string, CodingOption> {
-  return new Map(
-    flattenCodingOptions(options).map((o) => [
-      codeKey(o.codebookId, o.code.id),
-      o,
-    ]),
-  );
+  const wanted = letter.toUpperCase();
+  return level.find((option) => option.letter === wanted) ?? null;
 }
 
 export function codeKey(codebookId: string, codeId: string): string {

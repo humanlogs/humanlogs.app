@@ -39,8 +39,12 @@ export const defaultShortcuts = [
         keys: ["Ctrl + Shift + arrows"],
         description: "Select one more sentence",
       },
-      { keys: ["A", "B", "…"], description: "Apply the matching code (coding)" },
-      { keys: ["A then B"], description: "Apply a sub-code (coding)" },
+      { keys: ["A", "B", "…"], description: "Apply the code shown (coding)" },
+      {
+        keys: ["Escape"],
+        description: "Leave a group of sub-codes (coding)",
+      },
+      { keys: ["Ctrl/⌘ + Z"], description: "Undo the last code (coding)" },
     ],
   },
 ];

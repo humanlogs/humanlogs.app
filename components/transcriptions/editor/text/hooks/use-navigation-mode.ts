@@ -169,6 +169,12 @@ export function useNavigationMode(
       if (selection) {
         selection.removeAllRanges();
       }
+      // The DOM selection is not the whole story: ProseMirror keeps its own, and the
+      // active-word overlay stands down whenever anything is selected. Leaving the
+      // text with a range still on the document — pressing Tab to hear it again, say
+      // — left navigate mode with no visible position at all.
+      editorAPI.collapseSelection();
+      setSelectionAnchor(null);
       setState("navigate");
     };
     editorAPI.addListener("focus", handleFocus);

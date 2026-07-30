@@ -1,13 +1,12 @@
 "use client";
 
-import { CodeDot, CodingMenuItems } from "@/components/codebooks/coding-menu";
+import { CodeDot } from "@/components/codebooks/coding-menu";
 import { useTranslations } from "@/components/locale-provider";
-import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { Select } from "@/components/ui/select";
 import type { DecryptedCodebook } from "@/lib/codebooks/codebook";
 import { codeKey, type CodingOption, type CodingScope } from "@/lib/codebooks/coding";
 import { cn } from "@/lib/utils/utils";
-import { ChevronDownIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 /**
  * The always-visible coding bar: every top-level code as a button, and the legend that
@@ -19,7 +18,9 @@ import { ChevronDownIcon } from "lucide-react";
  * exists to make unnecessary.
  */
 export function CodingBar({
-  options,
+  level,
+  trail,
+  onBack,
   appliedKeys,
   onPick,
   codebooks,
@@ -27,10 +28,13 @@ export function CodingBar({
   onCodebookChange,
   scope,
   onScopeChange,
-  pending,
   disabled,
 }: {
-  options: CodingOption[];
+  /** The codes currently shown: the top level, or the sub-codes we opened into. */
+  level: CodingOption[];
+  /** The codes we opened into, outermost first. Empty at the top level. */
+  trail: CodingOption[];
+  onBack: () => void;
   appliedKeys: Set<string>;
   onPick: (option: CodingOption) => void;
   /** The verbatim codebooks in scope — the prisms available for this study. */
@@ -39,8 +43,6 @@ export function CodingBar({
   onCodebookChange: (id: string) => void;
   scope: CodingScope;
   onScopeChange: (scope: CodingScope) => void;
-  /** The half-typed letter sequence, so the wait for a sub-code is visible. */
-  pending: string;
   /** No selection: the chips are a legend only. */
   disabled: boolean;
 }) {
@@ -63,17 +65,39 @@ export function CodingBar({
       />
 
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
-        {options.map((option) => (
+        {/* Inside a group, the way out comes first — a row of sub-codes with no
+            visible parent reads as a different codebook, not as a level. */}
+        {trail.length > 0 && (
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              onBack();
+            }}
+            title={trail.map((option) => option.code.label).join(" › ")}
+          >
+            <span className="inline-flex h-7 max-w-[14rem] shrink-0 items-center gap-1.5 rounded-md border border-dashed px-2 text-xs text-muted-foreground transition-colors hover:bg-accent">
+              <ChevronLeftIcon className="h-3 w-3 shrink-0" />
+              <span className="truncate">
+                {trail[trail.length - 1].code.label}
+              </span>
+              <kbd className="shrink-0 rounded border bg-muted px-1 font-mono text-[10px] leading-4">
+                Esc
+              </kbd>
+            </span>
+          </button>
+        )}
+
+        {level.map((option) => (
           <CodeChip
             key={codeKey(option.codebookId, option.code.id)}
             option={option}
             appliedKeys={appliedKeys}
             onPick={onPick}
-            pending={pending}
             disabled={disabled}
           />
         ))}
-        {options.length === 0 && (
+        {level.length === 0 && (
           <span className="text-xs text-muted-foreground">{t("noCodes")}</span>
         )}
       </div>
@@ -96,67 +120,44 @@ function CodeChip({
   option,
   appliedKeys,
   onPick,
-  pending,
   disabled,
 }: {
   option: CodingOption;
   appliedKeys: Set<string>;
   onPick: (option: CodingOption) => void;
-  pending: string;
   disabled: boolean;
 }) {
   const applied = appliedKeys.has(codeKey(option.codebookId, option.code.id));
-  // A chip whose letter has been typed is the one waiting for a sub-code — showing
-  // which is what makes the pause read as "keep going" rather than "nothing happened".
-  const armed = !!option.sequence && pending === option.sequence;
-
-  const chip = (
-    <span
-      className={cn(
-        "inline-flex h-7 max-w-[14rem] shrink-0 items-center gap-1.5 rounded-md border px-2 text-xs transition-colors",
-        disabled ? "opacity-60" : "hover:bg-accent",
-        applied && "border-foreground/30 bg-accent",
-        armed && "ring-2 ring-primary",
-      )}
-      title={option.code.description || option.code.label}
-    >
-      <CodeDot color={option.color} />
-      <span className="truncate">{option.code.label}</span>
-      {option.sequence && (
-        <kbd className="shrink-0 rounded border bg-muted px-1 font-mono text-[10px] leading-4 text-muted-foreground">
-          {option.sequence}
-        </kbd>
-      )}
-      {option.children.length > 0 && (
-        <ChevronDownIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
-      )}
-    </span>
-  );
-
-  if (option.children.length === 0) {
-    return (
-      <button
-        type="button"
-        disabled={disabled}
-        onMouseDown={(e) => {
-          // The selection is the thing being coded: a plain click would blur the
-          // editor and collapse it before the handler ran.
-          e.preventDefault();
-          if (!disabled) onPick(option);
-        }}
-      >
-        {chip}
-      </button>
-    );
-  }
 
   return (
-    <DropdownMenu align="start" position="bottom" trigger={chip}>
-      <CodingMenuItems
-        options={[option]}
-        appliedKeys={appliedKeys}
-        onPick={onPick}
-      />
-    </DropdownMenu>
+    <button
+      type="button"
+      onMouseDown={(e) => {
+        // The selection is the thing being coded: a plain click would blur the
+        // editor and collapse it before the handler ran.
+        e.preventDefault();
+        if (!disabled) onPick(option);
+      }}
+      title={option.code.description || option.code.label}
+    >
+      <span
+        className={cn(
+          "inline-flex h-7 max-w-[14rem] shrink-0 items-center gap-1.5 rounded-md border px-2 text-xs transition-colors",
+          disabled ? "opacity-60" : "hover:bg-accent",
+          applied && "border-foreground/30 bg-accent",
+        )}
+      >
+        <CodeDot color={option.color} />
+        <span className="truncate">{option.code.label}</span>
+        <kbd className="shrink-0 rounded border bg-muted px-1 font-mono text-[10px] leading-4 text-muted-foreground">
+          {option.letter}
+        </kbd>
+        {/* A group is applied AND opened by the same press, so the arrow says
+            "there is more under this", not "this is only a menu". */}
+        {option.children.length > 0 && (
+          <ChevronRightIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
+        )}
+      </span>
+    </button>
   );
 }

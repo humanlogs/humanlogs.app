@@ -246,12 +246,6 @@ type DropdownMenuItemProps = {
   onClick?: () => void;
   className?: string;
   preventClose?: boolean;
-  /**
-   * Keep the page's text selection alive through the click. Needed when the item acts
-   * ON that selection — coding a passage — where the default mousedown would collapse
-   * it before the handler ever ran.
-   */
-  preventBlur?: boolean;
 };
 
 export function DropdownMenuItem({
@@ -259,7 +253,6 @@ export function DropdownMenuItem({
   onClick,
   className,
   preventClose = false,
-  preventBlur = false,
 }: DropdownMenuItemProps) {
   const context = React.useContext(DropdownContext);
 
@@ -277,7 +270,6 @@ export function DropdownMenuItem({
         className,
       )}
       onClick={handleClick}
-      onMouseDown={preventBlur ? (e) => e.preventDefault() : undefined}
     >
       {children}
     </button>
@@ -287,23 +279,9 @@ export function DropdownMenuItem({
 type DropdownMenuSubProps = {
   trigger: React.ReactNode;
   children: React.ReactNode;
-  /**
-   * Makes the row itself actionable, not just a gateway to the submenu. Needed when a
-   * parent entry means something on its own — a code that can be applied AND has
-   * sub-codes — where "hover to open, click to pick" is the only reading that does not
-   * force a redundant "the parent itself" entry into every submenu.
-   */
-  onTriggerClick?: () => void;
-  /** Same as `DropdownMenuItem`'s: the row acts on the page's text selection. */
-  preventBlur?: boolean;
 };
 
-export function DropdownMenuSub({
-  trigger,
-  children,
-  onTriggerClick,
-  preventBlur = false,
-}: DropdownMenuSubProps) {
+export function DropdownMenuSub({ trigger, children }: DropdownMenuSubProps) {
   const [isSubOpen, setIsSubOpen] = React.useState(false);
   const [isMounted, setIsMounted] = React.useState(false);
   const [isPositioned, setIsPositioned] = React.useState(false);
@@ -474,8 +452,6 @@ export function DropdownMenuSub({
         type="button"
         onMouseEnter={handleTriggerEnter}
         onMouseLeave={handleTriggerLeave}
-        onClick={onTriggerClick}
-        onMouseDown={preventBlur ? (e) => e.preventDefault() : undefined}
       >
         {trigger}
         <svg

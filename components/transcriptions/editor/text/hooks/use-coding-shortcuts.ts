@@ -1,135 +1,88 @@
 "use client";
 
-import {
-  optionForSequence,
-  sequenceHasContinuation,
-  type CodingOption,
-} from "@/lib/codebooks/coding";
-import { useEffect, useRef, useState } from "react";
-
-/** How long a half-typed sequence waits for its next letter before giving up. */
-const PENDING_TIMEOUT_MS = 2500;
+import { optionForLetter, type CodingOption } from "@/lib/codebooks/coding";
+import { useEffect, useRef } from "react";
 
 /**
- * Typing a code onto the selected passage.
+ * Driving the coding phase from the keyboard.
  *
- * Coding a whole interview is hundreds of small decisions, so the keyboard has to carry
- * it: select, press a letter, move on. Each code answers to a letter — "A" for the
- * first, "B" for the second — and sub-codes restart at "A" inside their parent, so "AB"
- * is "second sub-code of the first code" (see `buildCodingOptions`).
+ * Coding a whole interview is hundreds of small decisions, so the keyboard has to
+ * carry it: select, press a letter, move on. Each code on screen answers to a letter —
+ * "A" for the first, "B" for the second. A code with sub-codes applies on that same
+ * one keystroke and then puts its sub-codes where the themes were, so the next letter
+ * refines what was just said instead of starting over. Escape steps back out.
  *
- * A code with sub-codes does NOT apply on its own letter: the next keystroke may still
- * be a sub-code, and applying the theme only to retract it a moment later is worse than
- * waiting. It stays pending — shown in the coding bar — until a letter picks a child,
- * Enter confirms the parent itself, Escape cancels, or the sequence times out.
+ * Ctrl+Z takes back the last code applied or retracted. It cannot ride the editor's
+ * undo stack — coding marks are deliberately kept out of it, since undo only knows
+ * about the document and would orphan the row it points at — so coding keeps its own,
+ * which is also the only history the researcher has in mind while coding.
  *
- * Only ever active with a selection: without one there is nothing to code, and the
- * letters would otherwise be swallowed from a document the researcher is just reading.
+ * The letters are only bound in the coding phase, where the document is read-only and
+ * nothing else wants them.
  */
 export function useCodingShortcuts({
   enabled,
-  options,
+  level,
   onPick,
+  onBack,
+  onUndo,
+  canGoBack,
 }: {
   enabled: boolean;
-  options: CodingOption[];
+  /** The codes currently shown — the letters are read against these. */
+  level: CodingOption[];
   onPick: (option: CodingOption) => void;
+  onBack: () => void;
+  onUndo: () => void;
+  canGoBack: boolean;
 }) {
-  const [pending, setPending] = useState<string>("");
-  // The handler is bound once per `enabled` flip, so the moving parts it reads —
-  // the menu and the callback — go through refs rather than re-binding on every
-  // render (and losing a half-typed sequence each time).
-  const optionsRef = useRef(options);
-  const onPickRef = useRef(onPick);
-  const pendingRef = useRef("");
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Declared BEFORE the listener effect so the handler it binds never reads a stale
-  // menu on the render that introduced it.
+  // The handler is bound once per `enabled` flip, so everything that moves under it
+  // goes through refs rather than re-binding on every render.
+  const ref = useRef({ level, onPick, onBack, onUndo, canGoBack });
   useEffect(() => {
-    optionsRef.current = options;
-    onPickRef.current = onPick;
+    ref.current = { level, onPick, onBack, onUndo, canGoBack };
   });
 
   useEffect(() => {
-    const reset = () => {
-      pendingRef.current = "";
-      setPending("");
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-    };
-
-    if (!enabled) {
-      reset();
-      return;
-    }
-
-    const arm = (sequence: string) => {
-      pendingRef.current = sequence;
-      setPending(sequence);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(reset, PENDING_TIMEOUT_MS);
-    };
+    if (!enabled) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.metaKey || event.ctrlKey || event.altKey) return;
       const target = event.target as HTMLElement | null;
       const tag = target?.tagName;
       // Never eat a keystroke meant for a form or for text being typed elsewhere.
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
       if (target?.isContentEditable) return;
 
-      if (event.key === "Escape") {
-        if (!pendingRef.current) return;
+      if ((event.metaKey || event.ctrlKey) && !event.altKey) {
+        if (event.key.toLowerCase() !== "z") return;
         event.preventDefault();
-        reset();
+        ref.current.onUndo();
         return;
       }
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
 
-      if (event.key === "Enter") {
-        const option = pendingRef.current
-          ? optionForSequence(optionsRef.current, pendingRef.current)
-          : null;
-        if (!option) return;
+      if (event.key === "Escape") {
+        if (!ref.current.canGoBack) return;
         event.preventDefault();
-        reset();
-        onPickRef.current(option);
+        // Stop here, in the capture phase: Escape also clears the selection, and
+        // stepping back out of a group while dropping the passage it was about is
+        // two things at once. Closing the group first is the one the researcher
+        // asked for; a second Escape then clears the selection.
+        event.stopPropagation();
+        ref.current.onBack();
         return;
       }
 
       if (!/^[a-zA-Z]$/.test(event.key)) return;
-
-      const sequence = pendingRef.current + event.key.toUpperCase();
-      const option = optionForSequence(optionsRef.current, sequence);
-      if (!option) {
-        // A letter that leads nowhere: drop the whole sequence rather than
-        // silently ignore it, so the next letter starts from a known state.
-        reset();
-        return;
-      }
+      const option = optionForLetter(ref.current.level, event.key);
+      if (!option) return;
 
       event.preventDefault();
-      if (sequenceHasContinuation(optionsRef.current, sequence)) {
-        arm(sequence);
-        return;
-      }
-      reset();
-      onPickRef.current(option);
+      ref.current.onPick(option);
     };
 
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      reset();
-    };
+    document.addEventListener("keydown", onKeyDown, { capture: true });
+    return () =>
+      document.removeEventListener("keydown", onKeyDown, { capture: true });
   }, [enabled]);
-
-  return {
-    /** The half-typed sequence, e.g. "A" — shown so the researcher sees the wait. */
-    pending,
-    /** The code that pressing Enter would apply right now, if any. */
-    pendingOption: pending ? optionForSequence(options, pending) : null,
-  };
 }

@@ -5,10 +5,9 @@ import {
   codeColorVar,
   codingBackground,
   codingsInScope,
-  optionForSequence,
+  optionForLetter,
   parseCodingInput,
   sanitizeCodings,
-  sequenceHasContinuation,
   verbatimCodebooks,
   type CodingDTO,
 } from "@/lib/codebooks/coding";
@@ -60,32 +59,39 @@ describe("coding options", () => {
     // The editor codes through ONE codebook at a time, so its codes own the whole
     // alphabet: the researcher types "A" and there is exactly one answer.
     const options = buildCodingOptions([TREE[0]]);
-    expect(options.map((o) => [o.code.id, o.sequence])).toEqual([
+    expect(options.map((o) => [o.code.id, o.letter])).toEqual([
       ["emotion", "A"],
       ["work", "B"],
     ]);
   });
 
-  it("never lets two codes answer to the same letter", () => {
+  it("never lets two codes on the same level answer to one letter", () => {
     // Should more than one codebook ever be shown at once, the letters still run
-    // across the whole list rather than restarting per codebook.
+    // across the whole level rather than restarting per codebook.
     const options = buildCodingOptions(TREE);
-    expect(options.map((o) => o.sequence)).toEqual(["A", "B", "C"]);
+    expect(options.map((o) => o.letter)).toEqual(["A", "B", "C"]);
   });
 
-  it("restarts letters inside a code, so AB is its second sub-code", () => {
+  it("restarts the letters inside a group", () => {
+    // Sub-codes replace their parent's level rather than nesting under it, so "A"
+    // there means the first sub-code, not the first theme again.
     const options = buildCodingOptions(TREE);
-    expect(optionForSequence(options, "AB")?.code.id).toBe("fear");
-    expect(optionForSequence(options, "AA")?.code.id).toBe("joy");
-    expect(optionForSequence(options, "AC")).toBeNull();
+    expect(options[0].children.map((c) => [c.code.id, c.letter])).toEqual([
+      ["joy", "A"],
+      ["fear", "B"],
+    ]);
   });
 
-  it("knows when a sequence can still grow", () => {
+  it("reads a letter against the level in front of the researcher", () => {
     const options = buildCodingOptions(TREE);
-    // "A" has sub-codes: applying it on the first keystroke would fight the second.
-    expect(sequenceHasContinuation(options, "A")).toBe(true);
-    expect(sequenceHasContinuation(options, "B")).toBe(false);
-    expect(sequenceHasContinuation(options, "AB")).toBe(false);
+    expect(optionForLetter(options, "A")?.code.id).toBe("emotion");
+    expect(optionForLetter(options[0].children, "B")?.code.id).toBe("fear");
+    expect(optionForLetter(options[0].children, "C")).toBeNull();
+  });
+
+  it("takes a letter whichever case it was typed in", () => {
+    const options = buildCodingOptions(TREE);
+    expect(optionForLetter(options, "b")?.code.id).toBe("work");
   });
 
   it("gives sub-codes their parent's colour", () => {

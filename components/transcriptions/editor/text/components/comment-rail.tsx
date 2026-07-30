@@ -163,7 +163,12 @@ export function CommentRail({
   return (
     <div
       ref={railRef}
-      className="group/rail relative shrink-0"
+      // A tinted column rather than cards floating on the page background: it gives
+      // the notes a place of their own next to the transcript, and it gives the close
+      // control — which is pinned, so it is the one thing not sitting on a card —
+      // something to sit on. Yellow, matching the underline a comment anchor draws in
+      // the text, so the two read as the same feature.
+      className="group/rail relative shrink-0 rounded-lg border border-yellow-400/25 bg-yellow-50/70 dark:border-yellow-400/15 dark:bg-yellow-400/[0.04]"
       style={{ width: RAIL_WIDTH }}
       data-comment-rail=""
     >
