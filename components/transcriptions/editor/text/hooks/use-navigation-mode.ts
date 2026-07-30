@@ -70,6 +70,16 @@ export function useNavigationMode(
   const smartScrollRef = useRef(createSmartScroll());
   const { data: customShortcuts = [] } = useCustomShortcuts();
 
+  // The document key handlers below are bound once, so the moving state they read
+  // goes through refs — re-binding a listener on every arrow press would be a lot of
+  // churn on the hottest path in the editor.
+  const stateRef = useRef(state);
+  const currentIndexRef = useRef(currentIndex);
+  useEffect(() => {
+    stateRef.current = state;
+    currentIndexRef.current = currentIndex;
+  });
+
   useEffect(() => {
     if (isModalOpen) {
       editorAPI.blur();
@@ -251,90 +261,131 @@ export function useNavigationMode(
     [state, audioControls],
   );
 
-  // Navigate in editorAPI.getSegments()
+  // Moving through the transcript.
   //
-  //  - arrows        → one word (and one line, up/down)
-  //  - Ctrl + arrows → one sentence. This used to be Shift; Shift now grows a
-  //                    selection, which the coding phase needs and which reads the
-  //                    same way it does in every other text surface.
-  //  - Shift + ←/→   → one more / one less word in the selection
-  //  - Shift + ↑/↓   → out to the next / previous punctuation
-  useHotkeys(
-    [
-      "ArrowRight",
-      "ArrowDown",
-      "ArrowLeft",
-      "ArrowUp",
-      "Shift+ArrowRight",
-      "Shift+ArrowDown",
-      "Shift+ArrowLeft",
-      "Shift+ArrowUp",
-      "Ctrl+ArrowRight",
-      "Ctrl+ArrowDown",
-      "Ctrl+ArrowLeft",
-      "Ctrl+ArrowUp",
-    ],
-    (event) => {
-      if (state !== "navigate") return;
-      event.preventDefault();
+  //  - arrows             → one word (and one line, up/down)
+  //  - Ctrl + arrows      → one sentence. This used to be Shift; Shift now grows a
+  //                         selection, which the coding phase needs and which reads
+  //                         the same way it does in every other text surface.
+  //  - Shift + ←/→        → one more / one less word in the selection
+  //  - Shift + ↑/↓        → out to the next / previous punctuation
+  //  - Ctrl + Shift + ←→↑↓ → the same, a whole sentence at a time
+  //
+  // Owned directly (a capture-phase document listener), like play/pause above and
+  // for the same reason: react-hotkeys-hook was not delivering the modifier
+  // combinations reliably, and these are the keys the whole coding pass is made of.
+  // Reading `event.ctrlKey`/`shiftKey` ourselves also means one handler covers every
+  // combination instead of twelve registered strings.
+  useEffect(() => {
+    const ARROWS = ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"];
 
-      lastNavigationTime.current = Date.now();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (isModalOpen) return;
+      if (!ARROWS.includes(event.key)) return;
+      if (event.altKey) return; // held Alt is the playback-speed modifier
 
-      // Back arrows stop the playback
-      if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
-        audioControls?.pause();
-      }
+      const el = (event.target as HTMLElement) ?? null;
+      const tag = el?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      // Typing: the arrows belong to the caret.
+      if (el?.isContentEditable) return;
+      if (stateRef.current !== "navigate") return;
 
       const segments = editorAPI.getSegments();
       if (segments.length === 0) return;
 
+      event.preventDefault();
+      lastNavigationTime.current = Date.now();
+
+      // Back arrows stop the playback.
+      if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+        audioControls?.pause();
+      }
+
       const forward = event.key === "ArrowRight" || event.key === "ArrowDown";
       const direction: "r" | "l" = forward ? "r" : "l";
-      let selection = 0;
+      const vertical = event.key === "ArrowUp" || event.key === "ArrowDown";
+      const bySentence = event.ctrlKey || event.metaKey;
+      const current = currentIndexRef.current;
+      let next = 0;
 
-      if (currentIndex !== -1) {
-        selection = currentIndex;
-
-        if (event.shiftKey) {
+      if (current !== -1) {
+        if (bySentence) {
+          next = stepSentence(segments, current, direction);
+        } else if (event.shiftKey) {
           // Growing a selection: one word sideways, a whole clause vertically.
-          selection =
-            event.key === "ArrowUp" || event.key === "ArrowDown"
-              ? stepToPunctuation(segments, currentIndex, direction)
-              : stepWord(segments, currentIndex, direction);
-        } else if (event.ctrlKey || event.metaKey) {
-          selection = stepSentence(segments, currentIndex, direction);
-        } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-          // Line movement: find the segment that is the closest in the DOM.
-          selection = closestSegmentOnNextLine(
-            editorAPI,
-            currentIndex,
-            forward ? 1 : -1,
+          next = vertical
+            ? stepToPunctuation(segments, current, direction)
+            : stepWord(segments, current, direction);
+        } else if (vertical) {
+          // Line movement: the closest segment on the next line in the DOM.
+          next = ensureWordIndex(
+            closestSegmentOnNextLine(editorAPI, current, forward ? 1 : -1),
+            segments,
+            direction,
           );
-          selection = ensureWordIndex(selection, segments, direction);
         } else {
-          selection = stepWord(segments, currentIndex, direction);
+          next = stepWord(segments, current, direction);
         }
       }
 
-      // Shift keeps (or opens) the selection; anything else collapses it, which is
-      // what makes a plain arrow the way out of a selection you no longer want.
+      // Shift keeps (or opens) the selection — with Ctrl too, which is what makes
+      // Ctrl+Shift+arrow "select the next sentence". Anything else collapses it,
+      // which is the way out of a selection you no longer want.
       if (event.shiftKey) {
         setSelectionAnchor((anchor) =>
-          anchor === null ? (currentIndex === -1 ? selection : currentIndex) : anchor,
+          anchor === null ? (current === -1 ? next : current) : anchor,
         );
       } else {
         setSelectionAnchor(null);
       }
 
       audioControls?.seekTo(
-        segments[Math.max(0, Math.min(segments.length - 1, selection))].start ||
-          0,
+        segments[Math.max(0, Math.min(segments.length - 1, next))].start || 0,
       );
-      setCurrentIndex(selection);
-    },
-    {},
-    [state, audioControls, currentIndex],
-  );
+      setCurrentIndex(next);
+    };
+
+    document.addEventListener("keydown", onKeyDown, { capture: true });
+    return () =>
+      document.removeEventListener("keydown", onKeyDown, { capture: true });
+  }, [audioControls, editorAPI, isModalOpen]);
+
+  /**
+   * Undo / redo while NOT typing.
+   *
+   * TipTap registers Mod-z as a ProseMirror keymap, which only fires when the editor
+   * has focus — and navigate mode is precisely the state where it does not. So the
+   * shortcut did nothing for anyone driving the transcript from the keyboard, which
+   * is most of the time. Read-only phases have nothing to undo.
+   */
+  useEffect(() => {
+    if (readOnly) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (isModalOpen) return;
+      if (!(event.metaKey || event.ctrlKey) || event.altKey) return;
+      const key = event.key.toLowerCase();
+      if (key !== "z" && key !== "y") return;
+
+      const el = (event.target as HTMLElement) ?? null;
+      const tag = el?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      // Focused editor: ProseMirror's own keymap has it, and handling it here too
+      // would undo twice.
+      if (el?.isContentEditable) return;
+
+      const editor = editorAPI.getEditor();
+      if (!editor) return;
+
+      event.preventDefault();
+      if (key === "y" || event.shiftKey) editor.commands.redo();
+      else editor.commands.undo();
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [editorAPI, isModalOpen, readOnly]);
 
   /**
    * The current keyboard selection, or null when the active word is just a caret.

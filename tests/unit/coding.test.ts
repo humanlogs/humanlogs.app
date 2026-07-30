@@ -56,15 +56,21 @@ const TREE = [
 ];
 
 describe("coding options", () => {
-  it("letters the top level across every codebook, not per codebook", () => {
-    // The researcher types "A" without first choosing a codebook, so two codes
-    // answering to "A" would make the shortcut ambiguous.
-    const options = buildCodingOptions(TREE);
+  it("letters the codes of the chosen prism from A", () => {
+    // The editor codes through ONE codebook at a time, so its codes own the whole
+    // alphabet: the researcher types "A" and there is exactly one answer.
+    const options = buildCodingOptions([TREE[0]]);
     expect(options.map((o) => [o.code.id, o.sequence])).toEqual([
       ["emotion", "A"],
       ["work", "B"],
-      ["quote", "C"],
     ]);
+  });
+
+  it("never lets two codes answer to the same letter", () => {
+    // Should more than one codebook ever be shown at once, the letters still run
+    // across the whole list rather than restarting per codebook.
+    const options = buildCodingOptions(TREE);
+    expect(options.map((o) => o.sequence)).toEqual(["A", "B", "C"]);
   });
 
   it("restarts letters inside a code, so AB is its second sub-code", () => {

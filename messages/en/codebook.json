@@ -104,7 +104,9 @@
       "scope": {
         "mine": "My codes",
         "everyone": "Everyone's codes"
-      }
+      },
+      "codebook": "Codebook",
+      "untitled": "Untitled codebook"
     }
   }
 }

@@ -86,7 +86,11 @@ export function applyCommentMark(editor: Editor, commentId: string): boolean {
   });
 
   if (!tr.docChanged) return false;
-  view.dispatch(tr);
+  // Anchors are NOT undoable. The mark is one half of a pair — the other is a row in
+  // the database — and Ctrl+Z only knows about the document: undoing would take the
+  // highlight away and leave the row pointing at nothing. Taking a thread back is done
+  // by deleting its notes, which removes both halves together.
+  view.dispatch(tr.setMeta("addToHistory", false));
   return true;
 }
 
@@ -125,7 +129,7 @@ export function removeCommentMark(editor: Editor, commentId: string): void {
         )
       : tr.removeMark(e.from, e.to, markType);
   }
-  view.dispatch(tr);
+  view.dispatch(tr.setMeta("addToHistory", false));
 }
 
 /** Every thread covering the current selection, innermost (shortest range) first. */

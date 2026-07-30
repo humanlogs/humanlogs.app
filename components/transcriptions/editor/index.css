@@ -99,9 +99,15 @@
     border-radius: 5px;
     padding: 0 1px;
     margin: 0 -1px;
-    cursor: pointer;
     background-color: transparent;
     transition: background-color 0.15s ease-out;
+}
+
+/* Outside the coding phase a coded passage is not a thing you interact with, and no
+   stylesheet paints it — the transcript pass is about the words. The mark is still
+   there; it simply has nothing to say until you come back to code. */
+.phase-coding .hl-coding {
+    cursor: pointer;
 }
 
 /* Word span styles for audio sync */

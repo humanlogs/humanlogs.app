@@ -48,18 +48,52 @@ export function useCoding({
   const deleteCoding = useDeleteCoding(transcriptionId);
   const [scope, setScope] = useState<CodingScope>(DEFAULT_CODING_SCOPE);
 
-  /** The codes on offer: verbatim codebooks covering this document's study. */
-  const options = useMemo(
-    () =>
-      buildCodingOptions(
-        verbatimCodebooks(codebooksInScopeForProject(codebooks, projectId)),
-      ),
+  /** The verbatim codebooks covering this document's study. */
+  const availableCodebooks = useMemo(
+    () => verbatimCodebooks(codebooksInScopeForProject(codebooks, projectId)),
     [codebooks, projectId],
   );
 
+  /**
+   * You code through ONE codebook at a time.
+   *
+   * A codebook is a way of looking at the material — a prism — and two of them held up
+   * at once is not twice the reading, it is neither: the letters would run past Z, the
+   * colours would stop being a legend, and "is this passage coded?" would have no
+   * single answer. Switching is one click, and codings made through another codebook
+   * stay in the database untouched; they are simply not what you are looking at.
+   */
+  const storageKey = `hl-coding-codebook:${projectId ?? "none"}`;
+  const [chosenCodebookId, setChosenCodebookId] = useState<string | null>(() =>
+    typeof window === "undefined" ? null : localStorage.getItem(storageKey),
+  );
+  // Falling back to the first one keeps the bar usable before any choice, and after
+  // the chosen codebook is deleted or moved out of this study.
+  const codebook =
+    availableCodebooks.find((c) => c.id === chosenCodebookId) ??
+    availableCodebooks[0] ??
+    null;
+
+  const selectCodebook = useCallback(
+    (id: string) => {
+      setChosenCodebookId(id);
+      if (typeof window !== "undefined") localStorage.setItem(storageKey, id);
+    },
+    [storageKey],
+  );
+
+  /** The codes on offer: those of the chosen codebook. */
+  const options = useMemo(
+    () => buildCodingOptions(codebook ? [codebook] : []),
+    [codebook],
+  );
+
   const visibleCodings = useMemo(
-    () => codingsInScope(codings, scope, profile?.id),
-    [codings, scope, profile?.id],
+    () =>
+      codingsInScope(codings, scope, profile?.id).filter(
+        (coding) => coding.codebookId === codebook?.id,
+      ),
+    [codings, scope, profile?.id, codebook?.id],
   );
 
   const codingsById = useMemo(
@@ -156,6 +190,9 @@ export function useCoding({
 
   return {
     options,
+    availableCodebooks,
+    codebook,
+    selectCodebook,
     scope,
     setScope,
     codings,

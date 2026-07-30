@@ -21,6 +21,13 @@ export type PresetCode = {
   /** Palette key from `PROJECT_COLORS`. */
   color?: string;
   description?: string;
+  /**
+   * Sub-codes. A preset that ships a real hierarchy has to say so here: flattening
+   * a grid that has series into one list loses the level researchers actually think
+   * in, and turns a two-keystroke shortcut ("A" then "B") into a scan of fifteen
+   * rows. Sub-codes carry no colour of their own — they inherit their parent's.
+   */
+  children?: PresetCode[];
 };
 
 export type CodebookPreset = {
@@ -56,10 +63,10 @@ const SENTIMENT: CodebookPreset = {
 };
 
 /**
- * Procédés du discours du TAT (grille française), en un seul codebook dont les
- * intitulés portent leur série : A rigidification, B labilité, C évitement du
- * conflit, E émergence des processus primaires. Découper en sous-codebooks par
- * série reste possible à la main.
+ * Procédés du discours du TAT (grille française), en un seul codebook structuré
+ * par série : A rigidification, B labilité, C évitement du conflit, E émergence
+ * des processus primaires. La série est le code parent — c'est le niveau auquel
+ * on lit une feuille de dépouillement — et les procédés en sont les sous-codes.
  *
  * Cette liste est une première mise en forme d'après la grille classique, pas
  * une transcription validée de la feuille de dépouillement — à relire avant un
@@ -71,27 +78,48 @@ const TAT_DISCURSIVE: CodebookPreset = {
   description: "Procédés discursifs du TAT, séries A, B, C et E.",
   target: "verbatim",
   codes: [
-    { label: "A1 — Référence à la réalité externe", color: "blue" },
-    { label: "A2 — Procédés de type obsessionnel", color: "blue" },
     {
-      label: "A3 — Mise en avant d'affects à valeur de défense",
+      label: "A — Rigidification",
       color: "blue",
+      description: "Référence à des procédés de type obsessionnel.",
+      children: [
+        { label: "A1 — Référence à la réalité externe" },
+        { label: "A2 — Procédés de type obsessionnel" },
+        { label: "A3 — Mise en avant d'affects à valeur de défense" },
+      ],
     },
-    { label: "B1 — Investissement de la relation", color: "rose" },
-    { label: "B2 — Dramatisation", color: "rose" },
-    { label: "B3 — Procédés de type hystérique", color: "rose" },
-    { label: "CI — Inhibition", color: "amber" },
-    { label: "CF — Investissement de la réalité externe", color: "amber" },
-    { label: "CN — Investissement narcissique", color: "amber" },
-    { label: "CM — Instabilité des limites", color: "amber" },
-    { label: "CL — Conduites d'évitement", color: "amber" },
-    { label: "E1 — Altération de la perception", color: "fuchsia" },
-    { label: "E2 — Massivité de la projection", color: "fuchsia" },
     {
-      label: "E3 — Désorganisation des repères identitaires et objectaux",
-      color: "fuchsia",
+      label: "B — Labilité",
+      color: "rose",
+      children: [
+        { label: "B1 — Investissement de la relation" },
+        { label: "B2 — Dramatisation" },
+        { label: "B3 — Procédés de type hystérique" },
+      ],
     },
-    { label: "E4 — Altération du discours", color: "fuchsia" },
+    {
+      label: "C — Évitement du conflit",
+      color: "amber",
+      children: [
+        { label: "CI — Inhibition" },
+        { label: "CF — Investissement de la réalité externe" },
+        { label: "CN — Investissement narcissique" },
+        { label: "CM — Instabilité des limites" },
+        { label: "CL — Conduites d'évitement" },
+      ],
+    },
+    {
+      label: "E — Émergence des processus primaires",
+      color: "fuchsia",
+      children: [
+        { label: "E1 — Altération de la perception" },
+        { label: "E2 — Massivité de la projection" },
+        {
+          label: "E3 — Désorganisation des repères identitaires et objectaux",
+        },
+        { label: "E4 — Altération du discours" },
+      ],
+    },
   ],
 };
 
@@ -162,6 +190,14 @@ export const CODEBOOK_PRESETS: CodebookPreset[] = [
   SPEAKER_ROLE,
   DOCUMENT_STATUS,
 ];
+
+/** How many codes a preset ships, sub-codes included — what its card announces. */
+export function countPresetCodes(codes: PresetCode[]): number {
+  return codes.reduce(
+    (total, code) => total + 1 + countPresetCodes(code.children ?? []),
+    0,
+  );
+}
 
 export function getPreset(key: string): CodebookPreset | undefined {
   return CODEBOOK_PRESETS.find((p) => p.key === key);

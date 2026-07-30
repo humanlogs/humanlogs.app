@@ -482,6 +482,7 @@ export function TranscriptEditor({
       className={cn(
         "h-full min-w-0 overflow-x-hidden",
         !commentThreads.railOpen && "comments-idle",
+        coding && "phase-coding",
       )}
     >
       {revertedBy && (
@@ -498,12 +499,16 @@ export function TranscriptEditor({
       <SpeakerRenameDialog />
 
       {/* Coded passages are painted from a generated stylesheet — see the component
-          for why the colour cannot live on the mark itself. */}
-      <CodingHighlightStyles
-        editorAPI={editorAPI}
-        options={codingController.options}
-        visibleCodings={codingController.visibleCodings}
-      />
+          for why the colour cannot live on the mark itself. Only in the coding phase:
+          the transcript pass is about the words, and a page washed in code colours is
+          a page you read past. The marks stay in the document either way. */}
+      {coding && (
+        <CodingHighlightStyles
+          editorAPI={editorAPI}
+          options={codingController.options}
+          visibleCodings={codingController.visibleCodings}
+        />
+      )}
 
       {/* Emphasising the hovered/focused thread as a CSS rule rather than a class on the
           spans: those are ProseMirror-managed, so any class set imperatively is dropped
@@ -543,6 +548,9 @@ export function TranscriptEditor({
                   options={codingController.options}
                   appliedKeys={appliedCodeKeys}
                   onPick={codingController.toggleCode}
+                  codebooks={codingController.availableCodebooks}
+                  codebookId={codingController.codebook?.id ?? null}
+                  onCodebookChange={codingController.selectCodebook}
                   scope={codingController.scope}
                   onScopeChange={codingController.setScope}
                   pending={codingShortcuts.pending}

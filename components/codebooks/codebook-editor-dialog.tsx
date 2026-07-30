@@ -30,7 +30,12 @@ import {
   type Code,
   type CodebookTarget,
 } from "@/lib/codebooks/codebook";
-import { CODEBOOK_PRESETS, type CodebookPreset } from "@/lib/codebooks/presets";
+import {
+  CODEBOOK_PRESETS,
+  countPresetCodes,
+  type CodebookPreset,
+  type PresetCode,
+} from "@/lib/codebooks/presets";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -175,15 +180,19 @@ export function CodebookEditorDialog() {
    * here, never taken from the preset: they must carry no meaning.
    */
   const applyPreset = (preset: CodebookPreset) => {
-    setName(preset.name);
-    setCodes(
-      preset.codes.map((code) => ({
+    // Recursive: a preset that ships series and their procedures (the TAT grid)
+    // must arrive in the form as the tree it is, not flattened into one list.
+    const mint = (list: PresetCode[]): Code[] =>
+      list.map((code) => ({
         id: newCodeId(),
         label: code.label,
         color: code.color,
         description: code.description,
-      })),
-    );
+        ...(code.children?.length ? { children: mint(code.children) } : {}),
+      }));
+
+    setName(preset.name);
+    setCodes(mint(preset.codes));
     setTarget(preset.target);
     setStep("form");
   };
@@ -336,7 +345,7 @@ export function CodebookEditorDialog() {
                     {preset.description}
                   </span>
                   <span className="mt-1 block text-xs text-muted-foreground">
-                    {t("codes")} · {preset.codes.length}
+                    {t("codes")} · {countPresetCodes(preset.codes)}
                   </span>
                 </button>
               ))}

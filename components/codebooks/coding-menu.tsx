@@ -81,6 +81,8 @@ export function CodingMenuItems({
   onPick: (option: CodingOption) => void;
   depth?: number;
 }) {
+  // Every row acts on the passage currently selected, so none of them may take the
+  // selection away on mousedown — see `preventBlur`.
   // Name the codebook when the list crosses from one to the next: two codebooks may
   // well hold codes with the same label, and a flat list would not say which is which.
   // Only at the top level — a submenu is already inside one codebook.
@@ -107,6 +109,7 @@ export function CodingMenuItems({
             )}
             {option.children.length > 0 ? (
               <DropdownMenuSub
+                preventBlur
                 onTriggerClick={() => onPick(option)}
                 trigger={
                   <CodeRow
@@ -126,6 +129,7 @@ export function CodingMenuItems({
             ) : (
               <DropdownMenuItem
                 preventClose
+                preventBlur
                 className="gap-2"
                 onClick={() => onPick(option)}
               >

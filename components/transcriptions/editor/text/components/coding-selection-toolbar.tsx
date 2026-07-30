@@ -2,28 +2,33 @@
 
 import { CodingMenuItems } from "@/components/codebooks/coding-menu";
 import { useTranslations } from "@/components/locale-provider";
-import { Button } from "@/components/ui/button";
-import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import type { CodingOption } from "@/lib/codebooks/coding";
-import { Separator } from "@base-ui/react";
 import type { Editor } from "@tiptap/react";
-import { MessageSquarePlus, TagsIcon } from "lucide-react";
+import { MessageSquarePlus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { EditorAPI } from "../api";
 
-/** Where the bar sits relative to the selection. */
+/** Distance between the selection and the panel, and from the viewport edges. */
 const GAP = 8;
+const MARGIN = 8;
+const WIDTH = 260;
 
 /**
  * The floating bar of the coding phase — the counterpart of {@link SelectionToolbar},
- * carrying the code menu and the comment button instead of the formatting controls the
+ * carrying the code list and the comment action instead of the formatting controls the
  * phase has no use for.
+ *
+ * The list is ALREADY OPEN. Coding is the one thing this phase does, so making the
+ * researcher click a "Code" button to reveal the codes would charge a click for the
+ * only reason the bar appeared. Commenting sits at the bottom, past a separator: it is
+ * the other thing you can do to a passage, and last is where you look for it once the
+ * codes have not matched.
  *
  * It does NOT use TipTap's `BubbleMenu`, which only shows for an editable, focused
  * editor. Here the document is read-only and the selection is usually built with the
  * keyboard while the editor stays blurred (that is what keeps the arrows navigating),
- * so the bar is positioned from the selection's own client rects instead.
+ * so the panel is positioned from the selection's own client rects instead.
  */
 export function CodingSelectionToolbar({
   editor,
@@ -60,10 +65,14 @@ export function CodingSelectionToolbar({
 
     // Anchor on the LAST line of the selection, not on the box enclosing all of them:
     // for a selection spanning several lines that box is as wide as the paragraph, and
-    // centring under it puts the bar far from the text it belongs to.
+    // centring under it puts the panel far from the text it belongs to.
     const last = rects[rects.length - 1];
+    const centre = last.left + last.width / 2;
     setPosition({
-      left: last.left + last.width / 2,
+      left: Math.min(
+        Math.max(centre, MARGIN + WIDTH / 2),
+        window.innerWidth - MARGIN - WIDTH / 2,
+      ),
       top: last.bottom + GAP,
     });
   }, [editor, editorAPI]);
@@ -91,44 +100,37 @@ export function CodingSelectionToolbar({
   return createPortal(
     <div
       className="fixed z-30 -translate-x-1/2"
-      style={{ left: position.left, top: position.top }}
+      style={{ left: position.left, top: position.top, width: WIDTH }}
     >
-      <div className="flex items-center gap-0 rounded-lg border bg-popover p-1 shadow-md">
-        <DropdownMenu
-          align="start"
-          position="bottom"
-          trigger={
-            <span className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs transition-colors hover:bg-accent">
-              <TagsIcon className="h-3.5 w-3.5" />
-              {t("apply")}
-            </span>
-          }
-        >
+      <div className="rounded-lg border bg-popover p-1 shadow-md">
+        {/* Bounded: a codebook with thirty codes must not push the comment action
+            off the screen, and the list is the part that can grow. */}
+        <div className="max-h-[40vh] overflow-y-auto">
           <CodingMenuItems
             options={options}
             appliedKeys={appliedKeys}
             onPick={onPick}
           />
-        </DropdownMenu>
+          {options.length === 0 && (
+            <p className="px-2 py-2 text-xs text-muted-foreground">
+              {t("noCodes")}
+            </p>
+          )}
+        </div>
 
-        <Separator
-          orientation="vertical"
-          className="mx-1.5 h-4 w-px bg-slate-500/20"
-        />
+        <div className="my-1 h-px bg-border" />
 
-        <Button
-          variant="ghost"
-          size="sm"
+        <button
+          type="button"
+          className="flex w-full items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
           onMouseDown={(e) => {
             e.preventDefault(); // keep the selection alive
             onComment();
           }}
-          className="h-7 w-7 p-0"
-          title={t("comment")}
-          aria-label={t("comment")}
         >
-          <MessageSquarePlus className="h-3.5 w-3.5" />
-        </Button>
+          <MessageSquarePlus className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">{t("comment")}</span>
+        </button>
       </div>
     </div>,
     document.body,

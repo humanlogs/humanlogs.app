@@ -104,7 +104,9 @@
       "scope": {
         "mine": "Meine Codes",
         "everyone": "Codes aller"
-      }
+      },
+      "codebook": "Codebook",
+      "untitled": "Unbenanntes Codebook"
     }
   }
 }

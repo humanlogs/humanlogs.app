@@ -27,6 +27,7 @@ Correcting a transcript is a two-handed job: one hand on the audio, one on the t
 | `Ctrl` + arrows | Move sentence by sentence |
 | `Shift` + `←` / `→` | Select one more word |
 | `Shift` + `↑` / `↓` | Select up to the next punctuation |
+| `Ctrl` + `Shift` + arrows | Select one more sentence |
 | `Enter` | Enter edit mode |
 | `Escape` | Exit edit mode, or clear the selection |
 

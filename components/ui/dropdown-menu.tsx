@@ -246,6 +246,12 @@ type DropdownMenuItemProps = {
   onClick?: () => void;
   className?: string;
   preventClose?: boolean;
+  /**
+   * Keep the page's text selection alive through the click. Needed when the item acts
+   * ON that selection — coding a passage — where the default mousedown would collapse
+   * it before the handler ever ran.
+   */
+  preventBlur?: boolean;
 };
 
 export function DropdownMenuItem({
@@ -253,6 +259,7 @@ export function DropdownMenuItem({
   onClick,
   className,
   preventClose = false,
+  preventBlur = false,
 }: DropdownMenuItemProps) {
   const context = React.useContext(DropdownContext);
 
@@ -270,6 +277,7 @@ export function DropdownMenuItem({
         className,
       )}
       onClick={handleClick}
+      onMouseDown={preventBlur ? (e) => e.preventDefault() : undefined}
     >
       {children}
     </button>
@@ -286,12 +294,15 @@ type DropdownMenuSubProps = {
    * force a redundant "the parent itself" entry into every submenu.
    */
   onTriggerClick?: () => void;
+  /** Same as `DropdownMenuItem`'s: the row acts on the page's text selection. */
+  preventBlur?: boolean;
 };
 
 export function DropdownMenuSub({
   trigger,
   children,
   onTriggerClick,
+  preventBlur = false,
 }: DropdownMenuSubProps) {
   const [isSubOpen, setIsSubOpen] = React.useState(false);
   const [isMounted, setIsMounted] = React.useState(false);
@@ -464,6 +475,7 @@ export function DropdownMenuSub({
         onMouseEnter={handleTriggerEnter}
         onMouseLeave={handleTriggerLeave}
         onClick={onTriggerClick}
+        onMouseDown={preventBlur ? (e) => e.preventDefault() : undefined}
       >
         {trigger}
         <svg

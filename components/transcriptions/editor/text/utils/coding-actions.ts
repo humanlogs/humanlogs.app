@@ -42,7 +42,11 @@ export function applyCodingMark(editor: Editor, codingId: string): boolean {
   });
 
   if (!tr.docChanged) return false;
-  view.dispatch(tr);
+  // Anchors are NOT undoable. The mark is one half of a pair — the other is a row in
+  // the database — and Ctrl+Z only knows about the document: undoing would take the
+  // highlight away and leave the row pointing at nothing. Taking a coding back is done
+  // by toggling the code off, which removes both halves together.
+  view.dispatch(tr.setMeta("addToHistory", false));
   return true;
 }
 
@@ -81,7 +85,7 @@ export function removeCodingMark(editor: Editor, codingId: string): void {
         )
       : tr.removeMark(e.from, e.to, markType);
   }
-  view.dispatch(tr);
+  view.dispatch(tr.setMeta("addToHistory", false));
 }
 
 /** The document range covered by a coding, plus the text it holds. */

@@ -35,6 +35,10 @@ export const defaultShortcuts = [
         keys: ["Shift + ↑ / ↓"],
         description: "Select up to the next punctuation",
       },
+      {
+        keys: ["Ctrl + Shift + arrows"],
+        description: "Select one more sentence",
+      },
       { keys: ["A", "B", "…"], description: "Apply the matching code (coding)" },
       { keys: ["A then B"], description: "Apply a sub-code (coding)" },
     ],

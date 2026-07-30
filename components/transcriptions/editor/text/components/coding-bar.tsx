@@ -4,6 +4,7 @@ import { CodeDot, CodingMenuItems } from "@/components/codebooks/coding-menu";
 import { useTranslations } from "@/components/locale-provider";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { Select } from "@/components/ui/select";
+import type { DecryptedCodebook } from "@/lib/codebooks/codebook";
 import { codeKey, type CodingOption, type CodingScope } from "@/lib/codebooks/coding";
 import { cn } from "@/lib/utils/utils";
 import { ChevronDownIcon } from "lucide-react";
@@ -21,6 +22,9 @@ export function CodingBar({
   options,
   appliedKeys,
   onPick,
+  codebooks,
+  codebookId,
+  onCodebookChange,
   scope,
   onScopeChange,
   pending,
@@ -29,6 +33,10 @@ export function CodingBar({
   options: CodingOption[];
   appliedKeys: Set<string>;
   onPick: (option: CodingOption) => void;
+  /** The verbatim codebooks in scope — the prisms available for this study. */
+  codebooks: DecryptedCodebook[];
+  codebookId: string | null;
+  onCodebookChange: (id: string) => void;
   scope: CodingScope;
   onScopeChange: (scope: CodingScope) => void;
   /** The half-typed letter sequence, so the wait for a sub-code is visible. */
@@ -40,6 +48,20 @@ export function CodingBar({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {/* The prism first: it decides what the rest of the row means. */}
+      <Select
+        size="sm"
+        className="w-52 shrink-0"
+        options={codebooks.map((c) => ({
+          value: c.id,
+          label: c.name || t("untitled"),
+        }))}
+        value={codebookId ?? undefined}
+        onChange={onCodebookChange}
+        placeholder={t("codebook")}
+        disabled={codebooks.length === 0}
+      />
+
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
         {options.map((option) => (
           <CodeChip
