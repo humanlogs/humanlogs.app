@@ -456,20 +456,20 @@ export function TranscriptEditor({
   // selection update so what the menus tick, and whether there is anything to code, are
   // re-read from the editor rather than mirrored into a second source of truth.
   const [selectionTick, setSelectionTick] = useState(0);
-  const codingSelection = (() => {
+  const documentSelection = (() => {
     void selectionTick;
     const sel = tiptapEditor?.state.selection;
     return sel && sel.to > sel.from ? sel : null;
   })();
   const appliedCodeKeys = (() => {
     void selectionTick;
-    return codingSelection
+    return documentSelection
       ? codingController.appliedAtSelection()
       : new Set<string>();
   })();
 
   const codingShortcuts = useCodingShortcuts({
-    enabled: coding && canWrite && !!codingSelection,
+    enabled: coding && canWrite && !!documentSelection,
     options: codingController.options,
     onPick: codingController.toggleCode,
   });
@@ -554,7 +554,7 @@ export function TranscriptEditor({
                   scope={codingController.scope}
                   onScopeChange={codingController.setScope}
                   pending={codingShortcuts.pending}
-                  disabled={!canWrite || !codingSelection}
+                  disabled={!canWrite || !documentSelection}
                 />
               ) : (
                 <EditorToolbar
@@ -588,16 +588,23 @@ export function TranscriptEditor({
               <ActiveSegmentHighlight
                 editorAPI={editorAPI}
                 segmentIndex={currentIndex}
-                // While a range is selected the range IS the highlight; drawing the
-                // moving end on top of it just reads as a seam in the band.
+                // While anything is selected the SELECTION is the highlight — the
+                // same one, grown. The active word stays in the model (it is the
+                // moving end) but drawing it too would put a second box inside the
+                // first, which in the coding phase is a third signal over the code
+                // colour with nothing to tell them apart.
                 visible={
-                  state === "navigate" && currentIndex >= 0 && !selection
+                  state === "navigate" && currentIndex >= 0 && !documentSelection
                 }
               />
+              {/* In the coding phase the editor is never focused, so its selection
+                  is always ours to draw. In the transcript phase the browser draws
+                  it while typing, and only a keyboard selection (made blurred, in
+                  navigate mode) needs drawing. */}
               <SelectionRangeHighlight
                 editor={tiptapEditor}
                 editorAPI={editorAPI}
-                visible={coding}
+                visible={coding || (state === "navigate" && !!selection)}
               />
               {/* The transcription phase's floating toolbar is disabled for now:
                   it lands on top of the transcript and hides the very text being

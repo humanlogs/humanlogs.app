@@ -3,16 +3,20 @@
 import type { Editor } from "@tiptap/react";
 import { useCallback, useEffect, useState } from "react";
 import { EditorAPI } from "../api";
-
-type Box = { top: number; left: number; width: number; height: number };
+import {
+  highlightBoxStyle,
+  mergeRectsByLine,
+  type HighlightBox,
+} from "./highlight-box";
 
 /**
  * Draws the selected passage.
  *
- * The coding phase builds its selection with the keyboard while the editor stays
- * blurred — that is what keeps the arrows navigating instead of moving a caret — and a
- * blurred contenteditable draws no selection of its own. So we draw it: one box per
- * line of the range, in the same overlay layer as the active-word highlight.
+ * Navigate mode builds its selection with the keyboard while the editor stays blurred
+ * — that is what keeps the arrows navigating instead of moving a caret — and a blurred
+ * contenteditable draws no selection of its own. So we draw it, in the same overlay
+ * layer and with the same style as the active word (see `highlightBoxStyle`): the
+ * selection is the active word grown, not a second kind of marking.
  */
 export function SelectionRangeHighlight({
   editor,
@@ -23,7 +27,7 @@ export function SelectionRangeHighlight({
   editorAPI: EditorAPI;
   visible: boolean;
 }) {
-  const [boxes, setBoxes] = useState<Box[]>([]);
+  const [boxes, setBoxes] = useState<HighlightBox[]>([]);
 
   const measure = useCallback(() => {
     if (!editor || !visible) return setBoxes([]);
@@ -33,15 +37,14 @@ export function SelectionRangeHighlight({
     if (!origin) return setBoxes([]);
     // ProseMirror positions are flat char offsets + 1 (collab/doc-to-segments).
     setBoxes(
-      editorAPI
-        .getRangeClientRects(from - 1, to - 1)
-        .filter((r) => r.width > 0 && r.height > 0)
-        .map((r) => ({
+      mergeRectsByLine(editorAPI.getRangeClientRects(from - 1, to - 1)).map(
+        (r) => ({
           top: r.top - origin.top,
           left: r.left - origin.left,
           width: r.width,
           height: r.height,
-        })),
+        }),
+      ),
     );
   }, [editor, editorAPI, visible]);
 
@@ -68,14 +71,13 @@ export function SelectionRangeHighlight({
       {boxes.map((box, i) => (
         <div
           key={i}
-          className="pointer-events-none absolute rounded-sm"
+          className="pointer-events-none absolute"
           style={{
+            ...highlightBoxStyle,
             top: box.top,
             left: box.left,
             width: box.width,
             height: box.height,
-            backgroundColor:
-              "color-mix(in oklab, var(--color-blue-500) 22%, transparent)",
             zIndex: 1,
           }}
         />
