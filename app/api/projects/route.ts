@@ -2,27 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 import { parseAppearanceUpdate } from "@/lib/projects/appearance";
-
-// Shape returned to the client for a single study.
-function formatProject(p: {
-  id: string;
-  name: string;
-  iconType: string | null;
-  icon: string | null;
-  color: string | null;
-  imageKey: string | null;
-  updatedAt: Date;
-}) {
-  return {
-    id: p.id,
-    name: p.name,
-    iconType: p.iconType,
-    icon: p.icon,
-    color: p.color,
-    hasImage: !!p.imageKey,
-    updatedAt: p.updatedAt.toISOString(),
-  };
-}
+import { formatProject } from "@/lib/projects/format";
 
 export const GET = withAuthRateLimit(async (request, user) => {
   try {

@@ -50,6 +50,13 @@
         "thisMonth": "Este mes",
         "before": "Antes"
       }
+    },
+    "sharedShort": "compartido",
+    "study": {
+      "all": "Todos los estudios",
+      "none": "Sin estudio",
+      "open": "Abrir el estudio",
+      "empty": "Todavía no hay documentos en este estudio"
     }
   },
   "newTranscription": {

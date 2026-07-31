@@ -13,6 +13,7 @@ import { TranscriptionLoading } from "@/components/transcriptions/transcription-
 import { ProjectBadge } from "@/components/projects/project-badge";
 import { useBetaFeatures, useProjects } from "@/hooks/use-api";
 import { useDocumentTitle } from "@/hooks/use-document-title";
+import { useDocumentViewPrefs } from "@/hooks/use-document-view-prefs";
 import { useEncryptionStatus } from "@/hooks/use-encryption";
 import { useTranscription, useTranscriptions } from "@/hooks/use-transcriptions";
 import { useTranscriptionDeleteModal } from "@/components/transcriptions/dialogs/transcription-delete-dialog";
@@ -59,6 +60,13 @@ function TranscriptionPageContent({ params }: TranscriptionPageProps) {
   const phase: DocumentPhase = betaFeatures
     ? parseDocumentPhase(searchParams.get("phase"))
     : "transcription";
+  // Keep the sidebar's open section on the phase actually being looked at — a
+  // link opened from elsewhere, or the switch above, both land here.
+  const { prefs, update } = useDocumentViewPrefs();
+  useEffect(() => {
+    if (prefs.phase !== phase) update({ phase });
+  }, [phase, prefs.phase, update]);
+
   const setPhase = (next: DocumentPhase) => {
     const query = new URLSearchParams(searchParams.toString());
     if (next === "transcription") query.delete("phase");

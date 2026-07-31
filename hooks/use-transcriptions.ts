@@ -1,6 +1,7 @@
 "use client";
 
 import type { CodeRef, SpeakerCodeRef } from "@/lib/codebooks/codebook";
+import type { Project } from "./use-api";
 import {
   encodeSpeakerCache,
   isEncryptedEntity,
@@ -30,6 +31,12 @@ type Transcription = {
   updatedAt: string;
   isTutorial?: boolean;
   projectId?: string;
+  /**
+   * The document's study, as the API resolved it. Sent alongside `projectId`
+   * because a document received through a share belongs to somebody else's
+   * study, which `useProjects` — scoped to your own — could never name.
+   */
+  study?: Project | null;
   speakerCount?: number;
   speakerNames?: (string | null)[];
   /**

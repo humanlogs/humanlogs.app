@@ -5,6 +5,10 @@ import {
   sortDocuments,
   timeBucketFor,
   type GroupableDocument,
+  filterByStudy,
+  groupByForScope,
+  STUDY_SCOPE_ALL,
+  STUDY_SCOPE_NONE,
 } from "@/lib/documents/grouping";
 
 /**
@@ -512,5 +516,50 @@ describe("codebookIdFromGroupBy", () => {
     expect(codebookIdFromGroupBy("codebook:abc")).toBe("abc");
     expect(codebookIdFromGroupBy("study")).toBeNull();
     expect(codebookIdFromGroupBy("updatedAt")).toBeNull();
+  });
+});
+
+/**
+ * Scoping the sidebar to one study.
+ *
+ * The list is read one study at a time — a researcher is rarely in two at once —
+ * so the scope is applied before anything else, and it takes the "group by
+ * study" axis with it: grouping by the thing you have just filtered on puts the
+ * whole list under one header repeating what the scope already says.
+ */
+describe("study scope", () => {
+  const docs = [
+    { id: "a", projectId: "p1" },
+    { id: "b", projectId: "p2" },
+    { id: "c" },
+  ];
+
+  it("keeps everything when looking at every study", () => {
+    expect(filterByStudy(docs, STUDY_SCOPE_ALL)).toHaveLength(3);
+  });
+
+  it("keeps one study's documents", () => {
+    expect(filterByStudy(docs, "p1").map((d) => d.id)).toEqual(["a"]);
+  });
+
+  it("keeps the documents that were never filed", () => {
+    expect(filterByStudy(docs, STUDY_SCOPE_NONE).map((d) => d.id)).toEqual(["c"]);
+  });
+
+  it("empties out for a study that no longer has documents", () => {
+    // A study deleted, or a share withdrawn: the caller falls back on its own,
+    // this one simply reports nothing rather than everything.
+    expect(filterByStudy(docs, "gone")).toEqual([]);
+  });
+
+  it("drops the study axis once scoped to one", () => {
+    expect(groupByForScope("study", "p1")).toBe("updatedAt");
+    expect(groupByForScope("study", STUDY_SCOPE_NONE)).toBe("updatedAt");
+    expect(groupByForScope("study", STUDY_SCOPE_ALL)).toBe("study");
+  });
+
+  it("leaves every other axis alone", () => {
+    expect(groupByForScope("createdAt", "p1")).toBe("createdAt");
+    expect(groupByForScope("codebook:cb1", "p1")).toBe("codebook:cb1");
   });
 });

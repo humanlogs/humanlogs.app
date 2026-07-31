@@ -36,6 +36,41 @@ export type SortBy = "alphabetical" | "updatedAt" | "createdAt";
 export const DEFAULT_GROUP_BY: GroupBy = "study";
 export const DEFAULT_SORT_BY: SortBy = "alphabetical";
 
+/**
+ * Which study the sidebar is scoped to. A researcher is rarely in two studies at
+ * once, so the list starts by picking one — and everything below (the phases,
+ * the grouping, the counts) is about that study alone.
+ *
+ * `all` keeps the whole corpus, which is the only mode where grouping BY study
+ * still says anything; `none` is the documents that were never filed.
+ */
+export const STUDY_SCOPE_ALL = "all";
+export const STUDY_SCOPE_NONE = "none";
+export type StudyScope = string; // a project id, or one of the two above
+
+export const DEFAULT_STUDY_SCOPE: StudyScope = STUDY_SCOPE_ALL;
+
+/** The documents a study scope keeps. */
+export function filterByStudy<T extends { projectId?: string | null }>(
+  documents: T[],
+  scope: StudyScope,
+): T[] {
+  if (scope === STUDY_SCOPE_ALL) return documents;
+  if (scope === STUDY_SCOPE_NONE) return documents.filter((d) => !d.projectId);
+  return documents.filter((d) => d.projectId === scope);
+}
+
+/**
+ * Grouping BY study is only offered when looking at every study. Scoped to one,
+ * the header would repeat what the scope already says and produce a single group
+ * around the whole list.
+ */
+export function groupByForScope(groupBy: GroupBy, scope: StudyScope): GroupBy {
+  return groupBy === "study" && scope !== STUDY_SCOPE_ALL
+    ? "updatedAt"
+    : groupBy;
+}
+
 /** The codebook id encoded in a `codebook:<id>` grouping, or null. */
 export function codebookIdFromGroupBy(groupBy: GroupBy): string | null {
   return groupBy.startsWith("codebook:")

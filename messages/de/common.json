@@ -50,6 +50,13 @@
         "thisMonth": "Diesen Monat",
         "before": "Früher"
       }
+    },
+    "sharedShort": "geteilt",
+    "study": {
+      "all": "Alle Studien",
+      "none": "Ohne Studie",
+      "open": "Studie öffnen",
+      "empty": "Noch keine Dokumente in dieser Studie"
     }
   },
   "newTranscription": {
