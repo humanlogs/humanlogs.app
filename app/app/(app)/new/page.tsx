@@ -526,11 +526,21 @@ function NewTranscriptionForm() {
             converted = true;
           } catch (error) {
             console.error(
-              "Client-side opus conversion failed; uploading raw file instead:",
+              `Client-side opus conversion failed for "${audioFile.file.name}"; uploading raw file instead:`,
               error,
             );
             file = audioFile.file;
             converted = false;
+
+            // The file was only accepted above because we expected to convert
+            // it here: the raw source may be far over what the server accepts.
+            // Fail it now with a message that says why, instead of letting the
+            // upload be truncated and rejected as a generic error.
+            if (file.size > SERVER_MAX_FILE_SIZE) {
+              throw new Error(
+                t("conversionFailedTooLarge", { name: audioFile.name }),
+              );
+            }
           }
         }
 

@@ -101,7 +101,8 @@
     "providerUs": "🇺🇸 Modèles US (99% précision)",
     "euDurationLimitTitle": "Audio trop long pour les modèles EU",
     "euDurationLimitDescription": "Les modèles EU acceptent les fichiers jusqu'à {minutes} minutes. Veuillez retirer ou découper le(s) fichier(s) suivant(s), ou basculer sur les modèles US : {files}",
-    "euDurationLimitError": "Les modèles EU acceptent les fichiers jusqu'à {minutes} minutes. Veuillez retirer ou découper le fichier, ou basculer sur les modèles US."
+    "euDurationLimitError": "Les modèles EU acceptent les fichiers jusqu'à {minutes} minutes. Veuillez retirer ou découper le fichier, ou basculer sur les modèles US.",
+    "conversionFailedTooLarge": "« {name} » n'a pas pu être compressé dans votre navigateur, et le fichier d'origine est trop volumineux pour être envoyé tel quel (max 300 Mo). Essayez un autre navigateur ou compressez le fichier au préalable."
   },
   "feedback": {
     "title": "Vous aimez notre application ?",

@@ -2,6 +2,7 @@ import {
   checkFfmpegAvailable,
   compressAudioFile,
   encryptAudioBuffer,
+  isOggOpusFile,
 } from "@/lib/audio/audio-processing";
 import {
   parseMultipartToDisk,
@@ -139,7 +140,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
       if (file.truncated || file.size > MAX_FILE_SIZE) {
         await parsed.cleanup();
         return NextResponse.json(
-          { error: `File ${file.filename} exceeds maximum size of 1GB` },
+          { error: `File ${file.filename} exceeds maximum size of 300MB` },
           { status: 400 },
         );
       }
@@ -274,6 +275,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
             duration,
             provider,
             preConverted,
+            originalFileName: file.filename,
           },
         ).catch((error) => {
           console.error(
@@ -340,6 +342,8 @@ async function processAudioAndTranscription(
     duration: number;
     provider: SttProvider;
     preConverted: boolean;
+    /** Name the user uploaded, for logs that have to be matched to a browser session. */
+    originalFileName: string;
   },
 ): Promise<void> {
   let compressedPath: string | null = null;
@@ -349,16 +353,35 @@ async function processAudioAndTranscription(
     // Compress audio file using ffmpeg. Compression reads the source and writes
     // the opus output on disk, so the large raw file never enters the heap.
     let audioPath: string; // File to store & transcribe (opus, or raw on fallback)
+
+    // The client's "already converted" form field is a claim about the bytes it
+    // uploaded, so verify it before acting on it: if the browser conversion in
+    // fact failed and the raw file was uploaded, skipping ffmpeg here would
+    // store and transcribe the unconverted source.
+    let useClientOpus = false;
     if (options.preConverted) {
+      useClientOpus = await isOggOpusFile(inputPath);
+      if (!useClientOpus) {
+        console.warn(
+          `[${transcriptionId}] "${options.originalFileName}" was flagged as client-converted opus but is not Ogg/Opus; compressing server-side instead`,
+        );
+      }
+    }
+
+    if (useClientOpus) {
       // The client already produced standardized opus with the same parameters,
       // so re-encoding server-side would only waste CPU. Use it as-is.
-      console.log(`Using client-converted opus for ${inputPath}, skipping ffmpeg`);
+      console.log(
+        `[${transcriptionId}] Using client-converted opus for "${options.originalFileName}" (${inputPath}), skipping ffmpeg`,
+      );
       audioPath = inputPath;
     } else {
       try {
         const ffmpegAvailable = await checkFfmpegAvailable();
         if (ffmpegAvailable) {
-          console.log(`Compressing audio file ${inputPath}...`);
+          console.log(
+            `[${transcriptionId}] Compressing audio file "${options.originalFileName}" (${inputPath})...`,
+          );
           compressedPath = await compressAudioFile(inputPath);
           audioPath = compressedPath;
         } else {
