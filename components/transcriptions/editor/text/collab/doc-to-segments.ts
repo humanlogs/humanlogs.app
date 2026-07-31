@@ -202,10 +202,155 @@ function lcs(a: string[], b: string[]): [number, number][] {
 }
 
 /**
+ * Exact LCS is O(m·n) in time AND memory, so it can only run on a bounded region
+ * (~1000×1000). Ranges above the cap are split first — see {@link alignRange}.
+ */
+const LCS_CAP = 1_000_000;
+/** Candidates probed around the middle when looking for a split anchor. */
+const ANCHOR_PROBES = 256;
+/** Belt-and-braces guard on the divide-and-conquer recursion. */
+const MAX_SPLIT_DEPTH = 64;
+
+/** Index of every occurrence of each token, ascending. */
+function indexOccurrences(tokens: string[]): Map<string, number[]> {
+  const index = new Map<string, number[]>();
+  for (let i = 0; i < tokens.length; i++) {
+    const list = index.get(tokens[i]);
+    if (list) list.push(i);
+    else index.set(tokens[i], [i]);
+  }
+  return index;
+}
+
+/** Occurrence closest to `center` within `[lo, hi]`, or -1. `occ` is ascending. */
+function closestOccurrence(
+  occ: number[],
+  center: number,
+  lo: number,
+  hi: number,
+): number {
+  let left = 0;
+  let right = occ.length;
+  while (left < right) {
+    const mid = (left + right) >> 1;
+    if (occ[mid] < center) left = mid + 1;
+    else right = mid;
+  }
+  let best = -1;
+  // `left` is the first occurrence >= center; the answer is it or its predecessor,
+  // walking outwards past any occurrence that falls outside [lo, hi].
+  for (let k = left; k < occ.length; k++) {
+    if (occ[k] > hi) break;
+    if (occ[k] >= lo) {
+      best = occ[k];
+      break;
+    }
+  }
+  for (let k = left - 1; k >= 0; k--) {
+    if (occ[k] < lo) break;
+    if (occ[k] <= hi) {
+      if (best === -1 || center - occ[k] < best - center) best = occ[k];
+      break;
+    }
+  }
+  return best;
+}
+
+/**
+ * Pick a split point for a region too large for the exact DP: a token near the
+ * middle of `a` matched to its closest occurrence in `b`.
+ *
+ * "Closest" is measured against the proportional diagonal, and only accepted inside
+ * a window wide enough to absorb the drift the two sides can have accumulated
+ * (`|m - n|` at minimum). Transcripts repeat their words, so requiring a *unique*
+ * anchor (patience-diff style) finds nothing on a long interview — the nearest
+ * occurrence is the right one as long as it is searched for near where it should be.
+ */
+function findSplitAnchor(
+  a: string[],
+  b: string[],
+  aLo: number,
+  aHi: number,
+  bLo: number,
+  bHi: number,
+  bIndex: Map<string, number[]>,
+): [number, number] | null {
+  const m = aHi - aLo;
+  const n = bHi - bLo;
+  const window = Math.max(512, Math.abs(m - n) + 256);
+  const middle = aLo + (m >> 1);
+  const probes = Math.min(m, ANCHOR_PROBES);
+
+  for (let k = 0; k < probes; k++) {
+    // Alternate right/left of the middle so the split stays balanced.
+    const i = k % 2 === 0 ? middle + (k >> 1) : middle - ((k + 1) >> 1);
+    if (i < aLo || i >= aHi) continue;
+    const token = a[i];
+    if (!token) continue; // punctuation-only token: normalizes to "", matches anything
+    const occ = bIndex.get(token);
+    if (!occ) continue;
+    const center = bLo + Math.round(((i - aLo) * n) / m);
+    const j = closestOccurrence(occ, center, bLo, bHi - 1);
+    if (j === -1 || Math.abs(j - center) > window) continue;
+    return [i, j];
+  }
+  return null;
+}
+
+/**
+ * Align `a[aLo, aHi)` with `b[bLo, bHi)`, appending matched index pairs to `out`.
+ *
+ * Common prefix/suffix are trimmed, a small enough remainder is aligned exactly by
+ * {@link lcs}, and anything larger is split on an anchor and recursed into. That
+ * last step is what keeps the alignment exact when a document is edited *all over*
+ * — a replace-all, typically — instead of surrendering the whole region to
+ * interpolation because the quadratic DP would not fit.
+ */
+function alignRange(
+  a: string[],
+  b: string[],
+  aLo: number,
+  aHi: number,
+  bLo: number,
+  bHi: number,
+  bIndex: Map<string, number[]>,
+  out: [number, number][],
+  depth: number,
+): void {
+  while (aLo < aHi && bLo < bHi && a[aLo] === b[bLo]) out.push([aLo++, bLo++]);
+  while (aHi > aLo && bHi > bLo && a[aHi - 1] === b[bHi - 1])
+    out.push([--aHi, --bHi]);
+
+  const m = aHi - aLo;
+  const n = bHi - bLo;
+  if (m === 0 || n === 0) return;
+
+  if (m * n <= LCS_CAP) {
+    for (const [i, j] of lcs(a.slice(aLo, aHi), b.slice(bLo, bHi)))
+      out.push([aLo + i, bLo + j]);
+    return;
+  }
+
+  const anchor =
+    depth < MAX_SPLIT_DEPTH
+      ? findSplitAnchor(a, b, aLo, aHi, bLo, bHi, bIndex)
+      : null;
+  // No anchor at all → the two sides share nothing here; leave the region to
+  // interpolation rather than spending O(m·n) proving it.
+  if (!anchor) return;
+
+  const [i, j] = anchor;
+  alignRange(a, b, aLo, i, bLo, j, bIndex, out, depth + 1);
+  out.push([i, j]);
+  alignRange(a, b, i + 1, aHi, j + 1, bHi, bIndex, out, depth + 1);
+}
+
+/**
  * Carry start/end from a timing `reference` onto `next` word tokens: common
- * prefix/suffix keep their exact reference timestamp, the middle is LCS-aligned so
- * unchanged (even scattered) words keep theirs, and only truly new/changed words are
- * interpolated by {@link enforceTimestampInvariant}. PURE and DETERMINISTIC — with a
+ * prefix/suffix keep their exact reference timestamp, the middle goes through
+ * {@link alignRange} so unchanged (even scattered) words keep theirs, and only truly
+ * new/changed words are interpolated by
+ * {@link enforceTimestampInvariant}. PURE and DETERMINISTIC — with a
  * shared reference + the converged doc, every client derives identical timestamps.
  */
 function carryTimestamps(
@@ -218,7 +363,11 @@ function carryTimestamps(
   const m = prevWords.length;
 
   let p = 0;
-  while (p < n && p < m && norm(nextWords[p].text) === norm(prevWords[p].text)) {
+  while (
+    p < n &&
+    p < m &&
+    norm(nextWords[p].text) === norm(prevWords[p].text)
+  ) {
     nextWords[p].start = prevWords[p].start;
     nextWords[p].end = prevWords[p].end;
     p++;
@@ -233,30 +382,36 @@ function carryTimestamps(
     nextWords[n - 1 - s].end = prevWords[m - 1 - s].end;
     s++;
   }
-  // Middle (p .. n-s): LCS-align the remaining words so unchanged words keep their
-  // exact reference timestamp even when edits are scattered; only truly new/changed
-  // words are left null (interpolated below).
+  // Middle (p .. n-s): align the remaining words so unchanged words keep their exact
+  // reference timestamp even when edits are scattered over the whole document (a
+  // replace-all); only truly new/changed words are left null (interpolated below).
   const midNextIdx: number[] = [];
   const midPrevIdx: number[] = [];
   for (let i = p; i < n - s; i++) midNextIdx.push(i);
   for (let j = p; j < m - s; j++) midPrevIdx.push(j);
 
-  // LCS is O(mid²) time AND memory — guard against a pathological changed region
-  // (rare: huge scattered edits). Above the cap we skip it and let the whole middle
-  // interpolate; the user accepts minor offsets there. Prefix/suffix stay exact.
-  const LCS_CAP = 4_000_000; // ~2000 × 2000
+  const midNext = midNextIdx.map((i) => norm(nextWords[i].text));
+  const midPrev = midPrevIdx.map((j) => norm(prevWords[j].text));
+  const pairs: [number, number][] = [];
+  alignRange(
+    midNext,
+    midPrev,
+    0,
+    midNext.length,
+    0,
+    midPrev.length,
+    indexOccurrences(midPrev),
+    pairs,
+    0,
+  );
+
   const matchedNext = new Set<number>();
-  if (midNextIdx.length * midPrevIdx.length <= LCS_CAP) {
-    for (const [a, b] of lcs(
-      midNextIdx.map((i) => norm(nextWords[i].text)),
-      midPrevIdx.map((j) => norm(prevWords[j].text)),
-    )) {
-      const ni = midNextIdx[a];
-      const pj = midPrevIdx[b];
-      nextWords[ni].start = prevWords[pj].start;
-      nextWords[ni].end = prevWords[pj].end;
-      matchedNext.add(ni);
-    }
+  for (const [a, b] of pairs) {
+    const ni = midNextIdx[a];
+    const pj = midPrevIdx[b];
+    nextWords[ni].start = prevWords[pj].start;
+    nextWords[ni].end = prevWords[pj].end;
+    matchedNext.add(ni);
   }
   for (const i of midNextIdx) {
     if (!matchedNext.has(i)) {

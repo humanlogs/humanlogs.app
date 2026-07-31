@@ -361,11 +361,18 @@ export function TranscriptEditor({
   }, [editorAPI, flushSave]);
 
   // A version revert requires a full reload (the editor hook already left the collab
-  // room). Show a blocking prompt so no stale edit is made before reloading.
+  // room, so the doc on screen is now detached and must not be edited or saved).
+  //
+  // Reload straight away rather than asking: the prompt used to render underneath the
+  // still-open history sheet, whose Radix overlay takes `pointer-events` off the body
+  // — its button was unclickable and the app simply looked frozen. The overlay below
+  // only covers the frame between the event and the browser navigating away.
   const [revertedBy, setRevertedBy] = useState<string | null>(null);
   useEffect(() => {
-    const onReverted = (data: { byName: string }) =>
+    const onReverted = (data: { byName: string }) => {
       setRevertedBy(data?.byName || "A collaborator");
+      window.location.reload();
+    };
     editorAPI.addListener("reverted", onReverted);
     return () => {
       editorAPI.removeListener("reverted", onReverted);
@@ -418,15 +425,8 @@ export function TranscriptEditor({
             <p className="text-base font-semibold">Version restored</p>
             <p className="mt-2 text-sm text-muted-foreground">
               <span className="font-medium">{revertedBy}</span> restored an
-              earlier version of this transcription. Reload to continue with the
-              restored content.
+              earlier version of this transcription. Reloading…
             </p>
-            <button
-              className="mt-4 inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-              onClick={() => window.location.reload()}
-            >
-              Reload
-            </button>
           </div>
         </div>
       )}

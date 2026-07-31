@@ -200,7 +200,10 @@ describe("docToSegments — performance guards", () => {
     expect(ms).toBeLessThan(300);
   });
 
-  it("degrades gracefully (LCS cap) when edits are scattered over the whole doc", () => {
+  it("stays exact when edits are scattered over the whole doc", () => {
+    // Prefix/suffix trimming buys nothing here (both ends changed) and the region
+    // is far too large for the quadratic DP, so this only works because the
+    // alignment splits on anchors before falling back to LCS.
     const parts = bigRef.map((w, i) =>
       i % 100 === 0 ? `x${i}` : (w.text as string),
     );
@@ -208,9 +211,47 @@ describe("docToSegments — performance guards", () => {
     const segs = docToSegments(doc(parts.join(" ")), bigRef);
     const ms = performance.now() - t0;
 
-    // Above the cap we accept interpolated (approximate) times, but never
-    // divergence: the result must still be deterministic and monotonic.
+    expect(timeOf(segs, "w1550")).toEqual([465, 465.25]);
+    expect(timeOf(segs, "w2999")).toEqual([
+      bigRef[2999].start,
+      bigRef[2999].end,
+    ]);
     expect(isMonotonic(segs)).toBe(true);
     expect(ms).toBeLessThan(600);
+  });
+
+  it("keeps every untouched word exact through a replace-all (dots → ' /')", () => {
+    // The bug this pins: replacing every "." across a long transcript changes words
+    // from one end to the other AND inserts a token per sentence. Surrendering the
+    // whole middle to interpolation moves every word in the document away from its
+    // audio — the editor's word→audio links all break at once.
+    const vocab =
+      "alors je pense que le sujet principal reste vraiment la question de la methode".split(
+        " ",
+      );
+    const texts = Array.from(
+      { length: N },
+      (_, i) => vocab[i % vocab.length] + (i % 12 === 11 ? "." : ""),
+    );
+    const reference: TranscriptionSegment[] = texts.map((text, i) => ({
+      type: "word",
+      text,
+      start: i * 0.3,
+      end: i * 0.3 + 0.25,
+    }));
+
+    const segs = docToSegments(
+      doc(texts.join(" ").replaceAll(".", " /")),
+      reference,
+    );
+
+    // Every original word (i.e. everything but the inserted "/" tokens) must still
+    // carry the reference timestamp of the word at the same rank.
+    const kept = words(segs).filter((w) => w.text !== "/");
+    expect(kept).toHaveLength(N);
+    const exact = kept.filter(
+      (w, i) => w.start === reference[i].start && w.end === reference[i].end,
+    );
+    expect(exact).toHaveLength(N);
   });
 });
