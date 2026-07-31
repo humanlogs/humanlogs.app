@@ -4,7 +4,7 @@
 
 import { exec } from "child_process";
 import { promisify } from "util";
-import { unlink, stat } from "fs/promises";
+import { open, unlink, stat } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
 import crypto from "crypto";
@@ -73,6 +73,38 @@ export async function compressAudioFile(inputPath: string): Promise<string> {
     // Best-effort cleanup of a partial output; the input is owned by the caller.
     await unlink(outputPath).catch(() => {});
     throw error;
+  }
+}
+
+/**
+ * Cheap structural check that a file really is the Ogg/Opus we asked the client
+ * to produce.
+ *
+ * The upload marks a part as already converted with a form field, and a form
+ * field is a claim, not a fact: a stale bundle, a retried submit or a
+ * hand-written client can all set it on bytes that are not opus. Trusting it
+ * blindly means storing (and sending to the STT provider) an unconverted
+ * multi-hundred-MB source. An Ogg page starts with the "OggS" capture pattern
+ * and an opus stream's first page carries the "OpusHead" identification header,
+ * so reading the first page is enough to confirm the claim — no ffprobe
+ * dependency, no full read.
+ */
+export async function isOggOpusFile(path: string): Promise<boolean> {
+  let handle;
+  try {
+    handle = await open(path, "r");
+    const buffer = Buffer.alloc(4096);
+    const { bytesRead } = await handle.read(buffer, 0, buffer.length, 0);
+    const head = buffer.subarray(0, bytesRead);
+    return (
+      head.subarray(0, 4).toString("latin1") === "OggS" &&
+      head.includes("OpusHead", 0, "latin1")
+    );
+  } catch (error) {
+    console.error(`Could not inspect ${path} for an opus header:`, error);
+    return false;
+  } finally {
+    await handle?.close().catch(() => {});
   }
 }
 

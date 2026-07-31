@@ -47,6 +47,14 @@ import { AudioControls } from "./audio/helpers";
 /** Roughly where the sticky header ends, used to probe the first visible line. */
 const HEADER_SAFE_TOP = 140;
 
+/**
+ * The formatting bubble that follows a text selection. Off for now: it covers
+ * the line it is anchored to, so it hides the text the user is working on.
+ * Kept in the tree rather than deleted — the component is fine, its placement
+ * is the problem.
+ */
+const SELECTION_TOOLBAR_ENABLED = false;
+
 function SegmentsHtmlDebugPanel({ editorAPI }: { editorAPI: EditorAPI }) {
   const [html, setHtml] = useState("");
 
@@ -495,14 +503,23 @@ export function TranscriptEditor({
                 segmentIndex={currentIndex}
                 visible={state === "navigate" && currentIndex >= 0}
               />
-              <SelectionToolbar
-                editor={tiptapEditor}
-                editorAPI={editorAPI}
-                canWrite={canWrite}
-                applyFormat={applyFormat}
-                activeFormats={activeFormats}
-                onComment={commentThreads.startNewComment}
-              />
+              {/* The floating selection toolbar is disabled for now: it lands on
+                  top of the transcript and hides the very text being edited,
+                  which is what users reported. Nothing is lost meanwhile — the
+                  header toolbar carries the same formats and the same comment
+                  action (with its shortcut), which is what the bubble mirrored.
+                  Flip SELECTION_TOOLBAR_ENABLED back on once it can be placed
+                  without covering the line. */}
+              {SELECTION_TOOLBAR_ENABLED && (
+                <SelectionToolbar
+                  editor={tiptapEditor}
+                  editorAPI={editorAPI}
+                  canWrite={canWrite}
+                  applyFormat={applyFormat}
+                  activeFormats={activeFormats}
+                  onComment={commentThreads.startNewComment}
+                />
+              )}
               <div className="w-full min-w-0 max-w-full overflow-hidden">
                 <TranscriptEditorContentTipTap
                   transcriptionId={transcription.id}

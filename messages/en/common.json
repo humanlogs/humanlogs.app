@@ -101,7 +101,8 @@
     "providerUs": "🇺🇸 US Models (99% accuracy)",
     "euDurationLimitTitle": "Audio too long for EU models",
     "euDurationLimitDescription": "EU models accept files up to {minutes} minutes long. Please remove or split the following file(s), or switch to US models: {files}",
-    "euDurationLimitError": "EU models accept files up to {minutes} minutes long. Please remove or split the file, or switch to US models."
+    "euDurationLimitError": "EU models accept files up to {minutes} minutes long. Please remove or split the file, or switch to US models.",
+    "conversionFailedTooLarge": "\"{name}\" could not be compressed in your browser, and the original file is too large to upload as is (max 300MB). Please try another browser or compress the file first."
   },
   "feedback": {
     "title": "Feedback & Reviews",

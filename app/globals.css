@@ -177,99 +177,11 @@
 
 /* ---------- Onboarding: animated background + modal entrance ---------- */
 
-/* Aurora: large soft gradient orbs drifting slowly on independent paths, for
-   a smooth flowing mesh (no hard edges). Each orb gets its own timing. */
-@keyframes onboarding-aurora-1 {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(8%, 10%) scale(1.2);
-  }
-}
-@keyframes onboarding-aurora-2 {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(-10%, 6%) scale(1.15);
-  }
-}
-@keyframes onboarding-aurora-3 {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(6%, -8%) scale(1.1);
-  }
-}
-.animate-onboarding-aurora-1 {
-  animation: onboarding-aurora-1 22s ease-in-out infinite;
-}
-.animate-onboarding-aurora-2 {
-  animation: onboarding-aurora-2 26s ease-in-out infinite;
-}
-.animate-onboarding-aurora-3 {
-  animation: onboarding-aurora-3 30s ease-in-out infinite;
-}
-
-/* Horizontal veils: full-width soft colour bands that drift sideways, for a
-   layered "voile" look rather than distinct orbs. */
-@keyframes onboarding-veil-a {
-  0%,
-  100% {
-    transform: translateX(-3%);
-  }
-  50% {
-    transform: translateX(3%);
-  }
-}
-@keyframes onboarding-veil-b {
-  0%,
-  100% {
-    transform: translateX(4%);
-  }
-  50% {
-    transform: translateX(-4%);
-  }
-}
-.animate-onboarding-veil-a {
-  animation: onboarding-veil-a 30s ease-in-out infinite;
-}
-.animate-onboarding-veil-b {
-  animation: onboarding-veil-b 36s ease-in-out infinite;
-}
-
-/* Silk: a large blurred ribbon that slowly undulates and drifts, like a
-   flowing veil of fabric. Kept slightly overscaled so blurred edges stay
-   off-screen. */
-@keyframes onboarding-silk-a {
-  0%,
-  100% {
-    transform: translate3d(-2%, 0, 0) scale(1.08) skewY(-1deg);
-  }
-  50% {
-    transform: translate3d(2%, 1.5%, 0) scale(1.12) skewY(1deg);
-  }
-}
-@keyframes onboarding-silk-b {
-  0%,
-  100% {
-    transform: translate3d(2%, 1%, 0) scale(1.1) skewY(1.5deg);
-  }
-  50% {
-    transform: translate3d(-3%, -1%, 0) scale(1.06) skewY(-1.5deg);
-  }
-}
-.animate-onboarding-silk-a {
-  animation: onboarding-silk-a 34s ease-in-out infinite;
-}
-.animate-onboarding-silk-b {
-  animation: onboarding-silk-b 42s ease-in-out infinite;
-}
+/* The ambient backdrop (aurora / warm / minimal) is drawn on a canvas in
+   `components/ui/ambient-background.tsx`. Its drift used to live here as CSS
+   keyframes on blurred DOM layers; that made the compositor re-rasterize
+   viewport-sized surfaces through a large blur kernel every frame. The motion
+   is now part of the canvas draw, so there is nothing to declare in CSS. */
 
 /* Smoothly animate a container's height to fit its content. */
 .onboarding-animate-height {
@@ -560,13 +472,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-onboarding-aurora-1,
-  .animate-onboarding-aurora-2,
-  .animate-onboarding-aurora-3,
-  .animate-onboarding-veil-a,
-  .animate-onboarding-veil-b,
-  .animate-onboarding-silk-a,
-  .animate-onboarding-silk-b,
   .onboarding-animate-height,
   .animate-onboarding-card,
   .animate-onboarding-step,
