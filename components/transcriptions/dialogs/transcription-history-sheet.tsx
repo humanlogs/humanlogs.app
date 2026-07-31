@@ -12,11 +12,7 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import { useModal } from "@/components/use-modal";
 import { cn } from "@/lib/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  RotateCcwIcon,
-  } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, RotateCcwIcon } from "lucide-react";
 import { useTranslations } from "@/components/locale-provider";
 import * as React from "react";
 import { toast } from "sonner";
@@ -27,7 +23,7 @@ import {
   useTranscription,
   type TranscriptionSegment,
 } from "@/hooks/use-transcriptions";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import diff from "fast-diff";
 
 export type TranscriptionHistoryModalData = {
@@ -93,15 +89,28 @@ export function TranscriptionHistorySheet() {
     if (revertMutation.isSuccess) {
       toast.success(t("revertSuccess"));
       setSelectedVersionIndex(null);
-      // Do NOT reload here: the server broadcasts `transcription:reverted` to every
-      // participant (including us), which makes each client leave the collab room and
-      // show a blocking reload prompt — so the reload happens uniformly for everyone
-      // and no peer serves the stale (pre-revert) doc first.
+      // Do NOT reload from here on the happy path: the server broadcasts
+      // `transcription:reverted` to every participant (including us), which makes each
+      // client leave the collab room and reload — uniformly for everyone, so no peer
+      // serves the stale (pre-revert) doc to a reloading one. See the fallback below.
     }
     if (revertMutation.isError) {
       toast.error(t("revertError"));
     }
   }, [revertMutation.isSuccess, revertMutation.isError]);
+
+  // Fallback for a client with no live socket: the broadcast above never arrives, so
+  // nothing drops the in-memory doc — and an editor still holding the pre-revert
+  // document would eventually save it straight back over the restored version. Reload
+  // the editor ourselves if the broadcast has not already done it. Self-cancelling:
+  // when the socket path fires first the page is gone before the timer runs.
+  const pathname = usePathname();
+  React.useEffect(() => {
+    if (!revertMutation.isSuccess || !data?.transcriptionId) return;
+    if (!pathname?.includes(data.transcriptionId)) return;
+    const timer = setTimeout(() => window.location.reload(), 2000);
+    return () => clearTimeout(timer);
+  }, [revertMutation.isSuccess, data?.transcriptionId, pathname]);
 
   // Reset selection when sheet closes
   React.useEffect(() => {
