@@ -3,6 +3,8 @@
  * Uses Web Crypto API for key generation and encryption.
  */
 
+import { destroyAllLocalDbs } from "@/lib/local/db.browser";
+
 const ENCRYPTION_STORE_NAME = "encryption-keys";
 const DB_NAME = "transcription-storage";
 const DB_VERSION = 2; // Increment version for new store
@@ -350,12 +352,19 @@ export async function setDeviceTrust(
 /**
  * Removes the private key from IndexedDB if the device is not trusted.
  * This should be called on logout to clean up non-trusted devices.
+ *
+ * It now removes the LOCAL CORPUS too. The key used to be the only thing this
+ * device kept, so forgetting it was enough to forget everything; since documents
+ * and coded passages are cached in clear for the excerpt panel and for offline
+ * reading (lib/local), leaving those behind would make "do not trust this device"
+ * a promise about the wrong file.
  */
 export async function cleanupNonTrustedKeys(): Promise<void> {
   try {
     const isTrusted = await isDeviceTrusted();
     if (!isTrusted) {
       await removePrivateKey();
+      await destroyAllLocalDbs();
     }
   } catch (error) {
     console.error("Failed to cleanup non-trusted keys:", error);

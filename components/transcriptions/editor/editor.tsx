@@ -37,6 +37,7 @@ import { useAudioSync } from "./text/hooks/use-audio-sync";
 import { useCoding } from "./text/hooks/use-coding";
 import { useCodingShortcuts } from "./text/hooks/use-coding-shortcuts";
 import { useCommentThreads } from "./text/hooks/use-comment-threads";
+import { useExcerptBridge } from "./text/hooks/use-excerpt-bridge";
 import { useWordSnappedSelection } from "./text/hooks/use-word-snapped-selection";
 import { SaveStatus, useAutoSave } from "./text/hooks/use-auto-save";
 import { useFormat } from "./text/hooks/use-format";
@@ -239,6 +240,20 @@ export function TranscriptEditor({
     projectId: transcription.projectId,
     editorAPI,
     canWrite,
+  });
+
+  // The excerpt panel's end of the coding loop: it learns which document and
+  // codebook are open, gets this document's rows rewritten as passages are coded,
+  // and trades scroll positions with the table.
+  const excerpts = useExcerptBridge({
+    transcriptionId: transcription.id,
+    projectId: transcription.projectId ?? null,
+    title: transcription.title,
+    serverUpdatedAt: transcription.updatedAt,
+    codebookId: codingController.codebook?.id ?? null,
+    editorAPI,
+    codings: codingController.codings,
+    active: coding,
   });
 
   // Notifications about this document are about its comments, so they are cleared when
@@ -768,6 +783,7 @@ export function TranscriptEditor({
                   isEncrypted={isEncrypted}
                   aesKey={aesKey}
                   encryptionReady={encryptionReady}
+                  serverUpdatedAt={transcription.updatedAt}
                   editorAPI={editorAPI}
                   onChange={() => {
                     editorAPI.emit("change");
@@ -781,6 +797,7 @@ export function TranscriptEditor({
                     );
                     selectionUpdate();
                     formatSelectionUpdate(editor);
+                    excerpts.publishSelection();
                     setSelectionTick((tick) => tick + 1);
                   }}
                   hasWriteAccess={canWrite}

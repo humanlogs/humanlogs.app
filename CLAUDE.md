@@ -94,6 +94,24 @@ Client side: `lib/sockets/socket-client.ts` (shared singleton socket), `yjs-coll
 
 Optional client-side E2E encryption so audio/transcripts never reach the server unencrypted. Scheme (documented in `lib/encryption/encryption-entities.ts`): a fresh **AES-GCM** key encrypts the payload, and that AES key is **RSA-OAEP**-wrapped once per authorized user's public key — enabling multi-user sharing without re-encrypting the payload and revocation by removing an entry. There are paired implementations: `*.ts` (Node) and `*.browser.ts` (Web Crypto) — keep them in sync; pick the right one for the runtime. `lib/encryption/encryption.ts` (browser) manages RSA keypair generation, PEM export, and storing the private key **encrypted-at-rest in IndexedDB** under a device secret (with a "trust this device" flag controlling persistence across logout). The user's public key is stored on `User.publicKey`. Audio decryption/conversion happen in the browser (`lib/audio/*.browser.ts`, ffmpeg.wasm).
 
+### The local corpus (`lib/local/**`)
+
+The browser keeps its own copy of the corpus, in **IndexedDB**, in clear. It exists because of a question the server cannot answer at the scale the app targets (1000 documents, ~100M words) and cannot answer *at all* for an end-to-end encrypted study: *show me every passage coded «violence», by the speakers coded «cadre», across this study*.
+
+The database is named per user (`humanlogs-local-<userId>`) — plaintext content on a shared device must not be one wrong query away from another account — and `cleanupNonTrustedKeys` wipes it on logout from an untrusted device, alongside the encryption key. `/app/account/security` shows what is held and offers to forget it.
+
+Four stores, three purposes (`db.browser.ts`):
+
+- `documents` — one row per document: what we hold and how fresh it is.
+- `phrases` + `phraseCodes` — the **coded-passage index**. A *phrase* is one passage (document, speaker, text); a *phrase code* links it to one code from one codebook applied by one author, so a passage read as two things is one row with two chips. Both are DERIVED by `buildPhraseIndex` (`phrase-index.ts`) from the flat `TranscriptionSegment[]` projection plus the document's `Coding` rows — the same derivation whether the projection came from the database or from the live editor. Nothing here is authoritative; the whole document is rebuilt whenever it changes.
+- `docState` — `Y.encodeStateAsUpdate` of documents actually opened, capped and LRU-evicted. Seeding from it restores the CRDT with its original item ids, so a returning reader gets the transcript with no round trip. **Used only when the server's `updatedAt` still matches the one it was stored against** — a doc seeded from the transcript JSON gets fresh item ids, so applying a stale local state on top would duplicate every sentence rather than reconcile.
+
+**Sync** (`sync.browser.ts`) is `GET /api/codings/manifest` → one line per document (`updatedAt`, coding count, latest coding) → `planSync` decides what to rebuild → fetch/decrypt/reindex only those. Two timestamps, not one: editing a transcript does not code it, and coding writes a `Coding` row now and an anchor whenever the save leader next flushes. `planSync` is pure and tested (`tests/unit/local-sync-plan.test.ts`) because a mistake there is silent in both directions.
+
+**Querying** (`phrase-query.ts`, pure, tested) is faceted: OR inside a dimension, AND across them. The document/speaker half resolves FIRST against the document list the app already holds (`documentsMatchingCodes` / `speakersMatchingCodes`), turning a question about people into a set of ids; only then is the index filtered.
+
+React side: `hooks/use-local-index.ts` (`useLocalIndexSync`, `useStudyPhrases`, `useLiveDocumentIndex`). The **excerpt panel** (`components/codebooks/excerpts/**`) is global, docked right, and reads only the local index; pages tell it where they are via `useExcerptPanelContext`, and the editor bridges to it through `use-excerpt-bridge.ts` — live reindexing of the open document, plus two-way scroll sync between a coded passage and its row.
+
 ### Frontend conventions
 
 - App Router with route groups: `app/app/(app)/**` is the authenticated product (transcription editor, account, admin, new); `app/(landing)/[locale]/**` is the localized marketing site; `app/api/**` is the backend.

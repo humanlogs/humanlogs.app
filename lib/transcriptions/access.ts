@@ -113,3 +113,40 @@ export function findTranscriptionsSharedWith(
     LIMIT ${limit}
   `;
 }
+
+/**
+ * The id and freshness of every document `userId` can read — owned or shared —
+ * optionally narrowed to one study.
+ *
+ * Deliberately narrow: {@link findTranscriptionsSharedWith} returns whole rows,
+ * transcript JSON included, which is megabytes per interview and the wrong price
+ * to pay for a list of ids. The local-sync manifest asks this question about a
+ * thousand documents at a time.
+ */
+export async function findAccessibleDocumentStamps(
+  userId: string,
+  projectId?: string | null,
+  limit = 2000,
+): Promise<Array<{ id: string; updatedAt: Date; projectId: string | null }>> {
+  const studyFilter =
+    projectId === undefined
+      ? Prisma.empty
+      : projectId === null
+        ? Prisma.sql`AND "projectId" IS NULL`
+        : Prisma.sql`AND "projectId" = ${projectId}`;
+
+  const rows = await prisma.$queryRaw<
+    Array<{ id: string; updatedAt: Date; projectId: string | null }>
+  >`
+    SELECT "id", "updatedAt", "projectId" FROM "Transcription"
+    WHERE (
+      "userId" = ${userId}
+      OR ("shared" IS NOT NULL
+          AND "shared"::jsonb @> ${Prisma.sql`${JSON.stringify([{ userId }])}::jsonb`})
+    )
+    ${studyFilter}
+    ORDER BY "updatedAt" DESC
+    LIMIT ${limit}
+  `;
+  return rows;
+}

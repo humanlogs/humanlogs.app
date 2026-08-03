@@ -314,6 +314,12 @@
         },
         "referralCardTitle": "Empfehlungen",
         "referralCardDescription": "Laden Sie Freunde ein und verdienen Sie Gratisminuten",
-        "referralCardButton": "Empfehlungen öffnen"
+        "referralCardButton": "Empfehlungen öffnen",
+        "localData": {
+            "title": "Auf diesem Gerät gespeicherte Daten",
+            "summary": "{count, plural, one {# Dokument indexiert} other {# Dokumente indexiert}}, {phrases, plural, one {# kodierte Passage} other {# kodierte Passagen}}. Ein Löschen bedeutet nur, dass beim nächsten Besuch neu synchronisiert wird.",
+            "empty": "Auf diesem Gerät ist noch nichts gespeichert.",
+            "forget": "Dieses Gerät vergessen"
+        }
     }
 }

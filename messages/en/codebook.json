@@ -107,6 +107,42 @@
       },
       "codebook": "Codebook",
       "untitled": "Untitled codebook"
+    },
+    "excerpts": {
+      "title": "Excerpts",
+      "close": "Close the excerpt panel",
+      "empty": "No coded passage matches this filter yet.",
+      "groupEmpty": "Nothing coded here yet",
+      "search": "Search the excerpts",
+      "reset": "Clear the filters",
+      "narrowed": "{count, plural, one {# document} other {# documents}} in this selection",
+      "scope": {
+        "document": "This document",
+        "study": "Whole study"
+      },
+      "filter": {
+        "codes": "Codes",
+        "context": "Documents & people"
+      },
+      "authors": {
+        "everyone": "Everyone",
+        "mine": "Mine"
+      },
+      "groupBy": {
+        "label": "Group by",
+        "none": "No grouping",
+        "code": "By code",
+        "codebook": "By codebook",
+        "document": "By document",
+        "speaker": "By speaker"
+      },
+      "unknownCode": "Deleted code",
+      "unknownCodebook": "Deleted codebook",
+      "untitledDocument": "Untitled document",
+      "unknownSpeaker": "Unknown speaker",
+      "speakerFallback": "Speaker {index}",
+      "syncing": "Indexing this study… {done}/{total}",
+      "syncFailed": "{count, plural, one {# document could not be indexed} other {# documents could not be indexed}}"
     }
   }
 }

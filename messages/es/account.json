@@ -314,6 +314,12 @@
         },
         "referralCardTitle": "Referidos",
         "referralCardDescription": "Invita a amigos y gana minutos de transcripción gratis",
-        "referralCardButton": "Abrir referidos"
+        "referralCardButton": "Abrir referidos",
+        "localData": {
+            "title": "Datos guardados en este dispositivo",
+            "summary": "{count, plural, one {# documento indexado} other {# documentos indexados}}, {phrases, plural, one {# pasaje codificado} other {# pasajes codificados}}. Borrarlos solo implica volver a sincronizar en la próxima visita.",
+            "empty": "Todavía no hay nada guardado en este dispositivo.",
+            "forget": "Olvidar este dispositivo"
+        }
     }
 }

@@ -5,6 +5,7 @@ import {
   ImportCertificatePrompt,
   SetupEncryption,
 } from "@/components/encryption";
+import { LocalDataCard } from "@/components/codebooks/excerpts/local-data-card";
 import { useTranslations } from "@/components/locale-provider";
 import { PageLayout } from "@/components/page-layout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -55,6 +56,10 @@ export default function SecurityPage() {
       ) : (
         <EncryptionSettings />
       )}
+
+      <div className="mt-4">
+        <LocalDataCard />
+      </div>
     </PageLayout>
   );
 }

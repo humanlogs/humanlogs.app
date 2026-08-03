@@ -1,5 +1,6 @@
 "use client";
 
+import { ExcerptPanelTrigger } from "@/components/codebooks/excerpts/excerpt-panel-trigger";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils/utils";
 import { usePathname } from "next/navigation";
@@ -57,6 +58,9 @@ export function AppHeader() {
           id="header-actions-portal"
           className="flex-1 flex items-center justify-between"
         />
+        {/* The excerpt panel is global, so its toggle lives in the bar every route
+            shares rather than in any one page's actions. */}
+        <ExcerptPanelTrigger />
       </div>
       <div id="header-sub-portal" className="w-full" />
     </header>

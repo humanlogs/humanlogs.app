@@ -107,6 +107,42 @@
       },
       "codebook": "Codebook",
       "untitled": "Codebook sin nombre"
+    },
+    "excerpts": {
+      "title": "Extractos",
+      "close": "Cerrar el panel de extractos",
+      "empty": "Ningún pasaje codificado coincide con este filtro.",
+      "groupEmpty": "Todavía no hay nada codificado aquí",
+      "search": "Buscar en los extractos",
+      "reset": "Borrar los filtros",
+      "narrowed": "{count, plural, one {# documento} other {# documentos}} en esta selección",
+      "scope": {
+        "document": "Este documento",
+        "study": "Todo el estudio"
+      },
+      "filter": {
+        "codes": "Códigos",
+        "context": "Documentos y personas"
+      },
+      "authors": {
+        "everyone": "Todos",
+        "mine": "Míos"
+      },
+      "groupBy": {
+        "label": "Agrupar por",
+        "none": "Sin agrupar",
+        "code": "Por código",
+        "codebook": "Por libro de códigos",
+        "document": "Por documento",
+        "speaker": "Por hablante"
+      },
+      "unknownCode": "Código eliminado",
+      "unknownCodebook": "Libro de códigos eliminado",
+      "untitledDocument": "Documento sin título",
+      "unknownSpeaker": "Hablante desconocido",
+      "speakerFallback": "Hablante {index}",
+      "syncing": "Indexando el estudio… {done}/{total}",
+      "syncFailed": "{count, plural, one {# documento no se pudo indexar} other {# documentos no se pudieron indexar}}"
     }
   }
 }

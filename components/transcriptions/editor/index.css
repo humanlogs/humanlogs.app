@@ -103,6 +103,30 @@
     transition: background-color 0.15s ease-out;
 }
 
+/* Landing on a passage clicked in the excerpt panel. A coded run is already painted
+   with its code's colour, so "this is the one" cannot be another tint: it is a brief
+   ring, drawn outside the text so it does not reflow a line while it plays. */
+.hl-coding-flash {
+    animation: hl-coding-flash 1.2s ease-out;
+}
+
+@keyframes hl-coding-flash {
+    0%,
+    60% {
+        box-shadow: 0 0 0 3px var(--color-primary);
+    }
+    100% {
+        box-shadow: 0 0 0 3px transparent;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hl-coding-flash {
+        animation: none;
+        box-shadow: 0 0 0 3px var(--color-primary);
+    }
+}
+
 /* Outside the coding phase a coded passage is not a thing you interact with, and no
    stylesheet paints it — the transcript pass is about the words. The mark is still
    there; it simply has nothing to say until you come back to code. */
