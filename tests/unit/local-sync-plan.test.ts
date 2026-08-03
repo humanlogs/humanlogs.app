@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { LocalDocumentRow } from "@/lib/local/db.browser";
+import type { PhraseRow } from "@/lib/local/phrase-index";
 import {
   codingSignature,
+  phraseIndexSignature,
   planSync,
   type CodingManifestEntry,
 } from "@/lib/local/sync.browser";
@@ -79,7 +81,10 @@ describe("planSync", () => {
 
   it("rebuilds when a coding was retracted, even though the count stayed", () => {
     // Delete one code and apply another: same count, later timestamp.
-    const before = entry("a", { codings: 3, codingLatest: "2026-01-02T00:00:00.000Z" });
+    const before = entry("a", {
+      codings: 3,
+      codingLatest: "2026-01-02T00:00:00.000Z",
+    });
     const plan = planSync({
       manifest: [
         entry("a", { codings: 3, codingLatest: "2026-01-05T00:00:00.000Z" }),
@@ -135,17 +140,67 @@ describe("planSync", () => {
     const other = indexed(entry("other", { projectId: "study2" }), {
       studyKey: "study2",
     });
-    const plan = planSync({ manifest: [entry("a")], local: [other], scope: null });
+    const plan = planSync({
+      manifest: [entry("a")],
+      local: [other],
+      scope: null,
+    });
     expect(plan.removable.map((row) => row.id)).toEqual(["other"]);
   });
 
   it("distinguishes a document filed in no study from one in a study", () => {
-    const loose = indexed(entry("loose", { projectId: null }), { studyKey: "" });
-    expect(planSync({ manifest: [], local: [loose], scope: "" }).removable).toEqual([
-      loose,
-    ]);
+    const loose = indexed(entry("loose", { projectId: null }), {
+      studyKey: "",
+    });
+    expect(
+      planSync({ manifest: [], local: [loose], scope: "" }).removable,
+    ).toEqual([loose]);
     expect(
       planSync({ manifest: [], local: [loose], scope: "study1" }).removable,
     ).toEqual([]);
+  });
+});
+
+/**
+ * The other half of "do proportional work": the open document is re-derived several
+ * times a second while someone types, and almost none of those derivations change a
+ * coded passage. This is what decides whether the rewrite happens at all.
+ */
+describe("phraseIndexSignature", () => {
+  const phrase = (id: string, text: string): PhraseRow => ({
+    id,
+    documentId: "doc1",
+    projectId: "study1",
+    speakerId: "speaker_0",
+    text,
+    offset: 0,
+    codingIds: [id],
+  });
+  const index = (...phrases: PhraseRow[]) => ({ phrases, links: [] });
+
+  it("is stable for an unchanged index — which is what skips the write", () => {
+    expect(phraseIndexSignature(index(phrase("p1", "on nous crie")))).toBe(
+      phraseIndexSignature(index(phrase("p1", "on nous crie"))),
+    );
+  });
+
+  it("moves when a passage is coded", () => {
+    expect(phraseIndexSignature(index(phrase("p1", "un")))).not.toBe(
+      phraseIndexSignature(index(phrase("p1", "un"), phrase("p2", "deux"))),
+    );
+  });
+
+  it("moves when the text INSIDE a coded passage is edited, ids unchanged", () => {
+    // The case an id-only fingerprint would miss: the anchors are untouched, but
+    // the excerpt the table shows is no longer the one it was showing.
+    expect(phraseIndexSignature(index(phrase("p1", "on nous crie")))).not.toBe(
+      phraseIndexSignature(index(phrase("p1", "on nous crie dessus"))),
+    );
+  });
+
+  it("keeps the id and the text apart, so a shift between them is not a match", () => {
+    expect(phraseIndexSignature(index(phrase("a", "b")))).not.toBe(
+      phraseIndexSignature(index(phrase("ab", ""))),
+    );
   });
 });

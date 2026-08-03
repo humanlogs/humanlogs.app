@@ -142,7 +142,8 @@
       "unknownSpeaker": "Unbekannter Sprecher",
       "speakerFallback": "Sprecher {index}",
       "syncing": "Studie wird indexiert… {done}/{total}",
-      "syncFailed": "{count, plural, one {# Dokument konnte nicht indexiert werden} other {# Dokumente konnten nicht indexiert werden}}"
+      "syncFailed": "{count, plural, one {# Dokument konnte nicht indexiert werden} other {# Dokumente konnten nicht indexiert werden}}",
+      "more": "{count, plural, one {# weiterer Auszug unten} other {# weitere Auszüge unten}}"
     }
   }
 }

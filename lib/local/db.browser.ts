@@ -94,8 +94,10 @@ export function isLocalDbAvailable(): boolean {
   return typeof indexedDB !== "undefined";
 }
 
+const DB_PREFIX = "humanlogs-local-";
+
 function dbName(userId: string): string {
-  return `humanlogs-local-${userId}`;
+  return `${DB_PREFIX}${userId}`;
 }
 
 /**
@@ -210,7 +212,10 @@ function request<T>(req: IDBRequest<T>): Promise<T> {
 }
 
 /** Every record an index matches, read through a cursor rather than `getAll`. */
-function collect<T>(store: IDBIndex | IDBObjectStore, key?: IDBValidKey): Promise<T[]> {
+function collect<T>(
+  store: IDBIndex | IDBObjectStore,
+  key?: IDBValidKey,
+): Promise<T[]> {
   return new Promise((resolve, reject) => {
     const out: T[] = [];
     const req = key === undefined ? store.openCursor() : store.openCursor(key);
@@ -283,11 +288,17 @@ export async function putDocumentIndex(
 
   for (const phrase of phrases) {
     const { projectId, ...rest } = phrase;
-    phraseStore.put({ ...rest, studyKey: studyKeyOf(projectId) } as PhraseRecord);
+    phraseStore.put({
+      ...rest,
+      studyKey: studyKeyOf(projectId),
+    } as PhraseRecord);
   }
   for (const link of links) {
     const { projectId, ...rest } = link;
-    linkStore.put({ ...rest, studyKey: studyKeyOf(projectId) } as PhraseCodeRecord);
+    linkStore.put({
+      ...rest,
+      studyKey: studyKeyOf(projectId),
+    } as PhraseCodeRecord);
   }
   documents.put({
     ...document,
@@ -429,7 +440,10 @@ export async function pruneDocStates(
 // Housekeeping
 // ---------------------------------------------------------------------------
 
-export async function readMeta<T>(userId: string, key: string): Promise<T | null> {
+export async function readMeta<T>(
+  userId: string,
+  key: string,
+): Promise<T | null> {
   const db = await openLocalDb(userId);
   const tx = db.transaction(STORE_META, "readonly");
   const row = await request(
@@ -461,7 +475,23 @@ export async function writeMeta<T>(
  */
 export async function destroyAllLocalDbs(): Promise<void> {
   if (!isLocalDbAvailable()) return;
-  const users = knownUsers();
+
+  // Two sources, because neither alone is enough. The remembered ids work
+  // everywhere but live in localStorage, which the user (or a privacy setting) can
+  // clear on its own — leaving a corpus behind that nothing would ever look for
+  // again. `indexedDB.databases()` cannot be cleared out from under us but is not
+  // implemented by every browser. A wipe that misses is the one failure mode this
+  // function must not have, so it does both.
+  const users = new Set(knownUsers());
+  try {
+    const listed = await indexedDB.databases?.();
+    for (const { name } of listed ?? []) {
+      if (name?.startsWith(DB_PREFIX)) users.add(name.slice(DB_PREFIX.length));
+    }
+  } catch {
+    // Not supported, or refused in a private window: the remembered ids stand.
+  }
+
   for (const userId of users) await destroyLocalDb(userId);
   if (typeof localStorage !== "undefined") {
     localStorage.removeItem(KNOWN_USERS_KEY);

@@ -45,6 +45,17 @@ const MAX_CACHED_DOCUMENTS = 40;
 const WRITE_DEBOUNCE_MS = 2500;
 
 /**
+ * The floor between two writes.
+ *
+ * The debounce alone is not enough: `doc.on("update")` fires for REMOTE changes
+ * too, so a room where a colleague is typing steadily never goes quiet long enough
+ * to be idle but never goes a second without a change either. Each write encodes
+ * the whole document, which for a two-hour interview is hundreds of kilobytes —
+ * worth paying every half minute, not every three seconds.
+ */
+const MIN_WRITE_INTERVAL_MS = 30_000;
+
+/**
  * The stored state for a document, or null when there is none or it is stale.
  *
  * `serverUpdatedAt` is the value the app currently believes the server holds. Pass
@@ -95,23 +106,26 @@ export function persistDocState({
   documentId: string;
   doc: Y.Doc;
   serverUpdatedAt: () => string | null | undefined;
-}): () => void {
+}): (options?: { flush?: boolean }) => void {
   if (!isLocalDbAvailable()) return () => {};
 
   let timer: ReturnType<typeof setTimeout> | null = null;
   let detached = false;
+  let dirty = false;
+  let lastWrite = 0;
 
   const write = () => {
     timer = null;
-    if (detached) return;
     const stamp = serverUpdatedAt();
     // Without a version to stamp it with, a stored state can never be proven fresh
     // and would only ever be read to be thrown away.
     if (!stamp) return;
-    const update = Y.encodeStateAsUpdate(doc);
     // An empty document is what a failed seed looks like. Storing it would turn a
     // transient failure into a cached one.
     if (doc.getXmlFragment("default").length === 0) return;
+    lastWrite = Date.now();
+    dirty = false;
+    const update = Y.encodeStateAsUpdate(doc);
     void putDocState(userId, {
       id: documentId,
       // `.slice()` detaches the bytes from Yjs's buffer before they cross into
@@ -128,16 +142,33 @@ export function persistDocState({
 
   const onUpdate = () => {
     if (detached) return;
+    dirty = true;
     if (timer) clearTimeout(timer);
-    timer = setTimeout(write, WRITE_DEBOUNCE_MS);
+    timer = setTimeout(
+      write,
+      Math.max(
+        WRITE_DEBOUNCE_MS,
+        MIN_WRITE_INTERVAL_MS - (Date.now() - lastWrite),
+      ),
+    );
   };
 
   doc.on("update", onUpdate);
 
-  return () => {
+  /**
+   * Stop persisting. Closing the editor flushes first — it is the one moment worth
+   * an unconditional encode, since it is the state the next visit wants and no
+   * later change is coming to trigger the debounce.
+   *
+   * `flush: false` is for the cases where the state is about to be deleted anyway
+   * (a revert), where writing it would race the delete and could win.
+   */
+  return ({ flush = true }: { flush?: boolean } = {}) => {
     detached = true;
     doc.off("update", onUpdate);
     if (timer) clearTimeout(timer);
+    timer = null;
+    if (flush && dirty) write();
   };
 }
 

@@ -733,7 +733,9 @@ export function useTiptapEditor({
       // The cached state is now a copy of a version that no longer exists. It would
       // fail the freshness test on the next open anyway; dropping it here means the
       // reload the UI is about to ask for cannot possibly reseed from it.
-      detachPersistence();
+      // Not flushed: the cached state is now a copy of a version that no longer
+      // exists, and writing it on the way out would race the delete below.
+      detachPersistence({ flush: false });
       if (persistUserId) void forgetDocState(persistUserId, transcriptionId);
       editorAPI.emit("reverted", data);
     };

@@ -1,25 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 import { findAccessibleDocumentStamps } from "@/lib/transcriptions/access";
+import type { CodingManifestEntry } from "@/lib/local/manifest";
 import { NextResponse } from "next/server";
-
-/**
- * One line per document, saying only how fresh it is.
- *
- * `updatedAt` is the transcript's; `codings` and `codingLatest` fingerprint the
- * codes applied to it. Both are needed because they move independently: editing a
- * transcript does not code it, and coding a passage writes a `Coding` row plus an
- * anchor the save leader may not persist for minutes. A cursor on either alone
- * would leave one of the two silently stale.
- */
-export type CodingManifestEntry = {
-  id: string;
-  updatedAt: string;
-  projectId: string | null;
-  codings: number;
-  /** ISO date of the most recent coding, or null when there are none. */
-  codingLatest: string | null;
-};
 
 /**
  * The manifest the local index syncs against.

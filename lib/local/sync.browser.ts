@@ -34,15 +34,14 @@ import {
   studyKeyOf,
   type LocalDocumentRow,
 } from "./db.browser";
-import { buildPhraseIndex, type CodingRef } from "./phrase-index";
+import { codingSignature, type CodingManifestEntry } from "./manifest";
+import {
+  buildPhraseIndex,
+  type CodingRef,
+  type PhraseIndex,
+} from "./phrase-index";
 
-export type CodingManifestEntry = {
-  id: string;
-  updatedAt: string;
-  projectId: string | null;
-  codings: number;
-  codingLatest: string | null;
-};
+export { codingSignature, type CodingManifestEntry };
 
 /** What a document must look like to be indexed. */
 export type FetchedDocument = {
@@ -65,18 +64,6 @@ export type SyncResult = SyncProgress & {
   /** True when nothing had to be fetched — the common case. */
   upToDate: boolean;
 };
-
-/**
- * The fingerprint stored alongside a document's index. Changing its shape
- * invalidates every local index, which is the intended behaviour: a client that
- * fingerprints differently must not trust rows built by the old rule.
- */
-export function codingSignature(entry: {
-  codings: number;
-  codingLatest: string | null;
-}): string {
-  return `v1:${entry.codings}:${entry.codingLatest ?? "-"}`;
-}
 
 /**
  * Decide what a pass has to do: which documents to rebuild, and which to forget.
@@ -135,7 +122,58 @@ export function planSync({
  * and an AES pass over the whole text — heavy enough that running the corpus in
  * parallel would freeze the tab it is supposed to be filling in the background.
  */
-const CONCURRENCY = 3;
+const CONCURRENCY = 2;
+
+/**
+ * How many documents this may rebuild per minute.
+ *
+ * Not a performance knob — a courtesy one. Each rebuild is two authenticated
+ * requests, and the API allows 120 a minute PER USER across everything they are
+ * doing. A background job that spends that budget is a background job that breaks
+ * the app it is running behind, so it takes a quarter of it and leaves the rest to
+ * the person actually working.
+ *
+ * The consequence is that a first sync of a large study takes a while. That is the
+ * right trade: the manifest cursor is on disk, so the pass picks up where it left
+ * off on the next load rather than starting over, and the panel is usable from the
+ * first document indexed.
+ */
+const DOCUMENTS_PER_MINUTE = 30;
+
+/** Backoff when the server says we are going too fast anyway. */
+const THROTTLED_RETRY_MS = 20_000;
+const MAX_THROTTLE_RETRIES = 3;
+
+/**
+ * Thrown by a `fetchDocument` that hit the API's rate limit. Distinguished from a
+ * failure because it is not one: the document is perfectly readable, we simply
+ * asked too often, and marking it failed would leave a permanent hole in an index
+ * that only needed us to wait.
+ */
+export class SyncThrottledError extends Error {
+  readonly retryAfterMs: number;
+
+  constructor(retryAfterMs?: number) {
+    super("Rate limited");
+    this.name = "SyncThrottledError";
+    // The API sends `Retry-After`; the fallback is for anything that does not.
+    this.retryAfterMs = retryAfterMs ?? THROTTLED_RETRY_MS;
+  }
+}
+
+/** A cancellable sleep — an aborted sync should not sit in a backoff for 20s. */
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  if (ms <= 0) return Promise.resolve();
+  return new Promise((resolve) => {
+    const timer = setTimeout(done, ms);
+    function done() {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", done);
+      resolve();
+    }
+    signal?.addEventListener("abort", done, { once: true });
+  });
+}
 
 export async function syncStudyIndex({
   userId,
@@ -144,15 +182,24 @@ export async function syncStudyIndex({
   fetchDocument,
   onProgress,
   signal,
+  documentsPerMinute = DOCUMENTS_PER_MINUTE,
 }: {
   userId: string;
   /** The study being synced. `undefined` means the whole corpus. */
   projectId?: string | null;
   manifest: CodingManifestEntry[];
-  /** Fetch + decrypt one document. Returning null skips it (no key on this device). */
+  /**
+   * Fetch + decrypt one document. Returning null skips it (no key on this device);
+   * throwing {@link SyncThrottledError} asks for a pause rather than a failure.
+   */
   fetchDocument: (id: string) => Promise<FetchedDocument | null>;
   onProgress?: (progress: SyncProgress) => void;
   signal?: AbortSignal;
+  /**
+   * The pace, overridable so tests do not have to sit through it. Policy, not
+   * mechanism: what the app passes is {@link DOCUMENTS_PER_MINUTE}.
+   */
+  documentsPerMinute?: number;
 }): Promise<SyncResult> {
   const { stale, removable } = planSync({
     manifest,
@@ -174,6 +221,16 @@ export async function syncStudyIndex({
     return { ...progress, removed: removable.length, upToDate: true };
   }
 
+  // The pace, as a moving "not before" mark shared by the workers.
+  const minInterval = documentsPerMinute > 0 ? 60_000 / documentsPerMinute : 0;
+  let nextSlot = 0;
+  const waitForSlot = async () => {
+    const now = Date.now();
+    const slot = Math.max(now, nextSlot);
+    nextSlot = slot + minInterval;
+    await sleep(slot - now, signal);
+  };
+
   let next = 0;
   const worker = async () => {
     for (;;) {
@@ -181,39 +238,57 @@ export async function syncStudyIndex({
       const index = next++;
       if (index >= stale.length) return;
       const entry = stale[index];
-      try {
-        const document = await fetchDocument(entry.id);
+      let throttled = 0;
+
+      for (;;) {
+        await waitForSlot();
         if (signal?.aborted) return;
-        if (document) {
-          const { phrases, links } = buildPhraseIndex({
-            documentId: entry.id,
-            projectId: document.projectId,
-            segments: document.segments,
-            codings: document.codings,
-          });
-          await putDocumentIndex(userId, {
-            document: {
-              id: entry.id,
-              studyKey: studyKeyOf(document.projectId),
-              title: document.title,
-              indexedUpdatedAt: entry.updatedAt,
-              indexedCodingSignature: codingSignature(entry),
-            },
-            phrases,
-            links,
-          });
-          progress.done++;
-        } else {
-          // No key on this device, or a transcript we cannot read. Counted as a
-          // failure rather than skipped silently: the panel says how much of the
-          // study it is actually showing, and a study half-indexed without saying
-          // so is worse than one that admits it.
+        try {
+          const document = await fetchDocument(entry.id);
+          if (signal?.aborted) return;
+          if (document) {
+            const { phrases, links } = buildPhraseIndex({
+              documentId: entry.id,
+              projectId: document.projectId,
+              segments: document.segments,
+              codings: document.codings,
+            });
+            await putDocumentIndex(userId, {
+              document: {
+                id: entry.id,
+                studyKey: studyKeyOf(document.projectId),
+                title: document.title,
+                indexedUpdatedAt: entry.updatedAt,
+                indexedCodingSignature: codingSignature(entry),
+              },
+              phrases,
+              links,
+            });
+            progress.done++;
+          } else {
+            // No key on this device, or a transcript we cannot read. Counted as a
+            // failure rather than skipped silently: the panel says how much of the
+            // study it is actually showing, and a study half-indexed without saying
+            // so is worse than one that admits it.
+            progress.failed++;
+          }
+        } catch (error) {
+          if (
+            error instanceof SyncThrottledError &&
+            throttled < MAX_THROTTLE_RETRIES
+          ) {
+            throttled++;
+            // Hold the whole pass back, not just this worker: the limit is per user,
+            // so the other worker is exactly as unwelcome right now as this one.
+            nextSlot = Math.max(nextSlot, Date.now() + error.retryAfterMs);
+            continue;
+          }
+          console.warn("[local-sync] failed to index", entry.id, error);
           progress.failed++;
         }
-      } catch (error) {
-        console.warn("[local-sync] failed to index", entry.id, error);
-        progress.failed++;
+        break;
       }
+
       onProgress?.({ ...progress });
     }
   };
@@ -223,6 +298,24 @@ export async function syncStudyIndex({
   );
 
   return { ...progress, removed: removable.length, upToDate: false };
+}
+
+/**
+ * A fingerprint of a derived index — what changed, from the panel's point of view.
+ *
+ * The open document is re-derived on every projection change, which the editor emits
+ * a few times a second while someone types. Almost none of those change a coded
+ * passage, and rewriting a document's whole index to store the same rows again is a
+ * transaction for nothing. Comparing this first is what makes transcription-phase
+ * typing cost no writes at all.
+ *
+ * Text is included, not only ids: editing INSIDE a coded passage leaves its anchors
+ * (hence its id) untouched while changing the excerpt the table shows.
+ */
+export function phraseIndexSignature(index: PhraseIndex): string {
+  return index.phrases
+    .map((phrase) => `${phrase.id}\u0000${phrase.text}`)
+    .join("\u0001");
 }
 
 /**
@@ -240,30 +333,25 @@ export async function syncStudyIndex({
  * {@link codingSignature}. Without a stamp nothing can match, and the pass
  * re-derives from the stored transcript, which is the safe direction and the
  * correction path for anything the live projection got ahead of.
+ *
+ * Takes an already-built index rather than the raw material, so the caller can
+ * decide from {@link phraseIndexSignature} whether the write is worth making.
  */
-export async function reindexOpenDocument({
+export async function writeDocumentIndex({
   userId,
   documentId,
   projectId,
   title,
-  segments,
-  codings,
+  index,
   stamp,
 }: {
   userId: string;
   documentId: string;
   projectId: string | null;
   title: string;
-  segments: TranscriptionSegment[];
-  codings: CodingRef[];
+  index: PhraseIndex;
   stamp?: { updatedAt: string; signature: string } | null;
 }): Promise<void> {
-  const { phrases, links } = buildPhraseIndex({
-    documentId,
-    projectId,
-    segments,
-    codings,
-  });
   await putDocumentIndex(userId, {
     document: {
       id: documentId,
@@ -272,7 +360,7 @@ export async function reindexOpenDocument({
       indexedUpdatedAt: stamp?.updatedAt ?? "",
       indexedCodingSignature: stamp?.signature ?? "",
     },
-    phrases,
-    links,
+    phrases: index.phrases,
+    links: index.links,
   });
 }

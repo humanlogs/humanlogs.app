@@ -6,6 +6,7 @@ import {
   useExcerptPanel,
   useExcerptPanelContext,
 } from "@/components/codebooks/excerpts/excerpt-panel-context";
+import { useBetaFeatures } from "@/hooks/use-api";
 import { useLiveDocumentIndex } from "@/hooks/use-local-index";
 import type { CodingDTO } from "@/lib/codebooks/coding";
 import type { EditorAPI } from "../api";
@@ -56,14 +57,23 @@ export function useExcerptBridge({
 }) {
   const router = useRouter();
   const panel = useExcerptPanel();
+  // Same gate as the panel itself. Without the codebooks beta there is nothing to
+  // code with, so indexing every document that gets opened would fill the local
+  // database with empty rows and report them on the security page.
+  const betaFeatures = useBetaFeatures();
   const pushIndex = useLiveDocumentIndex({
     documentId: transcriptionId,
     projectId,
     title,
     serverUpdatedAt,
+    enabled: betaFeatures,
   });
 
-  useExcerptPanelContext({ documentId: transcriptionId, projectId, codebookId });
+  useExcerptPanelContext({
+    documentId: transcriptionId,
+    projectId,
+    codebookId,
+  });
 
   // --- (2) Keep this document's rows current.
   //
@@ -75,7 +85,10 @@ export function useExcerptBridge({
 
   React.useEffect(() => {
     const rebuild = () =>
-      pushIndex({ segments: editorAPI.getSegments(), codings: codingsRef.current });
+      pushIndex({
+        segments: editorAPI.getSegments(),
+        codings: codingsRef.current,
+      });
 
     rebuild();
     editorAPI.addListener("codingsChange", rebuild);

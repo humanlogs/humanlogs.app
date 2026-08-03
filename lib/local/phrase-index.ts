@@ -185,8 +185,7 @@ export function buildPhraseIndex({
             end: offset + token.text.length,
             // A span that opens on spacing takes its speaker from the first WORD it
             // covers: the whitespace between two turns belongs to neither.
-            speakerId:
-              token.type === "word" ? (token.speakerId ?? null) : null,
+            speakerId: token.type === "word" ? (token.speakerId ?? null) : null,
             parts: [token.text],
           });
         }

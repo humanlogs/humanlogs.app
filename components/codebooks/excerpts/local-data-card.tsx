@@ -4,7 +4,10 @@ import { HardDriveIcon, Loader2Icon } from "lucide-react";
 import { useTranslations } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useForgetLocalData, useLocalIndexStatus } from "@/hooks/use-local-index";
+import {
+  useForgetLocalData,
+  useLocalIndexStatus,
+} from "@/hooks/use-local-index";
 
 /**
  * What this device is holding, and the button that empties it.
@@ -27,7 +30,8 @@ export function LocalDataCard() {
   if (!available) return null;
 
   const count = documents?.length ?? 0;
-  const phrases = documents?.reduce((sum, row) => sum + row.phraseCount, 0) ?? 0;
+  const phrases =
+    documents?.reduce((sum, row) => sum + row.phraseCount, 0) ?? 0;
 
   return (
     <Card>

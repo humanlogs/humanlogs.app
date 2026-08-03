@@ -21,7 +21,12 @@
  * link table to answer only what it alone can.
  */
 
-import type { CodeRef, SpeakerCodeRef } from "@/lib/codebooks/codebook";
+import {
+  flattenCodes,
+  type Code,
+  type CodeRef,
+  type SpeakerCodeRef,
+} from "@/lib/codebooks/codebook";
 import type { PhraseCodeRow, PhraseRow } from "./phrase-index";
 
 /**
@@ -55,7 +60,12 @@ export type PhraseFilter = {
   search?: string;
 };
 
-export type PhraseGroupBy = "none" | "code" | "codebook" | "document" | "speaker";
+export type PhraseGroupBy =
+  | "none"
+  | "code"
+  | "codebook"
+  | "document"
+  | "speaker";
 
 export const PHRASE_GROUP_BY: PhraseGroupBy[] = [
   "none",
@@ -94,6 +104,61 @@ function fold(value: string): string {
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
     .toLowerCase();
+}
+
+/**
+ * Whether a phrase is one of the excerpts a set of anchors points at.
+ *
+ * The editor can say WHICH ANCHORS are under the caret, but not which row they
+ * belong to: a phrase is identified by the anchors covering its EXACT span, and two
+ * overlapping codings put a different set on each of their runs than either one
+ * spans. So it publishes anchors, and the rows recognise themselves — which is also
+ * why selecting an overlapped passage lights up every excerpt covering it rather
+ * than none.
+ *
+ * An exact row id short-circuits it: when the table is the one pointing, it knows
+ * the row it means.
+ */
+export function phraseMatchesAnchors(
+  phrase: { id: string; documentId: string; codingIds: readonly string[] },
+  anchors: {
+    documentId: string;
+    phraseId?: string;
+    codingIds: readonly string[];
+  } | null,
+): boolean {
+  if (!anchors || anchors.documentId !== phrase.documentId) return false;
+  if (anchors.phraseId) return anchors.phraseId === phrase.id;
+  return phrase.codingIds.some((id) => anchors.codingIds.includes(id));
+}
+
+/**
+ * Drop the links whose code no longer exists.
+ *
+ * Deleting a code leaves its codings behind on purpose — cleaning every document on
+ * every delete would be a large write — so filtering is what makes them invisible,
+ * exactly as `sanitizeCodings` does everywhere else.
+ *
+ * A link to a codebook that is NOT in `codebooks` is kept: that is a colleague
+ * coding through a prism this account cannot read, not a deletion, and hiding it
+ * would quietly under-report a shared study. An empty `codebooks` therefore filters
+ * nothing, which is also the right answer while they are still loading.
+ */
+export function sanitizeLinks(
+  links: readonly PhraseCodeRow[],
+  codebooks: ReadonlyArray<{ id: string; codes: Code[] }>,
+): PhraseCodeRow[] {
+  if (codebooks.length === 0) return [...links];
+  const known = new Map(
+    codebooks.map((codebook) => [
+      codebook.id,
+      new Set(flattenCodes(codebook.codes).map(({ code }) => code.id)),
+    ]),
+  );
+  return links.filter((link) => {
+    const codes = known.get(link.codebookId);
+    return !codes || codes.has(link.codeId);
+  });
 }
 
 /**
@@ -156,7 +221,8 @@ export function speakersMatchingCodes(
       continue;
     }
     for (const ref of doc.speakerCodes ?? []) {
-      if (wanted.has(codeRefKey(ref))) keys.push(speakerKey(doc.id, ref.speakerId));
+      if (wanted.has(codeRefKey(ref)))
+        keys.push(speakerKey(doc.id, ref.speakerId));
     }
   }
   return Array.from(new Set(keys));
@@ -201,7 +267,10 @@ export function queryPhrases({
     if (documentIds && !documentIds.has(link.documentId)) continue;
     if (filter.projectId !== undefined && link.projectId !== filter.projectId)
       continue;
-    if (speakerKeys && !speakerKeys.has(speakerKey(link.documentId, link.speakerId)))
+    if (
+      speakerKeys &&
+      !speakerKeys.has(speakerKey(link.documentId, link.speakerId))
+    )
       continue;
     if (userIds && !userIds.has(link.userId)) continue;
 
@@ -212,7 +281,8 @@ export function queryPhrases({
     if (bucket) bucket.push(link);
     else kept.set(link.phraseId, [link]);
 
-    if (!wantedCodes || wantedCodes.has(codeRefKey(link))) matched.add(link.phraseId);
+    if (!wantedCodes || wantedCodes.has(codeRefKey(link)))
+      matched.add(link.phraseId);
   }
 
   // Pass 2 — the phrases themselves, in reading order within each document.
@@ -231,7 +301,9 @@ export function queryPhrases({
     codesByPhrase.set(phrase.id, codes);
     out.push(phrase);
   }
-  out.sort((a, b) => a.documentId.localeCompare(b.documentId) || a.offset - b.offset);
+  out.sort(
+    (a, b) => a.documentId.localeCompare(b.documentId) || a.offset - b.offset,
+  );
 
   return {
     phrases: out,
@@ -319,4 +391,33 @@ function groupPhrases(
     group.phrases.push(phrase);
   }
   return Array.from(buckets.values());
+}
+
+/**
+ * The first `limit` excerpts of a grouped result, and how many are left.
+ *
+ * The panel renders a page at a time and grows as the reader scrolls: a study can
+ * hold tens of thousands of coded passages, and mounting them all would be as slow
+ * as it sounds. Groups are kept WHOLE down to the row — an empty code group is one
+ * line and says something (nothing was coded with it) — so only rows are counted.
+ */
+export function takeGroups(
+  groups: readonly PhraseGroup[],
+  limit: number,
+): { groups: PhraseGroup[]; remaining: number } {
+  let budget = Math.max(0, limit);
+  let total = 0;
+  const out: PhraseGroup[] = [];
+  for (const group of groups) {
+    total += group.phrases.length;
+    if (budget === 0 && group.phrases.length > 0) continue;
+    if (group.phrases.length <= budget) {
+      out.push(group);
+      budget -= group.phrases.length;
+    } else {
+      out.push({ ...group, phrases: group.phrases.slice(0, budget) });
+      budget = 0;
+    }
+  }
+  return { groups: out, remaining: Math.max(0, total - limit) };
 }

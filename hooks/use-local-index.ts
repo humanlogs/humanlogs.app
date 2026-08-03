@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { CodingDTO } from "@/lib/codebooks/coding";
 import {
@@ -8,13 +8,18 @@ import {
   readStudyIndex,
   type LocalDocumentRow,
 } from "@/lib/local/db.browser";
-import type { CodingRef } from "@/lib/local/phrase-index";
+import { buildPhraseIndex, type CodingRef } from "@/lib/local/phrase-index";
 import {
   codingSignature,
-  reindexOpenDocument,
-  syncStudyIndex,
   type CodingManifestEntry,
+} from "@/lib/local/manifest";
+import {
+  phraseIndexSignature,
+  syncStudyIndex,
+  SyncThrottledError,
+  writeDocumentIndex,
   type FetchedDocument,
+  type SyncProgress,
   type SyncResult,
 } from "@/lib/local/sync.browser";
 import { fetchGateway } from "./fetch";
@@ -32,6 +37,13 @@ import type { TranscriptionDetail } from "./use-transcriptions";
  * a study you synced yesterday opens instantly and corrects itself a second later,
  * rather than showing a spinner over data it already had.
  */
+
+/**
+ * How long the open document sits still before its index is rewritten. Long enough
+ * that a run of codes is one write, short enough that the row is in the table before
+ * the researcher looks up.
+ */
+const LIVE_REINDEX_DEBOUNCE_MS = 400;
 
 const studyKey = (projectId: string | null | undefined) =>
   projectId === undefined ? "all" : (projectId ?? "none");
@@ -54,12 +66,26 @@ function toCodingRef(coding: CodingDTO): CodingRef {
 }
 
 /**
- * Bring this study's local index up to date, then let the readers know.
+ * How often a running pass tells the readers to look again.
+ *
+ * A first sync of a large study is paced over minutes (see `DOCUMENTS_PER_MINUTE`),
+ * and a panel that only refreshed at the end would sit empty through all of it.
+ * Every few documents is enough to feel like it is filling without re-reading the
+ * whole study's rows on each one.
+ */
+const REFRESH_EVERY_DOCUMENTS = 5;
+
+/**
+ * Bring this study's local index up to date, and report on it as it goes.
  *
  * Runs as a query rather than an effect so several mounted consumers share ONE
  * pass — the panel and the editor both want the index fresh, and two concurrent
  * syncs of the same study would fight over the same IndexedDB rows. `staleTime`
  * is what keeps navigating between documents of a study from re-running it.
+ *
+ * The returned `progress` is the LIVE count, which the query's own `data` cannot
+ * be: a pass over a study that has never been indexed here runs for minutes, and
+ * `data` only exists once it is over.
  */
 export function useLocalIndexSync(
   projectId: string | null | undefined,
@@ -69,6 +95,18 @@ export function useLocalIndexSync(
   const decrypt = useDecryptData();
   const queryClient = useQueryClient();
   const userId = profile?.id;
+  const [progress, setProgress] = useState<SyncProgress | null>(null);
+
+  // A different study is a different pass; carrying the previous one's counters
+  // over would show the panel a total that belongs to somebody else's corpus.
+  // Adjusted during render rather than in an effect, so no frame is ever painted
+  // with the mismatch.
+  const scope = `${userId ?? "anon"}:${studyKey(projectId)}`;
+  const [progressScope, setProgressScope] = useState(scope);
+  if (progressScope !== scope) {
+    setProgressScope(scope);
+    setProgress(null);
+  }
 
   const query = useQuery({
     queryKey: ["local-index-sync", userId ?? "anon", studyKey(projectId)],
@@ -83,7 +121,7 @@ export function useLocalIndexSync(
     gcTime: 30 * 60_000,
     refetchOnWindowFocus: false,
     retry: false,
-    queryFn: async (): Promise<SyncResult> => {
+    queryFn: async ({ signal }): Promise<SyncResult> => {
       const params = new URLSearchParams();
       if (projectId !== undefined) params.set("study", projectId ?? "none");
       const response = await fetchGateway(
@@ -94,17 +132,31 @@ export function useLocalIndexSync(
         documents: CodingManifestEntry[];
       };
 
+      let announced = 0;
       return syncStudyIndex({
         userId: userId!,
         projectId,
         manifest: documents,
         fetchDocument: (id) => fetchAndDecryptDocument(id, decrypt),
+        // Leaving the study aborts the pass rather than letting it finish writing
+        // rows nobody is looking at — TanStack signals this on unmount and on a
+        // key change.
+        signal,
+        onProgress: (current) => {
+          setProgress(current);
+          if (current.done - announced < REFRESH_EVERY_DOCUMENTS) return;
+          announced = current.done;
+          void queryClient.invalidateQueries({
+            queryKey: localPhrasesQueryKey(userId, projectId),
+          });
+        },
       });
     },
   });
 
-  // Reindexing changed nothing readers can see until they re-read; invalidating
-  // here rather than inside the engine keeps that engine free of React.
+  // The final refresh. Reindexing changed nothing readers can see until they
+  // re-read; invalidating here rather than inside the engine keeps that engine free
+  // of React.
   const synced = query.data;
   useEffect(() => {
     if (!synced || synced.upToDate) return;
@@ -113,7 +165,7 @@ export function useLocalIndexSync(
     });
   }, [synced, queryClient, userId, projectId]);
 
-  return query;
+  return { ...query, progress };
 }
 
 /**
@@ -132,6 +184,12 @@ async function fetchAndDecryptDocument(
     fetchGateway(`/api/transcriptions/${id}`),
     fetchGateway(`/api/transcriptions/${id}/codings`),
   ]);
+  // Being told to slow down is not the same as being unable to read the document:
+  // the engine backs off and comes back, rather than recording a hole in the index.
+  for (const response of [documentResponse, codingsResponse]) {
+    if (response.status === 429)
+      throw new SyncThrottledError(retryAfterOf(response));
+  }
   if (!documentResponse.ok || !codingsResponse.ok) return null;
 
   const raw = (await documentResponse.json()) as Record<string, unknown>;
@@ -150,13 +208,22 @@ async function fetchAndDecryptDocument(
   const segments = detail.transcription?.words;
   if (!segments) return null;
 
-  const { codings } = (await codingsResponse.json()) as { codings: CodingDTO[] };
+  const { codings } = (await codingsResponse.json()) as {
+    codings: CodingDTO[];
+  };
   return {
     title: detail.title ?? "",
     projectId: detail.projectId ?? null,
     segments,
     codings: codings.map(toCodingRef),
   };
+}
+
+/** `Retry-After` in milliseconds, when the server bothered to say. */
+function retryAfterOf(response: Response): number | undefined {
+  const header = response.headers.get("retry-after");
+  const seconds = header ? Number(header) : NaN;
+  return Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : undefined;
 }
 
 /**
@@ -189,8 +256,12 @@ export function useStudyPhrases(
  * The background sync is driven by `updatedAt`, which does not move when a code is
  * applied — and even when it does, only after the save leader flushes. The panel is
  * supposed to be watching the passage being coded, so the editor pushes its own rows
- * directly. Debounced, because coding is rapid-fire and each pass rewrites the
- * document's whole index.
+ * directly.
+ *
+ * Two filters keep that from being expensive. The call is DEBOUNCED, so a run of
+ * codes costs one rewrite; and the derived index is compared with the last one
+ * written, so the projection changes that dominate — someone typing during the
+ * transcription phase — cost no transaction at all.
  */
 export function useLiveDocumentIndex({
   documentId,
@@ -216,9 +287,16 @@ export function useLiveDocumentIndex({
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pending = useRef<{
     segments: FetchedDocument["segments"];
-    codings: CodingRef[];
-    stamp: { updatedAt: string; signature: string } | null;
+    codings: CodingDTO[];
   } | null>(null);
+  /** Signature of the index last written, so an identical one is not written twice. */
+  const written = useRef<string | null>(null);
+
+  // A different document reuses this hook (client-side navigation between two
+  // interviews), and its index has nothing to do with the last one written.
+  useEffect(() => {
+    written.current = null;
+  }, [documentId]);
 
   useEffect(
     () => () => {
@@ -228,52 +306,75 @@ export function useLiveDocumentIndex({
   );
 
   return useCallback(
-    (input: { segments: FetchedDocument["segments"]; codings: CodingDTO[] }) => {
-      // Computed here, from the same codings the manifest counts, so the stamp is
-      // byte-identical to the one the server would report for this document.
-      const latest = input.codings.reduce<string | null>(
-        (max, coding) => (!max || coding.createdAt > max ? coding.createdAt : max),
-        null,
-      );
-      pending.current = {
-        segments: input.segments,
-        codings: input.codings.map(toCodingRef),
-        stamp: serverUpdatedAt
-          ? {
-              updatedAt: serverUpdatedAt,
-              signature: codingSignature({
-                codings: input.codings.length,
-                codingLatest: latest,
-              }),
-            }
-          : null,
-      };
+    (input: {
+      segments: FetchedDocument["segments"];
+      codings: CodingDTO[];
+    }) => {
+      pending.current = input;
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(() => {
         timer.current = null;
         const next = pending.current;
         pending.current = null;
         if (!next || !userId || !enabled || !isLocalDbAvailable()) return;
-        void reindexOpenDocument({
+
+        const index = buildPhraseIndex({
+          documentId,
+          projectId,
+          segments: next.segments,
+          codings: next.codings.map(toCodingRef),
+        });
+        const signature = phraseIndexSignature(index);
+        if (signature === written.current) return;
+        written.current = signature;
+
+        // The stamp is computed from the same codings the manifest counts, so it
+        // is byte-identical to the one the server would report for this document —
+        // which is what stops the next background pass re-downloading it.
+        const latest = next.codings.reduce<string | null>(
+          (max, coding) =>
+            !max || coding.createdAt > max ? coding.createdAt : max,
+          null,
+        );
+
+        void writeDocumentIndex({
           userId,
           documentId,
           projectId,
           title,
-          segments: next.segments,
-          codings: next.codings,
-          stamp: next.stamp,
+          index,
+          stamp: serverUpdatedAt
+            ? {
+                updatedAt: serverUpdatedAt,
+                signature: codingSignature({
+                  codings: next.codings.length,
+                  codingLatest: latest,
+                }),
+              }
+            : null,
         })
           .then(() =>
             queryClient.invalidateQueries({
               queryKey: localPhrasesQueryKey(userId, projectId),
             }),
           )
-          .catch((error) =>
-            console.warn("[local-index] live reindex failed", error),
-          );
-      }, 400);
+          .catch((error) => {
+            // The rows on disk are now unknown; forget what we thought we wrote so
+            // the next change tries again instead of being skipped as a duplicate.
+            written.current = null;
+            console.warn("[local-index] live reindex failed", error);
+          });
+      }, LIVE_REINDEX_DEBOUNCE_MS);
     },
-    [userId, enabled, documentId, projectId, title, serverUpdatedAt, queryClient],
+    [
+      userId,
+      enabled,
+      documentId,
+      projectId,
+      title,
+      serverUpdatedAt,
+      queryClient,
+    ],
   );
 }
 

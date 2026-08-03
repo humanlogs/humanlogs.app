@@ -3,7 +3,10 @@
 import * as React from "react";
 import { FilterIcon, SearchIcon, XIcon } from "lucide-react";
 import { useTranslations } from "@/components/locale-provider";
-import { CodeCheckItems, type CodeState } from "@/components/codebooks/code-picker";
+import {
+  CodeCheckItems,
+  type CodeState,
+} from "@/components/codebooks/code-picker";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -15,10 +18,7 @@ import {
   type SpeakerCodeRef,
 } from "@/lib/codebooks/codebook";
 import { verbatimCodebooks } from "@/lib/codebooks/coding";
-import {
-  PHRASE_GROUP_BY,
-  type PhraseGroupBy,
-} from "@/lib/local/phrase-query";
+import { PHRASE_GROUP_BY, type PhraseGroupBy } from "@/lib/local/phrase-query";
 import type { SpeakerSummary } from "@/lib/transcriptions/speakers";
 import { cn } from "@/lib/utils/utils";
 import { useExcerptPanel } from "./excerpt-panel-context";
@@ -59,8 +59,8 @@ export function ExcerptFilters({
   const verbatim = verbatimCodebooks(inScope);
   const speaker = speakerCodebooks(inScope);
 
-  const toggle = (key: "codes" | "contextCodes") =>
-    (codebookId: string, codeId: string) =>
+  const toggle =
+    (key: "codes" | "contextCodes") => (codebookId: string, codeId: string) =>
       setFilter((current) => {
         const has = current[key].some(
           (ref) => ref.codebookId === codebookId && ref.codeId === codeId,
@@ -76,7 +76,8 @@ export function ExcerptFilters({
         };
       });
 
-  const stateOf = (key: "codes" | "contextCodes") =>
+  const stateOf =
+    (key: "codes" | "contextCodes") =>
     (codebookId: string, codeId: string): CodeState =>
       filter[key].some(
         (ref) => ref.codebookId === codebookId && ref.codeId === codeId,
@@ -98,7 +99,10 @@ export function ExcerptFilters({
           <Input
             value={filter.search}
             onChange={(event) =>
-              setFilter((current) => ({ ...current, search: event.target.value }))
+              setFilter((current) => ({
+                ...current,
+                search: event.target.value,
+              }))
             }
             placeholder={t("search")}
             className="h-8 pl-7 text-sm"
@@ -179,7 +183,11 @@ export function ExcerptFilters({
         <DropdownMenu
           align="end"
           trigger={
-            <Button variant="outline" size="sm" className="h-7 gap-1 px-2 text-xs">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 gap-1 px-2 text-xs"
+            >
               {t(`groupBy.${groupBy}`)}
             </Button>
           }
@@ -209,7 +217,11 @@ export function ExcerptFilters({
       {filter.contextCodes.length > 0 && filter.scope === "study" && (
         <p className="text-[11px] text-muted-foreground">
           {t("narrowed", {
-            count: countMatching(documents, context.projectId, filter.contextCodes),
+            count: countMatching(
+              documents,
+              context.projectId,
+              filter.contextCodes,
+            ),
           })}
         </p>
       )}

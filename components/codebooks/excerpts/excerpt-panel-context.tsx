@@ -4,6 +4,7 @@ import * as React from "react";
 import type { CodeRef } from "@/lib/codebooks/codebook";
 import {
   DEFAULT_PHRASE_GROUP_BY,
+  phraseMatchesAnchors,
   type PhraseGroupBy,
 } from "@/lib/local/phrase-query";
 
@@ -83,17 +84,15 @@ export type PhraseFocus = {
 };
 
 /**
- * Whether a row is what the current focus is about. An exact row id wins; failing
- * that, any shared anchor does — which is what makes selecting an overlapped
- * passage in the editor light up every excerpt that covers it, rather than none.
+ * Whether a row is what the current focus is about — see
+ * {@link phraseMatchesAnchors}, which owns the rule because it is about the shape
+ * of the index rather than about the panel.
  */
 export function focusMatchesPhrase(
   focus: PhraseFocus | null,
   phrase: { id: string; documentId: string; codingIds: string[] },
 ): boolean {
-  if (!focus || focus.documentId !== phrase.documentId) return false;
-  if (focus.phraseId) return focus.phraseId === phrase.id;
-  return phrase.codingIds.some((id) => focus.codingIds.includes(id));
+  return phraseMatchesAnchors(phrase, focus);
 }
 
 type ExcerptPanelValue = {
@@ -168,7 +167,11 @@ export function ExcerptPanelProvider({
       ),
     );
     setGroupByState(
-      readStored(GROUP_KEY, (raw) => raw as PhraseGroupBy, DEFAULT_PHRASE_GROUP_BY),
+      readStored(
+        GROUP_KEY,
+        (raw) => raw as PhraseGroupBy,
+        DEFAULT_PHRASE_GROUP_BY,
+      ),
     );
   }, []);
 
@@ -196,7 +199,8 @@ export function ExcerptPanelProvider({
 
   const setGroupBy = React.useCallback((next: PhraseGroupBy) => {
     setGroupByState(next);
-    if (typeof window !== "undefined") window.localStorage.setItem(GROUP_KEY, next);
+    if (typeof window !== "undefined")
+      window.localStorage.setItem(GROUP_KEY, next);
   }, []);
 
   /**
@@ -244,12 +248,15 @@ export function ExcerptPanelProvider({
     for (const listener of listeners.current) listener(next);
   }, []);
 
-  const subscribe = React.useCallback((listener: (focus: PhraseFocus) => void) => {
-    listeners.current.add(listener);
-    return () => {
-      listeners.current.delete(listener);
-    };
-  }, []);
+  const subscribe = React.useCallback(
+    (listener: (focus: PhraseFocus) => void) => {
+      listeners.current.add(listener);
+      return () => {
+        listeners.current.delete(listener);
+      };
+    },
+    [],
+  );
 
   const value: ExcerptPanelValue = {
     open,
