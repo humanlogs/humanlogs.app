@@ -81,7 +81,12 @@ export function ExcerptPanel() {
     <aside
       // Hidden on small screens on purpose: the panel is a second column, and a
       // second column on a phone is a modal that hides the text it is about.
-      className="hidden md:flex relative shrink-0 flex-col border-l bg-background"
+      //
+      // `h-svh sticky top-0` is load-bearing, not decoration. The flex row this
+      // sits in only sets a MINIMUM height, so without it the column grows to the
+      // height of its content: the scroll area inside is then never bounded, never
+      // scrolls, and the list never pages in anything past its first screen.
+      className="hidden md:flex sticky top-0 h-svh relative shrink-0 flex-col border-l bg-background"
       style={{ width: panel.width }}
       aria-label={t("title")}
     >

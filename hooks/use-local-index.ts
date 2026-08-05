@@ -245,7 +245,13 @@ export function useStudyPhrases(
     queryKey: localPhrasesQueryKey(userId, projectId),
     enabled:
       enabled && !!userId && isLocalDbAvailable() && projectId !== undefined,
-    staleTime: 30_000,
+    // Never stale on its own. At the sizes this is built for the read is seconds,
+    // and every way the rows can change already invalidates this key explicitly —
+    // the background pass as it goes, the open document as it is coded. A timer on
+    // top of that would only re-read a study to get the same answer, and make
+    // coming back to it cost the wait a second time.
+    staleTime: Infinity,
+    gcTime: 30 * 60_000,
     queryFn: () => readStudyIndex(userId!, projectId ?? null),
   });
 }
