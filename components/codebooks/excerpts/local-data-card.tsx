@@ -3,7 +3,6 @@
 import { HardDriveIcon, Loader2Icon } from "lucide-react";
 import { useTranslations } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   useForgetLocalData,
   useLocalIndexStatus,
@@ -33,26 +32,26 @@ export function LocalDataCard() {
   const phrases =
     documents?.reduce((sum, row) => sum + row.phraseCount, 0) ?? 0;
 
+  // The same bordered panel the encryption surfaces on this page draw, rather than
+  // a shadcn Card: two card idioms stacked on one screen read as two systems.
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-3 pt-6 sm:flex-row sm:items-center">
-        <HardDriveIcon className="size-5 shrink-0 text-muted-foreground" />
-        <div className="min-w-0 flex-1">
-          <p className="font-medium">{t("title")}</p>
-          <p className="text-sm text-muted-foreground">
-            {count === 0 ? t("empty") : t("summary", { count, phrases })}
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          disabled={forget.isPending || count === 0}
-          onClick={() => forget.mutate()}
-          className="shrink-0"
-        >
-          {forget.isPending && <Loader2Icon className="size-4 animate-spin" />}
-          {t("forget")}
-        </Button>
-      </CardContent>
-    </Card>
+    <div className="flex flex-col gap-3 rounded-lg border p-6 sm:flex-row sm:items-center sm:gap-4">
+      <HardDriveIcon className="size-5 shrink-0 text-muted-foreground" />
+      <div className="min-w-0 flex-1 space-y-1">
+        <p className="font-medium">{t("title")}</p>
+        <p className="text-sm text-muted-foreground">
+          {count === 0 ? t("empty") : t("summary", { count, phrases })}
+        </p>
+      </div>
+      <Button
+        variant="outline"
+        disabled={forget.isPending || count === 0}
+        onClick={() => forget.mutate()}
+        className="shrink-0"
+      >
+        {forget.isPending && <Loader2Icon className="size-4 animate-spin" />}
+        {t("forget")}
+      </Button>
+    </div>
   );
 }

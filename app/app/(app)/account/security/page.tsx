@@ -8,7 +8,6 @@ import {
 import { LocalDataCard } from "@/components/codebooks/excerpts/local-data-card";
 import { useTranslations } from "@/components/locale-provider";
 import { PageLayout } from "@/components/page-layout";
-import { Card, CardContent } from "@/components/ui/card";
 import { useEncryptionStatus } from "@/hooks/use-encryption";
 
 export default function SecurityPage() {
@@ -34,32 +33,23 @@ export default function SecurityPage() {
       title={t("security.title")}
       description={t("security.description")}
     >
-      {/* Encryption Setup/Management */}
+      {/* Each of these already draws its own panel — a card around them would be
+          a border inside a border, and the third branch never had one anyway. */}
       {!encryptionStatus?.hasEncryption ? (
-        <Card>
-          <CardContent className="pt-6">
-            <SetupEncryption
-              embedded
-              hideSkipOption
-              onComplete={() => {
-                // Encryption enabled, page will re-render with new state
-              }}
-            />
-          </CardContent>
-        </Card>
+        <SetupEncryption
+          embedded
+          hideSkipOption
+          onComplete={() => {
+            // Encryption enabled, page will re-render with new state
+          }}
+        />
       ) : !hasLocalKey ? (
-        <Card>
-          <CardContent className="pt-6">
-            <ImportCertificatePrompt compact />
-          </CardContent>
-        </Card>
+        <ImportCertificatePrompt compact />
       ) : (
         <EncryptionSettings />
       )}
 
-      <div className="mt-4">
-        <LocalDataCard />
-      </div>
+      <LocalDataCard />
     </PageLayout>
   );
 }

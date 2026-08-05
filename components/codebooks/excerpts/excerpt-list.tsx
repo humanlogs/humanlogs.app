@@ -44,12 +44,34 @@ export function ExcerptList({
   const rootRef = React.useRef<HTMLDivElement>(null);
   const sentinelRef = React.useRef<HTMLDivElement>(null);
 
-  // A new question deserves a fresh first page: after changing the filter the reader
-  // is at the top again, and keeping the previous depth would mount rows nobody has
-  // scrolled to.
+  const plan = React.useMemo(
+    () => takeGroups(groups, visible),
+    [groups, visible],
+  );
+
+  /**
+   * A new question deserves a fresh first page: after changing the filter the
+   * reader is at the top again, and keeping the previous depth would mount rows
+   * nobody has scrolled to.
+   *
+   * Keyed on what the RESEARCHER changed, not on the identity of `groups`. The
+   * query rebuilds that array whenever anything upstream re-renders — a code
+   * arriving from a colleague, the open document reindexing itself — and resetting
+   * on that would silently undo the reader's scroll, and with it every page the
+   * observer had just added.
+   */
+  const question = panel.filter;
+  const grouping = panel.groupBy;
+  const scope = panel.context;
   React.useEffect(() => {
     setVisible(PAGE);
-  }, [groups]);
+  }, [question, grouping, scope]);
+
+  /** Read by the observer, which is created once and must see the latest count. */
+  const remainingRef = React.useRef(0);
+  React.useEffect(() => {
+    remainingRef.current = plan.remaining;
+  }, [plan.remaining]);
 
   React.useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -58,14 +80,21 @@ export function ExcerptList({
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) {
+          // Only grow towards rows that exist. A short result leaves the sentinel
+          // permanently in view, and an unguarded counter would then climb forever
+          // — one re-render per observation, for a list of three excerpts.
+          if (remainingRef.current <= 0) return;
           setVisible((current) => current + PAGE);
         }
       },
-      // The scroll container is an ancestor rather than the viewport, and a margin
-      // means the next page is mounted just before it is needed rather than after
-      // the reader has already hit the bottom.
+      // The scroll container is an ancestor rather than the browser viewport, and
+      // a margin means the next page is mounted just before it is needed rather
+      // than after the reader has already hit the bottom. Falling back to null
+      // (the viewport) still grows the list, just later — worth having, since a
+      // renamed attribute in the ScrollArea primitive would otherwise silently
+      // change when the next page arrives.
       {
-        root: root.closest("[data-radix-scroll-area-viewport]"),
+        root: root.closest('[data-slot="scroll-area-viewport"]'),
         rootMargin: "400px",
       },
     );
@@ -107,11 +136,6 @@ export function ExcerptList({
     );
     row?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [focused, visible]);
-
-  const plan = React.useMemo(
-    () => takeGroups(groups, visible),
-    [groups, visible],
-  );
 
   /**
    * What a row still has to say about where it comes from.

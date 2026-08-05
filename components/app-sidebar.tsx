@@ -277,8 +277,9 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
     <>
       <Sidebar>
         <SidebarHeader>
-          {/* Logo Section */}
-          <div className="flex items-center gap-2 px-2 py-2">
+          {/* Logo Section. The header already pads; only the horizontal inset is
+              ours, so the mark lines up with the menu icons below it. */}
+          <div className="flex h-8 items-center gap-2 px-2">
             <img
               src="/logo.svg"
               alt="Logo"
@@ -288,8 +289,8 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
           </div>
         </SidebarHeader>
 
-        <SidebarContent>
-          <SidebarMenu className="px-2">
+        <SidebarContent className="gap-1">
+          <SidebarMenu className="gap-0.5 px-2">
             <SidebarMenuItem>
               <Link href="/app">
                 <SidebarMenuButton isActive={pathname === "/app"}>
@@ -320,9 +321,11 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
               </SidebarMenuItem>
             )}
 
-            <SidebarMenuItem>
+            {/* Separated from the two links above: this filters the documents in
+                the block below, it is not a third place to go. */}
+            <SidebarMenuItem className="mt-1">
               <div className="relative">
-                <SearchIcon className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 pointer-events-none" />
+                <SearchIcon className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 pointer-events-none text-muted-foreground" />
                 <SidebarInput
                   type="search"
                   placeholder={t("search")}
