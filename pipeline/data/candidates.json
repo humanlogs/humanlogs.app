@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-29T07:08:55.783Z",
+  "generatedAt": "2026-08-05T07:10:39.635Z",
   "candidates": [
     {
       "keyword": "analyse qualitative",
@@ -912,6 +912,16 @@
       "score": 0.9
     },
     {
+      "keyword": "method to analyse qualitative data",
+      "searchVolume": 10,
+      "difficulty": 0,
+      "cpc": 0,
+      "competition": 0.14,
+      "intent": "informational",
+      "pillar": "recherche-qualitative",
+      "score": 0.9
+    },
+    {
       "keyword": "using ai to analyse qualitative data",
       "searchVolume": 10,
       "difficulty": 0,
@@ -1232,16 +1242,6 @@
       "score": 0.78
     },
     {
-      "keyword": "entretien qualitatif",
-      "searchVolume": 10,
-      "difficulty": 0,
-      "cpc": 0,
-      "competition": 0,
-      "intent": "informational",
-      "pillar": "entretien-terrain",
-      "score": 0.75
-    },
-    {
       "keyword": "software to analyse qualitative data",
       "searchVolume": 20,
       "difficulty": 24,
@@ -1250,16 +1250,6 @@
       "intent": "commercial",
       "pillar": "recherche-qualitative",
       "score": 0.74
-    },
-    {
-      "keyword": "method to analyse qualitative data",
-      "searchVolume": 10,
-      "difficulty": 3,
-      "cpc": 0,
-      "competition": 0.14,
-      "intent": "informational",
-      "pillar": "recherche-qualitative",
-      "score": 0.69
     },
     {
       "keyword": "convert audio to text online",
