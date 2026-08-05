@@ -51,6 +51,8 @@ export function ExcerptPanel() {
   const { data: index, isPending } = useStudyPhrases(projectId, {
     enabled: live,
   });
+  /** A pass with documents left to fetch — the panel is filling, not empty. */
+  const indexing = sync.isFetching && (sync.progress?.total ?? 0) > 0;
 
   const documents = React.useMemo<ExcerptDocument[]>(
     () =>
@@ -113,7 +115,11 @@ export function ExcerptPanel() {
           </div>
         ) : query.groups.length === 0 ? (
           <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-            {t("empty")}
+            {/* "Nothing matches" and "nothing here yet" are different answers, and
+                a study being indexed for the first time is the second one. Saying
+                the first would be telling a researcher their corpus is uncoded
+                while we are still reading it. */}
+            {indexing ? t("indexingEmpty") : t("empty")}
           </p>
         ) : (
           <ExcerptList

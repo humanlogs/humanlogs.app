@@ -3,11 +3,13 @@
 import * as React from "react";
 import { useTranslations } from "@/components/locale-provider";
 import {
+  codebooksInScopeForProject,
   flattenCodes,
   type Code,
   type CodeRef,
   type DecryptedCodebook,
 } from "@/lib/codebooks/codebook";
+import { verbatimCodebooks } from "@/lib/codebooks/coding";
 import type { PhraseCodeRow, PhraseRow } from "@/lib/local/phrase-index";
 import {
   documentsMatchingCodes,
@@ -210,6 +212,11 @@ export function useExcerptQuery({
  * researcher reads a coding pass for. Once codes are explicitly selected, the empty
  * groups become noise: the answer to "show me «violence»" is not a list of the
  * eleven themes it is not.
+ *
+ * Away from a document there is no codebook "in use", so a study coded through a
+ * single verbatim codebook borrows that one. Without it the groups would come out
+ * in the order the excerpts happened to mention them, which reads as arbitrary
+ * because it is. Two codebooks and the choice would be a guess, so it declines.
  */
 function codeOrderFor({
   groupBy,
@@ -224,10 +231,23 @@ function codeOrderFor({
 }): CodeRef[] | undefined {
   if (groupBy !== "code") return undefined;
   if (filter.codes.length > 0) return filter.codes;
-  const codebook = codebooks.find((c) => c.id === context.codebookId);
+  const codebook =
+    codebooks.find((c) => c.id === context.codebookId) ??
+    onlyVerbatimCodebook(codebooks, context.projectId);
   if (!codebook) return undefined;
   return flattenCodes(codebook.codes).map(({ code }) => ({
     codebookId: codebook.id,
     codeId: code.id,
   }));
+}
+
+/** The study's verbatim codebook, when it has exactly one. */
+function onlyVerbatimCodebook(
+  codebooks: DecryptedCodebook[],
+  projectId: string | null,
+): DecryptedCodebook | undefined {
+  const candidates = verbatimCodebooks(
+    codebooksInScopeForProject(codebooks, projectId),
+  );
+  return candidates.length === 1 ? candidates[0] : undefined;
 }

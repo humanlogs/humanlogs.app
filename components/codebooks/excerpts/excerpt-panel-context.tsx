@@ -120,6 +120,17 @@ const ExcerptPanelContext = React.createContext<ExcerptPanelValue | null>(null);
 const OPEN_KEY = "hl-excerpt-panel-open";
 const WIDTH_KEY = "hl-excerpt-panel-width";
 const GROUP_KEY = "hl-excerpt-panel-group";
+/**
+ * The study the panel is pointed at.
+ *
+ * Persisted, unlike the open document, because the two answer different
+ * questions. "Which interview is on screen" is a property of the page, and a
+ * reload on the account settings has genuinely left it. "Which study am I
+ * working on" is not: it survives closing the laptop, and a panel that forgot it
+ * would be an empty column on every page that does not happen to name a study —
+ * home, account, anything reached by a hard reload.
+ */
+const STUDY_KEY = "hl-excerpt-panel-study";
 
 export const MIN_PANEL_WIDTH = 320;
 export const MAX_PANEL_WIDTH = 780;
@@ -173,6 +184,17 @@ export function ExcerptPanelProvider({
         DEFAULT_PHRASE_GROUP_BY,
       ),
     );
+    const study = readStored<string | null>(STUDY_KEY, (raw) => raw, null);
+    if (study !== null) {
+      // Only the study. A restored document id would claim an editor is open when
+      // the page may be the account settings, and the scope control would offer to
+      // filter on a document nobody can see.
+      setContextState((current) =>
+        current.projectId === null && current.documentId === null
+          ? { ...current, projectId: study || null }
+          : current,
+      );
+    }
   }, []);
 
   const setOpen = React.useCallback((next: boolean) => {
@@ -208,6 +230,9 @@ export function ExcerptPanelProvider({
    * report where it is on every render without re-rendering the panel for nothing.
    */
   const setContext = React.useCallback((next: ExcerptDocumentContext) => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(STUDY_KEY, next.projectId ?? "");
+    }
     setContextState((current) =>
       current.documentId === next.documentId &&
       current.projectId === next.projectId &&

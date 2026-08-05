@@ -115,7 +115,7 @@
       "groupEmpty": "Nothing coded here yet",
       "search": "Search the excerpts",
       "reset": "Clear the filters",
-      "narrowed": "{count, plural, one {# document} other {# documents}} in this selection",
+      "narrowed": "Documents in this selection: {count}",
       "scope": {
         "document": "This document",
         "study": "Whole study"
@@ -142,8 +142,9 @@
       "unknownSpeaker": "Unknown speaker",
       "speakerFallback": "Speaker {index}",
       "syncing": "Indexing this study… {done}/{total}",
-      "syncFailed": "{count, plural, one {# document could not be indexed} other {# documents could not be indexed}}",
-      "more": "{count, plural, one {# more excerpt below} other {# more excerpts below}}"
+      "syncFailed": "Documents that could not be indexed: {count}",
+      "more": "{count} more below",
+      "indexingEmpty": "Indexing this study… excerpts appear as documents are read."
     }
   }
 }

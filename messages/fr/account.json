@@ -317,7 +317,7 @@
         "referralCardButton": "Ouvrir le parrainage",
         "localData": {
             "title": "Données conservées sur cet appareil",
-            "summary": "{count, plural, one {# document indexé} other {# documents indexés}}, {phrases, plural, one {# passage codé} other {# passages codés}}. Les supprimer implique simplement une resynchronisation à la prochaine visite.",
+            "summary": "Documents indexés : {count} · Passages codés : {phrases}. Les supprimer implique simplement une resynchronisation à la prochaine visite.",
             "empty": "Rien n’est encore stocké sur cet appareil.",
             "forget": "Oublier cet appareil"
         }

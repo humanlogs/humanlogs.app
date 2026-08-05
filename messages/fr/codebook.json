@@ -115,7 +115,7 @@
       "groupEmpty": "Rien de codé ici pour l’instant",
       "search": "Rechercher dans les extraits",
       "reset": "Réinitialiser les filtres",
-      "narrowed": "{count, plural, one {# document} other {# documents}} dans cette sélection",
+      "narrowed": "Documents dans cette sélection : {count}",
       "scope": {
         "document": "Ce document",
         "study": "Toute l’étude"
@@ -142,8 +142,9 @@
       "unknownSpeaker": "Locuteur inconnu",
       "speakerFallback": "Locuteur {index}",
       "syncing": "Indexation de l’étude… {done}/{total}",
-      "syncFailed": "{count, plural, one {# document n’a pas pu être indexé} other {# documents n’ont pas pu être indexés}}",
-      "more": "{count, plural, one {# extrait de plus en dessous} other {# extraits de plus en dessous}}"
+      "syncFailed": "Documents qui n’ont pas pu être indexés : {count}",
+      "more": "{count} de plus en dessous",
+      "indexingEmpty": "Indexation de l’étude… les extraits apparaissent au fur et à mesure."
     }
   }
 }

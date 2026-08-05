@@ -115,7 +115,7 @@
       "groupEmpty": "Hier ist noch nichts kodiert",
       "search": "Auszüge durchsuchen",
       "reset": "Filter zurücksetzen",
-      "narrowed": "{count, plural, one {# Dokument} other {# Dokumente}} in dieser Auswahl",
+      "narrowed": "Dokumente in dieser Auswahl: {count}",
       "scope": {
         "document": "Dieses Dokument",
         "study": "Ganze Studie"
@@ -142,8 +142,9 @@
       "unknownSpeaker": "Unbekannter Sprecher",
       "speakerFallback": "Sprecher {index}",
       "syncing": "Studie wird indexiert… {done}/{total}",
-      "syncFailed": "{count, plural, one {# Dokument konnte nicht indexiert werden} other {# Dokumente konnten nicht indexiert werden}}",
-      "more": "{count, plural, one {# weiterer Auszug unten} other {# weitere Auszüge unten}}"
+      "syncFailed": "Dokumente, die nicht indexiert werden konnten: {count}",
+      "more": "{count} weitere unten",
+      "indexingEmpty": "Studie wird indexiert… Auszüge erscheinen, sobald Dokumente gelesen sind."
     }
   }
 }

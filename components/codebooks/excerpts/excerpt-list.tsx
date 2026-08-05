@@ -113,6 +113,19 @@ export function ExcerptList({
     [groups, visible],
   );
 
+  /**
+   * What a row still has to say about where it comes from.
+   *
+   * Scoped to the open document, repeating its title under every excerpt says
+   * nothing and crowds out the speaker, who is the part that varies; grouped by
+   * document or by speaker, the header has already said it. The line disappears
+   * entirely when it would carry neither.
+   */
+  const provenance = {
+    document: panel.filter.scope !== "document" && panel.groupBy !== "document",
+    speaker: panel.groupBy !== "speaker",
+  };
+
   return (
     <div className="p-2" ref={rootRef}>
       {plan.groups.map((group) => (
@@ -122,6 +135,7 @@ export function ExcerptList({
           labels={labels}
           codesByPhrase={codesByPhrase}
           focused={focused}
+          provenance={provenance}
           onSelect={panel.focus}
         />
       ))}
@@ -154,22 +168,31 @@ function indexOfFocused(
   return -1;
 }
 
+type Provenance = { document: boolean; speaker: boolean };
+
 function ExcerptGroupSection({
   group,
   labels,
   codesByPhrase,
   focused,
+  provenance,
   onSelect,
 }: {
   group: PhraseGroup;
   labels: ExcerptLabels;
   codesByPhrase: Map<string, CodeRef[]>;
   focused: PhraseFocus | null;
+  provenance: Provenance;
   onSelect: (focus: PhraseFocus) => void;
 }) {
   const t = useTranslations("codebook.excerpts");
   const [collapsed, setCollapsed] = React.useState(false);
   const header = groupHeader(group, labels);
+  // Under a code heading, repeating that code on every row says nothing. The
+  // OTHER codes a passage carries are exactly what the reader wants to see there
+  // — that a passage read as «violence» was also read as «institution» is the
+  // finding — so only the grouping code is dropped.
+  const grouping = group.label.type === "code" ? group.label : null;
 
   return (
     <section className="mb-2">
@@ -194,9 +217,10 @@ function ExcerptGroupSection({
             <ExcerptRow
               key={`${group.key}:${phrase.id}`}
               phrase={phrase}
-              codes={codesByPhrase.get(phrase.id) ?? EMPTY_CODES}
+              codes={chipsFor(codesByPhrase.get(phrase.id), grouping)}
               labels={labels}
               focused={focusMatchesPhrase(focused, phrase)}
+              provenance={provenance}
               onSelect={onSelect}
             />
           ))
@@ -207,6 +231,25 @@ function ExcerptGroupSection({
 
 /** Stable identity, so a row with no codes is not re-rendered by a fresh `[]`. */
 const EMPTY_CODES: CodeRef[] = [];
+
+/** A row's chips, minus the code its group already stands for. */
+function chipsFor(
+  codes: CodeRef[] | undefined,
+  grouping: { codebookId: string; codeId: string } | null,
+): CodeRef[] {
+  if (!codes || codes.length === 0) return EMPTY_CODES;
+  if (!grouping) return codes;
+  const rest = codes.filter(
+    (code) =>
+      code.codebookId !== grouping.codebookId ||
+      code.codeId !== grouping.codeId,
+  );
+  return rest.length === codes.length
+    ? codes
+    : rest.length
+      ? rest
+      : EMPTY_CODES;
+}
 
 function groupHeader(
   group: PhraseGroup,
@@ -253,12 +296,14 @@ function ExcerptRow({
   codes,
   labels,
   focused,
+  provenance,
   onSelect,
 }: {
   phrase: PhraseRow;
   codes: CodeRef[];
   labels: ExcerptLabels;
   focused: boolean;
+  provenance: Provenance;
   onSelect: (focus: PhraseFocus) => void;
 }) {
   return (
@@ -282,15 +327,23 @@ function ExcerptRow({
       )}
     >
       <p className="line-clamp-3 text-sm leading-snug">{phrase.text}</p>
-      <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
-        <span className="truncate">
-          {labels.speakerName(phrase.documentId, phrase.speakerId)}
-        </span>
-        <span aria-hidden>·</span>
-        <span className="truncate">
-          {labels.documentTitle(phrase.documentId)}
-        </span>
-      </div>
+      {(provenance.speaker || provenance.document) && (
+        <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
+          {provenance.speaker && (
+            <span className="truncate">
+              {labels.speakerName(phrase.documentId, phrase.speakerId)}
+            </span>
+          )}
+          {provenance.speaker && provenance.document && (
+            <span aria-hidden>·</span>
+          )}
+          {provenance.document && (
+            <span className="truncate">
+              {labels.documentTitle(phrase.documentId)}
+            </span>
+          )}
+        </div>
+      )}
       {codes.length > 0 && (
         <div className="mt-1 flex flex-wrap gap-1">
           {codes.map((code) => {

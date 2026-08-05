@@ -317,7 +317,7 @@
         "referralCardButton": "Empfehlungen öffnen",
         "localData": {
             "title": "Auf diesem Gerät gespeicherte Daten",
-            "summary": "{count, plural, one {# Dokument indexiert} other {# Dokumente indexiert}}, {phrases, plural, one {# kodierte Passage} other {# kodierte Passagen}}. Ein Löschen bedeutet nur, dass beim nächsten Besuch neu synchronisiert wird.",
+            "summary": "Indexierte Dokumente: {count} · Kodierte Passagen: {phrases}. Ein Löschen bedeutet nur, dass beim nächsten Besuch neu synchronisiert wird.",
             "empty": "Auf diesem Gerät ist noch nichts gespeichert.",
             "forget": "Dieses Gerät vergessen"
         }
