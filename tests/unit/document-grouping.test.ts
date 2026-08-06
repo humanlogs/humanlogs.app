@@ -543,7 +543,9 @@ describe("study scope", () => {
   });
 
   it("keeps the documents that were never filed", () => {
-    expect(filterByStudy(docs, STUDY_SCOPE_NONE).map((d) => d.id)).toEqual(["c"]);
+    expect(filterByStudy(docs, STUDY_SCOPE_NONE).map((d) => d.id)).toEqual([
+      "c",
+    ]);
   });
 
   it("empties out for a study that no longer has documents", () => {

@@ -193,7 +193,9 @@ describe("buildPhraseIndex", () => {
     const b = buildPhraseIndex({ documentId: "doc1", segments, codings });
 
     expect(a.phrases.map((p) => p.id)).toEqual(b.phrases.map((p) => p.id));
-    expect(a.links.map((l) => l.id)).toEqual(b.links.map((l) => l.id));
+    expect(a.links.map((l) => `${l.phraseId}|${l.codingId}`)).toEqual(
+      b.links.map((l) => `${l.phraseId}|${l.codingId}`),
+    );
   });
 
   it("orders phrases as they are spoken", () => {
@@ -302,9 +304,9 @@ describe("queryPhrases", () => {
       filter: { codes: [{ codebookId: "cb1", codeId: "violence" }] },
     });
     expect(
-      result.codesByPhrase
-        .get(result.phrases[0].id)
-        ?.map((l) => l.codeId)
+      result
+        .codesOf(result.phrases[0].id)
+        .map((link) => link.codeId)
         .sort(),
     ).toEqual(["institution", "violence"]);
   });
@@ -410,7 +412,6 @@ describe("resolving the document and speaker halves", () => {
 
 describe("sanitizeLinks", () => {
   const link = (codebookId: string, codeId: string): PhraseCodeRow => ({
-    id: `${codebookId}:${codeId}`,
     phraseId: "p1",
     codingId: "c1",
     documentId: "doc1",

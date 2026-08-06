@@ -32,13 +32,19 @@ import {
 } from "./db.browser";
 
 /**
- * How many documents keep a cached state.
+ * How much of the corpus keeps a cached state.
  *
- * The index is worth holding for the whole corpus — it is short rows. Transcripts
+ * The coded-passage index is worth holding whole — it is short rows. Transcripts
  * are not: a thousand interviews is on the order of a gigabyte, which no browser
  * will give us and no user asked us to take. So this is a cache of what has been
- * READ recently, evicted by age.
+ * READ recently, evicted oldest-first.
+ *
+ * The real bound is the BYTE one. A browser that runs out of storage quota evicts
+ * the whole origin, index included, so a transcript cache that can grow to the
+ * quota is a transcript cache that can delete the thing it was helping. The count
+ * is only a second guard, for a corpus of documents too small to reach the bytes.
  */
+const MAX_CACHED_BYTES = 128 * 1024 * 1024;
 const MAX_CACHED_DOCUMENTS = 40;
 
 /** How long the document must sit still before its state is written. */
@@ -136,7 +142,12 @@ export function persistDocState({
       ) as ArrayBuffer,
       serverUpdatedAt: stamp,
     })
-      .then(() => pruneDocStates(userId, MAX_CACHED_DOCUMENTS))
+      .then(() =>
+        pruneDocStates(userId, {
+          maxBytes: MAX_CACHED_BYTES,
+          maxDocuments: MAX_CACHED_DOCUMENTS,
+        }),
+      )
       .catch((error) => console.warn("[local-doc-state] write failed", error));
   };
 

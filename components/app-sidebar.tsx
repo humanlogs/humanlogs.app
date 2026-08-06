@@ -128,7 +128,8 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
   const studies: Project[] = React.useMemo(() => {
     const byId = new Map<string, Project>(projects.map((p) => [p.id, p]));
     for (const doc of transcriptions) {
-      if (doc.study && !byId.has(doc.study.id)) byId.set(doc.study.id, doc.study);
+      if (doc.study && !byId.has(doc.study.id))
+        byId.set(doc.study.id, doc.study);
     }
     return Array.from(byId.values()).sort((a, b) =>
       a.name.localeCompare(b.name, undefined, {
@@ -220,7 +221,9 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
   const studyFor = (doc: { projectId?: string; study?: Project | null }) =>
     groupBy === "study" || scope !== STUDY_SCOPE_ALL
       ? null
-      : (doc.study ?? (doc.projectId ? projectsById.get(doc.projectId) : null) ?? null);
+      : (doc.study ??
+        (doc.projectId ? projectsById.get(doc.projectId) : null) ??
+        null);
 
   const viewSettings = (
     <DocumentViewSettings
@@ -270,8 +273,9 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
     ));
   };
 
-  const codedCount = documents.filter((doc) => (doc.codes ?? []).length > 0)
-    .length;
+  const codedCount = documents.filter(
+    (doc) => (doc.codes ?? []).length > 0,
+  ).length;
 
   return (
     <>
@@ -337,13 +341,16 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
             </SidebarMenuItem>
           </SidebarMenu>
 
-          {/* The study is a folder, and the phases live inside it: the scope is
-              not one of the things being listed, it says what the list is about.
-              Its tab and the phases' filled headers are two different devices on
-              purpose — with the grouping options adding a third level of heading
-              inside, type weight alone could not tell them apart. */}
-          <SidebarGroup className="pt-0">
-            <div className="overflow-hidden rounded-lg border">
+          {/* The study says what the list is about; the phases are the list. The
+              scope used to be a tab on a bordered card, which framed the corpus as
+              one object among several in the column — but it is not an object in
+              the column, it is the column. Full-bleed, with a tinted rule under the
+              scope, it reads as the heading of everything below rather than as a
+              box beside the navigation. The phases' filled headers and the group
+              rules inside them are still three distinct devices, which is what
+              keeps three levels of heading legible in 256px. */}
+          <SidebarGroup className="p-0">
+            <div className="flex flex-col">
               <StudyPicker
                 scope={scope}
                 studies={studies}
@@ -351,7 +358,7 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
                 onChange={(studyScope) => update({ studyScope })}
               />
 
-              <div className="flex flex-col gap-0.5 p-1.5">
+              <div className="flex flex-col gap-0.5 px-2 py-1.5">
                 {DOCUMENT_PHASES.filter(
                   (value) => betaFeatures || value === "transcription",
                 ).map((value) => (

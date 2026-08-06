@@ -28,7 +28,10 @@ describe("queryMatchesTable", () => {
     // They hang off the same key because that is where they belong in the URL, not
     // because saving the text changes who has access to it.
     expect(
-      queryMatchesTable(["transcriptions", ID, "participants"], "transcription"),
+      queryMatchesTable(
+        ["transcriptions", ID, "participants"],
+        "transcription",
+      ),
     ).toBe(false);
     expect(
       queryMatchesTable(

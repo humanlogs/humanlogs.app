@@ -130,7 +130,7 @@ export function ExcerptPanel() {
           <ExcerptList
             groups={query.groups}
             labels={query.labels}
-            codesByPhrase={query.codesByPhrase}
+            codesOf={query.codesOf}
           />
         )}
       </ScrollArea>

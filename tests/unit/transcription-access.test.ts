@@ -104,7 +104,10 @@ describe("checkAccess — malformed data", () => {
   });
 
   it("survives null entries in the shared array", () => {
-    const t = transcription([null as unknown as SharedUser, { userId: "guest", role: "write" }]);
+    const t = transcription([
+      null as unknown as SharedUser,
+      { userId: "guest", role: "write" },
+    ]);
     expect(checkAccess(t, "guest", "write").hasAccess).toBe(true);
     expect(checkAccess(t, "stranger").hasAccess).toBe(false);
   });

@@ -101,7 +101,9 @@ describe("coding anchors", () => {
     expect([...codingIdsInDoc(editor)].sort()).toEqual(["c1", "c2"]);
     expect(annotate(editor)).toBe("[c2]Le [/][c1 c2]chat[/][c2] dort ici[/]");
     expect(
-      Object.fromEntries(getCodingRanges(editor).map((r) => [r.codingId, r.text])),
+      Object.fromEntries(
+        getCodingRanges(editor).map((r) => [r.codingId, r.text]),
+      ),
     ).toEqual({ c1: "chat", c2: LINE });
   });
 
@@ -182,8 +184,9 @@ describe("coding anchors", () => {
     ).toEqual([["chat", ["c1", "c2"]]]);
     // The whitespace inside c2's range belongs to it, or a reloaded passage comes
     // back as one highlight per word with a gap at every space.
-    expect(segments.filter((s) => s.type === "spacing" && s.codings?.length))
-      .not.toHaveLength(0);
+    expect(
+      segments.filter((s) => s.type === "spacing" && s.codings?.length),
+    ).not.toHaveLength(0);
 
     const html = segmentsToHtml(segments);
     // ONE span carrying both ids: nested spans would come back from the parser as a

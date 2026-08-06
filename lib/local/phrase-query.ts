@@ -93,10 +93,21 @@ export type PhraseGroup = {
 
 export type PhraseQueryResult = {
   phrases: PhraseRow[];
-  /** The codes each kept phrase carries, in a stable order — the row's chips. */
-  codesByPhrase: Map<string, PhraseCodeRow[]>;
+  /**
+   * The codes a kept phrase carries, in a stable order — the row's chips.
+   *
+   * A lookup rather than a materialised map of display objects: the grouping
+   * needs every phrase's codes, but only the sixty rows on screen need them
+   * turned into anything. Building that for the whole result was, at a study's
+   * scale, hundreds of thousands of arrays allocated for rows nobody will scroll
+   * to.
+   */
+  codesOf: (phraseId: string) => PhraseCodeRow[];
   groups: PhraseGroup[];
 };
+
+/** Stable empty result, so a phrase with no codes never allocates. */
+const NO_CODES: PhraseCodeRow[] = [];
 
 /** Fold accents and case so «Violence» and «violencé» both match a search for "viol". */
 function fold(value: string): string {
@@ -307,7 +318,7 @@ export function queryPhrases({
 
   return {
     phrases: out,
-    codesByPhrase,
+    codesOf: (phraseId) => codesByPhrase.get(phraseId) ?? NO_CODES,
     groups: groupPhrases(out, codesByPhrase, groupBy, codeOrder),
   };
 }

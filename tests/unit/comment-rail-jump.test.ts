@@ -28,7 +28,12 @@ describe("computeRailJump", () => {
 
   it("still points at hidden comments while another is on screen", () => {
     // dot(400) is visible, but one is hidden above and one below — both arrows show.
-    const jump = computeRailJump([dot(-500), dot(400), dot(3000)], 0, band, 1000);
+    const jump = computeRailJump(
+      [dot(-500), dot(400), dot(3000)],
+      0,
+      band,
+      1000,
+    );
     expect(jump.up).toBe(1000 + (-500 - PARK));
     expect(jump.down).toBe(1000 + (3000 - PARK));
   });

@@ -47,9 +47,13 @@ export type ExcerptLabels = {
 export type ExcerptQueryResult = {
   phrases: PhraseRow[];
   groups: PhraseGroup[];
-  codesByPhrase: Map<string, CodeRef[]>;
+  /** The chips of one row, resolved when that row is rendered — see below. */
+  codesOf: (phraseId: string) => CodeRef[];
   labels: ExcerptLabels;
 };
+
+/** Stable identity, so a row with no codes is not re-rendered by a fresh `[]`. */
+const NO_REFS: CodeRef[] = [];
 
 /** Every code of a codebook, with its full path and the colour it inherits. */
 function describeCodes(
@@ -115,7 +119,7 @@ export function useExcerptQuery({
       return {
         phrases: [] as PhraseRow[],
         groups: [] as PhraseGroup[],
-        codesByPhrase: new Map<string, CodeRef[]>(),
+        codesOf: () => NO_REFS,
       };
     }
 
@@ -148,9 +152,12 @@ export function useExcerptQuery({
       },
     });
 
-    // The same code applied by two researchers is one chip, not two.
-    const codesByPhrase = new Map<string, CodeRef[]>();
-    for (const [phraseId, links] of query.codesByPhrase) {
+    // The same code applied by two researchers is one chip, not two. Deduped when
+    // a row asks, not for the whole result: the answer is needed sixty rows at a
+    // time, and a study holds hundreds of thousands.
+    const codesOf = (phraseId: string): CodeRef[] => {
+      const links = query.codesOf(phraseId);
+      if (links.length === 0) return NO_REFS;
       const seen = new Set<string>();
       const refs: CodeRef[] = [];
       for (const link of links) {
@@ -159,10 +166,10 @@ export function useExcerptQuery({
         seen.add(key);
         refs.push({ codebookId: link.codebookId, codeId: link.codeId });
       }
-      codesByPhrase.set(phraseId, refs);
-    }
+      return refs;
+    };
 
-    return { phrases: query.phrases, groups: query.groups, codesByPhrase };
+    return { phrases: query.phrases, groups: query.groups, codesOf };
   }, [index, filter, groupBy, context, codebooks, inStudy, rosterOf, userId]);
 
   const labels = React.useMemo<ExcerptLabels>(() => {

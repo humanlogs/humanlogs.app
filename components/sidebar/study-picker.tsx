@@ -55,7 +55,9 @@ export function StudyPicker({
         : (selected?.name ?? t("study.all"));
 
   return (
-    <div className="group/study flex items-center gap-1 border-b bg-sidebar-accent/40 px-2 py-1.5">
+    // Full-bleed: a rule above and below rather than a frame around, so the band
+    // spans the column and reads as the heading of everything under it.
+    <div className="group/study flex items-center gap-1 border-y bg-sidebar-accent/40 px-2 py-1.5">
       <DropdownMenu
         align="start"
         position="bottom"

@@ -32,12 +32,22 @@
 
 import type { PhraseCodeRow, PhraseRow } from "./phrase-index";
 
-const DB_VERSION = 1;
+const DB_VERSION = 3;
 
 export const STORE_DOCUMENTS = "documents";
 export const STORE_PHRASES = "phrases";
 export const STORE_PHRASE_CODES = "phraseCodes";
 export const STORE_DOC_STATE = "docState";
+/**
+ * How big each cached document state is and when it was written — WITHOUT the
+ * blob.
+ *
+ * Split out because eviction has to read every entry to decide what goes, and
+ * reading every entry of the store that holds the transcripts means pulling
+ * hundreds of megabytes into memory to compare two numbers. Metadata you scan,
+ * blobs you fetch by key.
+ */
+export const STORE_DOC_STATE_META = "docStateMeta";
 export const STORE_META = "meta";
 
 /**
@@ -88,6 +98,13 @@ export type LocalDocStateRow = {
   /** The server `updatedAt` this state was known to include. */
   serverUpdatedAt: string;
   savedAt: number;
+};
+
+/** What eviction reads: everything about a cached state except the state. */
+export type LocalDocStateMeta = {
+  id: string;
+  savedAt: number;
+  bytes: number;
 };
 
 export function isLocalDbAvailable(): boolean {
@@ -144,37 +161,54 @@ export function openLocalDb(userId: string): Promise<IDBDatabase> {
     request.onupgradeneeded = () => {
       const database = request.result;
 
-      if (!database.objectStoreNames.contains(STORE_DOCUMENTS)) {
-        const documents = database.createObjectStore(STORE_DOCUMENTS, {
-          keyPath: "id",
-        });
-        documents.createIndex("studyKey", "studyKey");
+      // Everything here is DERIVED — the transcripts and the `Coding` rows are the
+      // truth, and the sync rebuilds all of it. So a schema change drops the
+      // stores and lets them refill rather than migrating row by row: the code
+      // that reads them then only ever has one shape to understand.
+      for (const store of [
+        STORE_DOCUMENTS,
+        STORE_PHRASES,
+        STORE_PHRASE_CODES,
+        STORE_DOC_STATE,
+        STORE_DOC_STATE_META,
+      ]) {
+        if (database.objectStoreNames.contains(store)) {
+          database.deleteObjectStore(store);
+        }
       }
 
-      if (!database.objectStoreNames.contains(STORE_PHRASES)) {
-        const phrases = database.createObjectStore(STORE_PHRASES, {
-          keyPath: "id",
-        });
-        phrases.createIndex("documentId", "documentId");
-        phrases.createIndex("studyKey", "studyKey");
-      }
+      const documents = database.createObjectStore(STORE_DOCUMENTS, {
+        keyPath: "id",
+      });
+      documents.createIndex("studyKey", "studyKey");
 
-      if (!database.objectStoreNames.contains(STORE_PHRASE_CODES)) {
-        const links = database.createObjectStore(STORE_PHRASE_CODES, {
-          keyPath: "id",
-        });
-        links.createIndex("documentId", "documentId");
-        links.createIndex("studyKey", "studyKey");
-        links.createIndex("phraseId", "phraseId");
-        // The one composite index worth having: "every passage coded X in this
-        // study" is the question the panel opens on.
-        links.createIndex("studyCode", ["studyKey", "codebookId", "codeId"]);
-      }
+      const phrases = database.createObjectStore(STORE_PHRASES, {
+        keyPath: "id",
+      });
+      phrases.createIndex("documentId", "documentId");
+      phrases.createIndex("studyKey", "studyKey");
 
-      if (!database.objectStoreNames.contains(STORE_DOC_STATE)) {
-        database.createObjectStore(STORE_DOC_STATE, { keyPath: "id" });
-      }
+      // Keyed on the pair rather than on a concatenation of it: the same
+      // identity, without storing it twice on every row.
+      const links = database.createObjectStore(STORE_PHRASE_CODES, {
+        keyPath: ["phraseId", "codingId"],
+      });
+      links.createIndex("documentId", "documentId");
+      links.createIndex("studyKey", "studyKey");
+      links.createIndex("phraseId", "phraseId");
+      // The one composite index worth having: "every passage coded X in this
+      // study" is the question the panel opens on.
+      links.createIndex("studyCode", ["studyKey", "codebookId", "codeId"]);
 
+      database.createObjectStore(STORE_DOC_STATE, { keyPath: "id" });
+
+      const meta = database.createObjectStore(STORE_DOC_STATE_META, {
+        keyPath: "id",
+      });
+      meta.createIndex("savedAt", "savedAt");
+
+      // The only store that is NOT derived: it holds cursors and preferences, so
+      // it is created once and left alone.
       if (!database.objectStoreNames.contains(STORE_META)) {
         database.createObjectStore(STORE_META, { keyPath: "key" });
       }
@@ -315,7 +349,13 @@ export async function deleteDocumentIndex(
 ): Promise<void> {
   const db = await openLocalDb(userId);
   const tx = db.transaction(
-    [STORE_DOCUMENTS, STORE_PHRASES, STORE_PHRASE_CODES, STORE_DOC_STATE],
+    [
+      STORE_DOCUMENTS,
+      STORE_PHRASES,
+      STORE_PHRASE_CODES,
+      STORE_DOC_STATE,
+      STORE_DOC_STATE_META,
+    ],
     "readwrite",
   );
   await deleteBy(tx.objectStore(STORE_PHRASES).index("documentId"), documentId);
@@ -325,6 +365,7 @@ export async function deleteDocumentIndex(
   );
   tx.objectStore(STORE_DOCUMENTS).delete(documentId);
   tx.objectStore(STORE_DOC_STATE).delete(documentId);
+  tx.objectStore(STORE_DOC_STATE_META).delete(documentId);
   await done(tx);
 }
 
@@ -395,8 +436,17 @@ export async function putDocState(
   row: Omit<LocalDocStateRow, "savedAt">,
 ): Promise<void> {
   const db = await openLocalDb(userId);
-  const tx = db.transaction(STORE_DOC_STATE, "readwrite");
-  tx.objectStore(STORE_DOC_STATE).put({ ...row, savedAt: Date.now() });
+  const tx = db.transaction(
+    [STORE_DOC_STATE, STORE_DOC_STATE_META],
+    "readwrite",
+  );
+  const savedAt = Date.now();
+  tx.objectStore(STORE_DOC_STATE).put({ ...row, savedAt });
+  tx.objectStore(STORE_DOC_STATE_META).put({
+    id: row.id,
+    savedAt,
+    bytes: row.update.byteLength,
+  } satisfies LocalDocStateMeta);
   await done(tx);
 }
 
@@ -405,33 +455,62 @@ export async function deleteDocState(
   documentId: string,
 ): Promise<void> {
   const db = await openLocalDb(userId);
-  const tx = db.transaction(STORE_DOC_STATE, "readwrite");
+  const tx = db.transaction(
+    [STORE_DOC_STATE, STORE_DOC_STATE_META],
+    "readwrite",
+  );
   tx.objectStore(STORE_DOC_STATE).delete(documentId);
+  tx.objectStore(STORE_DOC_STATE_META).delete(documentId);
   await done(tx);
 }
 
 /**
- * Keep the newest `limit` document states and drop the rest.
+ * Evict cached document states until they fit the budget, newest kept.
  *
- * The index is small and worth keeping for the whole corpus; the transcripts are
- * not — 1000 documents of audio is on the order of a gigabyte, which no browser
- * will hold. So document state is a cache of what has been READ recently, evicted
- * by age, while the index that answers the panel's questions survives.
+ * Budgeted in BYTES, not in documents. A count is not a size: forty short
+ * interviews are a few megabytes and forty long ones can be most of the origin's
+ * storage quota — and when a browser hits that quota it does not evict the
+ * offending store, it evicts the whole origin. Filling the disk with transcripts
+ * would take the coded-passage index down with it, which is the one thing here
+ * that is expensive to rebuild. The count cap stays as a second bound, so a
+ * corpus of tiny documents cannot accumulate rows without limit.
+ *
+ * Reads only {@link STORE_DOC_STATE_META}, which is three numbers per document —
+ * the whole reason that store exists.
  */
 export async function pruneDocStates(
   userId: string,
-  limit: number,
+  { maxBytes, maxDocuments }: { maxBytes: number; maxDocuments: number },
 ): Promise<number> {
   const db = await openLocalDb(userId);
-  const tx = db.transaction(STORE_DOC_STATE, "readwrite");
-  const store = tx.objectStore(STORE_DOC_STATE);
-  const rows = await collect<LocalDocStateRow>(store);
-  if (rows.length <= limit) {
+  const tx = db.transaction(
+    [STORE_DOC_STATE, STORE_DOC_STATE_META],
+    "readwrite",
+  );
+  const metaStore = tx.objectStore(STORE_DOC_STATE_META);
+  const meta = await collect<LocalDocStateMeta>(metaStore);
+
+  meta.sort((a, b) => b.savedAt - a.savedAt);
+  const stale: LocalDocStateMeta[] = [];
+  let kept = 0;
+  let bytes = 0;
+  for (const row of meta) {
+    bytes += row.bytes;
+    kept++;
+    // The document just written is the newest, so it always survives — evicting
+    // it would make the write pointless and the next open would find nothing.
+    if (kept > 1 && (bytes > maxBytes || kept > maxDocuments)) stale.push(row);
+  }
+
+  if (stale.length === 0) {
     await done(tx);
     return 0;
   }
-  const stale = rows.sort((a, b) => b.savedAt - a.savedAt).slice(limit);
-  for (const row of stale) store.delete(row.id);
+  const states = tx.objectStore(STORE_DOC_STATE);
+  for (const row of stale) {
+    states.delete(row.id);
+    metaStore.delete(row.id);
+  }
   await done(tx);
   return stale.length;
 }

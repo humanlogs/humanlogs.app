@@ -73,7 +73,9 @@ describe("mergeRectsByLine", () => {
   });
 
   it("drops empty rects rather than drawing hairlines", () => {
-    expect(mergeRectsByLine([rect(10, 100, 0), rect(10, 100, 0, 0)])).toEqual([]);
+    expect(mergeRectsByLine([rect(10, 100, 0), rect(10, 100, 0, 0)])).toEqual(
+      [],
+    );
   });
 
   it("orders the lines top to bottom whatever order they arrive in", () => {

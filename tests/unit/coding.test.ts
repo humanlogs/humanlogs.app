@@ -51,7 +51,9 @@ const TREE = [
     },
     { id: "work", label: "Work", color: "blue" },
   ]),
-  codebook("cb2", "Method", [{ id: "quote", label: "Quotable", color: "teal" }]),
+  codebook("cb2", "Method", [
+    { id: "quote", label: "Quotable", color: "teal" },
+  ]),
 ];
 
 describe("coding options", () => {
@@ -103,9 +105,9 @@ describe("coding options", () => {
 
   it("keeps only verbatim codebooks", () => {
     const speaker = { ...codebook("cb3", "People", []), target: "speaker" };
-    expect(verbatimCodebooks([...TREE, speaker as never]).map((c) => c.id)).toEqual(
-      ["cb1", "cb2"],
-    );
+    expect(
+      verbatimCodebooks([...TREE, speaker as never]).map((c) => c.id),
+    ).toEqual(["cb1", "cb2"]);
   });
 });
 
@@ -157,7 +159,9 @@ describe("coding scope", () => {
   ];
 
   it("shows only my own pass by default", () => {
-    expect(codingsInScope(codings, "mine", "me").map((c) => c.id)).toEqual(["1"]);
+    expect(codingsInScope(codings, "mine", "me").map((c) => c.id)).toEqual([
+      "1",
+    ]);
     expect(codingsInScope(codings, "everyone", "me")).toHaveLength(2);
   });
 

@@ -64,9 +64,15 @@ export type PhraseRow = {
   codingIds: string[];
 };
 
-/** One code, from one codebook, applied to one phrase by one author. */
+/**
+ * One code, from one codebook, applied to one phrase by one author.
+ *
+ * No id of its own: `(phraseId, codingId)` already identifies it, and the store
+ * keys on that pair. The composite string it used to carry was the single
+ * heaviest field in the whole index — a hundred-odd characters per row, read on
+ * every open, referenced by nothing.
+ */
 export type PhraseCodeRow = {
-  id: string;
   phraseId: string;
   /** The `Coding` row this link came from — also the anchor id in the transcript. */
   codingId: string;
@@ -230,7 +236,6 @@ export function buildPhraseIndex({
       const coding = known.get(codingId);
       if (!coding) continue;
       links.push({
-        id: `${id}|${codingId}`,
         phraseId: id,
         codingId,
         documentId,

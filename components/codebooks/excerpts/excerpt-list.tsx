@@ -32,11 +32,11 @@ const PAGE = 60;
 export function ExcerptList({
   groups,
   labels,
-  codesByPhrase,
+  codesOf,
 }: {
   groups: PhraseGroup[];
   labels: ExcerptLabels;
-  codesByPhrase: Map<string, CodeRef[]>;
+  codesOf: (phraseId: string) => CodeRef[];
 }) {
   const t = useTranslations("codebook.excerpts");
   const panel = useExcerptPanel();
@@ -157,7 +157,7 @@ export function ExcerptList({
           key={group.key}
           group={group}
           labels={labels}
-          codesByPhrase={codesByPhrase}
+          codesOf={codesOf}
           focused={focused}
           provenance={provenance}
           onSelect={panel.focus}
@@ -197,14 +197,14 @@ type Provenance = { document: boolean; speaker: boolean };
 function ExcerptGroupSection({
   group,
   labels,
-  codesByPhrase,
+  codesOf,
   focused,
   provenance,
   onSelect,
 }: {
   group: PhraseGroup;
   labels: ExcerptLabels;
-  codesByPhrase: Map<string, CodeRef[]>;
+  codesOf: (phraseId: string) => CodeRef[];
   focused: PhraseFocus | null;
   provenance: Provenance;
   onSelect: (focus: PhraseFocus) => void;
@@ -241,7 +241,7 @@ function ExcerptGroupSection({
             <ExcerptRow
               key={`${group.key}:${phrase.id}`}
               phrase={phrase}
-              codes={chipsFor(codesByPhrase.get(phrase.id), grouping)}
+              codes={chipsFor(codesOf(phrase.id), grouping)}
               labels={labels}
               focused={focusMatchesPhrase(focused, phrase)}
               provenance={provenance}

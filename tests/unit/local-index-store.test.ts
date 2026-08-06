@@ -1,10 +1,14 @@
 import "fake-indexeddb/auto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  deleteDocState,
   deleteDocumentIndex,
   destroyAllLocalDbs,
   destroyLocalDb,
+  pruneDocStates,
+  putDocState,
   putDocumentIndex,
+  readDocState,
   readDocumentRows,
   readStudyIndex,
 } from "@/lib/local/db.browser";
@@ -329,5 +333,81 @@ describe("syncStudyIndex", () => {
 
     // The two workers already in flight finish their fetch; nothing beyond starts.
     expect(fetchDocument.mock.calls.length).toBeLessThanOrEqual(2);
+  });
+});
+
+/**
+ * The transcript cache. Its budget is the one place in the local model where
+ * being wrong costs the user something they cannot rebuild cheaply: a browser
+ * that hits its storage quota evicts the whole origin, and the coded-passage
+ * index goes with it.
+ */
+describe("the document-state cache", () => {
+  const state = (id: string, bytes: number) =>
+    putDocState(USER, {
+      id,
+      update: new ArrayBuffer(bytes),
+      serverUpdatedAt: "2026-01-01T00:00:00.000Z",
+    });
+
+  it("reads back a state that was written", async () => {
+    await state("doc1", 1024);
+    const row = await readDocState(USER, "doc1");
+    expect(row?.update.byteLength).toBe(1024);
+  });
+
+  it("keeps everything while it fits", async () => {
+    await state("doc1", 1000);
+    await state("doc2", 1000);
+    expect(
+      await pruneDocStates(USER, { maxBytes: 10_000, maxDocuments: 10 }),
+    ).toBe(0);
+    expect(await readDocState(USER, "doc1")).not.toBeNull();
+  });
+
+  it("evicts by BYTES, oldest first — a count would not have caught this", async () => {
+    // Three documents, well under any sane count cap, well over the byte one.
+    await state("old", 4000);
+    await state("middle", 4000);
+    await state("newest", 4000);
+
+    const dropped = await pruneDocStates(USER, {
+      maxBytes: 9000,
+      maxDocuments: 100,
+    });
+
+    expect(dropped).toBe(1);
+    expect(await readDocState(USER, "old")).toBeNull();
+    expect(await readDocState(USER, "middle")).not.toBeNull();
+    expect(await readDocState(USER, "newest")).not.toBeNull();
+  });
+
+  it("still bounds the count, for documents too small to reach the bytes", async () => {
+    for (const id of ["a", "b", "c", "d"]) await state(id, 10);
+    const dropped = await pruneDocStates(USER, {
+      maxBytes: 10_000_000,
+      maxDocuments: 2,
+    });
+    expect(dropped).toBe(2);
+  });
+
+  it("never evicts the state just written, whatever the budget", async () => {
+    // A budget smaller than one document would otherwise delete the write that
+    // triggered the prune, and the next open would find nothing.
+    await state("only", 5000);
+    await pruneDocStates(USER, { maxBytes: 10, maxDocuments: 10 });
+    expect(await readDocState(USER, "only")).not.toBeNull();
+  });
+
+  it("forgets a state and its metadata together", async () => {
+    await state("doc1", 1000);
+    await state("doc2", 1000);
+    await deleteDocState(USER, "doc1");
+    // If the metadata outlived the blob, eviction would keep budgeting for bytes
+    // that are no longer there and drop live states to make room for a ghost.
+    expect(
+      await pruneDocStates(USER, { maxBytes: 1500, maxDocuments: 10 }),
+    ).toBe(0);
+    expect(await readDocState(USER, "doc2")).not.toBeNull();
   });
 });

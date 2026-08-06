@@ -445,8 +445,8 @@ describe("codebook presets", () => {
 
   it("counts sub-codes in a preset's size", () => {
     expect(countPresetCodes([{ label: "a" }])).toBe(1);
-    expect(
-      countPresetCodes([{ label: "a", children: [{ label: "b" }] }]),
-    ).toBe(2);
+    expect(countPresetCodes([{ label: "a", children: [{ label: "b" }] }])).toBe(
+      2,
+    );
   });
 });
