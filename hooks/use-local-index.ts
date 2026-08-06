@@ -5,10 +5,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { CodingDTO } from "@/lib/codebooks/coding";
 import {
   isLocalDbAvailable,
-  readStudyIndex,
   type LocalDocumentRow,
 } from "@/lib/local/db.browser";
 import { buildPhraseIndex, type CodingRef } from "@/lib/local/phrase-index";
+import type { PhraseStreamResult } from "@/lib/local/phrase-stream";
+import {
+  queryStudy,
+  readPhraseRows,
+  type HydratedPhrases,
+  type StudyQuery,
+} from "@/lib/local/query-store.browser";
 import {
   codingSignature,
   type CodingManifestEntry,
@@ -53,6 +59,29 @@ export function localPhrasesQueryKey(
   projectId: string | null | undefined,
 ) {
   return ["local-phrases", userId ?? "anon", studyKey(projectId)] as const;
+}
+
+const PHRASE_ROWS_KEY = "local-phrase-rows";
+
+/**
+ * Tell the readers the rows moved.
+ *
+ * Two keys, because the panel reads in two steps now: the pass that counts the
+ * study and the fetch that turns the visible page into text. A reindex invalidates
+ * both — a passage whose wording changed must not keep its old text under a count
+ * that was just redone.
+ */
+function invalidateLocalPhrases(
+  queryClient: ReturnType<typeof useQueryClient>,
+  userId: string | undefined,
+  projectId: string | null | undefined,
+): void {
+  void queryClient.invalidateQueries({
+    queryKey: localPhrasesQueryKey(userId, projectId),
+  });
+  void queryClient.invalidateQueries({
+    queryKey: [PHRASE_ROWS_KEY, userId ?? "anon"],
+  });
 }
 
 /** Strip a coding down to what the index needs — no author object, no dates. */
@@ -146,9 +175,7 @@ export function useLocalIndexSync(
           setProgress(current);
           if (current.done - announced < REFRESH_EVERY_DOCUMENTS) return;
           announced = current.done;
-          void queryClient.invalidateQueries({
-            queryKey: localPhrasesQueryKey(userId, projectId),
-          });
+          invalidateLocalPhrases(queryClient, userId, projectId);
         },
       });
     },
@@ -160,9 +187,7 @@ export function useLocalIndexSync(
   const synced = query.data;
   useEffect(() => {
     if (!synced || synced.upToDate) return;
-    void queryClient.invalidateQueries({
-      queryKey: localPhrasesQueryKey(userId, projectId),
-    });
+    invalidateLocalPhrases(queryClient, userId, projectId);
   }, [synced, queryClient, userId, projectId]);
 
   return { ...query, progress };
@@ -227,32 +252,63 @@ function retryAfterOf(response: Response): number | undefined {
 }
 
 /**
- * Every coded passage of a study, read from disk.
+ * Run the panel's question against the local index.
  *
- * Whole rather than filtered: the filter bar changes on every keystroke, and the
- * pure query over rows already in memory ({@link queryPhrases}) is faster than
- * re-opening a transaction per change. See `readStudyIndex` for where that stops
- * being true.
+ * The pass walks the study in batches and keeps a count per group plus the first
+ * `perGroup` references of each — never the study (see query-store.browser.ts).
+ * What comes back therefore NAMES the rows; {@link usePhraseRows} fetches the ones
+ * being drawn.
+ *
+ * Keyed on the whole request, so every distinct question is its own cache entry and
+ * going back to one is instant. `placeholderData` keeps the previous answer on
+ * screen while the next is computed: a filter change should visibly narrow a list,
+ * not blank it and refill it.
  */
-export function useStudyPhrases(
-  projectId: string | null | undefined,
+export function useStudyQuery(
+  request: Omit<StudyQuery, "signal"> | null,
   { enabled = true }: { enabled?: boolean } = {},
 ) {
   const { data: profile } = useUserProfile();
   const userId = profile?.id;
 
-  return useQuery({
-    queryKey: localPhrasesQueryKey(userId, projectId),
-    enabled:
-      enabled && !!userId && isLocalDbAvailable() && projectId !== undefined,
-    // Never stale on its own. At the sizes this is built for the read is seconds,
-    // and every way the rows can change already invalidates this key explicitly —
-    // the background pass as it goes, the open document as it is coded. A timer on
-    // top of that would only re-read a study to get the same answer, and make
-    // coming back to it cost the wait a second time.
+  return useQuery<PhraseStreamResult>({
+    queryKey: [
+      ...localPhrasesQueryKey(userId, request?.projectId),
+      request,
+    ] as const,
+    enabled: enabled && !!userId && isLocalDbAvailable() && !!request,
+    // Never stale on its own: every way the rows can change invalidates this
+    // prefix explicitly — the background pass as it goes, the open document as it
+    // is coded. A timer on top of that would only re-walk a study to get the same
+    // answer back.
     staleTime: Infinity,
-    gcTime: 30 * 60_000,
-    queryFn: () => readStudyIndex(userId!, projectId ?? null),
+    gcTime: 10 * 60_000,
+    placeholderData: (previous) => previous,
+    queryFn: ({ signal }) => queryStudy(userId!, { ...request!, signal }),
+  });
+}
+
+/**
+ * The text and chips of the passages currently on screen.
+ *
+ * A page at a time, by primary key. This is the read that used to be the whole
+ * study: sixty rows instead of two hundred thousand, and it grows with the scroll
+ * rather than with the corpus.
+ */
+export function usePhraseRows(ids: readonly string[]) {
+  const { data: profile } = useUserProfile();
+  const userId = profile?.id;
+
+  return useQuery<HydratedPhrases>({
+    // The ids themselves are the key: scrolling extends the list, so the next page
+    // is a different question, and the previous answer stays cached for the way
+    // back up.
+    queryKey: [PHRASE_ROWS_KEY, userId ?? "anon", ids.join("|")],
+    enabled: !!userId && isLocalDbAvailable() && ids.length > 0,
+    staleTime: Infinity,
+    gcTime: 5 * 60_000,
+    placeholderData: (previous) => previous,
+    queryFn: () => readPhraseRows(userId!, ids),
   });
 }
 
@@ -359,11 +415,7 @@ export function useLiveDocumentIndex({
               }
             : null,
         })
-          .then(() =>
-            queryClient.invalidateQueries({
-              queryKey: localPhrasesQueryKey(userId, projectId),
-            }),
-          )
+          .then(() => invalidateLocalPhrases(queryClient, userId, projectId))
           .catch((error) => {
             // The rows on disk are now unknown; forget what we thought we wrote so
             // the next change tries again instead of being skipped as a duplicate.
@@ -417,6 +469,7 @@ export function useForgetLocalData() {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["local-phrases"] });
+      void queryClient.invalidateQueries({ queryKey: [PHRASE_ROWS_KEY] });
       void queryClient.invalidateQueries({ queryKey: ["local-index-sync"] });
       void queryClient.invalidateQueries({ queryKey: ["local-index-status"] });
     },

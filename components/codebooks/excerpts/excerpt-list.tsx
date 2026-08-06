@@ -2,10 +2,16 @@
 
 import * as React from "react";
 import { useTranslations } from "@/components/locale-provider";
+import { usePhraseRows } from "@/hooks/use-local-index";
 import type { CodeRef } from "@/lib/codebooks/codebook";
 import { codeColorVar } from "@/lib/codebooks/coding";
-import type { PhraseRow } from "@/lib/local/phrase-index";
-import { takeGroups, type PhraseGroup } from "@/lib/local/phrase-query";
+import { codingIdsOf, type PhraseRow } from "@/lib/local/phrase-index";
+import {
+  takeRefs,
+  type PhraseRef,
+  type StreamedGroup,
+} from "@/lib/local/phrase-stream";
+import type { HydratedPhrases } from "@/lib/local/query-store.browser";
 import { cn } from "@/lib/utils/utils";
 import {
   focusMatchesPhrase,
@@ -17,13 +23,19 @@ import type { ExcerptLabels } from "./use-excerpt-query";
 /**
  * The excerpts themselves: groups, rows, and the two-way scroll with the editor.
  *
- * **Nothing is virtualised, and nothing needs to be.** A study can hold tens of
+ * **Nothing is virtualised, and nothing needs to be.** A study can hold hundreds of
  * thousands of coded passages, and mounting them would be as slow as it sounds — so
  * the list renders a page at a time and grows when the reader reaches the bottom.
  * That fits how the table is actually read (from the top, until you find what you
  * came for) and costs a sentinel and a counter rather than a windowing library and
  * the fixed row heights it would demand: an excerpt is one to four lines, and
  * clipping them all to one would be the wrong trade in a tool for reading verbatim.
+ *
+ * **The query hands over names, not rows.** It walks the study without holding it,
+ * so what a group carries is references — id, document, position — plus a count. The
+ * text and the chips of the page being drawn are fetched here, by id. That is the
+ * whole reason a study of 200k passages opens in the time a screenful takes to read
+ * rather than the time a corpus takes to load.
  */
 
 /** How many rows are added each time the reader reaches the end of the list. */
@@ -32,11 +44,11 @@ const PAGE = 60;
 export function ExcerptList({
   groups,
   labels,
-  codesOf,
+  deepen,
 }: {
-  groups: PhraseGroup[];
+  groups: StreamedGroup[];
   labels: ExcerptLabels;
-  codesOf: (phraseId: string) => CodeRef[];
+  deepen: () => void;
 }) {
   const t = useTranslations("codebook.excerpts");
   const panel = useExcerptPanel();
@@ -45,9 +57,20 @@ export function ExcerptList({
   const sentinelRef = React.useRef<HTMLDivElement>(null);
 
   const plan = React.useMemo(
-    () => takeGroups(groups, visible),
+    () => takeRefs(groups, visible),
     [groups, visible],
   );
+
+  // Deduplicated: grouping by code is not a partition, so a passage read as two
+  // things appears in two groups and must still be fetched once.
+  const ids = React.useMemo(() => {
+    const seen = new Set<string>();
+    for (const group of plan.groups) {
+      for (const ref of group.refs) seen.add(ref.id);
+    }
+    return Array.from(seen);
+  }, [plan.groups]);
+  const { data: hydrated } = usePhraseRows(ids);
 
   /**
    * A new question deserves a fresh first page: after changing the filter the
@@ -67,11 +90,22 @@ export function ExcerptList({
     setVisible(PAGE);
   }, [question, grouping, scope]);
 
-  /** Read by the observer, which is created once and must see the latest count. */
-  const remainingRef = React.useRef(0);
+  /**
+   * Read by the observer, which is created once and must see the latest state.
+   *
+   * Two different ends, and confusing them is how a list grows forever towards rows
+   * that do not exist: `room` is references the pass actually kept and has not
+   * mounted yet, `unfetched` is passages it counted but did not keep. The first is
+   * a bigger page, the second is a deeper pass.
+   */
+  const growth = React.useRef({ room: 0, unfetched: 0, deepen });
   React.useEffect(() => {
-    remainingRef.current = plan.remaining;
-  }, [plan.remaining]);
+    growth.current = {
+      room: plan.available - plan.shown,
+      unfetched: plan.total - plan.available,
+      deepen,
+    };
+  }, [plan.available, plan.shown, plan.total, deepen]);
 
   React.useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -79,13 +113,16 @@ export function ExcerptList({
     if (!sentinel || !root) return;
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          // Only grow towards rows that exist. A short result leaves the sentinel
-          // permanently in view, and an unguarded counter would then climb forever
-          // — one re-render per observation, for a list of three excerpts.
-          if (remainingRef.current <= 0) return;
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        const { room, unfetched, deepen: more } = growth.current;
+        if (room > 0) {
           setVisible((current) => current + PAGE);
+          return;
         }
+        // Everything the pass kept is on screen and it counted more: ask for a
+        // deeper one. Guarded by `room`, so this fires once per exhaustion rather
+        // than on every observation.
+        if (unfetched > 0) more();
       },
       // The scroll container is an ancestor rather than the browser viewport, and
       // a margin means the next page is mounted just before it is needed rather
@@ -150,23 +187,25 @@ export function ExcerptList({
     speaker: panel.groupBy !== "speaker",
   };
 
+  const behind = plan.total - plan.shown;
+
   return (
     <div className="p-2" ref={rootRef}>
       {plan.groups.map((group) => (
         <ExcerptGroupSection
           key={group.key}
           group={group}
+          hydrated={hydrated}
           labels={labels}
-          codesOf={codesOf}
           focused={focused}
           provenance={provenance}
           onSelect={panel.focus}
         />
       ))}
       <div ref={sentinelRef} aria-hidden className="h-px" />
-      {plan.remaining > 0 && (
+      {behind > 0 && (
         <p className="px-2 py-3 text-center text-xs text-muted-foreground">
-          {t("more", { count: plan.remaining })}
+          {t("more", { count: behind })}
         </p>
       )}
     </div>
@@ -177,34 +216,50 @@ export function ExcerptList({
  * Where the focused excerpt sits in the flattened list, or -1 when it is not in the
  * result at all — a passage coded with something the filter excludes, which is a
  * legitimate state and not a reason to grow the list.
+ *
+ * Runs on references alone: a phrase's anchors are recoverable from its id
+ * ({@link codingIdsOf}), so recognising the editor's selection costs no fetch.
  */
 function indexOfFocused(
-  groups: readonly PhraseGroup[],
+  groups: readonly StreamedGroup[],
   focus: PhraseFocus,
 ): number {
   let index = 0;
   for (const group of groups) {
-    for (const phrase of group.phrases) {
-      if (focusMatchesPhrase(focus, phrase)) return index;
+    for (const ref of group.refs) {
+      if (focusMatchesPhrase(focus, asPhrase(ref))) return index;
       index++;
     }
   }
   return -1;
 }
 
+/** A reference in the shape the focus rules speak — see {@link codingIdsOf}. */
+function asPhrase(ref: PhraseRef): {
+  id: string;
+  documentId: string;
+  codingIds: string[];
+} {
+  return {
+    id: ref.id,
+    documentId: ref.documentId,
+    codingIds: codingIdsOf(ref.id),
+  };
+}
+
 type Provenance = { document: boolean; speaker: boolean };
 
 function ExcerptGroupSection({
   group,
+  hydrated,
   labels,
-  codesOf,
   focused,
   provenance,
   onSelect,
 }: {
-  group: PhraseGroup;
+  group: StreamedGroup;
+  hydrated: HydratedPhrases | undefined;
   labels: ExcerptLabels;
-  codesOf: (phraseId: string) => CodeRef[];
   focused: PhraseFocus | null;
   provenance: Provenance;
   onSelect: (focus: PhraseFocus) => void;
@@ -228,22 +283,24 @@ function ExcerptGroupSection({
           className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs font-medium text-muted-foreground hover:bg-accent/50"
         >
           <span className="min-w-0 flex-1">{header}</span>
-          <span className="tabular-nums">{group.phrases.length}</span>
+          {/* The group's whole size, not the part of it that is mounted. */}
+          <span className="tabular-nums">{group.count}</span>
         </button>
       )}
       {!collapsed &&
-        (group.phrases.length === 0 ? (
+        (group.refs.length === 0 ? (
           <p className="px-3 py-1.5 text-xs text-muted-foreground/60">
             {t("groupEmpty")}
           </p>
         ) : (
-          group.phrases.map((phrase) => (
+          group.refs.map((ref) => (
             <ExcerptRow
-              key={`${group.key}:${phrase.id}`}
-              phrase={phrase}
-              codes={chipsFor(codesOf(phrase.id), grouping)}
+              key={`${group.key}:${ref.id}`}
+              phraseRef={ref}
+              row={hydrated?.rows.get(ref.id)}
+              codes={chipsFor(chipsOf(hydrated, ref.id), grouping)}
               labels={labels}
-              focused={focusMatchesPhrase(focused, phrase)}
+              focused={focusMatchesPhrase(focused, asPhrase(ref))}
               provenance={provenance}
               onSelect={onSelect}
             />
@@ -256,12 +313,35 @@ function ExcerptGroupSection({
 /** Stable identity, so a row with no codes is not re-rendered by a fresh `[]`. */
 const EMPTY_CODES: CodeRef[] = [];
 
+/**
+ * A row's chips: the codes on it, deduplicated.
+ *
+ * The same code applied by two researchers is one chip, not two — the table shows
+ * what a passage was read AS, and who read it that way is a filter, not a label.
+ */
+function chipsOf(
+  hydrated: HydratedPhrases | undefined,
+  phraseId: string,
+): CodeRef[] {
+  const links = hydrated?.codes.get(phraseId);
+  if (!links || links.length === 0) return EMPTY_CODES;
+  const seen = new Set<string>();
+  const refs: CodeRef[] = [];
+  for (const link of links) {
+    const key = `${link.codebookId}:${link.codeId}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    refs.push({ codebookId: link.codebookId, codeId: link.codeId });
+  }
+  return refs;
+}
+
 /** A row's chips, minus the code its group already stands for. */
 function chipsFor(
-  codes: CodeRef[] | undefined,
+  codes: CodeRef[],
   grouping: { codebookId: string; codeId: string } | null,
 ): CodeRef[] {
-  if (!codes || codes.length === 0) return EMPTY_CODES;
+  if (codes.length === 0) return EMPTY_CODES;
   if (!grouping) return codes;
   const rest = codes.filter(
     (code) =>
@@ -276,7 +356,7 @@ function chipsFor(
 }
 
 function groupHeader(
-  group: PhraseGroup,
+  group: StreamedGroup,
   labels: ExcerptLabels,
 ): React.ReactNode | null {
   switch (group.label.type) {
@@ -316,14 +396,17 @@ function groupHeader(
 }
 
 function ExcerptRow({
-  phrase,
+  phraseRef,
+  row,
   codes,
   labels,
   focused,
   provenance,
   onSelect,
 }: {
-  phrase: PhraseRow;
+  phraseRef: PhraseRef;
+  /** Undefined until this page's text arrives — a frame or two after its names. */
+  row: PhraseRow | undefined;
   codes: CodeRef[];
   labels: ExcerptLabels;
   focused: boolean;
@@ -335,13 +418,13 @@ function ExcerptRow({
       type="button"
       // Read by the scroll-sync above, which looks the row up rather than being
       // told about it — see {@link ExcerptList}.
-      data-phrase-id={phrase.id}
+      data-phrase-id={phraseRef.id}
       data-focused={focused || undefined}
       onClick={() =>
         onSelect({
-          phraseId: phrase.id,
-          documentId: phrase.documentId,
-          codingIds: phrase.codingIds,
+          phraseId: phraseRef.id,
+          documentId: phraseRef.documentId,
+          codingIds: codingIdsOf(phraseRef.id),
           source: "table",
         })
       }
@@ -350,12 +433,18 @@ function ExcerptRow({
         focused ? "border-border bg-accent" : "hover:bg-accent/50",
       )}
     >
-      <p className="line-clamp-3 text-sm leading-snug">{phrase.text}</p>
-      {(provenance.speaker || provenance.document) && (
+      {row ? (
+        <p className="line-clamp-3 text-sm leading-snug">{row.text}</p>
+      ) : (
+        // A placeholder of the right height, so arriving text does not shift the
+        // list under a reader who is already scrolling through it.
+        <span className="block h-5 w-3/4 animate-pulse rounded bg-muted" />
+      )}
+      {row && (provenance.speaker || provenance.document) && (
         <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
           {provenance.speaker && (
             <span className="truncate">
-              {labels.speakerName(phrase.documentId, phrase.speakerId)}
+              {labels.speakerName(row.documentId, row.speakerId)}
             </span>
           )}
           {provenance.speaker && provenance.document && (
@@ -363,7 +452,7 @@ function ExcerptRow({
           )}
           {provenance.document && (
             <span className="truncate">
-              {labels.documentTitle(phrase.documentId)}
+              {labels.documentTitle(row.documentId)}
             </span>
           )}
         </div>

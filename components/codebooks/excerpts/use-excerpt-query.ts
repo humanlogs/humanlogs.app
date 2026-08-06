@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useTranslations } from "@/components/locale-provider";
+import { useStudyQuery } from "@/hooks/use-local-index";
 import {
   codebooksInScopeForProject,
   flattenCodes,
@@ -10,14 +11,16 @@ import {
   type DecryptedCodebook,
 } from "@/lib/codebooks/codebook";
 import { verbatimCodebooks } from "@/lib/codebooks/coding";
-import type { PhraseCodeRow, PhraseRow } from "@/lib/local/phrase-index";
 import {
   documentsMatchingCodes,
-  queryPhrases,
-  sanitizeLinks,
   speakersMatchingCodes,
-  type PhraseGroup,
 } from "@/lib/local/phrase-query";
+import {
+  DEFAULT_PER_GROUP,
+  type KnownCodebooks,
+  type StreamedGroup,
+} from "@/lib/local/phrase-stream";
+import type { StudyQuery } from "@/lib/local/query-store.browser";
 import type { ExcerptDocument } from "./excerpt-filters";
 import { useExcerptPanel } from "./excerpt-panel-context";
 
@@ -28,7 +31,13 @@ import { useExcerptPanel } from "./excerpt-panel-context";
  * The two halves run in the order the data model was designed for: the
  * speaker-codebook codes are resolved against the DOCUMENT LIST first — a pass over
  * rows the app already holds, producing document and speaker ids — and only then is
- * the index filtered by those ids and by the verbatim codes.
+ * the index walked, with the resulting ids. That is the "première recherche simple"
+ * the model was designed around: it turns a question about people into a question
+ * about ids, and leaves the link table to answer only what it alone can.
+ *
+ * What comes back names its rows and counts the rest; it does not carry the study.
+ * See `lib/local/query-store.browser.ts` for why, and `ExcerptList` for the fetch
+ * that turns a page of names into text.
  *
  * Labels are resolved OUT of the index rather than stored in it. Every row holds
  * opaque ids; a code renamed in the codebook editor, a document retitled, a speaker
@@ -45,15 +54,23 @@ export type ExcerptLabels = {
 };
 
 export type ExcerptQueryResult = {
-  phrases: PhraseRow[];
-  groups: PhraseGroup[];
-  /** The chips of one row, resolved when that row is rendered — see below. */
-  codesOf: (phraseId: string) => CodeRef[];
+  /** Distinct passages the filter keeps — the number in the panel's header. */
+  total: number;
+  groups: StreamedGroup[];
   labels: ExcerptLabels;
+  /** True while the first answer to THIS question is being computed. */
+  pending: boolean;
+  /**
+   * Keep more references per group.
+   *
+   * A pass retains a few pages of each group and counts the rest, so a reader who
+   * scrolls past that has to be given a deeper pass. Rare by construction — it takes
+   * three hundred rows of one group — and cheap, since the walk is the same walk.
+   */
+  deepen: () => void;
 };
 
-/** Stable identity, so a row with no codes is not re-rendered by a fresh `[]`. */
-const NO_REFS: CodeRef[] = [];
+const NO_GROUPS: StreamedGroup[] = [];
 
 /** Every code of a codebook, with its full path and the colour it inherits. */
 function describeCodes(
@@ -82,15 +99,15 @@ function describeCodes(
 }
 
 export function useExcerptQuery({
-  index,
   documents,
   codebooks,
   userId,
+  enabled,
 }: {
-  index: { phrases: PhraseRow[]; links: PhraseCodeRow[] } | undefined;
   documents: ExcerptDocument[];
   codebooks: DecryptedCodebook[];
   userId: string | undefined;
+  enabled: boolean;
 }): ExcerptQueryResult {
   const t = useTranslations("codebook.excerpts");
   const { filter, groupBy, context } = useExcerptPanel();
@@ -114,63 +131,45 @@ export function useExcerptQuery({
     [inStudy],
   );
 
-  const result = React.useMemo(() => {
-    if (!index) {
-      return {
-        phrases: [] as PhraseRow[],
-        groups: [] as PhraseGroup[],
-        codesOf: () => NO_REFS,
-      };
-    }
+  // The document dimension. Scoping to the open document wins over the context
+  // codes: "this document" is an explicit answer to the same question.
+  let documentIds: string[] | undefined;
+  if (filter.scope === "document" && context.documentId) {
+    documentIds = [context.documentId];
+  } else if (filter.contextCodes.length > 0) {
+    documentIds = documentsMatchingCodes(inStudy, filter.contextCodes);
+  }
 
-    // The document dimension. Scoping to the open document wins over the context
-    // codes: "this document" is an explicit answer to the same question.
-    let documentIds: string[] | undefined;
-    if (filter.scope === "document" && context.documentId) {
-      documentIds = [context.documentId];
-    } else if (filter.contextCodes.length > 0) {
-      documentIds = documentsMatchingCodes(inStudy, filter.contextCodes);
-    }
+  const speakerKeys =
+    filter.contextCodes.length > 0 && filter.scope !== "document"
+      ? speakersMatchingCodes(inStudy, filter.contextCodes, rosterOf)
+      : undefined;
 
-    const speakerKeys =
-      filter.contextCodes.length > 0 && filter.scope !== "document"
-        ? speakersMatchingCodes(inStudy, filter.contextCodes, rosterOf)
-        : undefined;
+  const request: Omit<StudyQuery, "signal"> = {
+    projectId: context.projectId,
+    groupBy,
+    codeOrder: codeOrderFor({ groupBy, filter, codebooks, context }),
+    sanitize: knownCodesOf(codebooks),
+    filter: {
+      documentIds,
+      speakerKeys,
+      codes: filter.codes.length > 0 ? filter.codes : undefined,
+      userIds: filter.authors === "mine" && userId ? [userId] : undefined,
+      search: filter.search,
+    },
+  };
 
-    const query = queryPhrases({
-      phrases: index.phrases,
-      links: sanitizeLinks(index.links, codebooks),
-      groupBy,
-      codeOrder: codeOrderFor({ groupBy, filter, codebooks, context }),
-      filter: {
-        projectId: context.projectId,
-        documentIds,
-        speakerKeys,
-        codes: filter.codes.length > 0 ? filter.codes : undefined,
-        userIds: filter.authors === "mine" && userId ? [userId] : undefined,
-        search: filter.search,
-      },
-    });
+  // A new question starts shallow again. Adjusted during render rather than in an
+  // effect, so no pass is ever launched at the previous question's depth.
+  const question = JSON.stringify(request);
+  const [depth, setDepth] = React.useState(DEFAULT_PER_GROUP);
+  const [asked, setAsked] = React.useState(question);
+  if (asked !== question) {
+    setAsked(question);
+    setDepth(DEFAULT_PER_GROUP);
+  }
 
-    // The same code applied by two researchers is one chip, not two. Deduped when
-    // a row asks, not for the whole result: the answer is needed sixty rows at a
-    // time, and a study holds hundreds of thousands.
-    const codesOf = (phraseId: string): CodeRef[] => {
-      const links = query.codesOf(phraseId);
-      if (links.length === 0) return NO_REFS;
-      const seen = new Set<string>();
-      const refs: CodeRef[] = [];
-      for (const link of links) {
-        const key = `${link.codebookId}:${link.codeId}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        refs.push({ codebookId: link.codebookId, codeId: link.codeId });
-      }
-      return refs;
-    };
-
-    return { phrases: query.phrases, groups: query.groups, codesOf };
-  }, [index, filter, groupBy, context, codebooks, inStudy, rosterOf, userId]);
+  const query = useStudyQuery({ ...request, perGroup: depth }, { enabled });
 
   const labels = React.useMemo<ExcerptLabels>(() => {
     const codes = new Map<string, { label: string; color: string | null }>();
@@ -208,7 +207,29 @@ export function useExcerptQuery({
     };
   }, [codebooks, documents, t]);
 
-  return { ...result, labels };
+  const deepen = React.useCallback(() => {
+    setDepth((current) => current * 4);
+  }, []);
+
+  return {
+    total: query.data?.total ?? 0,
+    groups: query.data?.groups ?? NO_GROUPS,
+    labels,
+    pending: query.isPending,
+    deepen,
+  };
+}
+
+/**
+ * The codebooks as this account holds them, for dropping links whose code was
+ * deleted — `sanitizeLinks` applied inside the walk, since the rows are never all
+ * in memory to be filtered beforehand.
+ */
+function knownCodesOf(codebooks: DecryptedCodebook[]): KnownCodebooks {
+  return codebooks.map((codebook) => ({
+    id: codebook.id,
+    codeIds: flattenCodes(codebook.codes).map(({ code }) => code.id),
+  }));
 }
 
 /**
@@ -222,8 +243,8 @@ export function useExcerptQuery({
  *
  * Away from a document there is no codebook "in use", so a study coded through a
  * single verbatim codebook borrows that one. Without it the groups would come out
- * in the order the excerpts happened to mention them, which reads as arbitrary
- * because it is. Two codebooks and the choice would be a guess, so it declines.
+ * ordered by size alone, which reads as arbitrary next to a grille. Two codebooks
+ * and the choice would be a guess, so it declines.
  */
 function codeOrderFor({
   groupBy,

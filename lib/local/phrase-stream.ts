@@ -77,12 +77,28 @@ export type PhraseStream = {
   result: () => PhraseStreamResult;
 };
 
+/**
+ * The codebooks as this account can read them, for dropping links whose code no
+ * longer exists — the streaming form of {@link sanitizeLinks}, which cannot be
+ * applied beforehand when the rows are never all in memory at once.
+ *
+ * Plain data rather than a predicate, so the whole query stays serializable and can
+ * be handed to a worker. Same rules as `sanitizeLinks`: an empty list filters
+ * nothing, and a codebook this account does not hold is kept whole (a colleague
+ * coding through a prism we cannot read is not a deletion).
+ */
+export type KnownCodebooks = ReadonlyArray<{
+  id: string;
+  codeIds: readonly string[];
+}>;
+
 export function createPhraseStream({
   filter = {},
   groupBy = "none",
   codeOrder,
   perGroup = DEFAULT_PER_GROUP,
   only,
+  sanitize,
 }: {
   /**
    * Everything but `search`: matching text needs the phrase rows, which this
@@ -95,11 +111,20 @@ export function createPhraseStream({
   perGroup?: number;
   /** When given, only these phrase ids are considered at all. */
   only?: ReadonlySet<string>;
+  sanitize?: KnownCodebooks;
 }): PhraseStream {
   const documentIds = filter.documentIds && new Set(filter.documentIds);
   const speakerKeys = filter.speakerKeys && new Set(filter.speakerKeys);
   const wantedCodes = filter.codes && new Set(filter.codes.map(codeRefKey));
   const userIds = filter.userIds && new Set(filter.userIds);
+  const known =
+    sanitize && sanitize.length > 0
+      ? new Map(sanitize.map((book) => [book.id, new Set(book.codeIds)]))
+      : null;
+  const deleted = (link: PhraseCodeRow): boolean => {
+    const codes = known?.get(link.codebookId);
+    return !!codes && !codes.has(link.codeId);
+  };
 
   const groups = new Map<string, StreamedGroup>();
   const ensure = (key: string, label: PhraseGroupLabel): StreamedGroup => {
@@ -137,6 +162,7 @@ export function createPhraseStream({
     labels.length = 0;
 
     for (const link of links) {
+      if (deleted(link)) continue;
       if (documentIds && !documentIds.has(link.documentId)) continue;
       if (filter.projectId !== undefined && link.projectId !== filter.projectId)
         continue;
@@ -279,6 +305,54 @@ function insert(refs: PhraseRef[], ref: PhraseRef, limit: number): void {
   }
   refs.splice(low, 0, ref);
   if (refs.length > limit) refs.pop();
+}
+
+/** A page of a streamed result: what to draw, and what is behind it. */
+export type PhrasePage = {
+  groups: StreamedGroup[];
+  /** References actually in `groups` — what is mounted. */
+  shown: number;
+  /** References the pass kept, across every group. The ceiling for scrolling. */
+  available: number;
+  /** Passages the pass COUNTED. Larger than `available` past `perGroup`. */
+  total: number;
+};
+
+/**
+ * The first `limit` references of a streamed result.
+ *
+ * Groups are kept WHOLE down to the row — an empty code group is one line and says
+ * something (nothing was coded with it) — so only references are counted.
+ *
+ * The three numbers it returns are three different questions and the list needs all
+ * of them: `shown` is what is mounted, `available` is how far scrolling can go
+ * before another pass is required, and `total` is what the study actually holds.
+ * Conflating the last two is how a list ends up growing forever towards rows that
+ * were never fetched.
+ */
+export function takeRefs(
+  groups: readonly StreamedGroup[],
+  limit: number,
+): PhrasePage {
+  let budget = Math.max(0, limit);
+  let shown = 0;
+  let available = 0;
+  let total = 0;
+  const out: StreamedGroup[] = [];
+  for (const group of groups) {
+    available += group.refs.length;
+    total += group.count;
+    if (budget === 0 && group.refs.length > 0) continue;
+    const take = Math.min(group.refs.length, budget);
+    out.push(
+      take === group.refs.length
+        ? group
+        : { ...group, refs: group.refs.slice(0, take) },
+    );
+    budget -= take;
+    shown += take;
+  }
+  return { groups: out, shown, available, total };
 }
 
 /**

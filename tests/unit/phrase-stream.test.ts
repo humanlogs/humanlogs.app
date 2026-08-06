@@ -5,7 +5,9 @@ import { queryPhrases } from "@/lib/local/phrase-query";
 import {
   createPhraseStream,
   streamFromLinks,
+  takeRefs,
   type PhraseStreamResult,
+  type StreamedGroup,
 } from "@/lib/local/phrase-stream";
 
 /**
@@ -297,6 +299,22 @@ describe("createPhraseStream", () => {
     expect(result.groups[0].refs[0].id).toBe(index.phrases[1].id);
   });
 
+  it("drops the links of a code the codebook no longer has", () => {
+    const kept = streamFromLinks(index.links, {
+      groupBy: "code",
+      sanitize: [{ id: "cb1", codeIds: ["violence"] }],
+    });
+    expect(kept.groups.map((g) => g.key)).toEqual(["code:cb1:violence"]);
+    // A codebook this account does not hold is not a deletion: a colleague coding
+    // through a prism we cannot read still counts.
+    expect(
+      streamFromLinks(index.links, {
+        groupBy: "codebook",
+        sanitize: [{ id: "cbElsewhere", codeIds: [] }],
+      }).groups.map((g) => g.key),
+    ).toEqual(["codebook:cb1"]);
+  });
+
   it("holds nothing per phrase — a large corpus costs the page, not the corpus", () => {
     // Same two links repeated across many phrases: the accumulator must not grow
     // with the number of phrases it has seen.
@@ -312,5 +330,52 @@ describe("createPhraseStream", () => {
     expect(result.groups).toHaveLength(1);
     expect(result.groups[0].count).toBe(50_000);
     expect(result.groups[0].refs).toHaveLength(10);
+  });
+});
+
+/**
+ * The three numbers `takeRefs` returns are three different questions, and the list
+ * grows on one of them, deepens on another and prints the third. Confusing them is
+ * how a panel either stops short of rows it has, or climbs forever towards rows it
+ * never fetched.
+ */
+describe("takeRefs", () => {
+  const group = (key: string, refs: number, count = refs): StreamedGroup => ({
+    key,
+    label: { type: "all" },
+    count,
+    refs: Array.from({ length: refs }, (_, i) => ({
+      id: `${key}-${i}`,
+      documentId: "doc",
+      offset: i,
+    })),
+  });
+
+  it("keeps everything when the page is bigger than the result", () => {
+    const page = takeRefs([group("a", 2), group("b", 3)], 60);
+    expect(page.shown).toBe(5);
+    expect(page.available).toBe(5);
+    expect(page.total).toBe(5);
+  });
+
+  it("cuts a group mid-way and stops there", () => {
+    const page = takeRefs([group("a", 2), group("b", 5)], 4);
+    expect(page.groups.map((g) => g.refs.length)).toEqual([2, 2]);
+    expect(page.shown).toBe(4);
+    expect(page.available).toBe(7);
+  });
+
+  it("keeps an empty group even past the budget — it says something", () => {
+    const page = takeRefs([group("a", 4), group("empty", 0)], 2);
+    expect(page.groups.map((g) => g.key)).toEqual(["a", "empty"]);
+  });
+
+  it("separates what was not kept from what was not mounted", () => {
+    // A group of 900 passages whose pass retained 300: scrolling can reach 300,
+    // and the 600 behind it need a deeper pass, not a bigger page.
+    const page = takeRefs([group("big", 300, 900)], 60);
+    expect(page.shown).toBe(60);
+    expect(page.available).toBe(300);
+    expect(page.total).toBe(900);
   });
 });

@@ -104,6 +104,20 @@ export type PhraseIndex = {
   links: PhraseCodeRow[];
 };
 
+/**
+ * The anchors of a phrase, read back out of its id.
+ *
+ * The id IS `${documentId}#${sortedCodingIds.join("+")}` — see {@link PhraseRow} —
+ * so the way back into the editor costs no row. That matters now that the table is
+ * driven by a query which knows a result's ids long before it fetches their text:
+ * matching the editor's selection against the list, and paging down to the row it
+ * points at, both happen on references alone.
+ */
+export function codingIdsOf(phraseId: string): string[] {
+  const hash = phraseId.indexOf("#");
+  return hash < 0 ? [] : phraseId.slice(hash + 1).split("+");
+}
+
 /** The half of a `Coding` row this module needs. */
 export type CodingRef = {
   id: string;

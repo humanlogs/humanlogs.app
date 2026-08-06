@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBetaFeatures, useUserProfile } from "@/hooks/use-api";
 import { useCodebooks } from "@/hooks/use-codebooks";
-import { useLocalIndexSync, useStudyPhrases } from "@/hooks/use-local-index";
+import { useLocalIndexSync } from "@/hooks/use-local-index";
 import { useTranscriptions } from "@/hooks/use-transcriptions";
 import { ExcerptFilters, type ExcerptDocument } from "./excerpt-filters";
 import { ExcerptList } from "./excerpt-list";
@@ -48,9 +48,6 @@ export function ExcerptPanel() {
   // opens the panel — hence the explicit flag rather than a null scope, which would
   // mean something quite different (the documents filed in no study).
   const sync = useLocalIndexSync(projectId, { enabled: live });
-  const { data: index, isPending } = useStudyPhrases(projectId, {
-    enabled: live,
-  });
   /** A pass with documents left to fetch — the panel is filling, not empty. */
   const indexing = sync.isFetching && (sync.progress?.total ?? 0) > 0;
 
@@ -69,10 +66,10 @@ export function ExcerptPanel() {
   );
 
   const query = useExcerptQuery({
-    index,
     documents,
     codebooks,
     userId: profile?.id,
+    enabled: live,
   });
 
   if (!live) return null;
@@ -96,7 +93,7 @@ export function ExcerptPanel() {
         <TableIcon className="size-4 text-muted-foreground" />
         <span className="text-sm font-medium">{t("title")}</span>
         <span className="text-xs text-muted-foreground tabular-nums">
-          {query.phrases.length}
+          {query.total}
         </span>
         <Button
           variant="ghost"
@@ -112,7 +109,7 @@ export function ExcerptPanel() {
       <ExcerptFilters documents={documents} codebooks={codebooks} />
 
       <ScrollArea className="min-h-0 flex-1">
-        {isPending && !index ? (
+        {query.pending ? (
           <div className="space-y-2 p-4">
             <Skeleton className="h-16 w-full" />
             <Skeleton className="h-16 w-full" />
@@ -130,7 +127,7 @@ export function ExcerptPanel() {
           <ExcerptList
             groups={query.groups}
             labels={query.labels}
-            codesOf={query.codesOf}
+            deepen={query.deepen}
           />
         )}
       </ScrollArea>

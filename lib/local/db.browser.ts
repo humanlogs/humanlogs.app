@@ -32,7 +32,7 @@
 
 import type { PhraseCodeRow, PhraseRow } from "./phrase-index";
 
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 export const STORE_DOCUMENTS = "documents";
 export const STORE_PHRASES = "phrases";
@@ -51,6 +51,27 @@ export const STORE_DOC_STATE_META = "docStateMeta";
 export const STORE_META = "meta";
 
 /**
+ * The two indexes the panel's query runs on, on both row stores.
+ *
+ * Composite — `[scope, phraseId]` — rather than the plain `studyKey` /
+ * `documentId` ones next to them, because they exist to be READ IN PAGES. A query
+ * over a study cannot hold the study (that was the whole memory problem), so it
+ * walks the rows a batch at a time; resuming a walk means asking for "the rows of
+ * this study AFTER this phrase", and a single-column index cannot express it. The
+ * second column also groups a phrase's links together, which is what lets each
+ * phrase be decided and forgotten as the walk goes past it.
+ */
+export const INDEX_STUDY_PHRASE = "studyPhrase";
+export const INDEX_DOCUMENT_PHRASE = "documentPhrase";
+
+/**
+ * Sorts after every string in IndexedDB's key ordering (number < date < string <
+ * binary < array), so `[scope, MAX_PHRASE_KEY]` is an upper bound covering every
+ * phrase id of a scope, whatever it is.
+ */
+export const MAX_PHRASE_KEY: IDBValidKey = [];
+
+/**
  * IndexedDB indexes skip records whose key is null or undefined, so a document
  * filed in no study would be invisible to a study-scoped cursor. Studies are keyed
  * by the empty string instead, and converted back at the boundary — the pure layer
@@ -62,7 +83,7 @@ export function studyKeyOf(projectId: string | null | undefined): string {
   return projectId ?? NO_STUDY;
 }
 
-function projectIdOf(studyKey: string): string | null {
+export function projectIdOf(studyKey: string): string | null {
   return studyKey === NO_STUDY ? null : studyKey;
 }
 
@@ -186,19 +207,22 @@ export function openLocalDb(userId: string): Promise<IDBDatabase> {
         keyPath: "id",
       });
       phrases.createIndex("documentId", "documentId");
-      phrases.createIndex("studyKey", "studyKey");
+      phrases.createIndex(INDEX_STUDY_PHRASE, ["studyKey", "id"]);
+      phrases.createIndex(INDEX_DOCUMENT_PHRASE, ["documentId", "id"]);
 
       // Keyed on the pair rather than on a concatenation of it: the same
       // identity, without storing it twice on every row.
       const links = database.createObjectStore(STORE_PHRASE_CODES, {
         keyPath: ["phraseId", "codingId"],
       });
+      // Every index here is paid on every write, and the index is rewritten whole
+      // whenever a document is coded — so each one has to earn its place. The
+      // single-column `studyKey` ones these replaced did not: a composite whose
+      // first column is `studyKey` answers everything they did.
       links.createIndex("documentId", "documentId");
-      links.createIndex("studyKey", "studyKey");
       links.createIndex("phraseId", "phraseId");
-      // The one composite index worth having: "every passage coded X in this
-      // study" is the question the panel opens on.
-      links.createIndex("studyCode", ["studyKey", "codebookId", "codeId"]);
+      links.createIndex(INDEX_STUDY_PHRASE, ["studyKey", "phraseId"]);
+      links.createIndex(INDEX_DOCUMENT_PHRASE, ["documentId", "phraseId"]);
 
       database.createObjectStore(STORE_DOC_STATE, { keyPath: "id" });
 
@@ -238,12 +262,22 @@ function done(transaction: IDBTransaction): Promise<void> {
   });
 }
 
-function request<T>(req: IDBRequest<T>): Promise<T> {
+/**
+ * One IndexedDB request as a promise.
+ *
+ * Exported for the query reader, which lives in its own module: awaiting a promise
+ * that resolves from an IDB success handler keeps the transaction alive (the
+ * continuation runs as a microtask, before control returns to the event loop), so
+ * this is safe to chain WITHIN a transaction — and only within one.
+ */
+export function idbRequest<T>(req: IDBRequest<T>): Promise<T> {
   return new Promise((resolve, reject) => {
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
 }
+
+const request = idbRequest;
 
 /**
  * Every record an index matches.
@@ -256,7 +290,7 @@ function request<T>(req: IDBRequest<T>): Promise<T> {
  */
 function collect<T>(
   store: IDBIndex | IDBObjectStore,
-  key?: IDBValidKey,
+  key?: IDBValidKey | IDBKeyRange,
 ): Promise<T[]> {
   return new Promise((resolve, reject) => {
     const req = key === undefined ? store.getAll() : store.getAll(key);
@@ -380,11 +414,11 @@ export async function readDocumentRows(
 /**
  * Every coded passage of a study, with its codes.
  *
- * Read whole and filtered in memory ({@link queryPhrases}) rather than through a
- * cursor per filter: a study's index is tens of thousands of short rows, the filter
- * bar changes on every keystroke, and re-opening a transaction per change would be
- * slower than the pass it replaces. The composite index is there for the day a
- * corpus outgrows that — the seam is this function alone.
+ * **Not what the panel uses.** It did once, and at the scale this is built for that
+ * cost several seconds and a few hundred megabytes before a single row was drawn —
+ * see `query-store.browser.ts` for the paged walk that replaced it. What is left
+ * here is the whole-study read, for the cases that genuinely want every row at once:
+ * an export, a diagnostic, a test asserting what a write put in.
  */
 export async function readStudyIndex(
   userId: string,
@@ -392,12 +426,18 @@ export async function readStudyIndex(
 ): Promise<{ phrases: PhraseRow[]; links: PhraseCodeRow[] }> {
   const db = await openLocalDb(userId);
   const key = studyKeyOf(projectId);
+  // The composite index, bounded to one study — the same rows a single-column
+  // `studyKey` index would give, without a second index to write on every row.
+  const range = IDBKeyRange.bound([key, ""], [key, MAX_PHRASE_KEY]);
   const tx = db.transaction([STORE_PHRASES, STORE_PHRASE_CODES], "readonly");
   const [phrases, links] = await Promise.all([
-    collect<PhraseRecord>(tx.objectStore(STORE_PHRASES).index("studyKey"), key),
+    collect<PhraseRecord>(
+      tx.objectStore(STORE_PHRASES).index(INDEX_STUDY_PHRASE),
+      range,
+    ),
     collect<PhraseCodeRecord>(
-      tx.objectStore(STORE_PHRASE_CODES).index("studyKey"),
-      key,
+      tx.objectStore(STORE_PHRASE_CODES).index(INDEX_STUDY_PHRASE),
+      range,
     ),
   ]);
   // Written onto the records rather than spread into new ones. Every row here was
