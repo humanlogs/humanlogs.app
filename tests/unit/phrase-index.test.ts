@@ -420,6 +420,7 @@ describe("sanitizeLinks", () => {
     codebookId,
     codeId,
     userId: "u1",
+    offset: 0,
   });
   const codebooks = [
     { id: "cb1", codes: [{ id: "violence", label: "Violence" }] },

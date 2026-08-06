@@ -88,6 +88,15 @@ export type PhraseCodeRow = {
   codeId: string;
   /** Author of the coding. Two researchers read the same passage differently. */
   userId: string;
+  /**
+   * The phrase's position in its document, copied here.
+   *
+   * One number, denormalized so that a query driven by a cursor over THIS store
+   * can order its results without reading the phrases. Reading order is what the
+   * table shows, and needing the phrase row to know it would mean loading every
+   * phrase of the study to display sixty of them.
+   */
+  offset: number;
 };
 
 export type PhraseIndex = {
@@ -244,6 +253,7 @@ export function buildPhraseIndex({
         codebookId: coding.codebookId,
         codeId: coding.codeId,
         userId: coding.userId,
+        offset: spans[0].start,
       });
     }
   }
