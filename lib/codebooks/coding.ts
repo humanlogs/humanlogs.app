@@ -125,9 +125,7 @@ export function buildCodingOptions(
 }
 
 /** Depth-first walk of a built menu — parents immediately followed by descendants. */
-export function flattenCodingOptions(
-  options: CodingOption[],
-): CodingOption[] {
+export function flattenCodingOptions(options: CodingOption[]): CodingOption[] {
   const flat: CodingOption[] = [];
   for (const option of options) {
     flat.push(option);

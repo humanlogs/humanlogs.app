@@ -22,6 +22,12 @@ export type ExcerptPassage = {
   text: string;
   speaker: string;
   document: string;
+  /**
+   * Where the passage starts in the recording, `m:ss`, when the transcript is
+   * aligned. A quote in an article is checkable only if the reader can get back
+   * to the tape.
+   */
+  timecode?: string;
 };
 
 /** One row of the exported table: a theme and what was read as it. */
@@ -43,6 +49,16 @@ export type ExcerptTable = {
   caption?: string;
 };
 
+/** `h:mm:ss`, or `m:ss` under an hour — how a timecode is said out loud. */
+export function formatTimecode(seconds: number): string {
+  const total = Math.max(0, Math.floor(seconds));
+  const s = total % 60;
+  const m = Math.floor(total / 60) % 60;
+  const h = Math.floor(total / 3600);
+  const mm = h > 0 ? String(m).padStart(2, "0") : String(m);
+  return `${h > 0 ? `${h}:` : ""}${mm}:${String(s).padStart(2, "0")}`;
+}
+
 /**
  * How a passage is written in the middle column.
  *
@@ -52,7 +68,7 @@ export type ExcerptTable = {
  * attribution is part of the passage rather than a fourth column.
  */
 export function formatPassage(passage: ExcerptPassage): string {
-  const source = [passage.speaker, passage.document].filter(Boolean).join(", ");
+  const source = attributionOf(passage).replace(/^— /, "");
   return source ? `« ${passage.text} » — ${source}` : `« ${passage.text} »`;
 }
 
@@ -207,7 +223,9 @@ export async function toDocxBlob(table: ExcerptTable): Promise<Blob> {
 }
 
 function attributionOf(passage: ExcerptPassage): string {
-  const source = [passage.speaker, passage.document].filter(Boolean).join(", ");
+  const source = [passage.speaker, passage.document, passage.timecode]
+    .filter(Boolean)
+    .join(", ");
   return source ? `— ${source}` : "";
 }
 

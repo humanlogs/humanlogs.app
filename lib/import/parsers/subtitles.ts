@@ -52,7 +52,10 @@ export function parseVtt(content: string): TranscriptionContent {
     const start = timeToSeconds(m[1]);
     const end = timeToSeconds(m[2]);
     if (start === undefined || end === undefined) continue;
-    const raw = lines.slice(idx + 1).join("\n").trim();
+    const raw = lines
+      .slice(idx + 1)
+      .join("\n")
+      .trim();
     if (!raw) continue;
     const { speaker, text } = extractSpeaker(raw);
     if (text) turns.push({ speaker, text, start, end });

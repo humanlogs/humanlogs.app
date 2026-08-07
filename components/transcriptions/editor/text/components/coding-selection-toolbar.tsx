@@ -116,10 +116,7 @@ export function CodingSelectionToolbar({
         <div className="max-h-[40vh] overflow-y-auto">
           {trail.length > 0 && (
             <>
-              <CodingBackRow
-                parent={trail[trail.length - 1]}
-                onBack={onBack}
-              />
+              <CodingBackRow parent={trail[trail.length - 1]} onBack={onBack} />
               <div className="my-1 h-px bg-border" />
             </>
           )}

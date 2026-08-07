@@ -160,7 +160,8 @@
           "docx": "Word (.docx)",
           "csv": "Hoja de cálculo (.csv)"
         }
-      }
+      },
+      "play": "Escuchar este pasaje"
     }
   }
 }

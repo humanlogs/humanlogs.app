@@ -32,7 +32,13 @@
 
 import type { PhraseCodeRow, PhraseRow } from "./phrase-index";
 
-const DB_VERSION = 4;
+/**
+ * Bumped whenever a DERIVED row gains a field the reader depends on — v5 added
+ * the audio bounds of a passage. The upgrade drops the derived stores and lets
+ * the sync refill them, which is the honest cost of this being a cache: correct
+ * immediately, at the price of one re-index paced over the usual minutes.
+ */
+const DB_VERSION = 5;
 
 export const STORE_DOCUMENTS = "documents";
 export const STORE_PHRASES = "phrases";

@@ -12,7 +12,9 @@ export interface SpeakerPosition {
 }
 
 const signature = (positions: SpeakerPosition[]): string =>
-  positions.map((p) => `${p.speakerId}:${p.index}:${Math.round(p.top)}`).join("|");
+  positions
+    .map((p) => `${p.speakerId}:${p.index}:${Math.round(p.top)}`)
+    .join("|");
 
 /**
  * Returns one position entry per speaker turn in the editor. Re-measures on segment

@@ -105,7 +105,10 @@ export function TranscriptionMenuItem({
   return (
     <SidebarMenuItem>
       <Link href={href}>
-        <SidebarMenuButton isActive={isActive} className={cn(indented && "pl-3.5")}>
+        <SidebarMenuButton
+          isActive={isActive}
+          className={cn(indented && "pl-3.5")}
+        >
           {getStatusIcon()}
           <span className="flex min-w-0 flex-1 items-center gap-1">
             {study && (

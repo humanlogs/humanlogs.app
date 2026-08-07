@@ -1,10 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { PlayIcon } from "lucide-react";
 import { useTranslations } from "@/components/locale-provider";
 import { usePhraseRows } from "@/hooks/use-local-index";
 import type { CodeRef } from "@/lib/codebooks/codebook";
 import { codeColorVar } from "@/lib/codebooks/coding";
+import { formatTimecode } from "@/lib/codebooks/excerpt-export";
 import { codingIdsOf, type PhraseRow } from "@/lib/local/phrase-index";
 import {
   takeRefs,
@@ -187,6 +189,23 @@ export function ExcerptList({
     speaker: panel.groupBy !== "speaker",
   };
 
+  /**
+   * Replaying a passage, when the interview it comes from is the one on screen.
+   *
+   * Null otherwise, and the button simply does not appear: the player belongs to
+   * the editor, and a play control that silently does nothing on the other 999
+   * interviews of a study would be worse than none.
+   */
+  const seekAudio = panel.seekAudio;
+  const playable = panel.audioDocumentId;
+  const onPlay = React.useCallback(
+    (documentId: string, seconds: number) => {
+      if (documentId !== playable) return;
+      seekAudio(seconds);
+    },
+    [playable, seekAudio],
+  );
+
   const behind = plan.total - plan.shown;
 
   return (
@@ -200,6 +219,7 @@ export function ExcerptList({
           focused={focused}
           provenance={provenance}
           onSelect={panel.focus}
+          onPlay={playable ? onPlay : undefined}
         />
       ))}
       <div ref={sentinelRef} aria-hidden className="h-px" />
@@ -256,6 +276,7 @@ function ExcerptGroupSection({
   focused,
   provenance,
   onSelect,
+  onPlay,
 }: {
   group: StreamedGroup;
   hydrated: HydratedPhrases | undefined;
@@ -263,6 +284,7 @@ function ExcerptGroupSection({
   focused: PhraseFocus | null;
   provenance: Provenance;
   onSelect: (focus: PhraseFocus) => void;
+  onPlay?: (documentId: string, seconds: number) => void;
 }) {
   const t = useTranslations("codebook.excerpts");
   const [collapsed, setCollapsed] = React.useState(false);
@@ -303,6 +325,7 @@ function ExcerptGroupSection({
               focused={focusMatchesPhrase(focused, asPhrase(ref))}
               provenance={provenance}
               onSelect={onSelect}
+              onPlay={onPlay}
             />
           ))
         ))}
@@ -403,6 +426,7 @@ function ExcerptRow({
   focused,
   provenance,
   onSelect,
+  onPlay,
 }: {
   phraseRef: PhraseRef;
   /** Undefined until this page's text arrives — a frame or two after its names. */
@@ -412,70 +436,92 @@ function ExcerptRow({
   focused: boolean;
   provenance: Provenance;
   onSelect: (focus: PhraseFocus) => void;
+  /** Present only while this row's interview is the one with a player. */
+  onPlay?: (documentId: string, seconds: number) => void;
 }) {
+  const t = useTranslations("codebook.excerpts");
+  const startTime = row?.startTime;
+  const canPlay = onPlay && startTime !== undefined;
+
+  // The play control is a SIBLING of the row, laid over it, not a child: a button
+  // inside a button is invalid HTML, and browsers resolve it by dropping one of
+  // them — usually the one you wanted.
   return (
-    <button
-      type="button"
-      // Read by the scroll-sync above, which looks the row up rather than being
-      // told about it — see {@link ExcerptList}.
-      data-phrase-id={phraseRef.id}
-      data-focused={focused || undefined}
-      onClick={() =>
-        onSelect({
-          phraseId: phraseRef.id,
-          documentId: phraseRef.documentId,
-          codingIds: codingIdsOf(phraseRef.id),
-          source: "table",
-        })
-      }
-      className={cn(
-        "mb-1 block w-full rounded-md border border-transparent px-2 py-2 text-left transition-colors",
-        focused ? "border-border bg-accent" : "hover:bg-accent/50",
+    <div className="group/excerpt relative">
+      {canPlay && (
+        <button
+          type="button"
+          onClick={() => onPlay(phraseRef.documentId, startTime)}
+          aria-label={t("play")}
+          title={formatTimecode(startTime)}
+          className="absolute right-1.5 top-1.5 z-10 flex size-6 items-center justify-center rounded-full border bg-background text-muted-foreground opacity-0 transition-opacity hover:text-foreground focus-visible:opacity-100 group-hover/excerpt:opacity-100"
+        >
+          <PlayIcon className="size-3" />
+        </button>
       )}
-    >
-      {row ? (
-        <p className="line-clamp-3 text-sm leading-snug">{row.text}</p>
-      ) : (
-        // A placeholder of the right height, so arriving text does not shift the
-        // list under a reader who is already scrolling through it.
-        <span className="block h-5 w-3/4 animate-pulse rounded bg-muted" />
-      )}
-      {row && (provenance.speaker || provenance.document) && (
-        <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
-          {provenance.speaker && (
-            <span className="truncate">
-              {labels.speakerName(row.documentId, row.speakerId)}
-            </span>
-          )}
-          {provenance.speaker && provenance.document && (
-            <span aria-hidden>·</span>
-          )}
-          {provenance.document && (
-            <span className="truncate">
-              {labels.documentTitle(row.documentId)}
-            </span>
-          )}
-        </div>
-      )}
-      {codes.length > 0 && (
-        <div className="mt-1 flex flex-wrap gap-1">
-          {codes.map((code) => {
-            const { label, color } = labels.codeLabel(code);
-            return (
-              <span
-                key={`${code.codebookId}:${code.codeId}`}
-                className="inline-flex max-w-full items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px]"
-              >
-                <span
-                  className="size-1.5 shrink-0 rounded-full"
-                  style={{ background: codeColorVar(color) }}
-                />
-                <span className="truncate">{label}</span>
+      <button
+        type="button"
+        // Read by the scroll-sync above, which looks the row up rather than being
+        // told about it — see {@link ExcerptList}.
+        data-phrase-id={phraseRef.id}
+        data-focused={focused || undefined}
+        onClick={() =>
+          onSelect({
+            phraseId: phraseRef.id,
+            documentId: phraseRef.documentId,
+            codingIds: codingIdsOf(phraseRef.id),
+            source: "table",
+          })
+        }
+        className={cn(
+          "mb-1 block w-full rounded-md border border-transparent px-2 py-2 text-left transition-colors",
+          focused ? "border-border bg-accent" : "hover:bg-accent/50",
+        )}
+      >
+        {row ? (
+          <p className="line-clamp-3 text-sm leading-snug">{row.text}</p>
+        ) : (
+          // A placeholder of the right height, so arriving text does not shift the
+          // list under a reader who is already scrolling through it.
+          <span className="block h-5 w-3/4 animate-pulse rounded bg-muted" />
+        )}
+        {row && (provenance.speaker || provenance.document) && (
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
+            {provenance.speaker && (
+              <span className="truncate">
+                {labels.speakerName(row.documentId, row.speakerId)}
               </span>
-            );
-          })}
-        </div>
-      )}
-    </button>
+            )}
+            {provenance.speaker && provenance.document && (
+              <span aria-hidden>·</span>
+            )}
+            {provenance.document && (
+              <span className="truncate">
+                {labels.documentTitle(row.documentId)}
+              </span>
+            )}
+          </div>
+        )}
+        {codes.length > 0 && (
+          <div className="mt-1 flex flex-wrap gap-1">
+            {codes.map((code) => {
+              const { label, color } = labels.codeLabel(code);
+              return (
+                <span
+                  key={`${code.codebookId}:${code.codeId}`}
+                  className="inline-flex max-w-full items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px]"
+                >
+                  <span
+                    className="size-1.5 shrink-0 rounded-full"
+                    style={{ background: codeColorVar(color) }}
+                  />
+                  <span className="truncate">{label}</span>
+                </span>
+              );
+            })}
+          </div>
+        )}
+      </button>
+    </div>
   );
 }

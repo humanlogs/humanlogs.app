@@ -72,7 +72,9 @@ export function buildTranscriptionContent(
       turn.end > turn.start;
 
     const totalChars = tokens.reduce((sum, t) => sum + t.length, 0) || 1;
-    const realDuration = hasReal ? (turn.end as number) - (turn.start as number) : 0;
+    const realDuration = hasReal
+      ? (turn.end as number) - (turn.start as number)
+      : 0;
 
     // Start real turns at their real start (never rewinding the clock); synthetic
     // turns continue from wherever the timeline currently is.

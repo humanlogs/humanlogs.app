@@ -67,9 +67,7 @@ export async function parseMultipartToDisk(
   const createdPaths: string[] = [];
 
   const cleanup = async () => {
-    await Promise.all(
-      createdPaths.map((p) => unlink(p).catch(() => {})),
-    );
+    await Promise.all(createdPaths.map((p) => unlink(p).catch(() => {})));
   };
 
   return await new Promise<StreamedFormData>((resolve, reject) => {

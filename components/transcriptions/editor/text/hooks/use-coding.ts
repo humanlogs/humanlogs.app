@@ -107,8 +107,7 @@ export function useCoding({
   }
 
   /** The codes currently shown: the top level, or the children we have opened into. */
-  const level =
-    trail.length > 0 ? trail[trail.length - 1].children : options;
+  const level = trail.length > 0 ? trail[trail.length - 1].children : options;
 
   const back = useCallback(() => setTrail((t) => t.slice(0, -1)), []);
   // Identity-preserving when already at the top level, so callers can fire it on

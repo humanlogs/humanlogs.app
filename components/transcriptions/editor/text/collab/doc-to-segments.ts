@@ -52,7 +52,8 @@ function enforceTimestampInvariant(
   let lastEnd: number | null = null;
   for (let i = 0; i < n; i++) {
     const t = tokens[i];
-    if (t.start != null && lastEnd != null && t.start < lastEnd) t.start = lastEnd;
+    if (t.start != null && lastEnd != null && t.start < lastEnd)
+      t.start = lastEnd;
     if (t.start != null && t.end != null && t.end < t.start) t.end = t.start;
     if (t.end != null) lastEnd = t.end;
     else if (t.start != null) lastEnd = t.start;

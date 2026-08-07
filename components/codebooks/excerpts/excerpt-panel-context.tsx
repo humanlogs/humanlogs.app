@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import type { CodeRef } from "@/lib/codebooks/codebook";
 import {
   DEFAULT_PHRASE_GROUP_BY,
@@ -113,6 +114,32 @@ type ExcerptPanelValue = {
   focused: PhraseFocus | null;
   focus: (focus: PhraseFocus) => void;
   subscribe: (listener: (focus: PhraseFocus) => void) => () => void;
+  /**
+   * Say that an editor is mounted and will act on the table's clicks itself.
+   *
+   * The panel is global and the editor is not: on the home page, on the account
+   * settings, on a codebook, clicking a row used to publish a focus that nobody
+   * was listening for, and the row simply highlighted. The fallback below
+   * navigates in that case — but only then, or a row clicked next to an open
+   * editor would both scroll and navigate.
+   */
+  claimFocus: () => () => void;
+
+  /**
+   * The document whose audio is currently playable, if any.
+   *
+   * The player lives inside the editor (`AudioProvider`), the panel does not — so
+   * a row can offer to replay its passage only while the interview it comes from
+   * is the one on screen. Rows of other interviews show no play button rather
+   * than a dead one; listening across documents needs a player the panel owns,
+   * which is a different piece of work.
+   */
+  audioDocumentId: string | null;
+  registerAudio: (
+    documentId: string,
+    seek: ((seconds: number) => void) | null,
+  ) => void;
+  seekAudio: (seconds: number) => void;
 };
 
 const ExcerptPanelContext = React.createContext<ExcerptPanelValue | null>(null);
@@ -152,6 +179,7 @@ export function ExcerptPanelProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const [open, setOpenState] = React.useState(false);
   const [width, setWidthState] = React.useState(DEFAULT_PANEL_WIDTH);
   const [groupBy, setGroupByState] = React.useState<PhraseGroupBy>(
@@ -164,6 +192,10 @@ export function ExcerptPanelProvider({
     codebookId: null,
   });
   const [focused, setFocused] = React.useState<PhraseFocus | null>(null);
+  const [audio, setAudio] = React.useState<{
+    documentId: string;
+    seek: (seconds: number) => void;
+  } | null>(null);
 
   // Restored after mount rather than during render: the server has no localStorage,
   // and a first paint that disagreed with it would hydrate-mismatch.
@@ -283,6 +315,64 @@ export function ExcerptPanelProvider({
     [],
   );
 
+  /**
+   * How many editors are mounted and handling the table's clicks.
+   *
+   * A count rather than a boolean because navigating between two interviews
+   * mounts the next bridge before unmounting the previous one, and a boolean
+   * would be left false by the unmount that happens last.
+   */
+  const registerAudio = React.useCallback(
+    (documentId: string, seek: ((seconds: number) => void) | null) => {
+      setAudio((current) => {
+        if (!seek) {
+          // Only the document that registered may deregister: navigating between
+          // two interviews mounts the next player before the previous one
+          // unmounts, and a blind clear would wipe the new one.
+          return current?.documentId === documentId ? null : current;
+        }
+        return current?.documentId === documentId && current.seek === seek
+          ? current
+          : { documentId, seek };
+      });
+    },
+    [],
+  );
+
+  const seekAudio = React.useCallback(
+    (seconds: number) => {
+      audio?.seek(seconds);
+    },
+    [audio],
+  );
+
+  const claimed = React.useRef(0);
+  const claimFocus = React.useCallback(() => {
+    claimed.current++;
+    return () => {
+      claimed.current--;
+    };
+  }, []);
+
+  /**
+   * Nobody is showing the transcript: follow the row ourselves.
+   *
+   * The same URL the editor's own cross-document jump uses, so the page that
+   * opens lands on the passage rather than at the top of the interview.
+   */
+  React.useEffect(
+    () =>
+      subscribe((next) => {
+        if (next.source !== "table" || claimed.current > 0) return;
+        router.push(
+          `/app/transcription/${next.documentId}?phase=coding&coding=${encodeURIComponent(
+            next.codingIds[0] ?? "",
+          )}`,
+        );
+      }),
+    [subscribe, router],
+  );
+
   const value: ExcerptPanelValue = {
     open,
     setOpen,
@@ -298,6 +388,10 @@ export function ExcerptPanelProvider({
     focused,
     focus,
     subscribe,
+    claimFocus,
+    audioDocumentId: audio?.documentId ?? null,
+    registerAudio,
+    seekAudio,
   };
 
   return (

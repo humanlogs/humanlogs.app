@@ -15,9 +15,7 @@ export function parseTxt(text: string): TranscriptionContent {
     .filter(Boolean);
 
   const source = blocks.length ? blocks : [text.replace(/\s+/g, " ").trim()];
-  const turns: ImportTurn[] = source
-    .filter(Boolean)
-    .map((t) => ({ text: t }));
+  const turns: ImportTurn[] = source.filter(Boolean).map((t) => ({ text: t }));
 
   if (turns.length === 0) throw new Error("The document has no readable text");
   return buildTranscriptionContent(turns);

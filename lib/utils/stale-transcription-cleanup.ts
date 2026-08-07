@@ -57,10 +57,7 @@ export async function cleanupStaleTranscriptions(): Promise<{
           await storage.delete(t.audioFileKey);
         } catch (error) {
           // Missing/already-removed file shouldn't block the DB cleanup.
-          console.error(
-            `[CLEANUP] Failed to delete audio for ${t.id}:`,
-            error,
-          );
+          console.error(`[CLEANUP] Failed to delete audio for ${t.id}:`, error);
         }
       }
 

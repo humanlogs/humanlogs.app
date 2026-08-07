@@ -47,7 +47,10 @@ export function useAutoSave({
     (isManual?: boolean, forceSave?: boolean) => Promise<void>
   >(async () => {});
   const queryClient = useQueryClient();
-  const saveTranscription = useSaveTranscription(transcriptionId, sessionAesKey);
+  const saveTranscription = useSaveTranscription(
+    transcriptionId,
+    sessionAesKey,
+  );
 
   // Track if this is the first render
   // Initialize as mounted on first render

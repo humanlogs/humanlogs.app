@@ -68,7 +68,8 @@ export async function getReferralSummary(
     })),
     total: referrals.length,
     registeredCount,
-    bonusCredits: Math.min(registeredCount, MAX_REFERRALS) * REFERRAL_BONUS_CREDITS,
+    bonusCredits:
+      Math.min(registeredCount, MAX_REFERRALS) * REFERRAL_BONUS_CREDITS,
     bonusPerReferral: REFERRAL_BONUS_CREDITS,
     maxReferrals: MAX_REFERRALS,
     remainingSlots: Math.max(0, MAX_REFERRALS - referrals.length),
@@ -120,7 +121,9 @@ export async function addReferralEmails(
 
   const availableSlots = Math.max(0, MAX_REFERRALS - existing.length);
   const toAdd = normalized
-    .filter((email) => !existingEmails.has(email) && !registeredEmails.has(email))
+    .filter(
+      (email) => !existingEmails.has(email) && !registeredEmails.has(email),
+    )
     .slice(0, availableSlots);
 
   // Strip control characters from the display name to avoid email header /

@@ -123,19 +123,21 @@ const WAVEFORM_LOADER_BARS = Array.from({ length: 300 }, () => ({
 export const WaveformLoader = () => {
   return (
     <div className="w-full h-full flex items-center justify-between gap-px px-2">
-      {WAVEFORM_LOADER_BARS.map(({ height: randomHeight, delay: randomDelay }, i) => {
-        return (
-          <div
-            key={i}
-            className="bg-gray-400 dark:bg-gray-600 rounded-sm animate-pulse grow"
-            style={{
-              height: `${randomHeight}%`,
-              animationDelay: `${randomDelay}s`,
-              animationDuration: "1.5s",
-            }}
-          />
-        );
-      })}
+      {WAVEFORM_LOADER_BARS.map(
+        ({ height: randomHeight, delay: randomDelay }, i) => {
+          return (
+            <div
+              key={i}
+              className="bg-gray-400 dark:bg-gray-600 rounded-sm animate-pulse grow"
+              style={{
+                height: `${randomHeight}%`,
+                animationDelay: `${randomDelay}s`,
+                animationDuration: "1.5s",
+              }}
+            />
+          );
+        },
+      )}
     </div>
   );
 };

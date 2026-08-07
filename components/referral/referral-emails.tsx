@@ -9,12 +9,7 @@ import {
   useReferrals,
   useRemoveReferral,
 } from "@/hooks/use-api";
-import {
-  CheckCircle2Icon,
-  GiftIcon,
-  SendIcon,
-  XIcon,
-} from "lucide-react";
+import { CheckCircle2Icon, GiftIcon, SendIcon, XIcon } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
@@ -87,7 +82,9 @@ export function ReferralEmails() {
           disabled={remaining <= 0 || !input.trim() || addReferrals.isPending}
         >
           <SendIcon className="h-4 w-4" />
-          <span>{addReferrals.isPending ? t("sending") : t("inviteButton")}</span>
+          <span>
+            {addReferrals.isPending ? t("sending") : t("inviteButton")}
+          </span>
         </Button>
       </div>
 

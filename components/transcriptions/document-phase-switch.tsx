@@ -1,7 +1,10 @@
 "use client";
 
 import { useTranslations } from "@/components/locale-provider";
-import { DOCUMENT_PHASES, type DocumentPhase } from "@/components/transcriptions/editor/phase";
+import {
+  DOCUMENT_PHASES,
+  type DocumentPhase,
+} from "@/components/transcriptions/editor/phase";
 import { cn } from "@/lib/utils/utils";
 
 /**

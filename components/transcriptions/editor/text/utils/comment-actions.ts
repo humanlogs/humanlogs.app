@@ -1,8 +1,5 @@
 import type { Editor } from "@tiptap/react";
-import {
-  formatCommentIds,
-  parseCommentIds,
-} from "../extensions/comment-mark";
+import { formatCommentIds, parseCommentIds } from "../extensions/comment-mark";
 
 /**
  * Editor-side helpers for the comment anchor mark. The note bodies live in the
@@ -283,7 +280,9 @@ export function excerptText(text: string, max = 70): string {
 
   const headCut = t.slice(0, headLen);
   const lastSpace = headCut.lastIndexOf(" ");
-  const head = (lastSpace > headLen / 2 ? headCut.slice(0, lastSpace) : headCut).trimEnd();
+  const head = (
+    lastSpace > headLen / 2 ? headCut.slice(0, lastSpace) : headCut
+  ).trimEnd();
 
   const tailCut = t.slice(t.length - tailLen);
   const firstSpace = tailCut.indexOf(" ");

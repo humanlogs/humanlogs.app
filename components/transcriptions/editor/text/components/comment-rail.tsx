@@ -58,7 +58,6 @@ interface CommentRailProps {
   onCancelPending: () => void;
 }
 
-
 /**
  * The comment rail: one card per thread, each sitting level with the text it annotates.
  *
@@ -155,9 +154,7 @@ export function CommentRail({
   }, [open, onCloseRail]);
 
   if (!open) {
-    return (
-      <CommentGutter positions={positions} onOpenThread={onOpenThread} />
-    );
+    return <CommentGutter positions={positions} onOpenThread={onOpenThread} />;
   }
 
   return (
@@ -728,7 +725,10 @@ function CommentCard({
             )}
 
             {isMine && editingId !== c.id && (
-              <div className="mt-0.5 flex gap-2" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="mt-0.5 flex gap-2"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <button
                   type="button"
                   className="text-muted-foreground hover:text-foreground text-xs"

@@ -62,6 +62,20 @@ export type PhraseRow = {
    * (`[data-coding-id~="…"]`) and the join key to {@link PhraseCodeRow}.
    */
   codingIds: string[];
+  /**
+   * Where the passage is in the AUDIO, in seconds — the first and last word it
+   * covers.
+   *
+   * Stored rather than derived, unlike the per-word timings in the editor: those
+   * are recomputed from the converged CRDT on every client, and this index is not
+   * in the CRDT. It exists so a coded passage can be listened to from the table
+   * and so an exported verbatim can carry a timecode back to the recording.
+   *
+   * Absent on a passage whose words carry no timing — a transcript typed by hand,
+   * or one whose alignment was lost.
+   */
+  startTime?: number;
+  endTime?: number;
 };
 
 /**
@@ -133,6 +147,9 @@ type Span = {
   end: number;
   speakerId: string | null;
   parts: string[];
+  /** Audio seconds, from the first and last WORD the span covers. */
+  audioStart?: number;
+  audioEnd?: number;
 };
 
 /**
@@ -207,6 +224,12 @@ export function buildPhraseIndex({
           existing.parts.push(token.text);
           existing.speakerId ??=
             token.type === "word" ? (token.speakerId ?? null) : null;
+          if (token.type === "word") {
+            // Spacing carries no timing, so the bounds come from words only —
+            // and `??=` keeps the FIRST start while `end` follows the last.
+            existing.audioStart ??= token.start;
+            if (token.end !== undefined) existing.audioEnd = token.end;
+          }
         } else {
           open.set(codingId, {
             codingId,
@@ -216,6 +239,9 @@ export function buildPhraseIndex({
             // covers: the whitespace between two turns belongs to neither.
             speakerId: token.type === "word" ? (token.speakerId ?? null) : null,
             parts: [token.text],
+            ...(token.type === "word"
+              ? { audioStart: token.start, audioEnd: token.end }
+              : {}),
           });
         }
       }
@@ -244,6 +270,9 @@ export function buildPhraseIndex({
     const codingIds = spans.map((s) => s.codingId).sort();
     const id = `${documentId}#${codingIds.join("+")}`;
     const speakerId = spans.find((s) => s.speakerId)?.speakerId ?? null;
+    // Every span here covers the SAME range, so they agree on the timing; the
+    // first one that has any is as good as the rest.
+    const timed = spans.find((s) => s.audioStart !== undefined);
 
     phrases.push({
       id,
@@ -253,6 +282,10 @@ export function buildPhraseIndex({
       text,
       offset: spans[0].start,
       codingIds,
+      ...(timed?.audioStart !== undefined
+        ? { startTime: timed.audioStart }
+        : {}),
+      ...(timed?.audioEnd !== undefined ? { endTime: timed.audioEnd } : {}),
     });
 
     for (const codingId of codingIds) {

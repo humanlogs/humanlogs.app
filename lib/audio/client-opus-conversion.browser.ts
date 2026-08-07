@@ -30,17 +30,18 @@ export interface ConvertCapability {
  * handles conversion.
  */
 export function canConvertToOpusInBrowser(file: File): ConvertCapability {
-  if (typeof window === "undefined") return { ok: false, reason: "not-browser" };
-  if (typeof WebAssembly === "undefined") return { ok: false, reason: "no-wasm" };
+  if (typeof window === "undefined")
+    return { ok: false, reason: "not-browser" };
+  if (typeof WebAssembly === "undefined")
+    return { ok: false, reason: "no-wasm" };
   if (typeof Worker === "undefined") return { ok: false, reason: "no-worker" };
 
   // `deviceMemory` (GB) is only exposed by Chromium. When present and low, the
   // device is likely too weak to run ffmpeg.wasm comfortably — delegate to the
   // server. When absent (Firefox/Safari) we optimistically try and rely on the
   // caller's try/catch fallback if it fails.
-  const deviceMemory = (
-    navigator as Navigator & { deviceMemory?: number }
-  ).deviceMemory;
+  const deviceMemory = (navigator as Navigator & { deviceMemory?: number })
+    .deviceMemory;
   if (typeof deviceMemory === "number" && deviceMemory < 4) {
     return { ok: false, reason: "low-memory" };
   }

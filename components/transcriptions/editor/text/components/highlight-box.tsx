@@ -25,8 +25,10 @@ export type HighlightBox = {
  * twice.
  */
 export const highlightBoxStyle: CSSProperties = {
-  backgroundColor: "color-mix(in oklab, var(--color-blue-500) 12%, transparent)",
-  outline: "1.5px solid color-mix(in oklab, var(--color-blue-500) 55%, transparent)",
+  backgroundColor:
+    "color-mix(in oklab, var(--color-blue-500) 12%, transparent)",
+  outline:
+    "1.5px solid color-mix(in oklab, var(--color-blue-500) 55%, transparent)",
   outlineOffset: "1px",
   borderRadius: "3px",
 };

@@ -269,14 +269,11 @@ export function TranscriptionShareDialog() {
               }
             }
             if (rewrapped.length > 0) {
-              await fetch(
-                `/api/transcriptions/${transcription.id}/comments`,
-                {
-                  method: "PUT",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ comments: rewrapped }),
-                },
-              );
+              await fetch(`/api/transcriptions/${transcription.id}/comments`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ comments: rewrapped }),
+              });
             }
           }
         } catch (e) {

@@ -105,25 +105,25 @@ export function useNavigationMode(
   useEffect(() => {
     if (!audioControls) return;
     const unsubscribe = audioControls.onTimeUpdate((currentTime) => {
-        if (Date.now() - lastNavigationTime.current < 500) return;
-        // Update the current index based on the current time
-        const currentSegmentIndex = editorAPI
-          .getSegments()
-          .findIndex(
-            (segment) =>
-              segment.start !== undefined &&
-              segment.end !== undefined &&
-              currentTime >= segment.start &&
-              currentTime <= segment.end,
-          );
-        // Only update if a matching segment was found — avoids scrolling to
-        // position 0 when audio is past all timestamps or on words with no timing
-        if (currentSegmentIndex !== -1) {
-          setCurrentIndex(
-            ensureWordIndex(currentSegmentIndex, editorAPI.getSegments(), "r"),
-          );
-        }
-      });
+      if (Date.now() - lastNavigationTime.current < 500) return;
+      // Update the current index based on the current time
+      const currentSegmentIndex = editorAPI
+        .getSegments()
+        .findIndex(
+          (segment) =>
+            segment.start !== undefined &&
+            segment.end !== undefined &&
+            currentTime >= segment.start &&
+            currentTime <= segment.end,
+        );
+      // Only update if a matching segment was found — avoids scrolling to
+      // position 0 when audio is past all timestamps or on words with no timing
+      if (currentSegmentIndex !== -1) {
+        setCurrentIndex(
+          ensureWordIndex(currentSegmentIndex, editorAPI.getSegments(), "r"),
+        );
+      }
+    });
     return unsubscribe;
   }, [audioControls, state]);
 
@@ -429,11 +429,14 @@ export function useNavigationMode(
     };
 
     document.addEventListener("keydown", onKeyDown, { capture: true });
-    if (debug) document.addEventListener("keydown", onAnyKeyDown, { capture: true });
+    if (debug)
+      document.addEventListener("keydown", onAnyKeyDown, { capture: true });
     return () => {
       document.removeEventListener("keydown", onKeyDown, { capture: true });
       if (debug)
-        document.removeEventListener("keydown", onAnyKeyDown, { capture: true });
+        document.removeEventListener("keydown", onAnyKeyDown, {
+          capture: true,
+        });
     };
   }, [audioControls, editorAPI, isModalOpen]);
 
@@ -616,7 +619,14 @@ export function useNavigationMode(
       enableOnContentEditable: true,
       enableOnFormTags: true,
     },
-    [isModalOpen, readOnly, state, currentIndex, selectionAnchor, customShortcuts],
+    [
+      isModalOpen,
+      readOnly,
+      state,
+      currentIndex,
+      selectionAnchor,
+      customShortcuts,
+    ],
   );
 
   /**
@@ -720,14 +730,19 @@ const closestSegmentOnNextLine = (
 
     if (differentVerticalLine(currentRect, candidateRect)) {
       foundLineChange = true;
-      const horizontalDistance = Math.abs(candidateRect.left - currentRect.left);
+      const horizontalDistance = Math.abs(
+        candidateRect.left - currentRect.left,
+      );
 
       if (horizontalDistance < closest.distance) {
         closest = { index: candidateIndex, distance: horizontalDistance };
       }
 
       // Moving away horizontally: the best match on this line is behind us.
-      if (closest.distance < Infinity && horizontalDistance > closest.distance) {
+      if (
+        closest.distance < Infinity &&
+        horizontalDistance > closest.distance
+      ) {
         break;
       }
     }

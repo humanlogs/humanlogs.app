@@ -7,6 +7,7 @@ import {
   downloadBlob,
   excerptTableBlob,
   exportFileName,
+  formatTimecode,
   type ExcerptExportFormat,
   type ExcerptTable,
   type ExcerptTableRow,
@@ -102,7 +103,12 @@ export function useExcerptExport({
 
         const texts = new Map<
           string,
-          { text: string; documentId: string; speakerId: string | null }
+          {
+            text: string;
+            documentId: string;
+            speakerId: string | null;
+            startTime?: number;
+          }
         >();
         for (let i = 0; i < ids.length; i += HYDRATE_CHUNK) {
           const chunk = ids.slice(i, i + HYDRATE_CHUNK);
@@ -112,6 +118,7 @@ export function useExcerptExport({
               text: row.text,
               documentId: row.documentId,
               speakerId: row.speakerId,
+              startTime: row.startTime,
             });
           }
           setProgress({
@@ -136,6 +143,11 @@ export function useExcerptExport({
                 text: row.text,
                 speaker: labels.speakerName(row.documentId, row.speakerId),
                 document: labels.documentTitle(row.documentId),
+                // A quote is checkable only if the reader can get back to the
+                // tape; absent on a transcript that was never aligned.
+                ...(row.startTime !== undefined
+                  ? { timecode: formatTimecode(row.startTime) }
+                  : {}),
               },
             ];
           }),

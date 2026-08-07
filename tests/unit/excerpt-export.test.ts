@@ -3,6 +3,7 @@ import {
   excerptTableBlob,
   exportFileName,
   formatPassage,
+  formatTimecode,
   toCsv,
   type ExcerptTable,
 } from "@/lib/codebooks/excerpt-export";
@@ -180,3 +181,36 @@ function parseCsv(input: string): string[][] {
   }
   return records;
 }
+
+describe("formatTimecode", () => {
+  it("drops the hour until there is one", () => {
+    expect(formatTimecode(0)).toBe("0:00");
+    expect(formatTimecode(65.9)).toBe("1:05");
+    expect(formatTimecode(3600)).toBe("1:00:00");
+    expect(formatTimecode(3725)).toBe("1:02:05");
+  });
+
+  it("never shows a negative time", () => {
+    expect(formatTimecode(-3)).toBe("0:00");
+  });
+});
+
+describe("a passage that carries a timecode", () => {
+  const passage = {
+    text: "on tient",
+    speaker: "Cadre A",
+    document: "Entretien 1",
+    timecode: "12:04",
+  };
+
+  it("puts it in the attribution, so the quote can be checked against the tape", () => {
+    expect(formatPassage(passage)).toBe(
+      "« on tient » — Cadre A, Entretien 1, 12:04",
+    );
+  });
+
+  it("says nothing when the transcript was never aligned", () => {
+    const { timecode: _timecode, ...untimed } = passage;
+    expect(formatPassage(untimed)).toBe("« on tient » — Cadre A, Entretien 1");
+  });
+});

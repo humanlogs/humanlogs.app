@@ -19,11 +19,20 @@ export function SuccessCheck({
 }) {
   return (
     <span
-      className={cn("animate-success-pop inline-flex shrink-0", size, className)}
+      className={cn(
+        "animate-success-pop inline-flex shrink-0",
+        size,
+        className,
+      )}
       aria-hidden
     >
       <svg viewBox="0 0 24 24" className="h-full w-full">
-        <circle cx="12" cy="12" r="12" className="fill-green-600 dark:fill-green-500" />
+        <circle
+          cx="12"
+          cy="12"
+          r="12"
+          className="fill-green-600 dark:fill-green-500"
+        />
         <path
           d="M6.5 12.5 L10.5 16.5 L17.5 8"
           pathLength={1}

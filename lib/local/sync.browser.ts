@@ -314,7 +314,10 @@ export async function syncStudyIndex({
  */
 export function phraseIndexSignature(index: PhraseIndex): string {
   return index.phrases
-    .map((phrase) => `${phrase.id}\u0000${phrase.text}`)
+    .map(
+      (phrase) =>
+        `${phrase.id}\u0000${phrase.text}\u0000${phrase.startTime ?? ""}`,
+    )
     .join("\u0001");
 }
 

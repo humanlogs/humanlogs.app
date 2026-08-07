@@ -562,3 +562,89 @@ describe("takeGroups", () => {
     expect(page.remaining).toBe(25);
   });
 });
+
+/**
+ * The audio bounds of a coded passage.
+ *
+ * The panel plays a passage from these and an exported verbatim carries a timecode
+ * back to the tape, so the failure that matters is a SILENT one: a span whose
+ * bounds come from the wrong word, or from the whitespace it happens to start on.
+ */
+describe("audio bounds", () => {
+  /** A one-speaker projection where word n runs from n to n+0.5 seconds. */
+  function timed(text: string, codings: Record<number, string[]>) {
+    const out: TranscriptionSegment[] = [];
+    text.split(" ").forEach((word, i) => {
+      if (i > 0) {
+        const between = codings[i - 1]?.filter((id) =>
+          (codings[i] ?? []).includes(id),
+        );
+        out.push({
+          type: "spacing",
+          text: " ",
+          speakerId: "speaker_0",
+          ...(between?.length ? { codings: between } : {}),
+        });
+      }
+      out.push({
+        type: "word",
+        text: word,
+        speakerId: "speaker_0",
+        start: i,
+        end: i + 0.5,
+        ...(codings[i] ? { codings: codings[i] } : {}),
+      });
+    });
+    return out;
+  }
+
+  const build = (codings: Record<number, string[]>, ids: string[]) =>
+    buildPhraseIndex({
+      documentId: "doc1",
+      segments: timed("zero un deux trois quatre", codings),
+      codings: ids.map((id) => ({
+        id,
+        codebookId: "cb1",
+        codeId: "violence",
+        userId: "u1",
+      })),
+    });
+
+  it("runs from the first word to the last", () => {
+    const [phrase] = build({ 1: ["c1"], 2: ["c1"], 3: ["c1"] }, ["c1"]).phrases;
+    expect(phrase.startTime).toBe(1);
+    expect(phrase.endTime).toBe(3.5);
+  });
+
+  it("takes a single word's own bounds", () => {
+    const [phrase] = build({ 4: ["c1"] }, ["c1"]).phrases;
+    expect(phrase.startTime).toBe(4);
+    expect(phrase.endTime).toBe(4.5);
+  });
+
+  it("is absent on a transcript with no alignment", () => {
+    const index = buildPhraseIndex({
+      documentId: "doc1",
+      segments: [
+        { type: "word", text: "sans", speakerId: "speaker_0", codings: ["c1"] },
+      ],
+      codings: [
+        { id: "c1", codebookId: "cb1", codeId: "violence", userId: "u1" },
+      ],
+    });
+    expect(index.phrases[0].startTime).toBeUndefined();
+    expect(index.phrases[0].endTime).toBeUndefined();
+  });
+
+  it("agrees between two codes on the same passage", () => {
+    // Same range, two anchors: one phrase, and the timing cannot depend on which
+    // anchor happened to be read first.
+    const { phrases } = build({ 1: ["c1", "c2"], 2: ["c1", "c2"] }, [
+      "c1",
+      "c2",
+    ]);
+    expect(phrases).toHaveLength(1);
+    expect(phrases[0].startTime).toBe(1);
+    expect(phrases[0].endTime).toBe(2.5);
+  });
+});

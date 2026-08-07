@@ -579,8 +579,7 @@ export async function getAppStats() {
     referrals: {
       totalInvites,
       totalRegistered,
-      conversionRate:
-        totalInvites > 0 ? totalRegistered / totalInvites : 0,
+      conversionRate: totalInvites > 0 ? totalRegistered / totalInvites : 0,
       totalBonusCredits: referralBonusAgg._sum.referralBonusCredits || 0,
       topReferrers,
     },

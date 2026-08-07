@@ -727,7 +727,9 @@ export function TranscriptEditor({
                 // first, which in the coding phase is a third signal over the code
                 // colour with nothing to tell them apart.
                 visible={
-                  state === "navigate" && currentIndex >= 0 && !documentSelection
+                  state === "navigate" &&
+                  currentIndex >= 0 &&
+                  !documentSelection
                 }
               />
               {/* In the coding phase the editor is never focused, so its selection

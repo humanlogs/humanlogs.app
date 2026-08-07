@@ -199,7 +199,10 @@ export function leaveTranscriptionRoom(transcriptionId: string) {
       // A queued join never ran — just cancel it.
       pendingOperations.delete(transcriptionId);
     } else {
-      pendingOperations.set(transcriptionId, { type: "leave", transcriptionId });
+      pendingOperations.set(transcriptionId, {
+        type: "leave",
+        transcriptionId,
+      });
     }
   }
 }

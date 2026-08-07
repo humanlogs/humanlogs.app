@@ -6,6 +6,7 @@ import {
   useExcerptPanel,
   useExcerptPanelContext,
 } from "@/components/codebooks/excerpts/excerpt-panel-context";
+import { useAudio } from "@/components/transcriptions/editor/audio/audio-context";
 import { useBetaFeatures } from "@/hooks/use-api";
 import { useLiveDocumentIndex } from "@/hooks/use-local-index";
 import type { CodingDTO } from "@/lib/codebooks/coding";
@@ -129,6 +130,21 @@ export function useExcerptBridge({
   }, [active, editorAPI, panel, transcriptionId]);
 
   // --- (3b) Table → editor. Scroll to the passage, or open the document holding it.
+  //
+  // Claimed first, so the panel's own fallback stands down: without an editor
+  // mounted the panel navigates on its own, and both acting on the same click
+  // would push a route out from under the scroll it just performed.
+  const claimFocus = panel.claimFocus;
+  React.useEffect(() => claimFocus(), [claimFocus]);
+
+  // --- Lend the panel this document's audio, so a row can be listened to.
+  const { seekTo } = useAudio();
+  const registerAudio = panel.registerAudio;
+  React.useEffect(() => {
+    registerAudio(transcriptionId, seekTo);
+    return () => registerAudio(transcriptionId, null);
+  }, [registerAudio, transcriptionId, seekTo]);
+
   React.useEffect(
     () =>
       panel.subscribe((focus) => {

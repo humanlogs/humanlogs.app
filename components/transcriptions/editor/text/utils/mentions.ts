@@ -64,7 +64,9 @@ export function decodeMentions(text: string): {
       continue;
     }
     display += `@${part.label}`;
-    if (!mentions.some((m) => m.userId === part.userId && m.label === part.label)) {
+    if (
+      !mentions.some((m) => m.userId === part.userId && m.label === part.label)
+    ) {
       mentions.push({ userId: part.userId, label: part.label });
     }
   }
@@ -78,9 +80,14 @@ const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
  * token again. Longest label first, so "@Ada Lovelace" is never truncated to "@Ada",
  * and only on a name boundary, so "@Adam" doesn't match a mention of "Ada".
  */
-export function encodeMentions(display: string, mentions: MentionRef[]): string {
+export function encodeMentions(
+  display: string,
+  mentions: MentionRef[],
+): string {
   if (mentions.length === 0) return display;
-  const byLength = [...mentions].sort((a, b) => b.label.length - a.label.length);
+  const byLength = [...mentions].sort(
+    (a, b) => b.label.length - a.label.length,
+  );
   const pattern = new RegExp(
     `@(${byLength.map((m) => escapeRegExp(m.label)).join("|")})(?![\\p{L}\\p{N}_-])`,
     "gu",

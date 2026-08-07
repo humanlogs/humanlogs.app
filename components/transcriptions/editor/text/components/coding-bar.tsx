@@ -4,7 +4,11 @@ import { CodeDot } from "@/components/codebooks/coding-menu";
 import { useTranslations } from "@/components/locale-provider";
 import { Select } from "@/components/ui/select";
 import type { DecryptedCodebook } from "@/lib/codebooks/codebook";
-import { codeKey, type CodingOption, type CodingScope } from "@/lib/codebooks/coding";
+import {
+  codeKey,
+  type CodingOption,
+  type CodingScope,
+} from "@/lib/codebooks/coding";
 import { cn } from "@/lib/utils/utils";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 

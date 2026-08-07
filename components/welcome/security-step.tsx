@@ -237,7 +237,9 @@ export function SecurityStep({ onContinue, onSkip }: SecurityStepProps) {
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                {sendByEmail ? t("deliveryEmailHint") : t("deliveryDownloadHint")}
+                {sendByEmail
+                  ? t("deliveryEmailHint")
+                  : t("deliveryDownloadHint")}
               </p>
             </div>
 
