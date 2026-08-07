@@ -20,6 +20,7 @@ import {
 } from "@/components/transcriptions/editor/text/utils/comment-actions";
 import { docToSegments } from "@/components/transcriptions/editor/text/collab/doc-to-segments";
 import { segmentsToHtml } from "@/components/transcriptions/editor/text/utils/html";
+import { buildPhraseIndex } from "@/lib/local/phrase-index";
 
 /**
  * Coding anchors.
@@ -230,5 +231,84 @@ describe("wordRange", () => {
     // out to, and coding must refuse rather than mark the whitespace.
     const spaces = makeEditor("a   b");
     expect(wordRange(spaces, { from: 3, to: 4 })).toBeNull();
+  });
+});
+
+/**
+ * Coding a passage the excerpt table points at.
+ *
+ * The table cannot code by selection — it has no editor and no caret. It names a
+ * passage by the anchors already on it, and the open document applies the new code
+ * over exactly that range. "Exactly" is the whole thing: a phrase IS the set of
+ * anchors covering one identical span, so a second code landing a word wider does
+ * not add a chip to a row, it splits the row in two.
+ */
+describe("coding an existing passage by its range", () => {
+  it("marks exactly the range given, without expanding to words", () => {
+    const editor = makeEditor(LINE);
+    // Deliberately mid-word: the selection path would widen this to "chat", the
+    // range path must not, because the range comes from an anchor and is already
+    // whatever the first coding decided.
+    expect(applyCodingMark(editor, "c1", { from: 5, to: 7 })).toBe(true);
+    expect(annotate(editor)).toBe("Le c[c1]ha[/]t dort ici");
+  });
+
+  it("puts a second code on the passage the first one covers", () => {
+    const editor = makeEditor(LINE);
+    code(editor, 4, 8, "c1"); // "chat"
+
+    const range = getCodingRanges(editor).find((r) => r.codingId === "c1");
+    expect(range).toBeDefined();
+    expect(applyCodingMark(editor, "c2", range!)).toBe(true);
+
+    // One run, both anchors — which is what makes it one phrase with two chips.
+    expect(annotate(editor)).toBe("Le [c1 c2]chat[/] dort ici");
+    const segments = docToSegments(editor.state.doc, null);
+    expect(
+      segments.filter((s) => (s.codings ?? []).length > 0).map((s) => s.text),
+    ).toEqual(["chat"]);
+  });
+
+  it("keeps the passage one phrase when a code is added to it", () => {
+    const editor = makeEditor(LINE);
+    code(editor, 4, 8, "c1");
+    const range = getCodingRanges(editor).find((r) => r.codingId === "c1")!;
+    applyCodingMark(editor, "c2", range);
+
+    const index = buildPhraseIndex({
+      documentId: "docA",
+      segments: docToSegments(editor.state.doc, null),
+      codings: [
+        { id: "c1", codebookId: "cb", codeId: "violence", userId: "u1" },
+        { id: "c2", codebookId: "cb", codeId: "institution", userId: "u1" },
+      ],
+    });
+    // ONE row, TWO codes. The id changed with the second anchor, which is why the
+    // table re-keys the row rather than mutating it in place.
+    expect(index.phrases).toHaveLength(1);
+    expect(index.phrases[0].codingIds).toEqual(["c1", "c2"]);
+    expect(index.links.map((l) => l.codeId).sort()).toEqual([
+      "institution",
+      "violence",
+    ]);
+  });
+
+  it("refuses an empty range rather than marking nothing", () => {
+    const editor = makeEditor(LINE);
+    expect(applyCodingMark(editor, "c1", { from: 5, to: 5 })).toBe(false);
+    expect(annotate(editor)).toBe(LINE);
+  });
+
+  it("leaves the other codings on the run alone", () => {
+    const editor = makeEditor(LINE);
+    code(editor, 4, 8, "c1");
+    code(editor, 1, 13, "c2"); // a wider passage overlapping it
+    const range = getCodingRanges(editor).find((r) => r.codingId === "c1")!;
+    applyCodingMark(editor, "c3", range);
+
+    // c3 joins c1's run; c2 keeps every run it had, including that one.
+    expect(annotate(editor)).toBe(
+      "[c2]Le [/][c1 c2 c3]chat[/][c2] dort[/] ici",
+    );
   });
 });

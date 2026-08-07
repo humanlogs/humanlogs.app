@@ -1,10 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { PlayIcon } from "lucide-react";
+import { PlayIcon, TagIcon } from "lucide-react";
 import { useTranslations } from "@/components/locale-provider";
+import { CodeCheckItems } from "@/components/codebooks/code-picker";
+import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { usePhraseRows } from "@/hooks/use-local-index";
-import type { CodeRef } from "@/lib/codebooks/codebook";
+import type { CodeRef, DecryptedCodebook } from "@/lib/codebooks/codebook";
 import { codeColorVar } from "@/lib/codebooks/coding";
 import { formatTimecode } from "@/lib/codebooks/excerpt-export";
 import { codingIdsOf, type PhraseRow } from "@/lib/local/phrase-index";
@@ -47,10 +49,13 @@ export function ExcerptList({
   groups,
   labels,
   deepen,
+  coding,
 }: {
   groups: StreamedGroup[];
   labels: ExcerptLabels;
   deepen: () => void;
+  /** Present only while an editor is lending the table its document. */
+  coding?: ExcerptCoding;
 }) {
   const t = useTranslations("codebook.excerpts");
   const panel = useExcerptPanel();
@@ -219,6 +224,7 @@ export function ExcerptList({
           focused={focused}
           provenance={provenance}
           onSelect={panel.focus}
+          coding={coding}
           onPlay={playable ? onPlay : undefined}
         />
       ))}
@@ -277,6 +283,7 @@ function ExcerptGroupSection({
   provenance,
   onSelect,
   onPlay,
+  coding,
 }: {
   group: StreamedGroup;
   hydrated: HydratedPhrases | undefined;
@@ -285,6 +292,7 @@ function ExcerptGroupSection({
   provenance: Provenance;
   onSelect: (focus: PhraseFocus) => void;
   onPlay?: (documentId: string, seconds: number) => void;
+  coding?: ExcerptCoding;
 }) {
   const t = useTranslations("codebook.excerpts");
   const [collapsed, setCollapsed] = React.useState(false);
@@ -320,16 +328,106 @@ function ExcerptGroupSection({
               key={`${group.key}:${ref.id}`}
               phraseRef={ref}
               row={hydrated?.rows.get(ref.id)}
+              // Two different sets on purpose. The CHIPS drop the code the group
+              // heading already stands for; the picker must show every code the
+              // passage carries, or the one it is filed under would read as
+              // unticked and clicking it would retract it by accident.
               codes={chipsFor(chipsOf(hydrated, ref.id), grouping)}
+              allCodes={chipsOf(hydrated, ref.id)}
               labels={labels}
               focused={focusMatchesPhrase(focused, asPhrase(ref))}
               provenance={provenance}
               onSelect={onSelect}
               onPlay={onPlay}
+              coding={coding}
             />
           ))
         ))}
     </section>
+  );
+}
+
+/**
+ * What the table needs in order to change a passage's codes.
+ *
+ * Only ever present for the document currently open in an editor, because a coding
+ * is a database row AND an anchor in that document's CRDT — see `registerCoding`.
+ * A row of another interview shows no picker rather than one that would half-apply.
+ */
+export type ExcerptCoding = {
+  documentId: string;
+  /** The verbatim codebooks covering this study. */
+  codebooks: DecryptedCodebook[];
+  toggle: (
+    phrase: { documentId: string; codingIds: string[] },
+    codebookId: string,
+    codeId: string,
+  ) => void;
+};
+
+/**
+ * Put a code on this passage, or take one off, without leaving the table.
+ *
+ * The codes already on it are ticked, so the menu reads as "what this passage is",
+ * not as a list of things to add — which is what makes it usable for the actual job,
+ * putting one excerpt under a second theme.
+ *
+ * One consequence worth knowing: a phrase's id IS its sorted anchors, so adding a
+ * code gives the passage a NEW id, and the row is re-keyed and may land under a
+ * different heading. That is the table being right rather than the row being lost.
+ */
+function RowCodeMenu({
+  phraseRef,
+  codes,
+  coding,
+}: {
+  phraseRef: PhraseRef;
+  codes: CodeRef[];
+  coding: ExcerptCoding;
+}) {
+  const t = useTranslations("codebook.excerpts");
+  const applied = new Set(
+    codes.map((ref) => `${ref.codebookId}:${ref.codeId}`),
+  );
+
+  return (
+    <DropdownMenu
+      align="end"
+      trigger={
+        <button
+          type="button"
+          aria-label={t("recode")}
+          className="flex size-6 items-center justify-center rounded-full border bg-background text-muted-foreground hover:text-foreground"
+        >
+          <TagIcon className="size-3" />
+        </button>
+      }
+    >
+      <div className="px-2 py-1 text-xs font-medium text-muted-foreground">
+        {t("recode")}
+      </div>
+      <CodeCheckItems
+        codebooks={coding.codebooks}
+        stateOf={(codebookId, codeId) =>
+          applied.has(`${codebookId}:${codeId}`) ? "all" : "none"
+        }
+        onToggle={(codebookId, codeId) =>
+          coding.toggle(
+            {
+              documentId: phraseRef.documentId,
+              codingIds: codingIdsOf(phraseRef.id),
+            },
+            codebookId,
+            codeId,
+          )
+        }
+      />
+      <p className="border-t px-2 pb-1 pt-1.5 text-[11px] leading-snug text-muted-foreground">
+        {/* Said out loud, because the rule is not guessable: you can retract your
+            own reading of a passage but not a colleague's. */}
+        {t("recodeMine")}
+      </p>
+    </DropdownMenu>
   );
 }
 
@@ -422,43 +520,61 @@ function ExcerptRow({
   phraseRef,
   row,
   codes,
+  allCodes,
   labels,
   focused,
   provenance,
   onSelect,
   onPlay,
+  coding,
 }: {
   phraseRef: PhraseRef;
   /** Undefined until this page's text arrives — a frame or two after its names. */
   row: PhraseRow | undefined;
+  /** What the row displays: minus the code its group already names. */
   codes: CodeRef[];
+  /** What the picker ticks: everything the passage carries. */
+  allCodes: CodeRef[];
   labels: ExcerptLabels;
   focused: boolean;
   provenance: Provenance;
   onSelect: (focus: PhraseFocus) => void;
   /** Present only while this row's interview is the one with a player. */
   onPlay?: (documentId: string, seconds: number) => void;
+  /** Present only while this row's interview is the one open and writable. */
+  coding?: ExcerptCoding;
 }) {
   const t = useTranslations("codebook.excerpts");
   const startTime = row?.startTime;
   const canPlay = onPlay && startTime !== undefined;
+  const canCode = coding?.documentId === phraseRef.documentId;
 
-  // The play control is a SIBLING of the row, laid over it, not a child: a button
+  // The controls are SIBLINGS of the row, laid over it, not children: a button
   // inside a button is invalid HTML, and browsers resolve it by dropping one of
   // them — usually the one you wanted.
+  //
+  // Dimmed rather than hidden until hover. Hidden was the first version and it has
+  // two faults: the code picker's menu outlives the hover that opened it, so its
+  // own trigger faded out from under the reader while they were using it; and a
+  // control nobody can see is a control nobody finds on a touchpad or by tab.
   return (
     <div className="group/excerpt relative">
-      {canPlay && (
-        <button
-          type="button"
-          onClick={() => onPlay(phraseRef.documentId, startTime)}
-          aria-label={t("play")}
-          title={formatTimecode(startTime)}
-          className="absolute right-1.5 top-1.5 z-10 flex size-6 items-center justify-center rounded-full border bg-background text-muted-foreground opacity-0 transition-opacity hover:text-foreground focus-visible:opacity-100 group-hover/excerpt:opacity-100"
-        >
-          <PlayIcon className="size-3" />
-        </button>
-      )}
+      <div className="absolute right-1.5 top-1.5 z-10 flex items-center gap-1 opacity-50 transition-opacity focus-within:opacity-100 group-hover/excerpt:opacity-100">
+        {canPlay && (
+          <button
+            type="button"
+            onClick={() => onPlay(phraseRef.documentId, startTime)}
+            aria-label={t("play")}
+            title={formatTimecode(startTime)}
+            className="flex size-6 items-center justify-center rounded-full border bg-background text-muted-foreground hover:text-foreground"
+          >
+            <PlayIcon className="size-3" />
+          </button>
+        )}
+        {canCode && (
+          <RowCodeMenu phraseRef={phraseRef} codes={allCodes} coding={coding} />
+        )}
+      </div>
       <button
         type="button"
         // Read by the scroll-sync above, which looks the row up rather than being
@@ -476,6 +592,14 @@ function ExcerptRow({
         className={cn(
           "mb-1 block w-full rounded-md border border-transparent px-2 py-2 text-left transition-colors",
           focused ? "border-border bg-accent" : "hover:bg-accent/50",
+          // Room for the controls, so the first line of the verbatim never runs
+          // underneath them. Only when there are any — an excerpt is narrow enough
+          // already without a permanent empty gutter.
+          canPlay && canCode
+            ? "pr-16"
+            : canPlay || canCode
+              ? "pr-9"
+              : undefined,
         )}
       >
         {row ? (

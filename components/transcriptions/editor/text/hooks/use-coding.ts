@@ -18,6 +18,7 @@ import { EditorAPI } from "../api";
 import {
   applyCodingMark,
   codingIdsCoveringRange,
+  getCodingRanges,
   removeCodingMark,
 } from "../utils/coding-actions";
 
@@ -251,6 +252,90 @@ export function useCoding({
   );
 
   /**
+   * The same toggle, on a passage the TABLE points at rather than on the selection.
+   *
+   * The excerpt panel cannot do this itself: a coding is a row plus an anchor in the
+   * CRDT, and the panel holds neither an editor nor a Y.Doc. So it names the passage
+   * by its anchors and the document that owns them does the work — the same division
+   * as the focus bus and the audio.
+   *
+   * The range comes from an anchor already on the passage, and is used verbatim: a
+   * second code must land on EXACTLY the span the first did, or the two stop being
+   * one phrase and the row splits in two under the reader.
+   *
+   * Returns false when the passage is no longer there — retracted elsewhere, or
+   * edited away by a collaborator between the table being drawn and the click.
+   */
+  const toggleCodeOnPhrase = useCallback(
+    ({
+      codingIds,
+      codebookId,
+      codeId,
+    }: {
+      codingIds: readonly string[];
+      codebookId: string;
+      codeId: string;
+    }): boolean => {
+      const editor = editorAPI.getEditor();
+      if (!editor || !canWrite) return false;
+
+      const mine = new Set(
+        codings.filter((c) => c.userId === profile?.id).map((c) => c.id),
+      );
+      // Retracting only ever touches YOUR OWN codings: a passage two researchers
+      // read the same way carries two rows, and one of them stepping back must not
+      // erase the other's reading. Same rule as the selection toggle.
+      const existing = codingIds.filter((id) => {
+        if (!mine.has(id)) return false;
+        const coding = codingsById.get(id);
+        return coding?.codebookId === codebookId && coding?.codeId === codeId;
+      });
+
+      if (existing.length > 0) {
+        for (const id of existing) {
+          removeCodingMark(editor, id);
+          deleteCoding.mutate(id);
+        }
+        editorAPI.emit("codingsChange");
+        return true;
+      }
+
+      const range = getCodingRanges(editor).find((r) =>
+        codingIds.includes(r.codingId),
+      );
+      if (!range) return false;
+
+      const id =
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `coding-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      if (!applyCodingMark(editor, id, { from: range.from, to: range.to })) {
+        return false;
+      }
+      editorAPI.emit("codingsChange");
+      addCoding.mutate(
+        { id, codebookId, codeId },
+        {
+          onError: () => {
+            removeCodingMark(editor, id);
+            editorAPI.emit("codingsChange");
+          },
+        },
+      );
+      return true;
+    },
+    [
+      editorAPI,
+      canWrite,
+      codings,
+      codingsById,
+      profile?.id,
+      addCoding,
+      deleteCoding,
+    ],
+  );
+
+  /**
    * Choosing a code: apply it, and — when it has sub-codes — open them in place of
    * the level it was on. That is what makes one keystroke enough for a theme while
    * leaving its refinements one more keystroke away. A leaf closes the trail, so the
@@ -328,6 +413,7 @@ export function useCoding({
     codingsById,
     appliedAtSelection,
     toggleCode,
+    toggleCodeOnPhrase,
     /** Whether there is anything to code — no codebook means no coding phase. */
     hasCodes: options.length > 0,
   };

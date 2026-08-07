@@ -140,7 +140,38 @@ type ExcerptPanelValue = {
     seek: ((seconds: number) => void) | null,
   ) => void;
   seekAudio: (seconds: number) => void;
+
+  /**
+   * The document whose codes the table may change, if any.
+   *
+   * Same division as the audio, and for a harder reason: a coding is a row in the
+   * database AND an anchor in the CRDT, and only the client holding that document's
+   * Y.Doc can write the second half. The panel holds neither, so it names the
+   * passage and the open editor does the work. Rows of other interviews offer no
+   * code picker rather than one that would half-apply — writing the row without the
+   * anchor is a coding nothing points at.
+   */
+  codingDocumentId: string | null;
+  registerCoding: (
+    documentId: string,
+    toggle: PhraseCodingToggle | null,
+  ) => void;
+  /** Returns false when the passage could not be found in the open document. */
+  togglePhraseCode: (intent: PhraseCodingIntent) => boolean;
 };
+
+/** A code to put on, or take off, one coded passage. */
+export type PhraseCodingIntent = {
+  documentId: string;
+  /** The passage's anchors — how the editor finds its exact range. */
+  codingIds: readonly string[];
+  codebookId: string;
+  codeId: string;
+};
+
+export type PhraseCodingToggle = (
+  intent: Omit<PhraseCodingIntent, "documentId">,
+) => boolean;
 
 const ExcerptPanelContext = React.createContext<ExcerptPanelValue | null>(null);
 
@@ -195,6 +226,10 @@ export function ExcerptPanelProvider({
   const [audio, setAudio] = React.useState<{
     documentId: string;
     seek: (seconds: number) => void;
+  } | null>(null);
+  const [coding, setCoding] = React.useState<{
+    documentId: string;
+    toggle: PhraseCodingToggle;
   } | null>(null);
 
   // Restored after mount rather than during render: the server has no localStorage,
@@ -346,6 +381,35 @@ export function ExcerptPanelProvider({
     [audio],
   );
 
+  const registerCoding = React.useCallback(
+    (documentId: string, toggle: PhraseCodingToggle | null) => {
+      setCoding((current) => {
+        // Only the document that registered may deregister — the same reason as the
+        // audio: navigating between two interviews mounts the next editor before
+        // the previous one unmounts.
+        if (!toggle) {
+          return current?.documentId === documentId ? null : current;
+        }
+        return current?.documentId === documentId && current.toggle === toggle
+          ? current
+          : { documentId, toggle };
+      });
+    },
+    [],
+  );
+
+  const togglePhraseCode = React.useCallback(
+    (intent: PhraseCodingIntent) => {
+      if (!coding || coding.documentId !== intent.documentId) return false;
+      return coding.toggle({
+        codingIds: intent.codingIds,
+        codebookId: intent.codebookId,
+        codeId: intent.codeId,
+      });
+    },
+    [coding],
+  );
+
   const claimed = React.useRef(0);
   const claimFocus = React.useCallback(() => {
     claimed.current++;
@@ -392,6 +456,9 @@ export function ExcerptPanelProvider({
     audioDocumentId: audio?.documentId ?? null,
     registerAudio,
     seekAudio,
+    codingDocumentId: coding?.documentId ?? null,
+    registerCoding,
+    togglePhraseCode,
   };
 
   return (

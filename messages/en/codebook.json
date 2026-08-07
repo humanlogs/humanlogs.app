@@ -161,7 +161,9 @@
           "csv": "Spreadsheet (.csv)"
         }
       },
-      "play": "Play this passage"
+      "play": "Play this passage",
+      "recode": "Codes on this passage",
+      "recodeMine": "You can only take back your own readings."
     }
   }
 }

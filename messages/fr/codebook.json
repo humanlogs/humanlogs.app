@@ -161,7 +161,9 @@
           "csv": "Tableur (.csv)"
         }
       },
-      "play": "Écouter ce passage"
+      "play": "Écouter ce passage",
+      "recode": "Codes de ce passage",
+      "recodeMine": "Vous ne pouvez retirer que vos propres lectures."
     }
   }
 }

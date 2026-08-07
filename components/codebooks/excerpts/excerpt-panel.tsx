@@ -8,6 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBetaFeatures, useProjects, useUserProfile } from "@/hooks/use-api";
 import { useCodebooks } from "@/hooks/use-codebooks";
+import { codebooksInScopeForProject } from "@/lib/codebooks/codebook";
+import { verbatimCodebooks } from "@/lib/codebooks/coding";
 import { useLocalIndexSync } from "@/hooks/use-local-index";
 import { useTranscriptions } from "@/hooks/use-transcriptions";
 import { ExcerptExportMenu } from "./excerpt-export-menu";
@@ -83,6 +85,25 @@ export function ExcerptPanel() {
       : undefined;
   const study = projects.find((project) => project.id === projectId);
   const exportTitle = scopedDocument?.title || study?.name || t("title");
+  // The table may change codes only on the interview an editor is lending it, and
+  // only through the verbatim codebooks that cover this study.
+  const coding = React.useMemo(() => {
+    if (!panel.codingDocumentId) return undefined;
+    return {
+      documentId: panel.codingDocumentId,
+      codebooks: verbatimCodebooks(
+        codebooksInScopeForProject(codebooks, projectId),
+      ),
+      toggle: (
+        phrase: { documentId: string; codingIds: string[] },
+        codebookId: string,
+        codeId: string,
+      ) => {
+        panel.togglePhraseCode({ ...phrase, codebookId, codeId });
+      },
+    };
+  }, [panel, codebooks, projectId]);
+
   const exportCaption = [
     exportTitle,
     t("export.matched", { count: query.total }),
@@ -155,6 +176,7 @@ export function ExcerptPanel() {
             groups={query.groups}
             labels={query.labels}
             deepen={query.deepen}
+            coding={coding}
           />
         )}
       </ScrollArea>

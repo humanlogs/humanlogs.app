@@ -16,10 +16,19 @@ import { expandSelectionToWord } from "./comment-actions";
  * Applied run by run, UNIONing the new id into whatever is already there, because a
  * mark type can sit only once on a character: a plain `setMark` would replace the mark
  * of every coding inside the range and silently orphan them.
+ *
+ * `over` marks that range instead of the selection, and is NOT word-expanded: it is
+ * used to add a code to a passage that is already coded, where the range comes from
+ * the anchors already on it. Expanding there would let a second code creep a word
+ * wider than the first, and the two would stop being one phrase.
  */
-export function applyCodingMark(editor: Editor, codingId: string): boolean {
-  const range = expandSelectionToWord(editor);
-  if (!range) return false;
+export function applyCodingMark(
+  editor: Editor,
+  codingId: string,
+  over?: { from: number; to: number },
+): boolean {
+  const range = over ?? expandSelectionToWord(editor);
+  if (!range || range.to <= range.from) return false;
 
   const { state, view } = editor;
   const markType = state.schema.marks.coding;

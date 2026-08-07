@@ -161,7 +161,9 @@
           "csv": "Tabelle (.csv)"
         }
       },
-      "play": "Diese Passage anhören"
+      "play": "Diese Passage anhören",
+      "recode": "Codes dieser Passage",
+      "recodeMine": "Sie können nur Ihre eigenen Lesarten zurücknehmen."
     }
   }
 }

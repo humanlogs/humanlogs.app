@@ -253,6 +253,12 @@ export function TranscriptEditor({
     codebookId: codingController.codebook?.id ?? null,
     editorAPI,
     codings: codingController.codings,
+    // Lent only when there is something to code with and the right to do it: the
+    // panel shows a code picker on a row exactly when that picker would work.
+    toggleCodeOnPhrase:
+      canWrite && codingController.hasCodes
+        ? codingController.toggleCodeOnPhrase
+        : undefined,
     active: coding,
   });
 

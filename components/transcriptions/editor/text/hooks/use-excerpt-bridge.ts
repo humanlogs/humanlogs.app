@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   useExcerptPanel,
   useExcerptPanelContext,
+  type PhraseCodingToggle,
 } from "@/components/codebooks/excerpts/excerpt-panel-context";
 import { useAudio } from "@/components/transcriptions/editor/audio/audio-context";
 import { useBetaFeatures } from "@/hooks/use-api";
@@ -16,7 +17,7 @@ import { codingIdsCoveringRange } from "../utils/coding-actions";
 /**
  * The thread between the transcript on the left and the excerpt table on the right.
  *
- * Three jobs, all of them about keeping the two halves of coding in step:
+ * Four jobs, all of them about keeping the two halves of coding in step:
  *
  *  1. **Say where we are.** The panel is global; the editor is what tells it which
  *     document and which codebook are open, which is what its defaults are derived
@@ -28,6 +29,9 @@ import { codingIdsCoveringRange } from "../utils/coding-actions";
  *  3. **Follow the eye.** Select a coded passage and its row scrolls into view;
  *     click a row and the passage does — including across documents, which is a
  *     navigation rather than a scroll.
+ *  4. **Lend what only this side has.** The audio player and the CRDT live in the
+ *     editor, so the panel borrows them for the document on screen: a row can be
+ *     listened to, and its codes changed, while its interview is open.
  */
 export function useExcerptBridge({
   transcriptionId,
@@ -37,6 +41,7 @@ export function useExcerptBridge({
   codebookId,
   editorAPI,
   codings,
+  toggleCodeOnPhrase,
   active,
 }: {
   transcriptionId: string;
@@ -48,6 +53,12 @@ export function useExcerptBridge({
   codebookId: string | null;
   editorAPI: EditorAPI;
   codings: CodingDTO[];
+  /**
+   * Put a code on, or take one off, a passage the TABLE names. Absent while the
+   * document is read-only or has no codebook, and the panel then offers no picker
+   * rather than one that does nothing.
+   */
+  toggleCodeOnPhrase?: PhraseCodingToggle;
   /**
    * Whether the coding phase is on. The bridge stays wired either way — a table
    * open while transcribing is legitimate — but the editor only publishes its
@@ -144,6 +155,19 @@ export function useExcerptBridge({
     registerAudio(transcriptionId, seekTo);
     return () => registerAudio(transcriptionId, null);
   }, [registerAudio, transcriptionId, seekTo]);
+
+  // --- Lend it the ability to code, too.
+  //
+  // A coding is a database row AND an anchor in this document's CRDT, and only the
+  // client holding that Y.Doc can write the second half. So the panel names a
+  // passage and this does the work — the alternative, letting the panel POST the
+  // row on its own, would leave a coding nothing in the transcript points at.
+  const registerCoding = panel.registerCoding;
+  React.useEffect(() => {
+    if (!toggleCodeOnPhrase) return;
+    registerCoding(transcriptionId, toggleCodeOnPhrase);
+    return () => registerCoding(transcriptionId, null);
+  }, [registerCoding, transcriptionId, toggleCodeOnPhrase]);
 
   React.useEffect(
     () =>

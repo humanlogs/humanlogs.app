@@ -161,7 +161,9 @@
           "csv": "Hoja de cálculo (.csv)"
         }
       },
-      "play": "Escuchar este pasaje"
+      "play": "Escuchar este pasaje",
+      "recode": "Códigos de este pasaje",
+      "recodeMine": "Solo puede retirar sus propias lecturas."
     }
   }
 }
