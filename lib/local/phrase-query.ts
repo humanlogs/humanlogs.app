@@ -199,12 +199,18 @@ export function documentsMatchingCodes(
 }
 
 /**
- * The (document, speaker) pairs carrying any of `codes`.
+ * The (document, speaker) pairs carrying any of `codes`, WITHIN each document.
  *
  * A code put on the DOCUMENT counts for every speaker in it: coding an interview
  * «hôpital» says something about everyone speaking in it, and a filter that ignored
  * that would silently drop the documents coded as a whole. `speakerIdsOf` supplies
  * the roster, which lives in the document list's speaker cache.
+ *
+ * **Not what the panel uses.** A code on a person is a claim about the person, so
+ * it has to follow them into the other interviews of the study — see
+ * `speakersMatchingCodesByPerson` in speaker-identity.ts, which is this rule plus
+ * the name-based link. This one stays as the per-document rule it always was, and
+ * as the thing that version is tested against.
  */
 export function speakersMatchingCodes(
   documents: ReadonlyArray<{

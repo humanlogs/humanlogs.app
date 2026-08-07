@@ -99,6 +99,7 @@ export function createPhraseStream({
   perGroup = DEFAULT_PER_GROUP,
   only,
   sanitize,
+  speakerPersons,
 }: {
   /**
    * Everything but `search`: matching text needs the phrase rows, which this
@@ -112,6 +113,15 @@ export function createPhraseStream({
   /** When given, only these phrase ids are considered at all. */
   only?: ReadonlySet<string>;
   sanitize?: KnownCodebooks;
+  /**
+   * `(document, speaker)` pair key → the PERSON it belongs to, for a study whose
+   * speakers are named (see speaker-identity.ts). Grouping by speaker then groups
+   * by person: Renée interviewed twice is one row, not two.
+   *
+   * Only affects grouping. Filtering already works on pair keys, and the caller
+   * has expanded a code on a person into every pair before it gets here.
+   */
+  speakerPersons?: Readonly<Record<string, string>>;
 }): PhraseStream {
   const documentIds = filter.documentIds && new Set(filter.documentIds);
   const speakerKeys = filter.speakerKeys && new Set(filter.speakerKeys);
@@ -213,7 +223,11 @@ export function createPhraseStream({
           break;
         case "speaker":
           if (keys.length === 0) {
-            keys.push(`speaker:${speakerKey(link.documentId, link.speakerId)}`);
+            const pair = speakerKey(link.documentId, link.speakerId);
+            keys.push(`speaker:${speakerPersons?.[pair] ?? pair}`);
+            // The label still names ONE (document, speaker): that is what
+            // resolves to a display name, and for a person it is the same name
+            // whichever of their interviews supplies it.
             labels.push({
               type: "speaker",
               documentId: link.documentId,

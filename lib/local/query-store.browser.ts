@@ -65,6 +65,8 @@ export type StudyQuery = {
   codeOrder?: readonly CodeRef[];
   perGroup?: number;
   sanitize?: KnownCodebooks;
+  /** Pair key → person, so grouping by speaker groups by person. */
+  speakerPersons?: Readonly<Record<string, string>>;
   signal?: AbortSignal;
   /**
    * Rows per read. Only ever set by the tests, which need batches small enough
@@ -91,6 +93,7 @@ export async function queryStudy(
     codeOrder,
     perGroup,
     sanitize,
+    speakerPersons,
     signal,
     batchSize = SCAN_BATCH,
   }: StudyQuery,
@@ -124,6 +127,7 @@ export async function queryStudy(
     perGroup,
     only,
     sanitize,
+    speakerPersons,
   });
 
   const study = projectIdOf(studyKeyOf(projectId));

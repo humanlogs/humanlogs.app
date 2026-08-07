@@ -11,10 +11,12 @@ import {
   type DecryptedCodebook,
 } from "@/lib/codebooks/codebook";
 import { verbatimCodebooks } from "@/lib/codebooks/coding";
+import { documentsMatchingCodes } from "@/lib/local/phrase-query";
 import {
-  documentsMatchingCodes,
-  speakersMatchingCodes,
-} from "@/lib/local/phrase-query";
+  buildSpeakerIdentity,
+  speakerPersonMap,
+  speakersMatchingCodesByPerson,
+} from "@/lib/local/speaker-identity";
 import {
   DEFAULT_PER_GROUP,
   type KnownCodebooks,
@@ -146,9 +148,26 @@ export function useExcerptQuery({
     documentIds = documentsMatchingCodes(inStudy, filter.contextCodes);
   }
 
+  // Who is the same person across this study's interviews. Built from the document
+  // list the app already holds, so renaming a speaker re-links them on the next
+  // render rather than after a reindex.
+  const identity = React.useMemo(
+    () => buildSpeakerIdentity(inStudy),
+    [inStudy],
+  );
+  const speakerPersons = React.useMemo(
+    () => speakerPersonMap(inStudy),
+    [inStudy],
+  );
+
   const speakerKeys =
     filter.contextCodes.length > 0 && filter.scope !== "document"
-      ? speakersMatchingCodes(inStudy, filter.contextCodes, rosterOf)
+      ? speakersMatchingCodesByPerson(
+          inStudy,
+          filter.contextCodes,
+          identity,
+          rosterOf,
+        )
       : undefined;
 
   const request: Omit<StudyQuery, "signal"> = {
@@ -156,6 +175,7 @@ export function useExcerptQuery({
     groupBy,
     codeOrder: codeOrderFor({ groupBy, filter, codebooks, context }),
     sanitize: knownCodesOf(codebooks),
+    speakerPersons,
     filter: {
       documentIds,
       speakerKeys,
