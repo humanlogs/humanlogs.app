@@ -144,7 +144,23 @@
       "syncing": "Studie wird indexiert… {done}/{total}",
       "syncFailed": "Dokumente, die nicht indexiert werden konnten: {count}",
       "more": "{count} weitere unten",
-      "indexingEmpty": "Studie wird indexiert… Auszüge erscheinen, sobald Dokumente gelesen sind."
+      "indexingEmpty": "Studie wird indexiert… Auszüge erscheinen, sobald Dokumente gelesen sind.",
+      "export": {
+        "label": "Tabelle exportieren",
+        "matched": "{count} Passagen",
+        "hint": "Nach Code gruppiert, {count} Passagen.",
+        "capped": "Pro Thema maximal {count} Passagen.",
+        "running": "Wird vorbereitet… {done}/{total}",
+        "failed": "Der Export ist fehlgeschlagen.",
+        "theme": "Thema",
+        "passages": "Passagen",
+        "analysis": "Analyse",
+        "format": {
+          "pdf": "PDF (.pdf)",
+          "docx": "Word (.docx)",
+          "csv": "Tabelle (.csv)"
+        }
+      }
     }
   }
 }

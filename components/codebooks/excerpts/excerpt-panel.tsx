@@ -6,10 +6,11 @@ import { useTranslations } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useBetaFeatures, useUserProfile } from "@/hooks/use-api";
+import { useBetaFeatures, useProjects, useUserProfile } from "@/hooks/use-api";
 import { useCodebooks } from "@/hooks/use-codebooks";
 import { useLocalIndexSync } from "@/hooks/use-local-index";
 import { useTranscriptions } from "@/hooks/use-transcriptions";
+import { ExcerptExportMenu } from "./excerpt-export-menu";
 import { ExcerptFilters, type ExcerptDocument } from "./excerpt-filters";
 import { ExcerptList } from "./excerpt-list";
 import {
@@ -37,6 +38,7 @@ export function ExcerptPanel() {
   const betaFeatures = useBetaFeatures();
   const { data: profile } = useUserProfile();
   const { data: codebooks = [] } = useCodebooks();
+  const { data: projects = [] } = useProjects();
   const { data: transcriptions = [] } = useTranscriptions();
 
   // Codebooks are still a beta surface, and an excerpt table with no codebook to
@@ -72,6 +74,21 @@ export function ExcerptPanel() {
     enabled: live,
   });
 
+  // What the exported file is called and what its subtitle says it holds. The
+  // narrowest true name wins: one interview names itself, a study names the study,
+  // and the loose documents of no study fall back to the panel's own title.
+  const scopedDocument =
+    panel.filter.scope === "document" && panel.context.documentId
+      ? documents.find((doc) => doc.id === panel.context.documentId)
+      : undefined;
+  const study = projects.find((project) => project.id === projectId);
+  const exportTitle = scopedDocument?.title || study?.name || t("title");
+  const exportCaption = [
+    exportTitle,
+    t("export.matched", { count: query.total }),
+    new Date().toLocaleDateString(),
+  ].join(" · ");
+
   if (!live) return null;
 
   return (
@@ -95,15 +112,25 @@ export function ExcerptPanel() {
         <span className="text-xs text-muted-foreground tabular-nums">
           {query.total}
         </span>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="ml-auto size-7"
-          onClick={() => panel.setOpen(false)}
-          aria-label={t("close")}
-        >
-          <PanelRightCloseIcon className="size-4" />
-        </Button>
+        <div className="ml-auto flex items-center">
+          <ExcerptExportMenu
+            request={query.request}
+            labels={query.labels}
+            title={exportTitle}
+            caption={exportCaption}
+            total={query.total}
+            disabled={query.total === 0}
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-7"
+            onClick={() => panel.setOpen(false)}
+            aria-label={t("close")}
+          >
+            <PanelRightCloseIcon className="size-4" />
+          </Button>
+        </div>
       </div>
 
       <ExcerptFilters documents={documents} codebooks={codebooks} />

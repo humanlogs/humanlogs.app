@@ -144,7 +144,23 @@
       "syncing": "Indexation de l’étude… {done}/{total}",
       "syncFailed": "Documents qui n’ont pas pu être indexés : {count}",
       "more": "{count} de plus en dessous",
-      "indexingEmpty": "Indexation de l’étude… les extraits apparaissent au fur et à mesure."
+      "indexingEmpty": "Indexation de l’étude… les extraits apparaissent au fur et à mesure.",
+      "export": {
+        "label": "Exporter le tableau",
+        "matched": "{count} passages",
+        "hint": "Regroupé par code, {count} passages.",
+        "capped": "Chaque thème est limité à {count} passages.",
+        "running": "Préparation… {done}/{total}",
+        "failed": "L’export a échoué.",
+        "theme": "Thème",
+        "passages": "Phrases",
+        "analysis": "Analyse",
+        "format": {
+          "pdf": "PDF (.pdf)",
+          "docx": "Word (.docx)",
+          "csv": "Tableur (.csv)"
+        }
+      }
     }
   }
 }

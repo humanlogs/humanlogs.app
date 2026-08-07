@@ -144,7 +144,23 @@
       "syncing": "Indexing this study… {done}/{total}",
       "syncFailed": "Documents that could not be indexed: {count}",
       "more": "{count} more below",
-      "indexingEmpty": "Indexing this study… excerpts appear as documents are read."
+      "indexingEmpty": "Indexing this study… excerpts appear as documents are read.",
+      "export": {
+        "label": "Export the table",
+        "matched": "{count} passages",
+        "hint": "Grouped by code, {count} passages.",
+        "capped": "Themes are capped at {count} passages each.",
+        "running": "Preparing… {done}/{total}",
+        "failed": "The export failed.",
+        "theme": "Theme",
+        "passages": "Passages",
+        "analysis": "Analysis",
+        "format": {
+          "pdf": "PDF (.pdf)",
+          "docx": "Word (.docx)",
+          "csv": "Spreadsheet (.csv)"
+        }
+      }
     }
   }
 }

@@ -58,6 +58,12 @@ export type ExcerptQueryResult = {
   total: number;
   groups: StreamedGroup[];
   labels: ExcerptLabels;
+  /**
+   * The question, as the store understands it. Exposed so the export can ask it
+   * again — deeper, and always grouped by code — instead of reconstructing a
+   * filter from the panel's controls a second time and drifting from this one.
+   */
+  request: Omit<StudyQuery, "signal">;
   /** True while the first answer to THIS question is being computed. */
   pending: boolean;
   /**
@@ -215,6 +221,7 @@ export function useExcerptQuery({
     total: query.data?.total ?? 0,
     groups: query.data?.groups ?? NO_GROUPS,
     labels,
+    request,
     pending: query.isPending,
     deepen,
   };
