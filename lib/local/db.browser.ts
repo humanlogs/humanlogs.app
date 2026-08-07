@@ -31,14 +31,15 @@
  */
 
 import type { PhraseCodeRow, PhraseRow } from "./phrase-index";
+import { tokenize } from "./phrase-tokens";
 
 /**
  * Bumped whenever a DERIVED row gains a field the reader depends on — v5 added
- * the audio bounds of a passage. The upgrade drops the derived stores and lets
+ * the audio bounds of a passage, v6 the word index behind free-text search. The upgrade drops the derived stores and lets
  * the sync refill them, which is the honest cost of this being a cache: correct
  * immediately, at the price of one re-index paced over the usual minutes.
  */
-const DB_VERSION = 5;
+const DB_VERSION = 6;
 
 export const STORE_DOCUMENTS = "documents";
 export const STORE_PHRASES = "phrases";
@@ -69,6 +70,15 @@ export const STORE_META = "meta";
  */
 export const INDEX_STUDY_PHRASE = "studyPhrase";
 export const INDEX_DOCUMENT_PHRASE = "documentPhrase";
+
+/**
+ * The words of a passage, one index entry each (`multiEntry`).
+ *
+ * The one index that is not about narrowing a scan but about replacing one: free
+ * text was the last filter with no index, and answering it meant reading every
+ * passage of the study. See phrase-tokens.ts.
+ */
+export const INDEX_TOKENS = "tokens";
 
 /**
  * Sorts after every string in IndexedDB's key ordering (number < date < string <
@@ -115,7 +125,18 @@ export type LocalDocumentRow = {
   phraseCount: number;
 };
 
-type PhraseRecord = Omit<PhraseRow, "projectId"> & { studyKey: string };
+/**
+ * A phrase as it is STORED.
+ *
+ * `tokens` exists only here: it is a storage concern (what the word index files),
+ * not something the pure derivation or a rendered row has any use for, and putting
+ * it on {@link PhraseRow} would send a dozen strings per row to everything that
+ * reads one.
+ */
+type PhraseRecord = Omit<PhraseRow, "projectId"> & {
+  studyKey: string;
+  tokens: string[];
+};
 type PhraseCodeRecord = Omit<PhraseCodeRow, "projectId"> & { studyKey: string };
 
 export type LocalDocStateRow = {
@@ -215,6 +236,7 @@ export function openLocalDb(userId: string): Promise<IDBDatabase> {
       phrases.createIndex("documentId", "documentId");
       phrases.createIndex(INDEX_STUDY_PHRASE, ["studyKey", "id"]);
       phrases.createIndex(INDEX_DOCUMENT_PHRASE, ["documentId", "id"]);
+      phrases.createIndex(INDEX_TOKENS, "tokens", { multiEntry: true });
 
       // Keyed on the pair rather than on a concatenation of it: the same
       // identity, without storing it twice on every row.
@@ -364,7 +386,8 @@ export async function putDocumentIndex(
     phraseStore.put({
       ...rest,
       studyKey: studyKeyOf(projectId),
-    } as PhraseRecord);
+      tokens: tokenize(phrase.text),
+    } satisfies PhraseRecord);
   }
   for (const link of links) {
     const { projectId, ...rest } = link;

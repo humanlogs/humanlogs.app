@@ -30,6 +30,7 @@ import {
   idbRequest,
   INDEX_DOCUMENT_PHRASE,
   INDEX_STUDY_PHRASE,
+  INDEX_TOKENS,
   MAX_PHRASE_KEY,
   openLocalDb,
   projectIdOf,
@@ -39,6 +40,7 @@ import {
 } from "./db.browser";
 import type { PhraseCodeRow, PhraseRow } from "./phrase-index";
 import type { PhraseFilter, PhraseGroupBy } from "./phrase-query";
+import { prefixRange, searchTokens } from "./phrase-tokens";
 import {
   createPhraseStream,
   type KnownCodebooks,
@@ -111,13 +113,15 @@ export async function queryStudy(
   const db = await openLocalDb(userId);
   const scope = scopeOf(projectId, filter);
 
-  // The text pass runs first and alone, because matching text needs the phrase
-  // rows and the counting pass reads only the links. It keeps ids, not rows.
+  // The word pass runs first and alone: it reads a different store, and it is the
+  // only part of the question the links cannot answer. It keeps ids, not rows.
+  //
+  // An empty token list means the query cannot narrow — blank, or a single letter
+  // mid-typing — and is treated as no text filter rather than as no results.
   const { search, ...rest } = filter;
-  const needle = search?.trim() ? fold(search.trim()) : "";
-  const only = needle
-    ? await matchingPhraseIds(db, scope, needle, batchSize, signal)
-    : undefined;
+  const tokens = search ? searchTokens(search) : [];
+  const only =
+    tokens.length > 0 ? await matchingPhraseIds(db, tokens, signal) : undefined;
   if (only && only.size === 0) return EMPTY;
 
   const stream = createPhraseStream({
@@ -346,44 +350,68 @@ function feed<T>(
 }
 
 /**
- * The ids whose text matches, from a pass over the phrases alone.
+ * The ids whose text matches, from the word index.
  *
- * Separate from the counting pass because the two read different stores, and
- * because this one is only paid when someone actually types in the search box.
- * Retains ids, never rows.
+ * One key range per word of the query, intersected — the passages containing ALL
+ * of them, each as a prefix. This reads KEYS, never rows: what comes back is phrase
+ * ids, and the passages themselves are fetched later only for the page on screen.
+ *
+ * The rarest word goes first, from `count()`, which is answered by the index
+ * without reading anything. The intersection can then only shrink, and a query
+ * whose first word matches nothing costs one count and stops.
+ *
+ * Deliberately NOT scoped to the study: the word index is global, and narrowing it
+ * per study would mean a composite `[studyKey, token]` that IndexedDB cannot build
+ * with `multiEntry`. Ids from another study are harmless — the links walk is
+ * study-scoped, so those ids are never visited. They cost a little memory and no
+ * correctness.
  */
 async function matchingPhraseIds(
   db: IDBDatabase,
-  scope: Scope,
-  needle: string,
-  batch: number,
+  tokens: readonly string[],
   signal?: AbortSignal,
 ): Promise<Set<string>> {
-  const ids = new Set<string>();
-  let batches = 0;
-  for await (const rows of pagesOf<StoredPhrase>(
-    db,
-    STORE_PHRASES,
-    scope,
-    (row) => row.id,
-    true,
-    batch,
-    signal,
-  )) {
-    for (const row of rows) {
-      if (fold(row.text).includes(needle)) ids.add(row.id);
-    }
-    if (++batches % YIELD_EVERY === 0) await yieldToMain();
-  }
-  return ids;
-}
+  const index = () =>
+    db
+      .transaction(STORE_PHRASES, "readonly")
+      .objectStore(STORE_PHRASES)
+      .index(INDEX_TOKENS);
 
-/** Fold accents and case, exactly as the pure query does. */
-function fold(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase();
+  const rangeOf = (token: string) => {
+    const { lower, upper } = prefixRange(token);
+    return IDBKeyRange.bound(lower, upper);
+  };
+
+  const counted = await Promise.all(
+    tokens.map(async (token) => ({
+      token,
+      count: await idbRequest<number>(index().count(rangeOf(token))),
+    })),
+  );
+  counted.sort((a, b) => a.count - b.count);
+  if (counted[0]?.count === 0) return new Set();
+
+  let kept: Set<string> | null = null;
+  for (const { token } of counted) {
+    signal?.throwIfAborted();
+    const ids = await idbRequest<IDBValidKey[]>(
+      index().getAllKeys(rangeOf(token)),
+    );
+    if (!kept) {
+      kept = new Set(ids as string[]);
+    } else {
+      // Intersect into a fresh set rather than deleting from the old one: the
+      // incoming list is the whole postings list of a word, and walking the
+      // (smaller) survivor set against it is the cheaper direction.
+      const present = new Set(ids as string[]);
+      const next = new Set<string>();
+      for (const id of kept) if (present.has(id)) next.add(id);
+      kept = next;
+    }
+    if (kept.size === 0) return kept;
+    await yieldToMain();
+  }
+  return kept ?? new Set();
 }
 
 /**

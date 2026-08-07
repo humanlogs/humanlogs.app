@@ -401,6 +401,75 @@ describe("queryStudy", () => {
   });
 });
 
+/**
+ * Free text used to be a full pass over every passage of the study. It is now the
+ * word index (`phrase-tokens.ts`), and the semantics moved with it: WORD PREFIXES,
+ * all of which must be present, rather than any substring. That is a deliberate
+ * narrowing in one direction and a widening in another, so it is asserted here
+ * rather than left to the conformance suite, which compares against the old scan.
+ */
+describe("searching the words", () => {
+  const search = async (query: string) =>
+    (
+      await queryStudy(USER, {
+        projectId: "study1",
+        groupBy: "none",
+        batchSize: 2,
+        filter: { search: query },
+      })
+    ).total;
+
+  it("matches a whole word", async () => {
+    await corpus();
+    expect(await search("crie")).toBe(1);
+  });
+
+  it("matches the start of a word, so it narrows as you type", async () => {
+    await corpus();
+    expect(await search("cri")).toBe(1);
+    expect(await search("des")).toBe(1);
+  });
+
+  it("no longer matches the middle of a word", async () => {
+    await corpus();
+    // The old scan found «essus» inside «dessus». An index cannot serve that, and
+    // it is not how a corpus is searched — noted because it IS a behaviour change.
+    expect(await search("essus")).toBe(0);
+  });
+
+  it("requires every word of the query", async () => {
+    await corpus();
+    // Both in the same passage: kept. One of them elsewhere: not.
+    expect(await search("crie dessus")).toBe(1);
+    expect(await search("crie etages")).toBe(0);
+  });
+
+  it("folds accents in both directions", async () => {
+    await corpus();
+    expect(await search("etages")).toBe(1);
+    expect(await search("étages")).toBe(1);
+  });
+
+  it("does not narrow on a query that cannot", async () => {
+    const index = await corpus();
+    const all = index.phrases.length;
+    // Mid-typing, one letter: showing nothing would be a table that empties on
+    // the first keystroke of every search.
+    for (const query of ["", "  ", "e"]) expect(await search(query)).toBe(all);
+  });
+
+  it("keeps nothing for a word the corpus does not have", async () => {
+    await corpus();
+    expect(await search("zzzz")).toBe(0);
+  });
+
+  it("does not leak a match from another study", async () => {
+    await corpus();
+    // «etude» is only in docZ, which is filed under study2.
+    expect(await search("etude")).toBe(0);
+  });
+});
+
 describe("readPhraseRows", () => {
   it("returns the text and the codes of the ids it is given, and nothing else", async () => {
     const index = await corpus();
