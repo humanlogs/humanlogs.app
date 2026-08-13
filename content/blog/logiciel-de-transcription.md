@@ -50,7 +50,7 @@ Posez ces questions avant d'uploader quoi que ce soit :
 - **Combien de temps l'audio est-il conservé ?** Idéalement, l'audio devrait être supprimé des serveurs dès la transcription générée.
 - **Y a-t-il un chiffrement de bout en bout ?** Ce niveau de protection garantit que même le prestataire ne peut pas accéder au contenu de vos fichiers.
 
-Les services qui déclarent explicitement un mode sans rétention et sans entraînement, hébergés en Europe, sont de loin les plus adaptés à un usage de recherche.
+Les services qui déclarent explicitement un mode sans rétention et sans entraînement, hébergés en Europe, sont de loin les plus adaptés à un usage de recherche. Pour une checklist RGPD complète avant de transmettre vos entretiens, voir notre [guide sur la transcription confidentielle](/fr/blog/transcription-confidentielle).
 
 ## Logiciel cloud versus solution locale
 
