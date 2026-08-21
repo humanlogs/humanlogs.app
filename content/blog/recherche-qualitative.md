@@ -67,6 +67,8 @@ Quelle que soit la méthode, la plupart des données collectées à l'oral doive
 
 ## De la collecte à l'analyse
 
+Pour les entretiens, la qualité de la collecte dépend largement de la préparation en amont - voir notre [guide pour construire un guide d'entretien qualitatif](/fr/blog/guide-entretien-qualitatif).
+
 Une fois les données collectées, la recherche qualitative entre dans sa phase d'analyse : coder les transcriptions, regrouper les codes en thèmes, interpréter les résultats. C'est un sujet à part entière - notre [guide sur l'analyse qualitative](/fr/blog/analyse-qualitative) détaille les méthodes (thématique, IPA, théorie ancrée...) et le processus pas-à-pas.
 
 Mais avant d'analyser, il faut transcrire. Pour un entretien d'une heure, la transcription manuelle verbatim prend en moyenne 4 à 6 heures - un temps qui pèse lourd dans un projet de recherche déjà serré en délais.

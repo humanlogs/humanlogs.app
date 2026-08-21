@@ -17,6 +17,8 @@ La saturation théorique est le point, dans une collecte de données qualitative
 
 C'est un critère de suffisance de l'échantillon, pas un chiffre fixe. Deux études sur le même sujet peuvent atteindre la saturation après 8 entretiens ou après 25, selon l'homogénéité du groupe étudié et la précision de la question de recherche.
 
+Un [guide d'entretien qualitatif](/fr/blog/guide-entretien-qualitatif) bien construit aide à repérer ce point plus vite : des thèmes clairs et stables d'un entretien à l'autre rendent la comparaison, et donc le repérage de la saturation, plus fiable.
+
 ## D'où vient ce concept ?
 
 La notion vient de la théorisation ancrée (grounded theory), développée par Glaser et Strauss dans les années 1960. Dans leur approche, l'échantillonnage est théorique : on ne fixe pas la taille de l'échantillon à l'avance, on continue à recruter et à interroger tant que de nouveaux entretiens font évoluer les catégories d'analyse. La collecte s'arrête quand elle cesse de faire évoluer la théorie en construction.
