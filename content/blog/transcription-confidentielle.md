@@ -63,6 +63,6 @@ Le choix de l'outil ne suffit pas : quelques habitudes complètent la protection
 
 La gestion des accès se fait par projet, pour que seuls les membres autorisés d'une équipe voient un entretien donné. HumanLogs est open source (AGPL v3) et auto-hébergeable via Docker, y compris sur l'infrastructure d'une université qui souhaiterait garder l'intégralité des données sur son propre réseau. Les données sont exportables et supprimables à tout moment.
 
-Pour un premier entretien, un plan gratuit (100 minutes par mois, sans carte bancaire) permet de vérifier ces garanties avant d'engager tout un corpus de recherche. Si vous cherchez ensuite un panorama plus large des critères à évaluer (précision, diarisation, formats d'export), notre [guide sur le choix d'un logiciel de transcription](/fr/blog/logiciel-de-transcription) complète cette lecture.
+Pour un premier entretien, un plan gratuit (100 minutes par mois, sans carte bancaire) permet de vérifier ces garanties avant d'engager tout un corpus de recherche. Si vous cherchez ensuite un panorama plus large des critères à évaluer (précision, diarisation, formats d'export), notre [guide sur le choix d'un logiciel de transcription](/fr/blog/logiciel-de-transcription) complète cette lecture, tout comme notre article dédié à la [localisation des données de recherche en France ou en UE](/fr/blog/hebergement-donnees-recherche-france).
 
 La confidentialité d'une transcription ne se décrète pas après coup : elle se construit dès le choix de l'outil, avec des questions précises et des réponses vérifiables.
