@@ -68,7 +68,7 @@ Remplacez dès la frappe :
 - Les noms de lieux identifiants (*"l'hôpital Lariboisière" → "un grand hôpital parisien"*)
 - Les données qui permettraient une identification indirecte (fonction très spécifique, événement particulier)
 
-Utilisez un **tableau de correspondance** (nom réel → pseudonyme) conservé séparément du corpus, en accès restreint. En France, le RGPD s'applique dès qu'une personne physique est identifiable, même indirectement.
+Utilisez un **tableau de correspondance** (nom réel → pseudonyme) conservé séparément du corpus, en accès restreint. En France, le RGPD s'applique dès qu'une personne physique est identifiable, même indirectement. Pour une méthode détaillée, étape par étape, voir notre [guide pratique pour anonymiser un entretien de recherche](/fr/blog/confidentialite-entretien-recherche).
 
 ## Le workflow traditionnel vs le workflow IA
 
