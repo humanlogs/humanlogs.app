@@ -73,3 +73,6 @@ C'est possible sur un sujet très cadré avec un échantillon homogène, mais ra
 
 **Que faire si on n'a pas atteint la saturation avant la date limite ?**
 Le documenter honnêtement dans les limites méthodologiques plutôt que de déclarer une saturation qui n'a pas eu lieu. Une collecte incomplète, reconnue comme telle, reste plus solide qu'une fausse affirmation de saturation.
+
+**La saturation s'évalue-t-elle de la même façon pour des [focus groups](/fr/blog/entretien-focus-groupe) ?**
+Le principe reste le même (arrêter quand plus aucun thème nouveau n'émerge), mais l'unité qui sature est le groupe, pas le participant individuel : on regarde si de nouveaux groupes apportent encore des thèmes inédits, pas si chaque participant en apporte un.
