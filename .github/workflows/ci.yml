@@ -171,13 +171,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Cache Docker layers
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
+      # The image carries a full node_modules twice (builder + runner) plus
+      # ffmpeg, and the runner ships ~30 GB of toolchains this build never
+      # touches. Reclaiming them keeps the build off the disk ceiling.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          df -h /
 
       - name: Log in to AWS
         env:
@@ -203,20 +204,27 @@ jobs:
       - name: Clean AI artifacts from blog content
         run: node pipeline/clean-ai-artifacts.mjs content/blog/*
 
-      - name: Build and Tag Docker Image
-        run: |
-          docker buildx create --use
-          docker buildx build --load --cache-from=type=local,src=/tmp/.buildx-cache --cache-to=type=local,dest=/tmp/.buildx-cache-new,mode=max -t humanlogs.app .
-          docker tag humanlogs.app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
-          docker tag humanlogs.app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ steps.package-version.outputs.version }}
-          # Move the new cache to the expected cache directory
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-
-      - name: Push Docker Image to ECR
-        run: |
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ steps.package-version.outputs.version }}
+      # Built straight to ECR: `--load` used to materialise the image in the
+      # local daemon first (a ~1.5 GB tarball export, then a second copy in the
+      # daemon's store) only for a `docker push` to read it back.
+      #
+      # The layer cache lives in the GitHub Actions cache, not on the runner's
+      # disk. The previous local cache was restored to /tmp/.buildx-cache and
+      # re-exported to /tmp/.buildx-cache-new, so both generations sat on disk
+      # at once — and, since the export is additive over what was restored, the
+      # cache grew with every push to main until the export ran out of space.
+      # That is what has been failing this job since 21/08. An export failure is
+      # not worth failing a deploy over either, hence ignore-error.
+      - name: Build and push Docker image to ECR
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ steps.package-version.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max,ignore-error=true
 
       - name: Clean up old ECR images
         env:
