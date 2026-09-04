@@ -1,7 +1,14 @@
+import { captureError } from "@/lib/observability/sentry";
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import config from "config";
-import { stripe, PLANS } from "@/lib/billing/stripe";
+import {
+  stripe,
+  PLANS,
+  getInvoiceSubscriptionId,
+  getSubscriptionPeriodEnd,
+  planForPriceId,
+} from "@/lib/billing/stripe";
 import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
 
@@ -61,12 +68,13 @@ export async function POST(request: NextRequest) {
 
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
+        const subscriptionId = getInvoiceSubscriptionId(invoice);
         console.log(
-          `[WEBHOOK] Processing invoice.payment_succeeded - Invoice ID: ${invoice.id}, Customer: ${invoice.customer}, Subscription: ${(invoice as any).subscription}`,
+          `[WEBHOOK] Processing invoice.payment_succeeded - Invoice ID: ${invoice.id}, Customer: ${invoice.customer}, Subscription: ${subscriptionId}`,
         );
         // Only process recurring subscription payments
-        if ((invoice as any).subscription) {
-          await handleInvoicePaymentSucceeded(invoice);
+        if (subscriptionId) {
+          await handleInvoicePaymentSucceeded(invoice, subscriptionId);
         } else {
           console.log(
             `[WEBHOOK] Skipping invoice - not a subscription payment`,
@@ -82,6 +90,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("Error processing webhook:", error);
+    // Billing failures are the ones nobody notices until a customer writes in —
+    // a dropped subscription event means someone paid and got nothing.
+    captureError(error, {
+      stage: "webhook",
+      job: `stripe:${event.type}`,
+      httpStatus: 500,
+    });
     return NextResponse.json(
       { error: "Webhook handler failed" },
       { status: 500 },
@@ -156,28 +171,38 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
 
   // Determine plan based on subscription price
   const priceId = subscription.items.data[0]?.price.id;
-  let plan = "free";
-  let creditsRefill = 100;
-
-  if (priceId === PLANS.MONTHLY.priceId) {
-    plan = "monthly";
-    creditsRefill = PLANS.MONTHLY.creditsRefill;
-  } else if (priceId === PLANS.YEARLY.priceId) {
-    plan = "yearly";
-    creditsRefill = PLANS.YEARLY.creditsRefill;
-  }
+  const { plan, creditsRefill } = planForPriceId(priceId);
 
   console.log(
     `[WEBHOOK] Subscription price ID: ${priceId}, detected plan: ${plan}, creditsRefill: ${creditsRefill}`,
   );
 
-  const currentPeriodEnd = (subscription as any).current_period_end
-    ? new Date((subscription as any).current_period_end * 1000)
-    : null;
+  const currentPeriodEnd = getSubscriptionPeriodEnd(subscription);
 
   console.log(
     `[WEBHOOK] Updating user subscription - plan: ${plan}, status: ${subscription.status}, periodEnd: ${currentPeriodEnd}`,
   );
+
+  const isActive =
+    subscription.status === "active" || subscription.status === "trialing";
+
+  // Grant the plan's credits as soon as the subscription starts, rather than
+  // waiting for `invoice.payment_succeeded` alone. A new subscriber who is
+  // still holding their free-tier balance would otherwise pay for a plan and
+  // keep the old allowance until the nightly refill cron caught up.
+  //
+  // Gated on the plan actually changing, so the routine `customer.subscription.updated`
+  // events (card updates, period rollovers, status changes) cannot top a
+  // subscriber back up mid-cycle after they have spent their credits.
+  const isNewPaidPlan = isActive && plan !== "free" && user.plan !== plan;
+  const creditTarget = creditsRefill + user.referralBonusCredits;
+  const shouldGrantCredits = isNewPaidPlan && user.credits < creditTarget;
+
+  if (shouldGrantCredits) {
+    console.log(
+      `[WEBHOOK] New ${plan} subscription - granting credits: ${user.credits} -> ${creditTarget}`,
+    );
+  }
 
   await prisma.user.update({
     where: { id: user.id },
@@ -187,11 +212,12 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       subscriptionPeriodEnd: currentPeriodEnd,
       plan,
       creditsRefill,
+      ...(shouldGrantCredits
+        ? { credits: creditTarget, lastCreditsRefill: new Date() }
+        : {}),
       // A subscription only reaches an active/trialing state once payment has
       // gone through, so treat this as the user's latest payment moment.
-      ...(subscription.status === "active" || subscription.status === "trialing"
-        ? { lastPaymentAt: new Date() }
-        : {}),
+      ...(isActive ? { lastPaymentAt: new Date() } : {}),
     },
   });
 
@@ -228,9 +254,11 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   console.log(`[WEBHOOK] Subscription deleted successfully`);
 }
 
-async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
+async function handleInvoicePaymentSucceeded(
+  invoice: Stripe.Invoice,
+  subscriptionId: string,
+) {
   const customerId = invoice.customer as string;
-  const subscriptionId = (invoice as any).subscription as string;
 
   // Fetch subscription details to get the current plan info
   let subscription: Stripe.Subscription | null = null;
@@ -262,10 +290,9 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   let creditsRefill = user.creditsRefill;
   if (subscription) {
     const priceId = subscription.items.data[0]?.price.id;
-    if (priceId === PLANS.MONTHLY.priceId) {
-      creditsRefill = PLANS.MONTHLY.creditsRefill;
-    } else if (priceId === PLANS.YEARLY.priceId) {
-      creditsRefill = PLANS.YEARLY.creditsRefill;
+    const forPrice = planForPriceId(priceId);
+    if (forPrice.plan !== PLANS.FREE.id) {
+      creditsRefill = forPrice.creditsRefill;
     }
     console.log(
       `[WEBHOOK] Subscription price ID: ${priceId}, calculated creditsRefill: ${creditsRefill}`,
@@ -276,16 +303,21 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   // topped up and don't need refilling.
   const now = new Date();
 
+  // Subscribers get their plan allotment plus any referral bonus — the same
+  // target the nightly refill cron uses, so a renewal through either path lands
+  // a referrer on the same balance.
+  const creditTarget = creditsRefill + user.referralBonusCredits;
+
   // Refill credits on successful subscription payment
-  // Only refill if credits are below the refill amount
-  if (user.credits < creditsRefill) {
+  // Only refill if credits are below the target amount
+  if (user.credits < creditTarget) {
     console.log(
-      `[WEBHOOK] Refilling credits: ${user.credits} -> ${creditsRefill}`,
+      `[WEBHOOK] Refilling credits: ${user.credits} -> ${creditTarget}`,
     );
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        credits: creditsRefill,
+        credits: creditTarget,
         lastCreditsRefill: now,
         lastPaymentAt: now,
       },
@@ -293,7 +325,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
     console.log(`[WEBHOOK] Credits refilled successfully`);
   } else {
     console.log(
-      `[WEBHOOK] Credits not refilled - user already has ${user.credits} credits (refill amount: ${creditsRefill})`,
+      `[WEBHOOK] Credits not refilled - user already has ${user.credits} credits (target: ${creditTarget})`,
     );
     await prisma.user.update({
       where: { id: user.id },

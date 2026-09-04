@@ -21,6 +21,7 @@ import {
   parseSpeakers,
   validateSpeakerCache,
 } from "@/lib/transcriptions/speakers";
+import { refundTranscriptionCredits } from "@/lib/billing/transcription-credits";
 
 type RouteParams = {
   params: Promise<{
@@ -366,6 +367,19 @@ export const DELETE = withAuthRateLimit(
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
       }
 
+      // Deleting a transcription that never produced a transcript releases its
+      // charge. A COMPLETED one keeps it: the minutes were delivered, and
+      // deleting the document afterwards is not a reason to be paid back.
+      if (
+        transcription.state === "PENDING" ||
+        transcription.state === "ERROR"
+      ) {
+        await refundTranscriptionCredits(
+          id,
+          `deleted by owner while ${transcription.state}`,
+        );
+      }
+
       // Delete all history entries for this transcription
       await prisma.transcriptionHistory.deleteMany({
         where: { transcriptionId: id, userId: user.id },
@@ -449,12 +463,20 @@ export const pollPendingTranscriptions = async (
     stt.isConfigured()
   ) {
     // Update the transcription with the result
-    return await prisma.transcription.update({
+    const timedOut = await prisma.transcription.update({
       where: { id: transcription.id },
       data: {
         state: "ERROR",
       },
     });
+
+    // Stuck long enough that the job is never coming back — release its charge.
+    await refundTranscriptionCredits(
+      transcription.id,
+      "transcription timed out while pending",
+    );
+
+    return timedOut;
   }
 
   return transcription;

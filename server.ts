@@ -1,11 +1,18 @@
+// Must stay the first import: it starts Sentry, whose auto-instrumentation only
+// wraps http/pg/undici if it loads before they do. Imports are hoisted, so an
+// `initSentry()` call placed further down would run too late.
+import "./lib/observability/instrument";
+
 import { createServer } from "http";
 import { parse } from "url";
 import next from "next";
 import { initSocketServer } from "./lib/sockets/socket-server";
+import { captureError, flushSentry } from "./lib/observability/sentry";
 
 // Global error handlers to prevent silent crashes
 process.on("unhandledRejection", (reason, promise) => {
   console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  captureError(reason, { stage: "unhandled-rejection" });
   // Don't exit the process, just log the error
 });
 
@@ -17,10 +24,13 @@ process.on("uncaughtException", (error) => {
     return;
   }
   console.error("Uncaught Exception:", error);
+  captureError(error, { stage: "uncaught-exception" });
   // Don't exit immediately, give time for logging
   setTimeout(() => {
     console.error("Process will exit due to uncaught exception");
-    process.exit(1);
+    // The report is worth more than the last second of uptime: this is the one
+    // crash class that takes the process down with it.
+    void flushSentry(1000).finally(() => process.exit(1));
   }, 1000);
 });
 

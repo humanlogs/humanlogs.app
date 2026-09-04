@@ -1,3 +1,4 @@
+import { captureError } from "@/lib/observability/sentry";
 import { prisma } from "@/lib/prisma";
 import type { TranscriptionResult } from "@/lib/stt/gladia";
 import { getGladiaClient } from "@/lib/stt/gladia";
@@ -146,6 +147,12 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error("Error processing Gladia webhook:", error);
+    captureError(error, {
+      stage: "webhook",
+      job: "gladia",
+      sttProvider: "gladia",
+      httpStatus: 500,
+    });
     return NextResponse.json(
       { error: "Webhook processing failed" },
       { status: 500 },

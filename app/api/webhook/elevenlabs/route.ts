@@ -1,3 +1,4 @@
+import { captureError } from "@/lib/observability/sentry";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
@@ -267,6 +268,12 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error("Error processing ElevenLabs webhook:", error);
+    captureError(error, {
+      stage: "webhook",
+      job: "elevenlabs",
+      sttProvider: "elevenlabs",
+      httpStatus: 500,
+    });
 
     // Send email notification for processing errors
     await sendWebhookProcessingError(

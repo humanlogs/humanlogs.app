@@ -9,6 +9,12 @@ import {
   type StreamedFile,
 } from "@/lib/audio/multipart-upload";
 import { isBillableVersion } from "@/lib/billing/stripe";
+import {
+  distributeCredits,
+  refundBatchCredits,
+  refundTranscriptionCredits,
+} from "@/lib/billing/transcription-credits";
+import { captureError } from "@/lib/observability/sentry";
 import { prisma } from "@/lib/prisma";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 import { generateAudioKey, getStorage } from "@/lib/storage";
@@ -200,6 +206,17 @@ export const POST = withAuthRateLimit(async (request, user) => {
     // Create transcription records and get file buffers
     const createdTranscriptions: string[] = [];
 
+    // What each file costs of the batch charge. Recorded on every row so a job
+    // that never produces a transcript can give its share back — the batch is
+    // rounded once, as a whole, and cannot be re-split afterwards.
+    const creditsPerFile = isBillable
+      ? distributeCredits(creditsNeeded, fileDurations)
+      : new Array(audioFiles.length).fill(0);
+
+    // Whether the debit below actually happened, so the rollback knows whether
+    // there is anything to give back.
+    let creditsDebited = false;
+
     try {
       // Deduct credits first (before processing files)
       if (isBillable) {
@@ -214,6 +231,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
             },
           },
         });
+        creditsDebited = true;
       }
 
       // Process files one at a time to avoid memory issues
@@ -248,6 +266,7 @@ export const POST = withAuthRateLimit(async (request, user) => {
             vocabulary: storedVocabulary as never,
             sttProvider: provider,
             state: "PENDING",
+            creditsCharged: creditsPerFile[i] ?? 0,
           },
         });
 
@@ -297,7 +316,34 @@ export const POST = withAuthRateLimit(async (request, user) => {
         creditsUsed: creditsNeeded,
       });
     } catch (error) {
-      // Rollback: delete any created transcriptions
+      // Rollback. The debit covers the whole batch and happened before any row
+      // existed, so deleting the records would otherwise strand it.
+      //
+      // Reclaim it in two parts rather than refunding `creditsNeeded` wholesale:
+      // a file already handed to a background job may have failed and refunded
+      // its own share in the meantime, and refunding the batch on top of that
+      // would pay it back twice. Per-row refunds settle that atomically — each
+      // one either claims its share or reports that someone else already did.
+      if (creditsDebited) {
+        for (const transcriptionId of createdTranscriptions) {
+          await refundTranscriptionCredits(
+            transcriptionId,
+            "upload rolled back",
+          );
+        }
+
+        // Files the loop never reached hold their share on no row at all.
+        const unclaimed = creditsPerFile
+          .slice(createdTranscriptions.length)
+          .reduce((sum, c) => sum + c, 0);
+        await refundBatchCredits(
+          user.id,
+          unclaimed,
+          "upload failed before processing started",
+        );
+      }
+
+      // Delete any created transcriptions
       if (createdTranscriptions.length > 0) {
         await prisma.transcription.deleteMany({
           where: {
@@ -310,6 +356,11 @@ export const POST = withAuthRateLimit(async (request, user) => {
     }
   } catch (error) {
     console.error("Error creating transcription:", error);
+    captureError(error, {
+      stage: "upload-request",
+      userId: user.id,
+      httpStatus: 500,
+    });
     // Clean up any temp files that were not handed off to a background job.
     if (parsed) {
       await Promise.all(
@@ -460,6 +511,13 @@ async function processAudioAndTranscription(
       `Error processing audio and transcription ${transcriptionId}:`,
       error,
     );
+    captureError(error, {
+      stage: "audio-processing",
+      transcriptionId,
+      userId,
+      sttProvider: options.provider,
+      durationSeconds: options.duration,
+    });
 
     // Update transcription with error
     await prisma.transcription.update({
@@ -472,6 +530,12 @@ async function processAudioAndTranscription(
             : "Failed to process audio file",
       },
     });
+
+    // The audio never reached a provider, so the charge bought nothing.
+    await refundTranscriptionCredits(
+      transcriptionId,
+      "audio processing failed",
+    );
   } finally {
     // Remove the temp files this job owns (uploaded source + compressed output).
     await unlink(inputPath).catch(() => {});
@@ -588,6 +652,12 @@ async function processTranscription(
     }
   } catch (error) {
     console.error(`Error processing transcription ${transcriptionId}:`, error);
+    captureError(error, {
+      stage: "stt-start",
+      transcriptionId,
+      sttProvider: options.provider,
+      durationSeconds: options.duration,
+    });
 
     // Update transcription with error
     await prisma.transcription.update({
@@ -598,5 +668,11 @@ async function processTranscription(
           error instanceof Error ? error.message : "Unknown error occurred",
       },
     });
+
+    // The provider never accepted the job, so no minutes were consumed.
+    await refundTranscriptionCredits(
+      transcriptionId,
+      "could not start transcription job",
+    );
   }
 }

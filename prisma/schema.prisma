@@ -172,6 +172,12 @@ model Transcription {
   speakerCount              Int                @default(1)
   state                     TranscriptionState @default(PENDING)
   errorMessage              String?
+  /// Credits debited for this transcription at creation, so a job that never
+  /// produces a transcript can hand them back. The charge is billed per upload
+  /// batch (`ceil(total seconds / 60)`) and apportioned across its files, so
+  /// this cannot be recomputed later — see lib/billing/transcription-credits.ts.
+  /// Set to 0 once refunded, which is also what makes refunds idempotent.
+  creditsCharged            Int                @default(0)
   // STT provider used for this transcription: "gladia" | "elevenlabs" | "whisper"
   sttProvider               String?
   elevenLabsTranscriptionId String?
