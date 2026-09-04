@@ -1,3 +1,4 @@
+import { captureError } from "@/lib/observability/sentry";
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import config from "config";
@@ -89,6 +90,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("Error processing webhook:", error);
+    // Billing failures are the ones nobody notices until a customer writes in —
+    // a dropped subscription event means someone paid and got nothing.
+    captureError(error, {
+      stage: "webhook",
+      job: `stripe:${event.type}`,
+      httpStatus: 500,
+    });
     return NextResponse.json(
       { error: "Webhook handler failed" },
       { status: 500 },

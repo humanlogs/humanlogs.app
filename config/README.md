@@ -108,3 +108,19 @@ See `config/default.json` for the full configuration structure:
   - `security.deletedAccountRetentionDays` / `DELETED_ACCOUNT_RETENTION_DAYS`:
     how long those hashes are kept (default `365`). A weekly cron job deletes
     older records; set to `0` to keep them forever.
+- `sentry` - Server-side error reporting (`lib/observability/sentry.ts`).
+  **Disabled by default and off unless you set a DSN**, so a self-hosted
+  instance never reports anything to a third party without being asked to.
+  - `sentry.dsn` / `SENTRY_DSN`: the project DSN. Empty means no client is
+    created and no network calls are made.
+  - `sentry.environment` / `SENTRY_ENVIRONMENT`: defaults to `NODE_ENV`.
+  - `sentry.tracesSampleRate` / `SENTRY_TRACES_SAMPLE_RATE`: performance
+    tracing, `0` (off) by default. Errors are the point here; traces carry far
+    more request detail than exceptions do.
+
+  Only the backend is instrumented — there is no browser SDK, so nothing is
+  reported from the page where transcripts are decrypted. Reports carry an
+  allow-listed set of fields (stage, transcription id, account id, provider,
+  file size, duration) and never transcript content, speaker names, the
+  vocabulary, or the uploaded filename, which in research audio is routinely
+  the participant's name. See the header of `lib/observability/sentry.ts`.

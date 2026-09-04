@@ -85,5 +85,10 @@
     "security": {
         "emailHashSecret": "",
         "deletedAccountRetentionDays": 365
+    },
+    "sentry": {
+        "dsn": "",
+        "environment": "",
+        "tracesSampleRate": 0
     }
 }

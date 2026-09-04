@@ -124,6 +124,19 @@ const configSchema = z.object({
       deletedAccountRetentionDays: z.coerce.number().int().min(0).default(365),
     })
     .optional(),
+  sentry: z
+    .object({
+      // Server-side error reporting. Empty DSN disables it entirely, which is
+      // the default: a self-hosted instance must never phone home unless its
+      // operator asks it to.
+      dsn: z.string().optional(),
+      // Defaults to NODE_ENV when empty.
+      environment: z.string().optional(),
+      // Performance tracing, off by default — this deployment wants errors, not
+      // APM, and traces carry far more request detail than errors do.
+      tracesSampleRate: z.coerce.number().min(0).max(1).default(0),
+    })
+    .optional(),
 });
 
 export type AppConfig = z.infer<typeof configSchema>;
@@ -191,6 +204,16 @@ export const statsConfig = {
   apiToken: config.has("stats.apiToken")
     ? config.get<string>("stats.apiToken")
     : "",
+};
+
+export const sentryConfig = {
+  dsn: config.has("sentry.dsn") ? config.get<string>("sentry.dsn") : "",
+  environment: config.has("sentry.environment")
+    ? config.get<string>("sentry.environment")
+    : "",
+  tracesSampleRate: config.has("sentry.tracesSampleRate")
+    ? Number(config.get("sentry.tracesSampleRate")) || 0
+    : 0,
 };
 
 export const awsConfig = {

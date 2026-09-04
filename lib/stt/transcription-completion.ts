@@ -10,6 +10,7 @@ import { encodeSpeakerCache } from "@/lib/transcriptions/speakers";
 import { TranscriptionResult, TranscriptionWord } from "./elevenlabs";
 import { getConfig } from "@/lib/config";
 import { refundTranscriptionCredits } from "@/lib/billing/transcription-credits";
+import { captureError } from "@/lib/observability/sentry";
 import { sendEmail } from "@/lib/email/mailer";
 import {
   getTranscriptionCompletedEmailTemplate,
@@ -208,6 +209,17 @@ export async function failTranscription(
 
   // Avoid double emails when polling and the webhook both resolve the same job.
   const wasAlreadyFailed = transcription.state === "ERROR";
+
+  // A provider-side failure never throws here — it arrives as a status. Report
+  // it once, on the transition, so the same job resolved twice is one issue.
+  if (!wasAlreadyFailed) {
+    captureError(new Error(`Transcription failed: ${error}`), {
+      stage: "stt-provider",
+      transcriptionId: transcription.id,
+      userId: transcription.userId,
+      sttProvider: transcription.sttProvider ?? undefined,
+    });
+  }
 
   // Update with error
   const updated = await prisma.transcription.update({

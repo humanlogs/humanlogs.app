@@ -14,6 +14,7 @@ import {
   refundBatchCredits,
   refundTranscriptionCredits,
 } from "@/lib/billing/transcription-credits";
+import { captureError } from "@/lib/observability/sentry";
 import { prisma } from "@/lib/prisma";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 import { generateAudioKey, getStorage } from "@/lib/storage";
@@ -355,6 +356,11 @@ export const POST = withAuthRateLimit(async (request, user) => {
     }
   } catch (error) {
     console.error("Error creating transcription:", error);
+    captureError(error, {
+      stage: "upload-request",
+      userId: user.id,
+      httpStatus: 500,
+    });
     // Clean up any temp files that were not handed off to a background job.
     if (parsed) {
       await Promise.all(
@@ -505,6 +511,13 @@ async function processAudioAndTranscription(
       `Error processing audio and transcription ${transcriptionId}:`,
       error,
     );
+    captureError(error, {
+      stage: "audio-processing",
+      transcriptionId,
+      userId,
+      sttProvider: options.provider,
+      durationSeconds: options.duration,
+    });
 
     // Update transcription with error
     await prisma.transcription.update({
@@ -639,6 +652,12 @@ async function processTranscription(
     }
   } catch (error) {
     console.error(`Error processing transcription ${transcriptionId}:`, error);
+    captureError(error, {
+      stage: "stt-start",
+      transcriptionId,
+      sttProvider: options.provider,
+      durationSeconds: options.duration,
+    });
 
     // Update transcription with error
     await prisma.transcription.update({
