@@ -9,6 +9,7 @@ import {
 import { encodeSpeakerCache } from "@/lib/transcriptions/speakers";
 import { TranscriptionResult, TranscriptionWord } from "./elevenlabs";
 import { getConfig } from "@/lib/config";
+import { refundTranscriptionCredits } from "@/lib/billing/transcription-credits";
 import { sendEmail } from "@/lib/email/mailer";
 import {
   getTranscriptionCompletedEmailTemplate,
@@ -216,6 +217,12 @@ export async function failTranscription(
       errorMessage: error || "Transcription failed",
     },
   });
+
+  // Hand back what the failed job was charged. Both polling and the webhook
+  // reach this for the same transcription, so the refund is idempotent on the
+  // row itself rather than on `wasAlreadyFailed` — that flag is read from a
+  // snapshot taken before the update and cannot settle a race.
+  await refundTranscriptionCredits(transcription.id, "transcription failed");
 
   // Notify client of transcription error
   notifyDatabaseChange(transcription.userId, "transcription", "update", {

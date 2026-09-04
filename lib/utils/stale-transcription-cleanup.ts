@@ -1,6 +1,7 @@
 import { prisma } from "../prisma";
 import { getStorage } from "../storage";
 import { notifyDatabaseChange } from "../sockets/socket-helpers";
+import { refundTranscriptionCredits } from "../billing/transcription-credits";
 
 // Transcriptions stuck in PENDING or ERROR for longer than this are considered
 // dead (the STT job never completed or failed) and are removed automatically.
@@ -13,6 +14,7 @@ const STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000; // 24h
  */
 export async function cleanupStaleTranscriptions(): Promise<{
   deleted: number;
+  creditsRefunded: number;
 }> {
   const cutoff = new Date(Date.now() - STALE_THRESHOLD_MS);
 
@@ -26,14 +28,25 @@ export async function cleanupStaleTranscriptions(): Promise<{
   });
 
   if (stale.length === 0) {
-    return { deleted: 0 };
+    return { deleted: 0, creditsRefunded: 0 };
   }
 
   const storage = getStorage();
   let deleted = 0;
+  let creditsRefunded = 0;
 
   for (const t of stale) {
     try {
+      // These never produced a transcript, and the row is about to disappear —
+      // this is the last moment their charge can be given back. Refunding
+      // before the delete keeps it out of the "row vanished, credits gone"
+      // hole; a transcription already refunded on failure is a no-op here.
+      const refund = await refundTranscriptionCredits(
+        t.id,
+        "stale transcription removed by cleanup",
+      );
+      creditsRefunded += refund.credits;
+
       await prisma.transcriptionHistory.deleteMany({
         where: { transcriptionId: t.id },
       });
@@ -59,5 +72,5 @@ export async function cleanupStaleTranscriptions(): Promise<{
     }
   }
 
-  return { deleted };
+  return { deleted, creditsRefunded };
 }
