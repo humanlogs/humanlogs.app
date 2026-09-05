@@ -92,7 +92,7 @@ Voici les points à comparer avant de vous engager avec un outil :
 
 [HumanLogs](https://humanlogs.app) a été conçu pour les chercheurs qui transcrivent des entretiens. Il traite environ 2 heures d'audio en 10 minutes, prend en charge plus de 100 langues et propose une diarisation automatique avec étiquetage manuel des locuteurs.
 
-L'éditeur audio-texte synchronise texte et enregistrement : cliquer sur un mot repositionne la lecture à ce moment précis, ce qui rend la relecture et la correction environ 4 fois plus rapides qu'avec un lecteur audio séparé. Les projets permettent de regrouper et d'organiser plusieurs entretiens d'une même étude. Les exports sont disponibles en PDF, Word, CSV et TXT.
+L'éditeur audio-texte synchronise texte et enregistrement : cliquer sur un mot repositionne la lecture à ce moment précis, ce qui rend la relecture et la correction environ 4 fois plus rapides qu'avec un lecteur audio séparé. Les projets permettent de regrouper et d'organiser plusieurs entretiens d'une même étude - voir notre [guide pour organiser un projet de recherche qualitative à plusieurs entretiens](/fr/blog/organiser-projet-recherche-qualitative) si votre corpus dépasse quelques fichiers. Les exports sont disponibles en PDF, Word, CSV et TXT.
 
 Sur la confidentialité : le chiffrement bout en bout est disponible, audio et transcription ne circulent jamais en clair sur les serveurs. Le provider par défaut (Gladia) héberge les données en Europe en mode sans rétention. HumanLogs est open source (AGPL v3) et peut être auto-hébergé sur l'infrastructure de votre université.
 
