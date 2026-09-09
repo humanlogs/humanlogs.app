@@ -59,7 +59,7 @@ Avant de terminer la phase de transcription, vérifiez que le format d'export co
 - **Une revue par un comité ou un directeur** se fait souvent plus simplement en PDF, mise en page fixe et lisible sans logiciel spécialisé.
 - **Une réutilisation quantitative des métadonnées** (durée, nombre de tours de parole) profite d'un export CSV.
 
-Exporter tout le corpus dans un format cohérent, plutôt qu'un mélange de formats selon l'outil utilisé au moment de chaque entretien, évite un travail de conversion manuelle avant le codage.
+Exporter tout le corpus dans un format cohérent, plutôt qu'un mélange de formats selon l'outil utilisé au moment de chaque entretien, évite un travail de conversion manuelle avant le codage. Notre [guide sur l'export vers NVivo, ATLAS.ti ou Taguette](/fr/blog/exporter-transcription-logiciel-analyse-qualitative) détaille les formats attendus par chaque outil et le codage automatique par locuteur.
 
 ## Une checklist avant de lancer la collecte
 
