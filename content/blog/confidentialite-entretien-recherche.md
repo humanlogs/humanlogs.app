@@ -54,7 +54,7 @@ Un comité d'éthique (CPP, commission universitaire) ou la CNIL attend une desc
 - Si des verbatims seront cités dans les publications, et sous quelle forme (avec ou sans détails contextuels).
 - La durée de conservation de l'audio source par rapport à la transcription anonymisée.
 
-Un participant qui accepte que son entretien soit « traité de façon confidentielle » n'a pas nécessairement compris qu'un pseudonyme n'empêche pas un lecteur averti de le reconnaître par recoupement. Le formulaire gagne à être explicite sur ce point, plutôt que de se contenter du mot « anonyme ».
+Un participant qui accepte que son entretien soit « traité de façon confidentielle » n'a pas nécessairement compris qu'un pseudonyme n'empêche pas un lecteur averti de le reconnaître par recoupement. Le formulaire gagne à être explicite sur ce point, plutôt que de se contenter du mot « anonyme ». Le choix de la base légale (consentement ou intérêt de la recherche scientifique) change d'ailleurs quels droits ce même participant peut exercer par la suite - notre article sur la [protection des données de recherche](/fr/blog/protection-donnees-recherche-qualitative) détaille cette articulation.
 
 ## Les erreurs qui ré-identifient un participant « anonyme »
 
