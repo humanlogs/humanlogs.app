@@ -37,7 +37,7 @@ En pratique, beaucoup de projets combinent les deux dans un design mixte : par e
 
 ## Les principales méthodes de collecte en recherche qualitative
 
-Le choix de la méthode dépend de la question de recherche et du terrain étudié.
+Le choix de la méthode dépend de la question de recherche et du terrain étudié - tout comme le choix des participants à interroger, qui répond à sa propre logique méthodologique (voir les [différents types d'échantillonnage en recherche qualitative](/fr/blog/types-echantillonnage-recherche-qualitative)).
 
 ### L'entretien individuel
 

@@ -21,7 +21,7 @@ Un [guide d'entretien qualitatif](/fr/blog/guide-entretien-qualitatif) bien cons
 
 ## D'où vient ce concept ?
 
-La notion vient de la théorisation ancrée (grounded theory), développée par Glaser et Strauss dans les années 1960. Dans leur approche, l'échantillonnage est théorique : on ne fixe pas la taille de l'échantillon à l'avance, on continue à recruter et à interroger tant que de nouveaux entretiens font évoluer les catégories d'analyse. La collecte s'arrête quand elle cesse de faire évoluer la théorie en construction.
+La notion vient de la théorisation ancrée (grounded theory), développée par Glaser et Strauss dans les années 1960. Dans leur approche, l'[échantillonnage est théorique](/fr/blog/types-echantillonnage-recherche-qualitative) : on ne fixe pas la taille de l'échantillon à l'avance, on continue à recruter et à interroger tant que de nouveaux entretiens font évoluer les catégories d'analyse. La collecte s'arrête quand elle cesse de faire évoluer la théorie en construction.
 
 Le concept a depuis largement dépassé la grounded theory. Il est aujourd'hui utilisé comme repère de rigueur dans la plupart des approches qualitatives basées sur l'entretien, y compris quand le design n'est pas strictement ancré dans cette tradition.
 
