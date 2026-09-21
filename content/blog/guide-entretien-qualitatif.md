@@ -31,7 +31,7 @@ La majorité des guides méthodologiques recommandent le format semi-directif po
 
 ## Construire son guide étape par étape
 
-**1. Partir de la question de recherche, pas des questions d'entretien.** Listez d'abord les grands thèmes que votre [question de recherche qualitative](/fr/blog/recherche-qualitative) impose de couvrir. Les questions viendront ensuite, une fois les thèmes fixés.
+**1. Partir de la question de recherche, pas des questions d'entretien.** Listez d'abord les grands thèmes que votre [question de recherche qualitative](/fr/blog/recherche-qualitative) impose de couvrir. Les questions viendront ensuite, une fois les thèmes fixés. Ce guide fait ensuite partie des éléments à présenter et justifier dans le [chapitre méthodologie de la thèse](/fr/blog/methodologie-these-qualitative).
 
 **2. Découper chaque thème en sous-thèmes.** Un thème comme « rapport au travail » se décline en plusieurs sous-thèmes concrets : organisation quotidienne, relations avec la hiérarchie, sens donné au travail, projection à l'avenir. Ce découpage évite les questions trop générales, difficiles à exploiter au moment du codage.
 

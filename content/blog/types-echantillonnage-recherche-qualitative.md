@@ -70,7 +70,7 @@ Trois questions aident à trancher :
 2. **La population cible est-elle accessible directement ?** Si non, la boule de neige ou le recrutement par relais institutionnel (associations, cliniques, établissements) devient nécessaire.
 3. **La taille de l'échantillon est-elle fixée à l'avance, ou évolutive ?** Une étude avec un calendrier de thèse serré gagnera à annoncer une fourchette plutôt qu'un chiffre fixe, en particulier avec une stratégie théorique.
 
-Dans tous les cas, le protocole doit expliciter la stratégie choisie et sa justification, pas seulement le nombre de participants prévu : un comité d'éthique ou un jury évalue la cohérence entre la question de recherche et la méthode de sélection, pas uniquement la taille de l'échantillon.
+Dans tous les cas, le protocole doit expliciter la stratégie choisie et sa justification, pas seulement le nombre de participants prévu : un comité d'éthique ou un jury évalue la cohérence entre la question de recherche et la méthode de sélection, pas uniquement la taille de l'échantillon. Cette justification prend tout son sens intégrée dans l'ensemble du [chapitre méthodologie de la thèse](/fr/blog/methodologie-these-qualitative), aux côtés du positionnement épistémologique et des critères de rigueur.
 
 ## Échantillonnage et transcription : garder la trace du recrutement
 
