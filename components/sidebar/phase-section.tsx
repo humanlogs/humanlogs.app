@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  WORKSPACE_ACCENT,
+  type WorkspaceArea,
+} from "@/components/transcriptions/editor/phase";
 import { cn } from "@/lib/utils/utils";
 import { ChevronDownIcon } from "lucide-react";
 
@@ -24,7 +28,7 @@ export function PhaseSection({
   count,
   open,
   onOpen,
-  accent = false,
+  area,
   action,
   children,
 }: {
@@ -33,8 +37,11 @@ export function PhaseSection({
   count: string;
   open: boolean;
   onOpen: () => void;
-  /** Coding carries the yellow it uses in the editor, so the phase is recognisable. */
-  accent?: boolean;
+  /**
+   * The space this phase is, for its colour. From the same constant the header's
+   * rule uses, so a researcher reads one scale rather than two.
+   */
+  area?: WorkspaceArea;
   /** The display-options control, on the open header only. */
   action?: React.ReactNode;
   children: React.ReactNode;
@@ -44,8 +51,7 @@ export function PhaseSection({
       <div
         className={cn(
           "flex h-8 items-center gap-1 rounded-md pr-1 transition-colors",
-          open && !accent && "bg-sidebar-accent",
-          open && accent && "bg-yellow-400/15",
+          open && (area ? WORKSPACE_ACCENT[area].wash : "bg-sidebar-accent"),
           !open && "hover:bg-sidebar-accent/60",
         )}
       >

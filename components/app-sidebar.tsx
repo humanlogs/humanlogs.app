@@ -7,7 +7,7 @@ import {
   PhaseSection,
 } from "@/components/sidebar/phase-section";
 import { SidebarUserMenu } from "@/components/sidebar/sidebar-user-menu";
-import { StudyPicker } from "@/components/sidebar/study-picker";
+import { StudyList, type StudyEntry } from "@/components/sidebar/study-list";
 import { TranscriptionMenuItem } from "@/components/sidebar/transcription-menu-item";
 import {
   DOCUMENT_PHASES,
@@ -197,19 +197,53 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
    * study like any other, and filing it under "Shared" said who gave it to you
    * instead of what it is about — the row carries that as a marker.
    */
-  const documents = React.useMemo(() => {
+  const matching = React.useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    const inScope = filterByStudy(transcriptions, scope);
-    if (!query) return inScope;
+    if (!query) return transcriptions;
     // Typing a study name keeps all of its documents, whatever the grouping is.
-    return inScope.filter(
+    return transcriptions.filter(
       (t) =>
         t.title.toLowerCase().includes(query) ||
         (t.projectId
           ? projectsById.get(t.projectId)?.name.toLowerCase().includes(query)
           : false),
     );
-  }, [transcriptions, scope, searchQuery, projectsById]);
+  }, [transcriptions, searchQuery, projectsById]);
+
+  // The search is applied BEFORE the scope, not after, so the same filtered set
+  // can be counted per study: a search that matches nothing here tells you at a
+  // glance which other study it does match.
+  const documents = React.useMemo(
+    () => filterByStudy(matching, scope),
+    [matching, scope],
+  );
+
+  /**
+   * Every scope the sidebar can be put into, in display order: the studies first
+   * (alphabetical, as `studies` already is), then the two views, which are ways of
+   * looking at the corpus rather than places in it.
+   */
+  const studyEntries: StudyEntry[] = React.useMemo(
+    () => [
+      ...studies.map((study) => ({
+        scope: study.id as StudyScope,
+        study,
+        label: study.name,
+        documentCount: filterByStudy(matching, study.id).length,
+      })),
+      {
+        scope: STUDY_SCOPE_ALL,
+        label: t("study.all"),
+        documentCount: matching.length,
+      },
+      {
+        scope: STUDY_SCOPE_NONE,
+        label: t("study.none"),
+        documentCount: filterByStudy(matching, STUDY_SCOPE_NONE).length,
+      },
+    ],
+    [studies, matching, t],
+  );
 
   const groups = React.useMemo(
     () =>
@@ -433,22 +467,20 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
           </SidebarMenu>
 
           {/* The study says what the list is about; the phases are the list. The
-              scope used to be a tab on a bordered card, which framed the corpus as
-              one object among several in the column — but it is not an object in
-              the column, it is the column. Full-bleed, with a tinted rule under the
-              scope, it reads as the heading of everything below rather than as a
-              box beside the navigation. The phases' filled headers and the group
+              scope used to be a DROPDOWN, which hid how many studies there were
+              behind a click — a corpus you cannot see the shape of is one you
+              navigate from memory. The others are laid out under the open one
+              instead, closed, one click from taking its place. Full-bleed, so the
+              current study reads as the heading of everything below rather than as
+              a box beside the navigation. The phases' filled headers and the group
               rules inside them are still three distinct devices, which is what
               keeps three levels of heading legible in 256px. */}
           <SidebarGroup className="p-0">
-            <div className="flex flex-col">
-              <StudyPicker
-                scope={scope}
-                studies={studies}
-                documentCount={documents.length}
-                onChange={(studyScope) => update({ studyScope })}
-              />
-
+            <StudyList
+              entries={studyEntries}
+              scope={scope}
+              onChange={(studyScope) => update({ studyScope })}
+            >
               <div className="flex flex-col gap-0.5 px-2 py-1.5">
                 {DOCUMENT_PHASES.filter(
                   (value) => betaFeatures || value === "transcription",
@@ -461,7 +493,7 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
                         ? `${codedCount}/${documents.length}`
                         : String(documents.length)
                     }
-                    accent={value === "coding"}
+                    area={value}
                     open={phase === value}
                     onOpen={() => openPhase(value)}
                     action={viewSettings}
@@ -471,7 +503,7 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
                   </PhaseSection>
                 ))}
               </div>
-            </div>
+            </StudyList>
           </SidebarGroup>
         </SidebarContent>
 

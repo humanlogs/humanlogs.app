@@ -51,36 +51,41 @@ export default async function AppLayout({
     <WelcomeIntro>
       <SidebarProvider>
         <ExcerptPanelProvider>
-        <AppSidebar user={user}>
-        <SidebarInset className="flex flex-col">
-          <AppHeader />
-          <main className="relative flex-1 min-w-0 overflow-hidden">
-            <AppAmbientBackdrop />
-            <ScrollArea className="app-main-scroll relative z-10 h-full">
-              <AppRouteTransition>{children}</AppRouteTransition>
-            </ScrollArea>
-          </main>
-        </SidebarInset>
-      </AppSidebar>
-      {/* A flex sibling of the inset, not an overlay: the excerpt table is meant to
+          <AppSidebar user={user}>
+            {/* `min-w-0` is what keeps the header out of the excerpt panel. The inset is
+            the flex-1 sibling of a `shrink-0` panel, and a flex item defaults to
+            `min-width: auto` — so it refused to shrink below its content and ran
+            underneath the panel, the header's right-hand controls colliding with the
+            panel's own. */}
+            <SidebarInset className="flex min-w-0 flex-col">
+              <AppHeader />
+              <main className="relative flex-1 min-w-0 overflow-hidden">
+                <AppAmbientBackdrop />
+                <ScrollArea className="app-main-scroll relative z-10 h-full">
+                  <AppRouteTransition>{children}</AppRouteTransition>
+                </ScrollArea>
+              </main>
+            </SidebarInset>
+          </AppSidebar>
+          {/* A flex sibling of the inset, not an overlay: the excerpt table is meant to
           be read ALONGSIDE the transcript while coding, so it takes width from the
           document rather than covering it. */}
-      <ExcerptPanel />
-      <TranscriptionRenameDialog />
-      <TranscriptionDeleteDialog />
-      <TranscriptionSetProjectDialog />
-      <TranscriptionShareDialog />
-      <ProjectCreateModal />
-      <CodebookEditorDialog />
-      <TranscriptionExportDialog />
-      <TranscriptionHistorySheet />
-      <SpeakerOptionsDialog />
-      <PauseConfigurationDialog />
-      <ShortcutsDialog />
-      <FeedbackDialog />
-      <FeedbackAutoPrompt />
-      <HelpDialog />
-      </ExcerptPanelProvider>
+          <ExcerptPanel />
+          <TranscriptionRenameDialog />
+          <TranscriptionDeleteDialog />
+          <TranscriptionSetProjectDialog />
+          <TranscriptionShareDialog />
+          <ProjectCreateModal />
+          <CodebookEditorDialog />
+          <TranscriptionExportDialog />
+          <TranscriptionHistorySheet />
+          <SpeakerOptionsDialog />
+          <PauseConfigurationDialog />
+          <ShortcutsDialog />
+          <FeedbackDialog />
+          <FeedbackAutoPrompt />
+          <HelpDialog />
+        </ExcerptPanelProvider>
       </SidebarProvider>
     </WelcomeIntro>
   );

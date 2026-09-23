@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuSub,
 } from "@/components/ui/dropdown-menu";
+import { useDocumentViewPrefs } from "@/hooks/use-document-view-prefs";
 import { SharedUser, TranscriptionContent } from "@/hooks/use-transcriptions";
 import { downloadAsMP3 } from "@/lib/audio/audio-conversion.browser";
 import { downloadAndDecryptAudio } from "@/lib/audio/audio-decryption.browser";
@@ -188,6 +189,12 @@ export function TranscriptionActions({
   const { openPauseConfiguration } = usePauseConfigurationModal();
   const { open: openShortcuts } = useShortcutsModal();
   const { openShare } = useTranscriptionShareDialog();
+
+  // Which pass this document is being read in. The coding gestures — the
+  // document's own codes, the excerpt table's shortcuts — are offered only there:
+  // in transcription they are answers to a question the page has not asked.
+  const { prefs } = useDocumentViewPrefs();
+  const coding = prefs.phase === "coding";
 
   // `null` on the server: localStorage only exists once mounted in the browser.
   const storedFormat = React.useSyncExternalStore(
@@ -544,8 +551,9 @@ export function TranscriptionActions({
           )}
 
           {/* Codes of the document itself — the speakers have theirs on their
-              badge, this is the same gesture one level up. */}
-          {hasWriteAccess && (
+              badge, this is the same gesture one level up, and like theirs it is
+              only offered in the pass where coding is the work. */}
+          {hasWriteAccess && coding && (
             <DocumentCodesMenu
               transcriptionId={transcriptionId}
               projectId={projectId}

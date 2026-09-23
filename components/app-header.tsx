@@ -1,8 +1,11 @@
 "use client";
 
 import { ExcerptPanelTrigger } from "@/components/codebooks/excerpts/excerpt-panel-trigger";
+import { WORKSPACE_ACCENT } from "@/components/transcriptions/editor/phase";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { workspaceAreaOf } from "@/lib/documents/workspace-area";
 import { cn } from "@/lib/utils/utils";
+import { useDocumentViewPrefs } from "@/hooks/use-document-view-prefs";
 import { usePathname } from "next/navigation";
 
 /**
@@ -19,6 +22,16 @@ import { usePathname } from "next/navigation";
 export function AppHeader() {
   const pathname = usePathname();
   const isTranscription = pathname?.startsWith("/app/transcription/") ?? false;
+
+  // Which space the app is currently in: writing the transcript, reading it, or
+  // (one day) comparing it. A rule under the header rather than a label, because
+  // it has to be answerable at a glance without being read.
+  // The phase comes from the view preferences rather than the query string: this
+  // sits in the layout that wraps every route, and `useSearchParams` there would
+  // demand a Suspense boundary around all of them. The document page keeps the
+  // preference in step with its URL, so the two agree.
+  const { prefs } = useDocumentViewPrefs();
+  const area = workspaceAreaOf(pathname, prefs.phase);
 
   // On desktop, non-transcription routes leave the bar empty (the toggle and the
   // mobile title are hidden, and only the editor injects into the header
@@ -63,6 +76,15 @@ export function AppHeader() {
         <ExcerptPanelTrigger />
       </div>
       <div id="header-sub-portal" className="w-full" />
+      {/* The same scale as the sidebar's phase headers, from the same constant, so
+          the two cannot drift. Absent off a working space: the home page is not a
+          pass over material, and colouring it would make the scale mean nothing. */}
+      {area && (
+        <div
+          aria-hidden
+          className={cn("h-[3px] w-full", WORKSPACE_ACCENT[area].rule)}
+        />
+      )}
     </header>
   );
 }

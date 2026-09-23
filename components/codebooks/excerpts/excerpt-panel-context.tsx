@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useDocumentViewPrefs } from "@/hooks/use-document-view-prefs";
+import { workspaceAreaOf } from "@/lib/documents/workspace-area";
 import type { CodeRef } from "@/lib/codebooks/codebook";
 import {
   DEFAULT_PHRASE_GROUP_BY,
@@ -586,19 +588,20 @@ export function ExcerptPanelProvider({
 /**
  * Whether the excerpt table belongs on the page you are on.
  *
- * Only a document, in either of its phases. The panel used to follow you
- * everywhere, which is what "global" bought: the table survived opening a second
- * interview. It also meant it sat open over the home page, the account settings
- * and a study's page, answering a question none of them had asked.
+ * A document being CODED, and nothing else. It used to follow you everywhere,
+ * which is what "global" bought: the table survived opening a second interview.
+ * It also meant it sat open over the home page and the account settings,
+ * answering a question neither had asked; and beside a transcript being written,
+ * where a table of what has been read of it is one thing too many on screen.
  *
- * Decided from the ROUTE rather than from `context.documentId`, because that is
- * reported by the pages that bother to report it: a page that forgets would leave
- * the previous document's id standing and the panel with it. A route cannot
- * forget where it is.
+ * The route decides whether there is a document, the phase decides whether it is
+ * being coded. Both from outside the panel: a page that forgot to report would
+ * leave the previous answer standing, and a route cannot forget where it is.
  */
 export function useExcerptPanelOnPage(): boolean {
   const pathname = usePathname();
-  return pathname?.startsWith("/app/transcription/") ?? false;
+  const { prefs } = useDocumentViewPrefs();
+  return workspaceAreaOf(pathname, prefs.phase) === "coding";
 }
 
 export function useExcerptPanel(): ExcerptPanelValue {
