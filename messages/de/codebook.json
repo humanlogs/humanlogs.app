@@ -117,7 +117,8 @@
         "everyone": "Codes aller"
       },
       "codebook": "Codebook",
-      "untitled": "Unbenanntes Codebook"
+      "untitled": "Unbenanntes Codebook",
+      "changeCodebook": "Codebook wechseln"
     },
     "excerpts": {
       "title": "Auszüge",
@@ -200,6 +201,24 @@
       "description": "Alle codierten Passagen dieser Studie in einer Tabelle. Wählen Sie in der Seitenleiste ein Dokument, um sie auf dieses Interview einzugrenzen.",
       "placeholder": "Was schließen Sie aus diesen Passagen?",
       "narrower": "Zu enger gefassten Ausschnitten geschrieben"
+    },
+    "start": {
+      "title": "Dieses Interview codieren",
+      "description": "Wählen Sie das Raster, durch das Sie es lesen. Es bestimmt Farben, Buchstaben und was als codiert gilt.",
+      "create": "Neues Codebook",
+      "untitled": "Codebook ohne Namen",
+      "coverage": "{covered}/{total} Codes verwendet",
+      "passages": "{count} Passagen",
+      "actions": "Für das ganze Dokument",
+      "soon": "Bald",
+      "auto": {
+        "title": "Automatisch codieren",
+        "description": "Codierungen für das ganze Interview vorschlagen, einzeln zu prüfen."
+      },
+      "empty": {
+        "title": "Noch kein Verbatim-Codebook",
+        "description": "Ein Transkript zu codieren braucht ein Raster, dessen Codes für eine Textpassage gelten."
+      }
     }
   }
 }

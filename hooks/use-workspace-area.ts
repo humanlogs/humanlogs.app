@@ -2,6 +2,7 @@
 
 import type { WorkspaceArea } from "@/components/transcriptions/editor/phase";
 import { useDocumentViewPrefs } from "@/hooks/use-document-view-prefs";
+import { endCodingSession } from "@/lib/documents/coding-session";
 import * as React from "react";
 
 /**
@@ -21,4 +22,11 @@ export function useDeclareWorkspaceArea(area: WorkspaceArea): void {
   React.useEffect(() => {
     if (prefs.phase !== area) update({ phase: area });
   }, [area, prefs.phase, update]);
+
+  // Leaving the coding space ends the pass, so the next interview opened for
+  // coding asks which grille again. Here because this is the one hook every
+  // route calls — see `lib/documents/coding-session.ts`.
+  React.useEffect(() => {
+    if (area !== "coding") endCodingSession();
+  }, [area]);
 }

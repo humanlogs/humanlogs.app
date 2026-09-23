@@ -117,7 +117,8 @@
         "everyone": "Les codes de tous"
       },
       "codebook": "Codebook",
-      "untitled": "Codebook sans nom"
+      "untitled": "Codebook sans nom",
+      "changeCodebook": "Changer de codebook"
     },
     "excerpts": {
       "title": "Extraits",
@@ -200,6 +201,24 @@
       "description": "Tous les extraits codés de cette étude, dans un seul tableau. Choisissez un document dans la barre latérale pour le restreindre à cet entretien.",
       "placeholder": "Que retenez-vous de ces passages ?",
       "narrower": "Écrit sur des ensembles plus précis"
+    },
+    "start": {
+      "title": "Coder cet entretien",
+      "description": "Choisissez la grille à travers laquelle vous allez le lire. Elle décide des couleurs, des lettres et de ce qui compte comme codé.",
+      "create": "Nouveau codebook",
+      "untitled": "Codebook sans nom",
+      "coverage": "{covered}/{total} codes utilisés",
+      "passages": "{count} passages",
+      "actions": "Sur tout le document",
+      "soon": "Bientôt",
+      "auto": {
+        "title": "Coder automatiquement",
+        "description": "Proposer des codages sur tout l'entretien, à valider un par un."
+      },
+      "empty": {
+        "title": "Aucun codebook de verbatim",
+        "description": "Coder une transcription demande une grille dont les codes s'appliquent à un passage de texte."
+      }
     }
   }
 }

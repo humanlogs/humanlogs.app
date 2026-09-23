@@ -117,7 +117,8 @@
         "everyone": "Los códigos de todos"
       },
       "codebook": "Codebook",
-      "untitled": "Codebook sin nombre"
+      "untitled": "Codebook sin nombre",
+      "changeCodebook": "Cambiar de codebook"
     },
     "excerpts": {
       "title": "Extractos",
@@ -200,6 +201,24 @@
       "description": "Todos los pasajes codificados de este estudio, en una sola tabla. Elija un documento en la barra lateral para limitarlo a esa entrevista.",
       "placeholder": "¿Qué concluye de estos pasajes?",
       "narrower": "Escrito sobre conjuntos más precisos"
+    },
+    "start": {
+      "title": "Codificar esta entrevista",
+      "description": "Elija la rejilla con la que va a leerla. Decide los colores, las letras y qué cuenta como codificado.",
+      "create": "Nuevo codebook",
+      "untitled": "Codebook sin nombre",
+      "coverage": "{covered}/{total} códigos usados",
+      "passages": "{count} pasajes",
+      "actions": "Sobre todo el documento",
+      "soon": "Pronto",
+      "auto": {
+        "title": "Codificar automáticamente",
+        "description": "Proponer codificaciones en toda la entrevista, para revisarlas una a una."
+      },
+      "empty": {
+        "title": "Todavía no hay codebook de verbatim",
+        "description": "Codificar una transcripción requiere una rejilla cuyos códigos se apliquen a un pasaje de texto."
+      }
     }
   }
 }
