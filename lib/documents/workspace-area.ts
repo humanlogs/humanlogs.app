@@ -20,10 +20,12 @@ export function workspaceAreaOf(
   phase: string | null | undefined,
 ): WorkspaceArea | null {
   if (!pathname) return null;
-  // The two study-level workshops are a space even though no document is open —
-  // and analysis is ONLY ever one of these, having no document route at all.
+  // A study has three rooms and they are three routes. Analysis is ONLY ever one
+  // of these, having no document route at all; and the study's own page is where
+  // its material is assembled, which is the editing pass seen from the corpus.
   if (/^\/app\/project\/[^/]+\/coding/.test(pathname)) return "coding";
   if (/^\/app\/project\/[^/]+\/analysis/.test(pathname)) return "analysis";
+  if (/^\/app\/project\/[^/]+$/.test(pathname)) return "transcription";
   if (!pathname.startsWith("/app/transcription/")) return null;
   return isDocumentPhase(phase) ? phase : "transcription";
 }

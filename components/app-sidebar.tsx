@@ -282,14 +282,19 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
     scope !== STUDY_SCOPE_ALL && scope !== STUDY_SCOPE_NONE ? scope : null;
 
   /**
-   * The sections on offer. Analysis needs a study to be about — it has no
-   * document route at all, only a page for the corpus — so it is absent while the
-   * sidebar is showing every study, or the documents filed under none.
+   * The sections on offer.
+   *
+   * Analysis needs a corpus to be about — it has no document route at all, only a
+   * page per study — so it is absent only when nothing in the list belongs to a
+   * study at all. Scoped to "all studies" it still shows: each row goes to its own
+   * study's table, which is what a researcher means by "analyse this interview"
+   * whichever way the sidebar happens to be filtered.
    */
+  const anyStudy = study !== null || documents.some((doc) => doc.projectId);
   const areas = WORKSPACE_AREAS.filter(
     (value) =>
       (betaFeatures || value === "transcription") &&
-      (value !== "analysis" || study),
+      (value !== "analysis" || anyStudy),
   );
 
   /**
@@ -409,13 +414,18 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
         )}
         <SidebarMenu>
           {group.documents.map((transcription) => {
-            // In analysis the row is a FILTER on the study's table, not a
-            // document to open — so it stays on that page and names the
-            // interview in the query string.
+            // In analysis the row is a FILTER on a study's table, not a document
+            // to open — so it goes to that page and names the interview in the
+            // query string. Its OWN study, not the scoped one: on "all studies"
+            // each row still has somewhere to lead.
+            const corpus = study ?? transcription.projectId ?? null;
             const analysisHref =
-              of === "analysis" && study
-                ? `/app/project/${study}/analysis?document=${transcription.id}`
+              of === "analysis" && corpus
+                ? `/app/project/${corpus}/analysis?document=${transcription.id}`
                 : undefined;
+            // A loose document has no corpus to be analysed against, so it has no
+            // row here rather than a row that leads nowhere.
+            if (of === "analysis" && !analysisHref) return null;
             return (
               <TranscriptionMenuItem
                 key={transcription.id}

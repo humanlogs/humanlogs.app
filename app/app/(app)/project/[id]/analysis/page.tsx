@@ -7,13 +7,12 @@ import {
 } from "@/components/codebooks/excerpts/excerpt-panel-context";
 import { useExcerptTable } from "@/components/codebooks/excerpts/use-excerpt-table";
 import { useTranslations } from "@/components/locale-provider";
-import { ProjectBadge } from "@/components/projects/project-badge";
+import { StudyHeader } from "@/components/projects/study-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBetaFeatures, useProjects } from "@/hooks/use-api";
 import { useTranscriptions } from "@/hooks/use-transcriptions";
 import { ArrowLeftIcon } from "lucide-react";
-import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 import { Suspense } from "react";
@@ -47,7 +46,6 @@ function StudyAnalysisContent() {
   const searchParams = useSearchParams();
   const documentId = searchParams.get("document");
 
-  const t = useTranslations("codebook.analysis");
   const tBoard = useTranslations("codebook.board");
   const tStudy = useTranslations("study");
   const router = useRouter();
@@ -125,41 +123,21 @@ function StudyAnalysisContent() {
 
   return (
     <div className="flex min-h-full flex-col">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b px-4 py-3">
-        <Link
-          href={`/app/project/${projectId}`}
-          className="flex shrink-0 items-center gap-2 hover:opacity-80"
-        >
-          <ProjectBadge
-            appearance={project}
-            projectId={project.id}
-            name={project.name}
-            size="sm"
-            imageVersion={project.updatedAt}
-          />
-          <span className="font-medium">{project.name}</span>
-        </Link>
-        <span className="text-muted-foreground/60">/</span>
-        <h1 className="font-semibold">{t("title")}</h1>
+      <StudyHeader study={project} area="analysis">
         {/* The interview the table is narrowed to, when there is one. Named here
-            rather than only in the sidebar: the table's own rows say which
-            document each passage comes from, so without this the page would not
-            say why the others are missing. */}
+            rather than only in the sidebar: the rows say which document each
+            passage comes from, so without this the page would not say why the
+            others are missing. */}
         {focused && (
-          <span className="truncate rounded-full border px-2 py-0.5 text-xs text-muted-foreground">
+          <span className="hidden max-w-[14rem] truncate rounded-full border px-2 py-0.5 text-xs text-muted-foreground md:inline-block">
             {focused.title}
           </span>
         )}
         <span className="text-xs text-muted-foreground tabular-nums">
           {table.total}
         </span>
-        <span className="ml-auto" />
         <ExcerptExportButton disabled={table.total === 0} />
-      </div>
-
-      <p className="px-4 pt-3 text-sm text-muted-foreground">
-        {t("description")}
-      </p>
+      </StudyHeader>
 
       <div className="flex-1">{table.node}</div>
 

@@ -33,11 +33,15 @@ export function AppHeader() {
   const { prefs } = useDocumentViewPrefs();
   const area = workspaceAreaOf(pathname, prefs.phase);
 
-  // On desktop, non-transcription routes leave the bar empty (the toggle and the
-  // mobile title are hidden, and only the editor injects into the header
-  // portals). In that case make the bar invisible — no border, no background —
-  // while keeping its height so the content below stays pushed down.
-  const emptyOnDesktop = !isTranscription;
+  // On desktop, a route outside the working spaces leaves the bar empty (the
+  // toggle and the mobile title are hidden, and only a workspace injects into the
+  // header portals). In that case make the bar invisible — no border, no
+  // background — while keeping its height so the content below stays pushed down.
+  //
+  // A study's three rooms fill it like a document does: they portal their own
+  // header into it, which is where the study's name, the way back and the switch
+  // between the passes live.
+  const emptyOnDesktop = area === null;
 
   return (
     <header
@@ -56,12 +60,10 @@ export function AppHeader() {
           emptyOnDesktop && "md:border-transparent md:bg-transparent",
         )}
       >
-        <SidebarTrigger
-          className={cn("-ml-1", !isTranscription && "md:hidden")}
-        />
+        <SidebarTrigger className={cn("-ml-1", area === null && "md:hidden")} />
         {/* Default app title on mobile, where the header would otherwise be bare.
-            The transcription page fills the header with its own title/actions. */}
-        {!isTranscription && (
+            A workspace fills the header with its own title/actions. */}
+        {!isTranscription && area === null && (
           <div className="flex items-center gap-2 md:hidden">
             <img src="/logo.svg" alt="" className="h-6 w-6" />
             <span className="font-semibold">humanlogs</span>
@@ -75,16 +77,21 @@ export function AppHeader() {
             shares rather than in any one page's actions. */}
         <ExcerptPanelTrigger />
       </div>
-      <div id="header-sub-portal" className="w-full" />
-      {/* The same scale as the sidebar's phase headers, from the same constant, so
-          the two cannot drift. Absent off a working space: the home page is not a
-          pass over material, and colouring it would make the scale mean nothing. */}
+      {/* The same scale as the sidebar's section headers, from the same constant,
+          so the two cannot drift. Absent off a working space: the home page is not
+          a pass over material, and colouring it would make the scale mean nothing.
+
+          It underlines the APP's bar, above the sub-header, rather than the whole
+          stack. What sits below changes with the page — the editor's toolbar, a
+          study's filters, nothing at all — and a rule that moved down the screen
+          with it read as a property of that strip instead of of the space. */}
       {area && (
         <div
           aria-hidden
           className={cn("h-[3px] w-full", WORKSPACE_ACCENT[area].rule)}
         />
       )}
+      <div id="header-sub-portal" className="w-full" />
     </header>
   );
 }

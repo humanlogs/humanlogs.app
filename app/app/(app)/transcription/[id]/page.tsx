@@ -16,7 +16,7 @@ import { TranscriptionLoading } from "@/components/transcriptions/transcription-
 import { ProjectBadge } from "@/components/projects/project-badge";
 import { useBetaFeatures, useProjects } from "@/hooks/use-api";
 import { useDocumentTitle } from "@/hooks/use-document-title";
-import { useDocumentViewPrefs } from "@/hooks/use-document-view-prefs";
+import { useDeclareWorkspaceArea } from "@/hooks/use-workspace-area";
 import { useEncryptionStatus } from "@/hooks/use-encryption";
 import {
   useTranscription,
@@ -68,10 +68,7 @@ function TranscriptionPageContent({ params }: TranscriptionPageProps) {
     : "transcription";
   // Keep the sidebar's open section on the phase actually being looked at — a
   // link opened from elsewhere, or the switch above, both land here.
-  const { prefs, update } = useDocumentViewPrefs();
-  useEffect(() => {
-    if (prefs.phase !== phase) update({ phase });
-  }, [phase, prefs.phase, update]);
+  useDeclareWorkspaceArea(phase);
 
   /**
    * The steps the switch offers here. Analysis is a study-level space, so it is
@@ -95,10 +92,14 @@ function TranscriptionPageContent({ params }: TranscriptionPageProps) {
     // Analysis is not a pass over this document: it is the study's excerpt table,
     // opened on the interview that was being read. Leaving with the document named
     // is what makes it continuous with the coding that came before it.
+    //
+    // The preference is NOT set here — the page we are going to declares its own
+    // space. Setting it from the click that leaves was a race the page being left
+    // always won, so the sidebar arrived still showing this document's phase.
     if (next === "analysis") {
-      update({ phase: "analysis" });
+      if (!transcription?.projectId) return;
       router.push(
-        `/app/project/${transcription?.projectId}/analysis?document=${id}`,
+        `/app/project/${transcription.projectId}/analysis?document=${id}`,
       );
       return;
     }

@@ -4,7 +4,7 @@ import { StudyCodingBoard } from "@/components/codebooks/study-coding-board";
 import { useExcerptPanelContext } from "@/components/codebooks/excerpts/excerpt-panel-context";
 import { useTranslations } from "@/components/locale-provider";
 import { PageLayout } from "@/components/page-layout";
-import { ProjectBadge } from "@/components/projects/project-badge";
+import { StudyHeader } from "@/components/projects/study-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBetaFeatures, useProjects } from "@/hooks/use-api";
@@ -69,25 +69,15 @@ export default function StudyCodingPage() {
   }
 
   return (
-    <PageLayout
-      backHref={`/app/project/${projectId}`}
-      backLabel={project.name}
-      title={
-        <span className="inline-flex items-center gap-3">
-          <ProjectBadge
-            appearance={project}
-            projectId={project.id}
-            name={project.name}
-            size="lg"
-            imageVersion={project.updatedAt}
-          />
-          <span>{t("title")}</span>
-        </span>
-      }
-      description={t("description")}
-      maxWidth="max-w-4xl"
-    >
-      <StudyCodingBoard projectId={projectId} />
-    </PageLayout>
+    <>
+      <StudyHeader study={project} area="coding" />
+      <PageLayout
+        title={t("title")}
+        description={t("description")}
+        maxWidth="max-w-4xl"
+      >
+        <StudyCodingBoard projectId={projectId} />
+      </PageLayout>
+    </>
   );
 }
