@@ -187,7 +187,8 @@
       "recode": "Codes on this passage",
       "recodeMine": "You can only take back your own readings.",
       "open": "Open this interview",
-      "pause": "Pause"
+      "pause": "Pause",
+      "expand": "Open in analysis"
     },
     "import": {
       "label": "Document codes",

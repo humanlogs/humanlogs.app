@@ -11,6 +11,7 @@ import { StudyHeader } from "@/components/projects/study-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBetaFeatures, useProjects } from "@/hooks/use-api";
+import { useExcerptUrlSync } from "@/hooks/use-excerpt-url";
 import { useTranscriptions } from "@/hooks/use-transcriptions";
 import { ArrowLeftIcon } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -80,6 +81,10 @@ function StudyAnalysisContent() {
         : { ...current, scope: documentId ? "document" : "study" },
     );
   }, [documentId, setFilter]);
+
+  // The question is in the address bar: a reload, a back button or a link sent to
+  // a colleague all come back to the same table.
+  useExcerptUrlSync(!!betaFeatures);
 
   const table = useExcerptTable({
     enabled: !!betaFeatures && !!project,

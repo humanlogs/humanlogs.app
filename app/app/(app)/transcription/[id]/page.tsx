@@ -16,6 +16,7 @@ import { TranscriptionLoading } from "@/components/transcriptions/transcription-
 import { ProjectBadge } from "@/components/projects/project-badge";
 import { useBetaFeatures, useProjects } from "@/hooks/use-api";
 import { useDocumentTitle } from "@/hooks/use-document-title";
+import { useExcerptUrlSync } from "@/hooks/use-excerpt-url";
 import { useDeclareWorkspaceArea } from "@/hooks/use-workspace-area";
 import { useEncryptionStatus } from "@/hooks/use-encryption";
 import {
@@ -69,6 +70,10 @@ function TranscriptionPageContent({ params }: TranscriptionPageProps) {
   // Keep the sidebar's open section on the phase actually being looked at — a
   // link opened from elsewhere, or the switch above, both land here.
   useDeclareWorkspaceArea(phase);
+
+  // The excerpt panel's question rides in this URL too, so a coding pass survives
+  // a reload and can be linked to. Only while it is actually shown.
+  useExcerptUrlSync(phase === "coding");
 
   /**
    * The steps the switch offers here. Analysis is a study-level space, so it is

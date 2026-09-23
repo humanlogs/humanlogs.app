@@ -162,6 +162,13 @@ type ExcerptPanelValue = {
    * only way to reach a row's play and code controls from a study-wide view.
    */
   followDocument: (documentId: string, codingId?: string) => void;
+  /**
+   * "I am arriving on this document on purpose, do not rebuild the table."
+   *
+   * The same suppression {@link followDocument} uses, exposed because a LINK can
+   * carry a question too — see `hooks/use-excerpt-url.ts`.
+   */
+  keepView: () => void;
 
   /**
    * The document whose audio is currently playable, if any.
@@ -438,6 +445,9 @@ export function ExcerptPanelProvider({
    * once.
    */
   const keepView = React.useRef(false);
+  const holdView = React.useCallback(() => {
+    keepView.current = true;
+  }, []);
   const followDocument = React.useCallback(
     (documentId: string, codingId?: string) => {
       keepView.current = true;
@@ -588,6 +598,7 @@ export function ExcerptPanelProvider({
     claimFocus,
     autoOpen,
     followDocument,
+    keepView: holdView,
     audioDocumentId: audio.held?.documentId ?? null,
     registerAudio: audio.register,
     playingPhraseId,

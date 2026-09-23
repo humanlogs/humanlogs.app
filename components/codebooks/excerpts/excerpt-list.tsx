@@ -367,7 +367,7 @@ function ExcerptGroupSection({
         <div
           className={cn(
             "px-2 pt-1",
-            note && "gap-4 lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]",
+            note && "lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]",
           )}
         >
           <div className="min-w-0">
@@ -395,7 +395,11 @@ function ExcerptGroupSection({
             )}
           </div>
           {note && analysis && (
-            <div className="mt-2 min-w-0 lg:mt-0 lg:sticky lg:top-10 lg:self-start">
+            // A rule down the left rather than a card around the note: the two
+            // columns are one row of a table, and boxing the analysis would make
+            // it a separate object beside the evidence instead of the reading of
+            // it. On a narrow screen the columns stack, so the rule goes across.
+            <div className="mt-2 min-w-0 border-t pt-2 lg:sticky lg:top-10 lg:mt-0 lg:self-start lg:border-t-0 lg:border-l lg:pt-0 lg:pl-4">
               <AnalysisBox group={note} analysis={analysis} />
             </div>
           )}

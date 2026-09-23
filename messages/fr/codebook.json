@@ -187,7 +187,8 @@
       "recode": "Codes de ce passage",
       "recodeMine": "Vous ne pouvez retirer que vos propres lectures.",
       "open": "Ouvrir cet entretien",
-      "pause": "Pause"
+      "pause": "Pause",
+      "expand": "Ouvrir dans l'analyse"
     },
     "import": {
       "label": "Codes du document",

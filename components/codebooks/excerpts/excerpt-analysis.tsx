@@ -86,6 +86,22 @@ export function AnalysisBox({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft, stored, facetKey]);
 
+  /**
+   * Grow to the text.
+   *
+   * Measured rather than computed: line height, wrapping and the font are the
+   * browser's business, and `scrollHeight` after a reset to `auto` is the only
+   * thing that knows all three. Reset first, or the box can grow but never
+   * shrink back when text is deleted.
+   */
+  const textarea = React.useRef<HTMLTextAreaElement | null>(null);
+  React.useLayoutEffect(() => {
+    const node = textarea.current;
+    if (!node) return;
+    node.style.height = "auto";
+    node.style.height = `${node.scrollHeight}px`;
+  }, [draft]);
+
   // Leaving the box writes now rather than in most of a second: a researcher who
   // clicks away and navigates would otherwise lose the last thing they typed.
   const flush = () => {
@@ -96,14 +112,20 @@ export function AnalysisBox({
   return (
     <div className="flex flex-col gap-2">
       <textarea
+        ref={textarea}
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
         onBlur={flush}
         placeholder={t("placeholder")}
         aria-label={t("title")}
+        rows={2}
+        // No frame and no scrollbar: this is a column of the table, not a form
+        // field dropped into it, and an analysis is read at the same time as the
+        // passages beside it — a box that scrolls its own middle third hides
+        // exactly the sentence you are checking against them. It grows instead.
         className={cn(
-          "min-h-24 w-full resize-y rounded-md border bg-background/60 p-2 text-sm",
-          "placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
+          "w-full resize-none overflow-hidden border-0 bg-transparent p-0 text-sm",
+          "placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:outline-none",
         )}
       />
 

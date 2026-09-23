@@ -1,7 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { TableIcon } from "lucide-react";
+import { MaximizeIcon, TableIcon } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { EXCERPT_PARAMS } from "@/lib/codebooks/excerpt-url";
 import { useTranslations } from "@/components/locale-provider";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useBetaFeatures } from "@/hooks/use-api";
@@ -63,6 +66,11 @@ export function ExcerptPanel() {
           {table.total}
         </span>
         <span className="ml-auto" />
+        {/* The same table, the width of the page. The question travels in the
+            URL, so expanding keeps the filters and the grouping exactly as they
+            are — that is the whole point of the button rather than a link to a
+            blank analysis. */}
+        <ExpandToAnalysis />
         {/* No close button: the toggle in the app's top bar is where this was
             opened from and is where it closes. The export is here as a SHORTCUT
             from the table it exports, and lives in full in the document's own
@@ -74,6 +82,41 @@ export function ExcerptPanel() {
 
       {table.footer}
     </aside>
+  );
+}
+
+/**
+ * Open the same question on the analysis page, full width.
+ *
+ * Only with a study to open it on: analysis is a room of a study and a document
+ * filed under none has no corpus to be analysed against. The panel's state is
+ * global, so nothing is passed — but the URL carries it too, and passing it
+ * explicitly is what makes the back button and a reload land here as well.
+ */
+function ExpandToAnalysis() {
+  const t = useTranslations("codebook.excerpts");
+  const panel = useExcerptPanel();
+  const searchParams = useSearchParams();
+  const projectId = panel.context.projectId;
+  if (!projectId) return null;
+
+  const query = new URLSearchParams();
+  for (const key of EXCERPT_PARAMS) {
+    const value = searchParams.get(key);
+    if (value !== null) query.set(key, value);
+  }
+  if (panel.context.documentId) query.set("document", panel.context.documentId);
+  const suffix = query.toString();
+
+  return (
+    <Link
+      href={`/app/project/${projectId}/analysis${suffix ? `?${suffix}` : ""}`}
+      aria-label={t("expand")}
+      title={t("expand")}
+      className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+    >
+      <MaximizeIcon className="size-4" />
+    </Link>
   );
 }
 

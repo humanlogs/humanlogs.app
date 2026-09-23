@@ -187,7 +187,8 @@
       "recode": "Codes dieser Passage",
       "recodeMine": "Sie können nur Ihre eigenen Lesarten zurücknehmen.",
       "open": "Dieses Interview öffnen",
-      "pause": "Pause"
+      "pause": "Pause",
+      "expand": "In der Analyse öffnen"
     },
     "import": {
       "label": "Dokument-Codes",

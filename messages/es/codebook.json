@@ -187,7 +187,8 @@
       "recode": "Códigos de este pasaje",
       "recodeMine": "Solo puede retirar sus propias lecturas.",
       "open": "Abrir esta entrevista",
-      "pause": "Pausa"
+      "pause": "Pausa",
+      "expand": "Abrir en el análisis"
     },
     "import": {
       "label": "Códigos del documento",

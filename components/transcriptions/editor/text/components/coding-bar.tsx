@@ -71,8 +71,9 @@ export function CodingBar({
     <div className="flex flex-col gap-1.5">
       <div className="flex flex-wrap items-center gap-2">
         {/* The prism first, left of everything including the transport: it
-            decides what the row below means. Not a picker
-            any more — choosing one is how a pass STARTS, on a screen of its own,
+            decides what the row below means, and on an interview coded by ear
+            the play controls were pushing it into the middle of the bar. Not a
+            picker any more — choosing one is how a pass STARTS, on a screen of its own,
             so here it names the grille and offers the way back to that screen. A
             dropdown at this weight made the most consequential choice in the
             phase look like the playback speed. */}
