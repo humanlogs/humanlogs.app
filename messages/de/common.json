@@ -57,7 +57,8 @@
       "none": "Ohne Studie",
       "open": "Studie öffnen",
       "empty": "Noch keine Dokumente in dieser Studie"
-    }
+    },
+    "codingOverview": "Übersicht"
   },
   "newTranscription": {
     "title": "Neue Transkription",

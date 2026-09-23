@@ -19,7 +19,6 @@ import {
   CheckIcon,
   ChevronDownIcon,
   FoldersIcon,
-  PlusIcon,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -115,9 +114,11 @@ export function StudyPicker({
         />
       </DropdownMenu>
 
-      {/* The two things one does WITH a study, revealed on hover so the tab reads
-          as one target at rest. Only for a real study: "all" and "none" are views,
-          not places, and neither has a page or a home for a new document.
+      {/* Opening the study's page, revealed on hover so the tab reads as one
+          target at rest. Only for a real study: "all" and "none" are views, not
+          places, and neither has a page. Adding a document used to sit here too;
+          it is the first row of the transcription phase now, where it reads as the
+          start of that pass rather than as an option on the study picker.
 
           Pushed right with `ml-auto`: the `flex-1` that should have done it sits on
           the trigger INSIDE the dropdown's own wrapper div, and that wrapper is
@@ -129,12 +130,6 @@ export function StudyPicker({
             label={t("study.open")}
           >
             <ArrowUpRightIcon className="h-3.5 w-3.5" />
-          </IconLink>
-          <IconLink
-            href={`/app/new?projectId=${selected.id}`}
-            label={t("addDocument")}
-          >
-            <PlusIcon className="h-3.5 w-3.5" />
           </IconLink>
         </span>
       )}

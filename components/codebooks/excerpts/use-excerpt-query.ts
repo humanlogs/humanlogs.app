@@ -106,17 +106,24 @@ function describeCodes(
   return out;
 }
 
-export function useExcerptQuery({
+/**
+ * The question and the labels, WITHOUT running it.
+ *
+ * Split out because two surfaces need the question and only one of them needs the
+ * answer: the panel runs it to draw a list, the export menu re-asks it deeper when
+ * someone clicks a format. Building the request is cheap (a pass over the document
+ * list the app already holds); running it walks the corpus. Keeping them apart is
+ * what lets the export live in a menu that does not have the panel open behind it.
+ */
+export function useExcerptRequest({
   documents,
   codebooks,
   userId,
-  enabled,
 }: {
   documents: ExcerptDocument[];
   codebooks: DecryptedCodebook[];
   userId: string | undefined;
-  enabled: boolean;
-}): ExcerptQueryResult {
+}): { request: Omit<StudyQuery, "signal">; labels: ExcerptLabels } {
   const t = useTranslations("codebook.excerpts");
   const { filter, groupBy, context } = useExcerptPanel();
 
@@ -185,18 +192,6 @@ export function useExcerptQuery({
     },
   };
 
-  // A new question starts shallow again. Adjusted during render rather than in an
-  // effect, so no pass is ever launched at the previous question's depth.
-  const question = JSON.stringify(request);
-  const [depth, setDepth] = React.useState(DEFAULT_PER_GROUP);
-  const [asked, setAsked] = React.useState(question);
-  if (asked !== question) {
-    setAsked(question);
-    setDepth(DEFAULT_PER_GROUP);
-  }
-
-  const query = useStudyQuery({ ...request, perGroup: depth }, { enabled });
-
   const labels = React.useMemo<ExcerptLabels>(() => {
     const codes = new Map<string, { label: string; color: string | null }>();
     for (const codebook of codebooks) {
@@ -232,6 +227,44 @@ export function useExcerptQuery({
       },
     };
   }, [codebooks, documents, t]);
+
+  return { request, labels };
+}
+
+/**
+ * The question, run.
+ *
+ * Everything the panel draws: the groups, the counts, and the depth control that
+ * asks for a wider pass when a reader scrolls past what the last one kept.
+ */
+export function useExcerptQuery({
+  documents,
+  codebooks,
+  userId,
+  enabled,
+}: {
+  documents: ExcerptDocument[];
+  codebooks: DecryptedCodebook[];
+  userId: string | undefined;
+  enabled: boolean;
+}): ExcerptQueryResult {
+  const { request, labels } = useExcerptRequest({
+    documents,
+    codebooks,
+    userId,
+  });
+
+  // A new question starts shallow again. Adjusted during render rather than in an
+  // effect, so no pass is ever launched at the previous question's depth.
+  const question = JSON.stringify(request);
+  const [depth, setDepth] = React.useState(DEFAULT_PER_GROUP);
+  const [asked, setAsked] = React.useState(question);
+  if (asked !== question) {
+    setAsked(question);
+    setDepth(DEFAULT_PER_GROUP);
+  }
+
+  const query = useStudyQuery({ ...request, perGroup: depth }, { enabled });
 
   const deepen = React.useCallback(() => {
     setDepth((current) => current * 4);

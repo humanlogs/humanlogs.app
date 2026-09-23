@@ -159,7 +159,8 @@
           "pdf": "PDF (.pdf)",
           "docx": "Word (.docx)",
           "csv": "Tabelle (.csv)"
-        }
+        },
+        "hintShort": "Nach Code gruppiert, maximal 2000 Passagen pro Thema."
       },
       "play": "Diese Passage anhören",
       "recode": "Codes dieser Passage",

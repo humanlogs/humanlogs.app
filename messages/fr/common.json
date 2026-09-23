@@ -57,7 +57,8 @@
       "none": "Sans étude",
       "open": "Ouvrir l'étude",
       "empty": "Aucun document dans cette étude"
-    }
+    },
+    "codingOverview": "Vue d’ensemble"
   },
   "newTranscription": {
     "title": "Nouvelle Transcription",

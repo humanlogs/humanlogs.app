@@ -159,7 +159,8 @@
           "pdf": "PDF (.pdf)",
           "docx": "Word (.docx)",
           "csv": "Spreadsheet (.csv)"
-        }
+        },
+        "hintShort": "Grouped by code, capped at 2000 passages per theme."
       },
       "play": "Play this passage",
       "recode": "Codes on this passage",

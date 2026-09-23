@@ -57,7 +57,8 @@
       "none": "No study",
       "open": "Open the study",
       "empty": "No document in this study yet"
-    }
+    },
+    "codingOverview": "Overview"
   },
   "newTranscription": {
     "title": "New Transcription",

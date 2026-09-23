@@ -41,6 +41,7 @@ export function useExcerptBridge({
   codebookId,
   editorAPI,
   codings,
+  audioControls,
   toggleCodeOnPhrase,
   active,
 }: {
@@ -53,6 +54,11 @@ export function useExcerptBridge({
   codebookId: string | null;
   editorAPI: EditorAPI;
   codings: CodingDTO[];
+  /**
+   * The player's controls, for the play button on a row. Absent until the audio
+   * has loaded, and on a document that has none.
+   */
+  audioControls?: { play: () => void } | null;
   /**
    * Put a code on, or take one off, a passage the TABLE names. Absent while the
    * document is read-only or has no codebook, and the panel then offers no picker
@@ -150,24 +156,36 @@ export function useExcerptBridge({
 
   // --- Lend the panel this document's audio, so a row can be listened to.
   //
-  // Through a ref, for the same reason as the coding below: `seekTo` happens to be
-  // stable today, but the loop it would cause if it stopped being is a frozen page
-  // rather than a missed update, and that is not a thing to leave to luck.
-  const seekRef = React.useRef<(seconds: number) => void>(undefined);
+  // SEEK AND THEN PLAY. Seeking alone moves the playhead and makes no sound, which
+  // is what "play" on an excerpt did at first: the button worked, the position
+  // moved, and nothing happened that anyone could hear. `play` lives on the
+  // player's own controls rather than on the audio context, so the editor passes
+  // it in.
+  //
+  // Through a ref, for the same reason as the coding below: if this callback's
+  // identity ever started changing per render, registering it directly would loop
+  // the provider, and that failure mode is a frozen page rather than a missed
+  // update.
   const { seekTo } = useAudio();
+  const playRef = React.useRef<((seconds: number) => void) | undefined>(
+    undefined,
+  );
   React.useEffect(() => {
-    seekRef.current = seekTo;
-  }, [seekTo]);
+    playRef.current = (seconds: number) => {
+      seekTo(seconds);
+      audioControls?.play();
+    };
+  }, [seekTo, audioControls]);
 
-  const seek = React.useCallback((seconds: number) => {
-    seekRef.current?.(seconds);
+  const playFrom = React.useCallback((seconds: number) => {
+    playRef.current?.(seconds);
   }, []);
 
   const registerAudio = panel.registerAudio;
   React.useEffect(() => {
-    registerAudio(transcriptionId, seek);
+    registerAudio(transcriptionId, playFrom);
     return () => registerAudio(transcriptionId, null);
-  }, [registerAudio, transcriptionId, seek]);
+  }, [registerAudio, transcriptionId, playFrom]);
 
   // --- Lend it the ability to code, too.
   //

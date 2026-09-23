@@ -214,7 +214,7 @@ export function ExcerptList({
   const behind = plan.total - plan.shown;
 
   return (
-    <div className="p-2" ref={rootRef}>
+    <div className="py-2" ref={rootRef}>
       {plan.groups.map((group) => (
         <ExcerptGroupSection
           key={group.key}
@@ -304,44 +304,56 @@ function ExcerptGroupSection({
   const grouping = group.label.type === "code" ? group.label : null;
 
   return (
-    <section className="mb-2">
+    // A rule above each group, and the heading STICKS to the top of the scroll area
+    // while its rows go past. Excerpts are ragged blocks of prose, so without both
+    // the eye cannot tell where one theme ends and the next begins, and thirty rows
+    // into a long group there is nothing left on screen saying which theme you are
+    // reading. `first:border-t-0` because the top of the list needs no rule.
+    <section className="border-t border-border/60 pb-2 first:border-t-0">
       {header && (
         <button
           type="button"
           onClick={() => setCollapsed((c) => !c)}
           aria-expanded={!collapsed}
-          className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs font-medium text-muted-foreground hover:bg-accent/50"
+          // `z-10` over the rows, which carry their own background on hover and
+          // would otherwise show through the heading as it passes behind them.
+          className="sticky top-0 z-10 flex w-full items-center gap-2 border-b bg-background/95 px-2 py-1.5 text-left text-xs font-medium text-muted-foreground backdrop-blur-sm hover:bg-accent/50"
         >
           <span className="min-w-0 flex-1">{header}</span>
           {/* The group's whole size, not the part of it that is mounted. */}
           <span className="tabular-nums">{group.count}</span>
         </button>
       )}
+      {/* The rows keep their inset; only the rules and the sticky heading run the
+          full width of the panel, which is what makes them read as separators
+          rather than as the edges of a card. */}
       {!collapsed &&
         (group.refs.length === 0 ? (
           <p className="px-3 py-1.5 text-xs text-muted-foreground/60">
             {t("groupEmpty")}
           </p>
         ) : (
-          group.refs.map((ref) => (
-            <ExcerptRow
-              key={`${group.key}:${ref.id}`}
-              phraseRef={ref}
-              row={hydrated?.rows.get(ref.id)}
-              // Two different sets on purpose. The CHIPS drop the code the group
-              // heading already stands for; the picker must show every code the
-              // passage carries, or the one it is filed under would read as
-              // unticked and clicking it would retract it by accident.
-              codes={chipsFor(chipsOf(hydrated, ref.id), grouping)}
-              allCodes={chipsOf(hydrated, ref.id)}
-              labels={labels}
-              focused={focusMatchesPhrase(focused, asPhrase(ref))}
-              provenance={provenance}
-              onSelect={onSelect}
-              onPlay={onPlay}
-              coding={coding}
-            />
-          ))
+          <div className="px-2 pt-1">
+            {group.refs.map((ref) => (
+              <ExcerptRow
+                key={`${group.key}:${ref.id}`}
+                phraseRef={ref}
+                row={hydrated?.rows.get(ref.id)}
+                // Two different sets on purpose. The CHIPS drop the code the group
+                // heading already stands for; the picker must show every code the
+                // passage carries, or the one it is filed under would read as
+                // unticked and clicking it would retract it by accident.
+                codes={chipsFor(chipsOf(hydrated, ref.id), grouping)}
+                allCodes={chipsOf(hydrated, ref.id)}
+                labels={labels}
+                focused={focusMatchesPhrase(focused, asPhrase(ref))}
+                provenance={provenance}
+                onSelect={onSelect}
+                onPlay={onPlay}
+                coding={coding}
+              />
+            ))}
+          </div>
         ))}
     </section>
   );

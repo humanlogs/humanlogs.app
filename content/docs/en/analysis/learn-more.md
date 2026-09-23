@@ -3,11 +3,11 @@ title: Learn more
 description: Lexical statistics, co-occurrence, clustering and cross-interview comparison: what is coming, and what to do meanwhile.
 order: 1
 status: soon
-updated: 2026-07-28
-related: transcribe/export, coding/codebooks
+updated: 2026-09-23
+related: coding/excerpts, transcribe/export
 ---
 
-**Nothing in this section has shipped.** Analysis is the last stage of the journey we are building: transcribe, code, then analyse a coded corpus without leaving the workspace.
+**Nothing in this section has shipped.** Analysis is the last stage of the journey we are building: transcribe, code, then analyse a coded corpus without leaving the workspace. Coding itself is in beta and usable today, including a [thematic table of your coded passages](/docs/coding/excerpts) you can export.
 
 This page exists so you can judge whether waiting makes sense for your project, and so you know what to do in the meantime, which is the more useful half.
 
@@ -31,3 +31,5 @@ Your corpus is not locked in, and it is already in the right shape for the tools
 - **JSON**: the full structured document, for your own pipeline.
 
 See [Export](/docs/transcribe/export). A corpus transcribed and corrected here loses nothing by being analysed elsewhere, and gets analysed here when this section stops saying "coming soon".
+
+If your work is thematic rather than statistical, you may not need to leave at all: [the excerpt table](/docs/coding/excerpts) already answers "every passage coded X, by the people coded Y" and exports it as a table you write the analysis into.

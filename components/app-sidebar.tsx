@@ -41,12 +41,15 @@ import {
   groupByForScope,
   groupDocuments,
   STUDY_SCOPE_ALL,
+  STUDY_SCOPE_NONE,
   type GroupLabel,
   type StudyScope,
 } from "@/lib/documents/grouping";
 import {
   FilePlusCornerIcon,
   HomeIcon,
+  LayoutGridIcon,
+  PlusIcon,
   SearchIcon,
   ShieldIcon,
 } from "lucide-react";
@@ -306,6 +309,56 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
     (doc) => (doc.codes ?? []).length > 0,
   ).length;
 
+  /**
+   * The one action that belongs INSIDE a phase rather than beside it.
+   *
+   * Each pass has a thing you do before working through the list: add material to
+   * transcribe, or step back and look at the whole study's coding. They used to be
+   * an icon on the study band, which put them at the same level as choosing a study
+   * and made them hard to find; as the first row of the phase they read as what
+   * they are, the start of that pass.
+   *
+   * The coding board needs a real study to be about, so it is absent on "all
+   * studies" and on the loose documents.
+   */
+  const phaseLead = (of: DocumentPhase) => {
+    const study =
+      scope !== STUDY_SCOPE_ALL && scope !== STUDY_SCOPE_NONE ? scope : null;
+
+    if (of === "transcription") {
+      return (
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <Link href={study ? `/app/new?projectId=${study}` : "/app/new"}>
+              <SidebarMenuButton className="pl-3.5 text-sidebar-foreground/80">
+                <PlusIcon className="h-4 w-4" />
+                {t("addDocument")}
+              </SidebarMenuButton>
+            </Link>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      );
+    }
+
+    if (!study) return null;
+    const href = `/app/project/${study}/coding`;
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <Link href={href}>
+            <SidebarMenuButton
+              isActive={pathname === href}
+              className="pl-3.5 text-sidebar-foreground/80"
+            >
+              <LayoutGridIcon className="h-4 w-4" />
+              {t("codingOverview")}
+            </SidebarMenuButton>
+          </Link>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
+  };
+
   return (
     <>
       <Sidebar>
@@ -404,6 +457,7 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
                     onOpen={() => openPhase(value)}
                     action={viewSettings}
                   >
+                    {phaseLead(value)}
                     {phaseList(value)}
                   </PhaseSection>
                 ))}

@@ -159,7 +159,8 @@
           "pdf": "PDF (.pdf)",
           "docx": "Word (.docx)",
           "csv": "Tableur (.csv)"
-        }
+        },
+        "hintShort": "Regroupé par code, limité à 2000 passages par thème."
       },
       "play": "Écouter ce passage",
       "recode": "Codes de ce passage",

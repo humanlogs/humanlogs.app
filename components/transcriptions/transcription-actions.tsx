@@ -4,6 +4,7 @@ import { DocumentCodesMenu } from "@/components/codebooks/document-codes-menu";
 import { useTranslations } from "@/components/locale-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ExcerptExportSubmenu } from "@/components/codebooks/excerpts/excerpt-export-submenu";
 import {
   DropdownMenu,
   DropdownMenuItem,
@@ -419,6 +420,11 @@ export function TranscriptionActions({
           </DropdownMenuSub>
         );
       })}
+
+      {/* The coded passages, as a thematic table. A different thing from the
+          transcript exports above, so it gets its own entry rather than another
+          format in their list. */}
+      <ExcerptExportSubmenu />
 
       {hasListenAccess && (
         <>

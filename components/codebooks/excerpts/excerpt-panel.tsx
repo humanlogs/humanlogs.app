@@ -1,25 +1,23 @@
 "use client";
 
 import * as React from "react";
-import { PanelRightCloseIcon, RefreshCwIcon, TableIcon } from "lucide-react";
+import { RefreshCwIcon, TableIcon } from "lucide-react";
 import { useTranslations } from "@/components/locale-provider";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useBetaFeatures, useProjects, useUserProfile } from "@/hooks/use-api";
+import { useBetaFeatures, useUserProfile } from "@/hooks/use-api";
 import { useCodebooks } from "@/hooks/use-codebooks";
 import { codebooksInScopeForProject } from "@/lib/codebooks/codebook";
 import { verbatimCodebooks } from "@/lib/codebooks/coding";
 import { useLocalIndexSync } from "@/hooks/use-local-index";
-import { useTranscriptions } from "@/hooks/use-transcriptions";
-import { ExcerptExportMenu } from "./excerpt-export-menu";
-import { ExcerptFilters, type ExcerptDocument } from "./excerpt-filters";
+import { ExcerptFilters } from "./excerpt-filters";
 import { ExcerptList } from "./excerpt-list";
 import {
   MAX_PANEL_WIDTH,
   MIN_PANEL_WIDTH,
   useExcerptPanel,
 } from "./excerpt-panel-context";
+import { useExcerptDocuments } from "./use-excerpt-documents";
 import { useExcerptQuery } from "./use-excerpt-query";
 
 /**
@@ -40,8 +38,6 @@ export function ExcerptPanel() {
   const betaFeatures = useBetaFeatures();
   const { data: profile } = useUserProfile();
   const { data: codebooks = [] } = useCodebooks();
-  const { data: projects = [] } = useProjects();
-  const { data: transcriptions = [] } = useTranscriptions();
 
   // Codebooks are still a beta surface, and an excerpt table with no codebook to
   // read against would be a permanently empty panel.
@@ -55,19 +51,7 @@ export function ExcerptPanel() {
   /** A pass with documents left to fetch — the panel is filling, not empty. */
   const indexing = sync.isFetching && (sync.progress?.total ?? 0) > 0;
 
-  const documents = React.useMemo<ExcerptDocument[]>(
-    () =>
-      transcriptions.map((doc) => ({
-        id: doc.id,
-        title: doc.title,
-        projectId: doc.projectId ?? null,
-        codes: doc.codes ?? [],
-        speakerCodes: doc.speakerCodes ?? [],
-        speakers: doc.speakers ?? [],
-        speakerCount: doc.speakerCount ?? 0,
-      })),
-    [transcriptions],
-  );
+  const documents = useExcerptDocuments();
 
   const query = useExcerptQuery({
     documents,
@@ -76,15 +60,6 @@ export function ExcerptPanel() {
     enabled: live,
   });
 
-  // What the exported file is called and what its subtitle says it holds. The
-  // narrowest true name wins: one interview names itself, a study names the study,
-  // and the loose documents of no study fall back to the panel's own title.
-  const scopedDocument =
-    panel.filter.scope === "document" && panel.context.documentId
-      ? documents.find((doc) => doc.id === panel.context.documentId)
-      : undefined;
-  const study = projects.find((project) => project.id === projectId);
-  const exportTitle = scopedDocument?.title || study?.name || t("title");
   // The table may change codes only on the interview an editor is lending it, and
   // only through the verbatim codebooks that cover this study.
   const coding = React.useMemo(() => {
@@ -103,12 +78,6 @@ export function ExcerptPanel() {
       },
     };
   }, [panel, codebooks, projectId]);
-
-  const exportCaption = [
-    exportTitle,
-    t("export.matched", { count: query.total }),
-    new Date().toLocaleDateString(),
-  ].join(" · ");
 
   if (!live) return null;
 
@@ -133,25 +102,9 @@ export function ExcerptPanel() {
         <span className="text-xs text-muted-foreground tabular-nums">
           {query.total}
         </span>
-        <div className="ml-auto flex items-center">
-          <ExcerptExportMenu
-            request={query.request}
-            labels={query.labels}
-            title={exportTitle}
-            caption={exportCaption}
-            total={query.total}
-            disabled={query.total === 0}
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-7"
-            onClick={() => panel.setOpen(false)}
-            aria-label={t("close")}
-          >
-            <PanelRightCloseIcon className="size-4" />
-          </Button>
-        </div>
+        {/* No close button and no export here. Closing is the toggle in the app's
+            top bar, which is where it was opened from; the export lives in the
+            document's own download menu, with every other file it produces. */}
       </div>
 
       <ExcerptFilters documents={documents} codebooks={codebooks} />
