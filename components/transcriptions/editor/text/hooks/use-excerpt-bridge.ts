@@ -149,12 +149,25 @@ export function useExcerptBridge({
   React.useEffect(() => claimFocus(), [claimFocus]);
 
   // --- Lend the panel this document's audio, so a row can be listened to.
+  //
+  // Through a ref, for the same reason as the coding below: `seekTo` happens to be
+  // stable today, but the loop it would cause if it stopped being is a frozen page
+  // rather than a missed update, and that is not a thing to leave to luck.
+  const seekRef = React.useRef<(seconds: number) => void>(undefined);
   const { seekTo } = useAudio();
+  React.useEffect(() => {
+    seekRef.current = seekTo;
+  }, [seekTo]);
+
+  const seek = React.useCallback((seconds: number) => {
+    seekRef.current?.(seconds);
+  }, []);
+
   const registerAudio = panel.registerAudio;
   React.useEffect(() => {
-    registerAudio(transcriptionId, seekTo);
+    registerAudio(transcriptionId, seek);
     return () => registerAudio(transcriptionId, null);
-  }, [registerAudio, transcriptionId, seekTo]);
+  }, [registerAudio, transcriptionId, seek]);
 
   // --- Lend it the ability to code, too.
   //
@@ -162,12 +175,40 @@ export function useExcerptBridge({
   // client holding that Y.Doc can write the second half. So the panel names a
   // passage and this does the work — the alternative, letting the panel POST the
   // row on its own, would leave a coding nothing in the transcript points at.
+  //
+  // What is registered is a STABLE wrapper over a ref, never the callback itself.
+  // The real one closes over TanStack mutation objects, which are a fresh identity
+  // on every render, so registering it directly stored a new function each render,
+  // which re-rendered the provider, which re-ran this effect: "Maximum update depth
+  // exceeded", and the page froze. Anything handed across this boundary has to be
+  // identity-stable or the boundary becomes a render loop.
+  const codingRef = React.useRef(toggleCodeOnPhrase);
+  React.useEffect(() => {
+    codingRef.current = toggleCodeOnPhrase;
+  }, [toggleCodeOnPhrase]);
+
+  const toggleCoding = React.useCallback<PhraseCodingToggle>(
+    (intent) => codingRef.current?.(intent) ?? false,
+    [],
+  );
+
+  const canCode = !!toggleCodeOnPhrase;
   const registerCoding = panel.registerCoding;
   React.useEffect(() => {
-    if (!toggleCodeOnPhrase) return;
-    registerCoding(transcriptionId, toggleCodeOnPhrase);
+    if (!canCode) return;
+    registerCoding(transcriptionId, toggleCoding);
     return () => registerCoding(transcriptionId, null);
-  }, [registerCoding, transcriptionId, toggleCodeOnPhrase]);
+  }, [registerCoding, transcriptionId, canCode, toggleCoding]);
+
+  // --- Entering a coding pass opens the table, on a screen with room for it.
+  //
+  // Coding without it is coding blind: you cannot see what you have already said
+  // about the corpus. The panel decides whether to actually open — it owns the
+  // width threshold and knows whether the reader has closed it.
+  const autoOpen = panel.autoOpen;
+  React.useEffect(() => {
+    if (active) autoOpen();
+  }, [active, autoOpen]);
 
   React.useEffect(
     () =>

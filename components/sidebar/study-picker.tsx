@@ -117,9 +117,13 @@ export function StudyPicker({
 
       {/* The two things one does WITH a study, revealed on hover so the tab reads
           as one target at rest. Only for a real study: "all" and "none" are views,
-          not places, and neither has a page or a home for a new document. */}
+          not places, and neither has a page or a home for a new document.
+
+          Pushed right with `ml-auto`: the `flex-1` that should have done it sits on
+          the trigger INSIDE the dropdown's own wrapper div, and that wrapper is
+          sized to its content — so the pair sat wherever the study name ended. */}
       {selected && (
-        <span className="flex shrink-0 items-center opacity-0 transition-opacity group-hover/study:opacity-100 focus-within:opacity-100">
+        <span className="ml-auto flex shrink-0 items-center opacity-0 transition-opacity group-hover/study:opacity-100 focus-within:opacity-100">
           <IconLink
             href={`/app/project/${selected.id}`}
             label={t("study.open")}

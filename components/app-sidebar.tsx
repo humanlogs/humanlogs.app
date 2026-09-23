@@ -51,7 +51,7 @@ import {
   ShieldIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 import { useTranscriptions } from "../hooks/use-transcriptions";
 import { useWelcomeRedirect } from "../hooks/use-welcome-redirect";
@@ -90,6 +90,7 @@ type AppSidebarProps = {
 
 export function AppSidebar({ user, children }: AppSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const t = useTranslations("sidebar");
   const tCoding = useTranslations("codebook.coding.phase");
   const { setLocale } = useLocale();
@@ -235,6 +236,34 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
     />
   );
 
+  /**
+   * Opening a phase section.
+   *
+   * It sets which list is shown — and, when a document is actually open, moves
+   * that document into the phase too. The phase lives in the URL, and the page
+   * pushes it back onto these preferences, so a header that only changed the
+   * preference was immediately overruled by the document still being in the other
+   * one: the section snapped shut and coding could not be left. Changing the URL
+   * is what makes the header a switch rather than a suggestion.
+   */
+  const openPhase = (value: DocumentPhase) => {
+    update({ phase: value });
+    const open = /^\/app\/transcription\/([^/]+)/.exec(pathname);
+    if (!open) return;
+    // Read from the URL itself rather than through `useSearchParams`: this lives
+    // in the layout, which wraps every route, and that hook would demand a
+    // Suspense boundary around all of them. Inside a click handler there is
+    // always a window.
+    const query = new URLSearchParams(window.location.search);
+    if (value === "transcription") query.delete("phase");
+    else query.set("phase", value);
+    const suffix = query.toString();
+    router.replace(
+      `/app/transcription/${open[1]}${suffix ? `?${suffix}` : ""}`,
+      { scroll: false },
+    );
+  };
+
   /** The list of one phase: its groups, its rows, and where each row opens. */
   const phaseList = (of: DocumentPhase) => {
     if (documents.length === 0) {
@@ -327,7 +356,7 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
 
             {/* Separated from the two links above: this filters the documents in
                 the block below, it is not a third place to go. */}
-            <SidebarMenuItem className="mt-1">
+            <SidebarMenuItem className="mt-1 mb-3">
               <div className="relative">
                 <SearchIcon className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 pointer-events-none text-muted-foreground" />
                 <SidebarInput
@@ -372,7 +401,7 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
                     }
                     accent={value === "coding"}
                     open={phase === value}
-                    onOpen={() => update({ phase: value })}
+                    onOpen={() => openPhase(value)}
                     action={viewSettings}
                   >
                     {phaseList(value)}

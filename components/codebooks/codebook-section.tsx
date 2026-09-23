@@ -26,36 +26,48 @@ export function CodebookSection({ projectId }: { projectId: string }) {
 
   const inScope = codebooksInScopeForProject(codebooks, projectId);
 
+  /**
+   * One codebook, as one line.
+   *
+   * Same shape as the documents just above (`DocumentList`): a bordered list with
+   * rules between rows rather than a stack of cards, title on the left, the
+   * metadata as a compact cluster on the right. Two card lists on one page make a
+   * study of six documents and three codebooks scroll, and the second list then
+   * reads as more important than the first — which is backwards. What a codebook
+   * is stays the same; it stops taking a paragraph to say it.
+   */
   const renderCodebook = (codebook: DecryptedCodebook) => (
-    <button
-      key={codebook.id}
-      type="button"
-      onClick={() => openEdit(codebook.id)}
-      className="flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-accent"
-    >
-      <BookMarkedIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-      <span className="min-w-0 flex-1">
-        <span className="block truncate font-medium">
+    <li key={codebook.id}>
+      <button
+        type="button"
+        onClick={() => openEdit(codebook.id)}
+        className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors hover:bg-accent/40"
+      >
+        <BookMarkedIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <span className="min-w-0 flex-1 truncate font-medium">
           {codebook.name || (
             <span className="text-muted-foreground">{t("section.locked")}</span>
           )}
         </span>
-        <span className="text-xs text-muted-foreground">
-          {codebook.allStudies
-            ? t("section.allStudies")
-            : t("section.studyCount", { count: codebook.studyIds.length })}
-          {" · "}
-          {/* Sub-codes count too — they are codes of this codebook. */}
-          {t("section.codeCount", {
-            count: flattenCodes(codebook.codes).length,
-          })}
-          {" · "}
+        <span className="flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
           {/* What it codes: a document, a participant, a sentence… now that
               codebooks tag different things, the list has to say which. */}
-          {t(`editor.targets.${codebook.target}`)}
+          <span className="hidden sm:inline">
+            {t(`editor.targets.${codebook.target}`)}
+          </span>
+          <span className="hidden sm:inline">
+            {codebook.allStudies
+              ? t("section.allStudies")
+              : t("section.studyCount", { count: codebook.studyIds.length })}
+          </span>
+          {/* Sub-codes count too — they are codes of this codebook. */}
+          <span className="inline-flex items-center gap-1 tabular-nums">
+            <TagsIcon className="h-3.5 w-3.5" />
+            {flattenCodes(codebook.codes).length}
+          </span>
         </span>
-      </span>
-    </button>
+      </button>
+    </li>
   );
 
   return (
@@ -100,9 +112,9 @@ export function CodebookSection({ projectId }: { projectId: string }) {
           }}
         />
       ) : (
-        <div className="space-y-2">
+        <ul className="divide-y overflow-hidden rounded-xl border">
           {inScope.map((codebook) => renderCodebook(codebook))}
-        </div>
+        </ul>
       )}
     </section>
   );

@@ -124,6 +124,8 @@ type ExcerptPanelValue = {
    * editor would both scroll and navigate.
    */
   claimFocus: () => () => void;
+  /** Open the panel on entering a coding pass — see the implementation. */
+  autoOpen: () => void;
 
   /**
    * The document whose audio is currently playable, if any.
@@ -189,6 +191,13 @@ const GROUP_KEY = "hl-excerpt-panel-group";
  * home, account, anything reached by a hard reload.
  */
 const STUDY_KEY = "hl-excerpt-panel-study";
+
+/**
+ * Below this the panel is not a second column, it is half the transcript taken
+ * away — so a coding pass opens it only on a screen with room for both. Roughly
+ * a 420px panel, a readable measure of text, and the sidebar.
+ */
+const AUTO_OPEN_MIN_WIDTH = 1280;
 
 export const MIN_PANEL_WIDTH = 320;
 export const MAX_PANEL_WIDTH = 780;
@@ -264,7 +273,17 @@ export function ExcerptPanelProvider({
     }
   }, []);
 
+  /**
+   * Whether the reader has closed the panel themselves since the app loaded.
+   *
+   * {@link autoOpen} stands down once they have. Opening a table over someone's
+   * transcript is helpful the first time and an imposition the third, and the
+   * closing gesture is the only reliable statement of "not now".
+   */
+  const dismissed = React.useRef(false);
+
   const setOpen = React.useCallback((next: boolean) => {
+    if (!next) dismissed.current = true;
     setOpenState(next);
     if (typeof window !== "undefined")
       window.localStorage.setItem(OPEN_KEY, next ? "1" : "0");
@@ -273,10 +292,28 @@ export function ExcerptPanelProvider({
   const toggle = React.useCallback(() => {
     setOpenState((current) => {
       const next = !current;
+      if (!next) dismissed.current = true;
       if (typeof window !== "undefined")
         window.localStorage.setItem(OPEN_KEY, next ? "1" : "0");
       return next;
     });
+  }, []);
+
+  /**
+   * Open the panel because a coding pass just started.
+   *
+   * Coding without the table is coding blind — you cannot see what you have
+   * already said about the corpus — so entering the phase is the one moment where
+   * opening it unasked is right. Two conditions keep that from being pushy: the
+   * window has to be wide enough for a second column to be a second column rather
+   * than a squeeze, and the reader must not have closed it since the app loaded.
+   */
+  const autoOpen = React.useCallback(() => {
+    if (dismissed.current) return;
+    if (typeof window === "undefined") return;
+    if (window.innerWidth < AUTO_OPEN_MIN_WIDTH) return;
+    setOpenState(true);
+    window.localStorage.setItem(OPEN_KEY, "1");
   }, []);
 
   const setWidth = React.useCallback((next: number) => {
@@ -453,6 +490,7 @@ export function ExcerptPanelProvider({
     focus,
     subscribe,
     claimFocus,
+    autoOpen,
     audioDocumentId: audio?.documentId ?? null,
     registerAudio,
     seekAudio,
