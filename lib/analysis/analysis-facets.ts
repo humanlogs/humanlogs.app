@@ -32,6 +32,8 @@
  * - `context:<codebookId>:<codeId>` a code on the DOCUMENTS or the PEOPLE, which
  *                                   narrows whose passages count rather than
  *                                   which passages do
+ * - `nocode:<codebookId>`           what that codebook says nothing about, which
+ *                                   is one of the things a grille is read for
  *
  * Two things are deliberately NOT facets. The free-text search is a way of
  * finding a passage, not a property of a slice, and a note attached to a typo
@@ -104,10 +106,12 @@ export function extraFacets(
 /** The filters the table was asked with, reduced to what an analysis is keyed on. */
 export type AnalysisView = {
   /**
-   * The group's own key, straight from the query — `"all"` for the ungrouped
-   * list, which adds no facet because it narrows nothing.
+   * The group's own facets, straight from the query. Empty for the ungrouped
+   * list, which narrows nothing. Several of them now that grouping is a chain:
+   * a crossing of speaker and code contributes both, which is exactly the slice
+   * the note beside it is about.
    */
-  groupKey?: string | null;
+  groupFacets?: readonly AnalysisFacet[];
   /** Verbatim codes the passages had to carry. */
   codes?: ReadonlyArray<{ codebookId: string; codeId: string }>;
   /** Codes on the documents or the people, narrowing whose passages count. */
@@ -118,7 +122,7 @@ export type AnalysisView = {
 
 export function facetsOfView(view: AnalysisView): AnalysisFacet[] {
   const facets: AnalysisFacet[] = [];
-  if (view.groupKey && view.groupKey !== "all") facets.push(view.groupKey);
+  for (const facet of view.groupFacets ?? []) facets.push(facet);
   for (const ref of view.codes ?? [])
     facets.push(`code:${ref.codebookId}:${ref.codeId}`);
   for (const ref of view.contextCodes ?? [])
@@ -134,7 +138,14 @@ export function keyOfView(view: AnalysisView): string {
 
 /** How a facet reads, split into the dimension and the id it names. */
 export function describeFacet(facet: AnalysisFacet): {
-  kind: "code" | "codebook" | "document" | "speaker" | "context" | "unknown";
+  kind:
+    | "code"
+    | "codebook"
+    | "document"
+    | "speaker"
+    | "context"
+    | "nocode"
+    | "unknown";
   codebookId?: string;
   codeId?: string;
   id?: string;
@@ -147,6 +158,7 @@ export function describeFacet(facet: AnalysisFacet): {
     case "codebook":
     case "document":
     case "speaker":
+    case "nocode":
       return { kind, id: rest.join(":") };
     default:
       return { kind: "unknown" };

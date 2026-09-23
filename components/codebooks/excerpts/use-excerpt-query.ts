@@ -136,7 +136,7 @@ export function useExcerptRequest({
   userId: string | undefined;
 }): { request: Omit<StudyQuery, "signal">; labels: ExcerptLabels } {
   const t = useTranslations("codebook.excerpts");
-  const { filter, groupBy, context } = useExcerptPanel();
+  const { filter, rules, context } = useExcerptPanel();
 
   const inStudy = React.useMemo(
     () => documents.filter((doc) => doc.projectId === context.projectId),
@@ -178,6 +178,37 @@ export function useExcerptRequest({
     [inStudy],
   );
 
+  /**
+   * The codes carried by each person and each document, for a `context` grouping
+   * rule — "the cadres", as a row rather than as a filter.
+   *
+   * Built from the document list the app already holds, like the identity above:
+   * coding a person in the study board re-groups the table on the next render
+   * rather than after a reindex.
+   */
+  const contextByPerson = React.useMemo(() => {
+    const out: Record<string, string[]> = {};
+    for (const doc of inStudy) {
+      for (const ref of doc.speakerCodes ?? []) {
+        const person = identity.personOf(doc.id, ref.speakerId);
+        const key = `${ref.codebookId}:${ref.codeId}`;
+        const bucket = (out[person] ??= []);
+        if (!bucket.includes(key)) bucket.push(key);
+      }
+    }
+    return out;
+  }, [inStudy, identity]);
+
+  const contextByDocument = React.useMemo(() => {
+    const out: Record<string, string[]> = {};
+    for (const doc of inStudy) {
+      out[doc.id] = (doc.codes ?? []).map(
+        (ref) => `${ref.codebookId}:${ref.codeId}`,
+      );
+    }
+    return out;
+  }, [inStudy]);
+
   const speakerKeys =
     filter.contextCodes.length > 0 && filter.scope !== "document"
       ? speakersMatchingCodesByPerson(
@@ -190,8 +221,10 @@ export function useExcerptRequest({
 
   const request: Omit<StudyQuery, "signal"> = {
     projectId: context.projectId,
-    groupBy,
-    codeOrder: codeOrderFor({ groupBy, filter, codebooks, context }),
+    rules,
+    codeOrder: codeOrderFor({ rules, filter, codebooks, context }),
+    contextByPerson,
+    contextByDocument,
     sanitize: knownCodesOf(codebooks),
     speakerPersons,
     filter: {
@@ -262,6 +295,10 @@ export function useExcerptRequest({
             return self.codebookName(parsed.id!);
           case "document":
             return self.documentTitle(parsed.id!);
+          case "nocode":
+            return t("groupBy.uncoded", {
+              codebook: self.codebookName(parsed.id ?? ""),
+            });
           case "speaker": {
             const named = personNames.get(parsed.id!);
             if (named) return named;
@@ -365,21 +402,25 @@ function knownCodesOf(codebooks: DecryptedCodebook[]): KnownCodebooks {
  * and the choice would be a guess, so it declines.
  */
 function codeOrderFor({
-  groupBy,
+  rules,
   filter,
   codebooks,
   context,
 }: {
-  groupBy: ReturnType<typeof useExcerptPanel>["groupBy"];
+  rules: ReturnType<typeof useExcerptPanel>["rules"];
   filter: ReturnType<typeof useExcerptPanel>["filter"];
   codebooks: DecryptedCodebook[];
   context: ReturnType<typeof useExcerptPanel>["context"];
 }): CodeRef[] | undefined {
-  if (groupBy !== "code") return undefined;
+  // Only a SINGLE code axis reads as a grille. Crossed with anything else, the
+  // codebook's order would seed a row for every pair nobody ever produced.
+  const axis = rules.length === 1 && rules[0].kind === "code" ? rules[0] : null;
+  if (!axis) return undefined;
   if (filter.codes.length > 0) return filter.codes;
-  const codebook =
-    codebooks.find((c) => c.id === context.codebookId) ??
-    onlyVerbatimCodebook(codebooks, context.projectId);
+  const codebook = axis.codebookId
+    ? codebooks.find((c) => c.id === axis.codebookId)
+    : (codebooks.find((c) => c.id === context.codebookId) ??
+      onlyVerbatimCodebook(codebooks, context.projectId));
   if (!codebook) return undefined;
   return flattenCodes(codebook.codes).map(({ code }) => ({
     codebookId: codebook.id,

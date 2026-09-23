@@ -1,10 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { ChevronRightIcon } from "lucide-react";
 import { useTranslations } from "@/components/locale-provider";
 import { usePhraseRows } from "@/hooks/use-local-index";
 import { codeColorVar } from "@/lib/codebooks/coding";
 import { codingIdsOf } from "@/lib/local/phrase-index";
+import type { PhraseGroupLabel } from "@/lib/local/phrase-query";
 import { cn } from "@/lib/utils/utils";
 import {
   takeRefs,
@@ -95,7 +97,7 @@ export function ExcerptList({
    * observer had just added.
    */
   const question = panel.filter;
-  const grouping = panel.groupBy;
+  const grouping = panel.rules;
   const scope = panel.context;
   React.useEffect(() => {
     setVisible(PAGE);
@@ -193,9 +195,10 @@ export function ExcerptList({
    * document or by speaker, the header has already said it. The line disappears
    * entirely when it would carry neither.
    */
+  const groupedBy = new Set(panel.rules.map((rule) => rule.kind));
   const provenance = {
-    document: panel.filter.scope !== "document" && panel.groupBy !== "document",
-    speaker: panel.groupBy !== "speaker",
+    document: panel.filter.scope !== "document" && !groupedBy.has("document"),
+    speaker: !groupedBy.has("speaker"),
   };
 
   /**
@@ -402,41 +405,82 @@ function ExcerptGroupSection({
   );
 }
 
+/**
+ * The group's heading: one chip per grouping rule, in rule order.
+ *
+ * A breadcrumb rather than a single name, because a group is a CROSSING now —
+ * "Renée › Violence" is one row of the table and both halves of it are load
+ * bearing. Null when there is nothing to say, which is the ungrouped list.
+ */
 function groupHeader(
   group: StreamedGroup,
   labels: ExcerptLabels,
 ): React.ReactNode | null {
-  switch (group.label.type) {
+  const parts = group.path
+    .map((label, index) => levelHeader(label, labels, index))
+    .filter(Boolean);
+  if (parts.length === 0) return null;
+  return (
+    <span className="flex min-w-0 flex-wrap items-center gap-1">
+      {parts.map((part, index) => (
+        <React.Fragment key={index}>
+          {index > 0 && (
+            <ChevronRightIcon
+              aria-hidden
+              className="size-3 shrink-0 text-muted-foreground/50"
+            />
+          )}
+          {part}
+        </React.Fragment>
+      ))}
+    </span>
+  );
+}
+
+function levelHeader(
+  label: PhraseGroupLabel,
+  labels: ExcerptLabels,
+  index: number,
+): React.ReactNode | null {
+  switch (label.type) {
     case "all":
       return null;
     case "code": {
-      const { label, color } = labels.codeLabel(group.label);
+      const { label: text, color } = labels.codeLabel(label);
       return (
-        <span className="flex min-w-0 items-center gap-1.5">
+        <span key={index} className="flex min-w-0 items-center gap-1.5">
           <span
             className="size-2 shrink-0 rounded-full"
             style={{ background: codeColorVar(color) }}
           />
-          <span className="truncate">{label}</span>
+          <span className="truncate">{text}</span>
         </span>
       );
     }
     case "codebook":
       return (
-        <span className="truncate">
-          {labels.codebookName(group.label.codebookId)}
+        <span key={index} className="truncate">
+          {labels.codebookName(label.codebookId)}
         </span>
       );
     case "document":
       return (
-        <span className="truncate">
-          {labels.documentTitle(group.label.documentId)}
+        <span key={index} className="truncate">
+          {labels.documentTitle(label.documentId)}
         </span>
       );
     case "speaker":
       return (
-        <span className="truncate">
-          {labels.speakerName(group.label.documentId, group.label.speakerId)}
+        <span key={index} className="truncate">
+          {labels.speakerName(label.documentId, label.speakerId)}
+        </span>
+      );
+    case "unassigned":
+      // Said in words rather than left blank: a row for what a grille does not
+      // cover is an answer, and an unnamed one reads as a bug.
+      return (
+        <span key={index} className="truncate text-muted-foreground/70 italic">
+          {labels.facetLabel(`nocode:${label.codebookId ?? ""}`)}
         </span>
       );
   }

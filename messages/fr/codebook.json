@@ -129,23 +129,31 @@
       "narrowed": "Documents dans cette sélection : {count}",
       "scope": {
         "document": "Ce document",
-        "study": "Toute l’étude"
+        "study": "Toute l’étude",
+        "label": "Afficher"
       },
       "filter": {
         "codes": "Codes",
-        "context": "Documents et personnes"
+        "context": "Documents et personnes",
+        "label": "Filtrer"
       },
       "authors": {
         "everyone": "Tout le monde",
-        "mine": "Moi"
+        "mine": "Moi",
+        "label": "Lectures"
       },
       "groupBy": {
         "label": "Grouper par",
         "none": "Sans groupe",
-        "code": "Par code",
+        "code": "Codes",
         "codebook": "Par grille",
-        "document": "Par document",
-        "speaker": "Par locuteur"
+        "document": "Document",
+        "speaker": "Locuteur",
+        "add": "Ajouter une règle",
+        "remove": "Retirer cette règle",
+        "context": "Codes des participants",
+        "onPeople": "sur les personnes",
+        "uncoded": "Hors {codebook}"
       },
       "unknownCode": "Code supprimé",
       "unknownCodebook": "Grille supprimée",

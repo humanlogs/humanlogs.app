@@ -129,23 +129,31 @@
       "narrowed": "Documentos en esta selección: {count}",
       "scope": {
         "document": "Este documento",
-        "study": "Todo el estudio"
+        "study": "Todo el estudio",
+        "label": "Mostrar"
       },
       "filter": {
         "codes": "Códigos",
-        "context": "Documentos y personas"
+        "context": "Documentos y personas",
+        "label": "Filtrar"
       },
       "authors": {
         "everyone": "Todos",
-        "mine": "Míos"
+        "mine": "Míos",
+        "label": "Lecturas"
       },
       "groupBy": {
         "label": "Agrupar por",
         "none": "Sin agrupar",
-        "code": "Por código",
+        "code": "Códigos",
         "codebook": "Por libro de códigos",
-        "document": "Por documento",
-        "speaker": "Por hablante"
+        "document": "Documento",
+        "speaker": "Hablante",
+        "add": "Añadir una regla",
+        "remove": "Quitar esta regla",
+        "context": "Códigos de participantes",
+        "onPeople": "sobre las personas",
+        "uncoded": "Fuera de {codebook}"
       },
       "unknownCode": "Código eliminado",
       "unknownCodebook": "Libro de códigos eliminado",

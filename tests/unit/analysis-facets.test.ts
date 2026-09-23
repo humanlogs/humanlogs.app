@@ -35,14 +35,14 @@ describe("analysisKey", () => {
 });
 
 describe("facetsOfView", () => {
-  it("takes the group's own key as a facet", () => {
-    expect(facetsOfView({ groupKey: "code:cb1:positif" })).toEqual([
+  it("takes the group's own facets", () => {
+    expect(facetsOfView({ groupFacets: ["code:cb1:positif"] })).toEqual([
       "code:cb1:positif",
     ]);
   });
 
   it("ignores the ungrouped group, which narrows nothing", () => {
-    expect(facetsOfView({ groupKey: "all" })).toEqual([]);
+    expect(facetsOfView({ groupFacets: [] })).toEqual([]);
   });
 
   it("distinguishes a verbatim code from a context code", () => {
@@ -53,7 +53,7 @@ describe("facetsOfView", () => {
   });
 
   it("keys a person by the group, which the query already resolves by name", () => {
-    expect(facetsOfView({ groupKey: "speaker:renee" })).toEqual([
+    expect(facetsOfView({ groupFacets: ["speaker:renee"] })).toEqual([
       "speaker:renee",
     ]);
   });
@@ -64,17 +64,17 @@ describe("facetsOfView", () => {
 
   it("does not repeat a code that is both the group and the filter", () => {
     expect(
-      facetsOfView({ groupKey: "code:cb1:positif", codes: [POSITIF] }),
+      facetsOfView({ groupFacets: ["code:cb1:positif"], codes: [POSITIF] }),
     ).toEqual(["code:cb1:positif"]);
   });
 
   it("reaches the same key whether the slice was grouped then filtered or the reverse", () => {
     const grouped = keyOfView({
-      groupKey: "code:cb1:positif",
+      groupFacets: ["code:cb1:positif"],
       contextCodes: [CADRE],
     });
     const filtered = keyOfView({
-      groupKey: "context:cb2:cadre",
+      groupFacets: ["context:cb2:cadre"],
       codes: [POSITIF],
     });
     // Same two facets, arrived at from either side.
@@ -85,12 +85,12 @@ describe("facetsOfView", () => {
 });
 
 describe("narrowing", () => {
-  const positif = facetsOfView({ groupKey: "code:cb1:positif" });
+  const positif = facetsOfView({ groupFacets: ["code:cb1:positif"] });
   const positifCadre = facetsOfView({
-    groupKey: "code:cb1:positif",
+    groupFacets: ["code:cb1:positif"],
     contextCodes: [CADRE],
   });
-  const neutre = facetsOfView({ groupKey: "code:cb1:neutre" });
+  const neutre = facetsOfView({ groupFacets: ["code:cb1:neutre"] });
 
   it("finds a narrower note from a wider view", () => {
     expect(isNarrowerThan(positifCadre, positif)).toBe(true);
@@ -121,7 +121,7 @@ describe("narrowing", () => {
 
   it("scoping to one document narrows the same group", () => {
     const inDoc = facetsOfView({
-      groupKey: "code:cb1:positif",
+      groupFacets: ["code:cb1:positif"],
       documentId: "doc1",
     });
     expect(isNarrowerThan(inDoc, positif)).toBe(true);
@@ -131,12 +131,12 @@ describe("narrowing", () => {
   it("ignores the search box, so a note is never stranded behind a typo", () => {
     // `search` is not part of the view type at all — asserting the shape here
     // keeps a future addition from silently changing what a note is attached to.
-    const withSearch = keyOfView({ groupKey: "code:cb1:positif" });
-    expect(withSearch).toBe(keyOfView({ groupKey: "code:cb1:positif" }));
+    const withSearch = keyOfView({ groupFacets: ["code:cb1:positif"] });
+    expect(withSearch).toBe(keyOfView({ groupFacets: ["code:cb1:positif"] }));
   });
 
   it("ignores which author's readings are shown", () => {
-    expect(keyOfView({ groupKey: "code:cb1:neutre" })).toBe(
+    expect(keyOfView({ groupFacets: ["code:cb1:neutre"] })).toBe(
       analysisKey(["code:cb1:neutre"]),
     );
   });

@@ -101,11 +101,7 @@ export function useExcerptTable({
     documentId:
       panel.filter.scope === "document" ? panel.context.documentId : null,
   };
-  const groupNotes = useGroupAnalyses(
-    analyses.data,
-    view,
-    query.groups.map((group) => group.key),
-  );
+  const groupNotes = useGroupAnalyses(analyses.data, view, query.groups);
 
   const saveMutation = save.mutate;
   const analysis: ExcerptAnalysis | undefined = withAnalysis

@@ -5,11 +5,35 @@ import { usePathname, useRouter } from "next/navigation";
 import { useDocumentViewPrefs } from "@/hooks/use-document-view-prefs";
 import { workspaceAreaOf } from "@/lib/documents/workspace-area";
 import type { CodeRef } from "@/lib/codebooks/codebook";
-import {
-  DEFAULT_PHRASE_GROUP_BY,
-  phraseMatchesAnchors,
-  type PhraseGroupBy,
-} from "@/lib/local/phrase-query";
+import type { GroupRule } from "@/lib/local/group-rules";
+import { phraseMatchesAnchors } from "@/lib/local/phrase-query";
+
+/**
+ * Grouping by code to start with, because that is what a coding pass produces:
+ * the codebook down the left, the passages under each code. Everything else is a
+ * rule you ADD to it.
+ */
+const DEFAULT_RULES: GroupRule[] = [{ kind: "code" }];
+
+/**
+ * A stored chain, defensively. It is JSON written by an older build (where it was
+ * a single axis name) or by hand, and a malformed one must leave the table
+ * grouped rather than crash the panel.
+ */
+function parseRules(raw: string): GroupRule[] {
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return DEFAULT_RULES;
+    return parsed.filter(
+      (rule): rule is GroupRule =>
+        !!rule &&
+        typeof rule === "object" &&
+        ["speaker", "document", "code", "context"].includes(rule.kind),
+    );
+  } catch {
+    return DEFAULT_RULES;
+  }
+}
 
 /**
  * The excerpt panel's state, and the thread between it and the editor.
@@ -107,8 +131,13 @@ type ExcerptPanelValue = {
 
   filter: ExcerptFilterState;
   setFilter: React.Dispatch<React.SetStateAction<ExcerptFilterState>>;
-  groupBy: PhraseGroupBy;
-  setGroupBy: (groupBy: PhraseGroupBy) => void;
+  /**
+   * How the table is grouped: a CHAIN, appended to one rule at a time. Empty is
+   * the flat list. See `lib/local/group-rules.ts` for what a rule can be and why
+   * a crossing has one identity whatever order it was built in.
+   */
+  rules: GroupRule[];
+  setRules: (rules: GroupRule[]) => void;
 
   context: ExcerptDocumentContext;
   setContext: (context: ExcerptDocumentContext) => void;
@@ -289,9 +318,7 @@ export function ExcerptPanelProvider({
   const router = useRouter();
   const [open, setOpenState] = React.useState(false);
   const [width, setWidthState] = React.useState(DEFAULT_PANEL_WIDTH);
-  const [groupBy, setGroupByState] = React.useState<PhraseGroupBy>(
-    DEFAULT_PHRASE_GROUP_BY,
-  );
+  const [rules, setRulesState] = React.useState<GroupRule[]>(DEFAULT_RULES);
   const [filter, setFilter] = React.useState<ExcerptFilterState>(EMPTY_FILTER);
   const [context, setContextState] = React.useState<ExcerptDocumentContext>({
     documentId: null,
@@ -314,13 +341,7 @@ export function ExcerptPanelProvider({
         DEFAULT_PANEL_WIDTH,
       ),
     );
-    setGroupByState(
-      readStored(
-        GROUP_KEY,
-        (raw) => raw as PhraseGroupBy,
-        DEFAULT_PHRASE_GROUP_BY,
-      ),
-    );
+    setRulesState(readStored(GROUP_KEY, parseRules, DEFAULT_RULES));
     const study = readStored<string | null>(STUDY_KEY, (raw) => raw, null);
     if (study !== null) {
       // Only the study. A restored document id would claim an editor is open when
@@ -384,10 +405,10 @@ export function ExcerptPanelProvider({
       window.localStorage.setItem(WIDTH_KEY, String(clamped));
   }, []);
 
-  const setGroupBy = React.useCallback((next: PhraseGroupBy) => {
-    setGroupByState(next);
+  const setRules = React.useCallback((next: GroupRule[]) => {
+    setRulesState(next);
     if (typeof window !== "undefined")
-      window.localStorage.setItem(GROUP_KEY, next);
+      window.localStorage.setItem(GROUP_KEY, JSON.stringify(next));
   }, []);
 
   /**
@@ -453,7 +474,7 @@ export function ExcerptPanelProvider({
       codes: [],
       contextCodes: [],
     }));
-    setGroupByState("code");
+    setRulesState(DEFAULT_RULES);
   }, [documentId]);
 
   const listeners = React.useRef(new Set<(focus: PhraseFocus) => void>());
@@ -557,8 +578,8 @@ export function ExcerptPanelProvider({
     setWidth,
     filter,
     setFilter,
-    groupBy,
-    setGroupBy,
+    rules,
+    setRules,
     context,
     setContext,
     focused,

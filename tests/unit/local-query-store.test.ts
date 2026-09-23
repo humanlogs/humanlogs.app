@@ -188,7 +188,12 @@ describe("queryStudy", () => {
   }> = [
     { name: "no filter, ungrouped", options: {} },
     { name: "grouped by code", options: { groupBy: "code" } },
-    { name: "grouped by codebook", options: { groupBy: "codebook" } },
+    {
+      name: "crossed: by speaker, then by the codes of one codebook",
+      options: {
+        rules: [{ kind: "speaker" }, { kind: "code", codebookId: "cb1" }],
+      },
+    },
     { name: "grouped by document", options: { groupBy: "document" } },
     { name: "grouped by speaker", options: { groupBy: "speaker" } },
     {
@@ -305,11 +310,16 @@ describe("queryStudy", () => {
     await corpus();
     const result = await queryStudy(USER, {
       projectId: "study1",
-      groupBy: "codebook",
+      rules: [{ kind: "code", codebookId: "cb1" }],
       batchSize: 2,
       sanitize: [{ id: "cbOther", codeIds: [] }],
     });
-    expect(result.groups.map((g) => g.key)).toEqual(["codebook:cb1"]);
+    expect(result.groups.map((g) => g.key).sort()).toEqual([
+      "code:cb1:cadre",
+      "code:cb1:hierarchie",
+      "code:cb1:institution",
+      "code:cb1:violence",
+    ]);
   });
 
   it("keeps nothing when a dimension is explicitly empty", async () => {

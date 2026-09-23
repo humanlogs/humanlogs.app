@@ -129,23 +129,31 @@
       "narrowed": "Documents in this selection: {count}",
       "scope": {
         "document": "This document",
-        "study": "Whole study"
+        "study": "Whole study",
+        "label": "Show"
       },
       "filter": {
         "codes": "Codes",
-        "context": "Documents & people"
+        "context": "Documents & people",
+        "label": "Filter"
       },
       "authors": {
         "everyone": "Everyone",
-        "mine": "Mine"
+        "mine": "Mine",
+        "label": "Readings"
       },
       "groupBy": {
         "label": "Group by",
         "none": "No grouping",
-        "code": "By code",
+        "code": "Codes",
         "codebook": "By codebook",
-        "document": "By document",
-        "speaker": "By speaker"
+        "document": "Document",
+        "speaker": "Speaker",
+        "add": "Add a rule",
+        "remove": "Remove this rule",
+        "context": "Participant codes",
+        "onPeople": "on the people",
+        "uncoded": "Not in {codebook}"
       },
       "unknownCode": "Deleted code",
       "unknownCodebook": "Deleted codebook",

@@ -84,7 +84,7 @@ export function useExcerptExport({
    */
   analyses?: Analysis[];
   /** The filter half of the slice — see `lib/analysis/analysis-facets.ts`. */
-  analysisView?: Omit<AnalysisView, "groupKey">;
+  analysisView?: Omit<AnalysisView, "groupFacets">;
 }) {
   const t = useTranslations("codebook.excerpts");
   const { data: profile } = useUserProfile();
@@ -154,7 +154,7 @@ export function useExcerptExport({
           analysis: analysisFor(
             analyses,
             analysisView,
-            group.key,
+            group.facets,
             labels.facetLabel,
           ),
           passages: group.refs.flatMap((ref) => {
@@ -214,12 +214,12 @@ export function useExcerptExport({
  */
 function analysisFor(
   analyses: Analysis[] | undefined,
-  view: Omit<AnalysisView, "groupKey"> | undefined,
-  groupKey: string,
+  view: Omit<AnalysisView, "groupFacets"> | undefined,
+  groupFacets: readonly string[],
   describe: (facet: string) => string,
 ): string | undefined {
   if (!analyses?.length) return undefined;
-  const facets = facetsOfView({ ...(view ?? {}), groupKey });
+  const facets = facetsOfView({ ...(view ?? {}), groupFacets });
   const own = analyses.find((note) => note.key === analysisKey(facets));
   const narrower = analyses
     .filter((note) => isNarrowerThan(note.facets, facets))

@@ -129,23 +129,31 @@
       "narrowed": "Dokumente in dieser Auswahl: {count}",
       "scope": {
         "document": "Dieses Dokument",
-        "study": "Ganze Studie"
+        "study": "Ganze Studie",
+        "label": "Anzeigen"
       },
       "filter": {
         "codes": "Codes",
-        "context": "Dokumente & Personen"
+        "context": "Dokumente & Personen",
+        "label": "Filtern"
       },
       "authors": {
         "everyone": "Alle",
-        "mine": "Meine"
+        "mine": "Meine",
+        "label": "Lesarten"
       },
       "groupBy": {
         "label": "Gruppieren nach",
         "none": "Keine Gruppierung",
-        "code": "Nach Code",
+        "code": "Codes",
         "codebook": "Nach Codebuch",
-        "document": "Nach Dokument",
-        "speaker": "Nach Sprecher"
+        "document": "Dokument",
+        "speaker": "Sprecher",
+        "add": "Regel hinzufügen",
+        "remove": "Regel entfernen",
+        "context": "Teilnehmer-Codes",
+        "onPeople": "auf die Personen",
+        "uncoded": "Nicht in {codebook}"
       },
       "unknownCode": "Gelöschter Code",
       "unknownCodebook": "Gelöschtes Codebuch",

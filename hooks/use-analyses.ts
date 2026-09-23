@@ -85,13 +85,13 @@ export type GroupAnalysis = {
  */
 export function useGroupAnalyses(
   analyses: Analysis[] | undefined,
-  view: Omit<AnalysisView, "groupKey">,
-  groupKeys: readonly string[],
+  view: Omit<AnalysisView, "groupFacets">,
+  groups: ReadonlyArray<{ key: string; facets: readonly string[] }>,
 ): Map<string, GroupAnalysis> {
   const out = new Map<string, GroupAnalysis>();
   const rows = analyses ?? [];
-  for (const groupKey of groupKeys) {
-    const facets = facetsOfView({ ...view, groupKey });
+  for (const { key: groupKey, facets: groupFacets } of groups) {
+    const facets = facetsOfView({ ...view, groupFacets });
     const key = analysisKey(facets);
     const own = rows.find((row) => row.key === key) ?? null;
     const narrower = rows

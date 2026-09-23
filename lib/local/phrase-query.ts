@@ -27,6 +27,13 @@ import {
   type CodeRef,
   type SpeakerCodeRef,
 } from "@/lib/codebooks/codebook";
+import {
+  groupKeyOf,
+  placementsOf,
+  rulesFromGroupBy,
+  type GroupContext,
+  type GroupRules,
+} from "./group-rules";
 import type { PhraseCodeRow, PhraseRow } from "./phrase-index";
 
 /**
@@ -83,7 +90,13 @@ export type PhraseGroupLabel =
   | { type: "code"; codebookId: string; codeId: string }
   | { type: "codebook"; codebookId: string }
   | { type: "document"; documentId: string }
-  | { type: "speaker"; documentId: string; speakerId: string | null };
+  | { type: "speaker"; documentId: string; speakerId: string | null }
+  /**
+   * Nothing on this dimension: a passage that no code of this codebook covers,
+   * or a person it says nothing about. A row rather than a silent omission —
+   * "what the grille misses" is one of the things a grille is read for.
+   */
+  | { type: "unassigned"; codebookId: string | null };
 
 export type PhraseGroup = {
   key: string;
@@ -262,13 +275,20 @@ export function queryPhrases({
   links,
   filter = {},
   groupBy = "none",
+  rules,
   codeOrder,
+  groupContext,
 }: {
   phrases: readonly PhraseRow[];
   links: readonly PhraseCodeRow[];
   filter?: PhraseFilter;
+  /** The single axis, for callers that want one. */
   groupBy?: PhraseGroupBy;
+  /** The chain of grouping rules. Wins over {@link groupBy} when both are given. */
+  rules?: GroupRules;
   codeOrder?: readonly CodeRef[];
+  /** What the rules need that a link does not carry — people, context codes. */
+  groupContext?: GroupContext;
 }): PhraseQueryResult {
   const documentIds = filter.documentIds && new Set(filter.documentIds);
   const speakerKeys = filter.speakerKeys && new Set(filter.speakerKeys);
@@ -325,87 +345,66 @@ export function queryPhrases({
   return {
     phrases: out,
     codesOf: (phraseId) => codesByPhrase.get(phraseId) ?? NO_CODES,
-    groups: groupPhrases(out, codesByPhrase, groupBy, codeOrder),
+    groups: groupPhrases(
+      out,
+      codesByPhrase,
+      rules ?? rulesFromGroupBy(groupBy),
+      codeOrder,
+      groupContext,
+    ),
   };
 }
 
+/**
+ * Where each phrase goes, from the same rule engine the streaming query uses.
+ *
+ * Shared on purpose: these two implementations exist to check each other, which
+ * they can only do if they agree on what a group IS. The predicate logic is
+ * duplicated (that is the point — this one materialises, the other does not);
+ * the definition of a group is not.
+ */
 function groupPhrases(
   phrases: PhraseRow[],
   codesByPhrase: Map<string, PhraseCodeRow[]>,
-  groupBy: PhraseGroupBy,
+  rules: GroupRules,
   codeOrder?: readonly CodeRef[],
+  context?: GroupContext,
 ): PhraseGroup[] {
-  if (groupBy === "none") {
-    return [{ key: "all", label: { type: "all" }, phrases }];
-  }
-
-  if (groupBy === "code" || groupBy === "codebook") {
-    const buckets = new Map<string, PhraseGroup>();
-    const ensure = (key: string, label: PhraseGroupLabel): PhraseGroup => {
-      let group = buckets.get(key);
-      if (!group) {
-        group = { key, label, phrases: [] };
-        buckets.set(key, group);
-      }
-      return group;
-    };
-
-    // Seed the requested order first, so the groups read as the codebook does and
-    // the codes nobody used are still visible.
-    if (groupBy === "code" && codeOrder) {
-      for (const ref of codeOrder) {
-        ensure(`code:${codeRefKey(ref)}`, {
-          type: "code",
-          codebookId: ref.codebookId,
-          codeId: ref.codeId,
-        });
-      }
-    }
-
-    for (const phrase of phrases) {
-      const seen = new Set<string>();
-      for (const link of codesByPhrase.get(phrase.id) ?? []) {
-        const key =
-          groupBy === "code"
-            ? `code:${codeRefKey(link)}`
-            : `codebook:${link.codebookId}`;
-        // The same code applied by two authors is one group, not two.
-        if (seen.has(key)) continue;
-        seen.add(key);
-        ensure(
-          key,
-          groupBy === "code"
-            ? { type: "code", codebookId: link.codebookId, codeId: link.codeId }
-            : { type: "codebook", codebookId: link.codebookId },
-        ).phrases.push(phrase);
-      }
-    }
-    return Array.from(buckets.values());
-  }
-
   const buckets = new Map<string, PhraseGroup>();
-  for (const phrase of phrases) {
-    const key =
-      groupBy === "document"
-        ? `document:${phrase.documentId}`
-        : `speaker:${speakerKey(phrase.documentId, phrase.speakerId)}`;
+  const ensure = (facets: string[], path: PhraseGroupLabel[]): PhraseGroup => {
+    const key = groupKeyOf(facets);
     let group = buckets.get(key);
     if (!group) {
-      group = {
-        key,
-        label:
-          groupBy === "document"
-            ? { type: "document", documentId: phrase.documentId }
-            : {
-                type: "speaker",
-                documentId: phrase.documentId,
-                speakerId: phrase.speakerId,
-              },
-        phrases: [],
-      };
+      group = { key, label: path[0] ?? { type: "all" }, phrases: [] };
       buckets.set(key, group);
     }
-    group.phrases.push(phrase);
+    return group;
+  };
+
+  // Seed the requested order first, so the groups read as the codebook does and
+  // the codes nobody used are still visible. One code axis only — seeding a
+  // crossing would invent a row for every pair nobody ever produced.
+  const singleCodeAxis =
+    rules.length === 1 && rules[0].kind === "code" ? rules[0] : null;
+  if (singleCodeAxis && codeOrder) {
+    for (const ref of codeOrder) {
+      if (
+        singleCodeAxis.codebookId &&
+        ref.codebookId !== singleCodeAxis.codebookId
+      )
+        continue;
+      ensure(
+        [`code:${codeRefKey(ref)}`],
+        [{ type: "code", codebookId: ref.codebookId, codeId: ref.codeId }],
+      );
+    }
+  }
+
+  for (const phrase of phrases) {
+    const links = codesByPhrase.get(phrase.id) ?? [];
+    for (const placement of placementsOf(rules, links, context ?? {})) {
+      ensure(placement.facets, placement.path).phrases.push(phrase);
+    }
   }
   return Array.from(buckets.values());
 }
