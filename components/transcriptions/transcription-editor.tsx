@@ -1,6 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import { CodingStart } from "@/components/codebooks/coding-start";
+import { writeCodingCodebook } from "@/lib/codebooks/coding-codebook";
+import {
+  codingSessionServerSnapshot,
+  isCodingSessionActive,
+  startCodingSession,
+  subscribeCodingSession,
+} from "@/lib/documents/coding-session";
 import { TranscriptionDetail } from "../../hooks/use-transcriptions";
 import {
   TutorialWelcomeDialog,
@@ -31,6 +39,23 @@ export function TranscriptionEditor({
 }: TranscriptionEditorProps) {
   const tutorialWelcomeModal = useTutorialWelcomeModal();
 
+  /**
+   * A coding pass is under way, so this document goes straight into the editor.
+   *
+   * Otherwise the grille has not been chosen and the start screen asks — once per
+   * pass, not once per document (`lib/documents/coding-session.ts`).
+   *
+   * The gate is HERE, above the editor, rather than inside it. Inside, the editor
+   * was still constructed behind the screen and its effects measured a document
+   * that had never been mounted — which TipTap answers by throwing from
+   * `editor.view`. Not building it also spares a Yjs connection nobody is using.
+   */
+  const codingStarted = useSyncExternalStore(
+    subscribeCodingSession,
+    isCodingSessionActive,
+    codingSessionServerSnapshot,
+  );
+
   useEffect(() => {
     // Show tutorial welcome dialog if this is a tutorial and user hasn't seen it yet
     if (transcription.isTutorial) {
@@ -42,6 +67,20 @@ export function TranscriptionEditor({
       }
     }
   }, [transcription.id, transcription.isTutorial, tutorialWelcomeModal]);
+
+  if (phase === "coding" && !codingStarted) {
+    return (
+      <CodingStart
+        transcriptionId={transcription.id}
+        projectId={transcription.projectId}
+        textLength={transcription.textLength}
+        onChoose={(codebookId) => {
+          writeCodingCodebook(transcription.projectId, codebookId);
+          startCodingSession();
+        }}
+      />
+    );
+  }
 
   return (
     <AudioProvider>

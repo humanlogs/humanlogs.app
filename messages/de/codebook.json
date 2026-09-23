@@ -218,7 +218,8 @@
       "empty": {
         "title": "Noch kein Verbatim-Codebook",
         "description": "Ein Transkript zu codieren braucht ein Raster, dessen Codes für eine Textpassage gelten."
-      }
+      },
+      "codedShare": "{percent}% codiert · {count} Passagen"
     }
   }
 }

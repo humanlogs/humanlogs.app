@@ -24,14 +24,7 @@ import {
 import { InteractiveAudio } from "./audio";
 import { EditorAPI } from "./text/api";
 import { ActiveSegmentHighlight } from "./text/components/active-segment-highlight";
-import { CodingStart } from "@/components/codebooks/coding-start";
-import {
-  codingSessionServerSnapshot,
-  endCodingSession,
-  isCodingSessionActive,
-  startCodingSession,
-  subscribeCodingSession,
-} from "@/lib/documents/coding-session";
+import { endCodingSession } from "@/lib/documents/coding-session";
 import { CodingBar } from "./text/components/coding-bar";
 import { CodingHighlightStyles } from "./text/components/coding-highlight-styles";
 import { CodingSelectionToolbar } from "./text/components/coding-selection-toolbar";
@@ -136,18 +129,6 @@ export function TranscriptEditor({
   onSaveStatusChange?: (status: SaveStatus) => void;
 }) {
   const coding = phase === "coding";
-  /**
-   * A coding pass is under way, so this document goes straight into the editor.
-   *
-   * Otherwise the pass has not started and the grille has not been chosen: the
-   * start screen asks, once, and the next interview opened in the same pass does
-   * not ask again. See `lib/documents/coding-session.ts`.
-   */
-  const codingStarted = useSyncExternalStore(
-    subscribeCodingSession,
-    isCodingSessionActive,
-    codingSessionServerSnapshot,
-  );
   const containerRef = useRef<HTMLDivElement | null>(null);
   // Lazy initialiser: constructed once, stable identity, and never re-created
   // on re-render (which `useRef(new EditorAPI())` would do, then discard).
@@ -640,22 +621,6 @@ export function TranscriptEditor({
   // only when a word is corrected or validated.
   const { prefs: viewPrefs, update: updateViewPrefs } = useDocumentViewPrefs();
   const showConfidence = viewPrefs.showConfidence;
-
-  // Asked before the transcript is shown, not in a corner of the toolbar: which
-  // grille you read through decides what every chip, colour and letter below
-  // means, and it used to be a dropdown at the weight of the playback speed.
-  if (coding && !codingStarted) {
-    return (
-      <CodingStart
-        transcriptionId={transcription.id}
-        projectId={transcription.projectId}
-        onChoose={(codebookId) => {
-          codingController.selectCodebook(codebookId);
-          startCodingSession();
-        }}
-      />
-    );
-  }
 
   return (
     <div

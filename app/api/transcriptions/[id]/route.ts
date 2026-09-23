@@ -121,6 +121,7 @@ export const PATCH = withAuthRateLimit(
         speakers?: never;
         codes?: never;
         speakerCodes?: never;
+        textLength?: number;
         updatedBy?: string;
       } = {};
 
@@ -302,6 +303,21 @@ export const PATCH = withAuthRateLimit(
         if (derived) updateData.speakers = derived as never;
       }
 
+      /**
+       * How many characters of transcript there are, counted by the client.
+       *
+       * Same reason as the roster cache: the server cannot read an encrypted
+       * document, and this is the DENOMINATOR of "how much of this interview is
+       * coded". Deliberately approximate and clamped rather than validated — a
+       * client that miscounts should skew a percentage, not fail a save.
+       */
+      if (typeof body.textLength === "number") {
+        updateData.textLength = Math.max(
+          0,
+          Math.min(10_000_000, Math.round(body.textLength)),
+        );
+      }
+
       // The roster cache on its own — how a client refreshes it for an
       // encrypted document, whose content the server cannot read. Sent after
       // the content above so an explicit value always wins over the derived
@@ -332,7 +348,9 @@ export const PATCH = withAuthRateLimit(
       // a code on the document) does change what their own lists show, so they are
       // notified as before.
       const contentOnly = Object.keys(updateData).every((field) =>
-        ["transcription", "speakers", "updatedBy"].includes(field),
+        ["transcription", "speakers", "textLength", "updatedBy"].includes(
+          field,
+        ),
       );
       const recipients = new Set<string>([updated.userId]);
       const sharedUsers =
@@ -506,6 +524,9 @@ export const mapTransactionDetails = (transcription: Transcription) =>
     "language",
     "vocabulary",
     "speakerCount",
+    // Characters of transcript, for the coding-coverage figure. Approximate; see
+    // the schema.
+    "textLength",
     "state",
     "errorMessage",
     "transcription",

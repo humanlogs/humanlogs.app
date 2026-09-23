@@ -218,7 +218,8 @@
       "empty": {
         "title": "No verbatim codebook yet",
         "description": "Coding a transcript needs a grille whose codes apply to a passage of text."
-      }
+      },
+      "codedShare": "{percent}% coded · {count} passages"
     }
   }
 }

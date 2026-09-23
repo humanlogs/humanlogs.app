@@ -12,6 +12,10 @@ import {
   flattenCodes,
   type DecryptedCodebook,
 } from "@/lib/codebooks/codebook";
+import {
+  codedLengthOf,
+  coveragePercent,
+} from "@/lib/codebooks/coding-coverage";
 import { verbatimCodebooks } from "@/lib/codebooks/coding";
 import { cn } from "@/lib/utils/utils";
 import { BookMarkedIcon, PlusIcon, SparklesIcon } from "lucide-react";
@@ -40,10 +44,13 @@ import * as React from "react";
 export function CodingStart({
   transcriptionId,
   projectId,
+  textLength,
   onChoose,
 }: {
   transcriptionId: string;
   projectId?: string | null;
+  /** Characters of transcript — the denominator of the coverage figure. */
+  textLength?: number | null;
   /** The grille chosen: start the pass. */
   onChoose: (codebookId: string) => void;
 }) {
@@ -93,6 +100,7 @@ export function CodingStart({
               key={codebook.id}
               codebook={codebook}
               codings={codings}
+              textLength={textLength}
               onChoose={() => onChoose(codebook.id)}
             />
           ))}
@@ -132,20 +140,27 @@ export function CodingStart({
 /**
  * One grille, and how far this interview has been read through it.
  *
- * The number is COVERAGE OF THE GRILLE — how many of its codes have been used
- * here — not "how much of the transcript is coded", which is not a thing the
- * database can answer: a coding is an anchor in the document, and the server
- * holds the row without knowing what it spans. Coverage is what a researcher
- * actually watches during a pass anyway ("I have not used half of this grille
- * yet"), and it is honest about what it counts.
+ * Two numbers, because they answer two questions a researcher actually asks.
+ * **Coverage of the TEXT** — the characters this grille's codings span, over the
+ * characters of transcript — is "how much of this interview have I read". It is
+ * deliberately approximate: both lengths are snapshots the client took at write
+ * time (the server cannot read an encrypted transcript), a passage moves under
+ * its anchor afterwards, and two overlapping codings count twice. Hence the
+ * clamp: the figure is a sense of progress, not an audit.
+ *
+ * **Coverage of the GRILLE** — how many of its codes have been used here — is
+ * "how much of this grille have I found", which is the other half of the same
+ * pass and the one that says a theme is going unused.
  */
 function CodebookCard({
   codebook,
   codings,
+  textLength,
   onChoose,
 }: {
   codebook: DecryptedCodebook;
-  codings: Array<{ codebookId: string; codeId: string }>;
+  codings: Array<{ codebookId: string; codeId: string; textLength: number }>;
+  textLength?: number | null;
   onChoose: () => void;
 }) {
   const t = useTranslations("codebook.start");
@@ -156,8 +171,8 @@ function CodebookCard({
   const mine = codings.filter((row) => row.codebookId === codebook.id);
   const used = new Set(mine.map((row) => row.codeId));
   const covered = codes.filter((entry) => used.has(entry.code.id)).length;
-  const percent =
-    codes.length === 0 ? 0 : Math.round((covered / codes.length) * 100);
+
+  const percent = coveragePercent(codedLengthOf(mine, codebook.id), textLength);
 
   return (
     <button
@@ -200,17 +215,22 @@ function CodebookCard({
         <div
           className="h-1 flex-1 overflow-hidden rounded-full bg-muted"
           role="progressbar"
-          aria-valuenow={percent}
+          aria-valuenow={percent ?? 0}
           aria-valuemin={0}
           aria-valuemax={100}
         >
           <div
             className="h-full bg-yellow-400 transition-[width]"
-            style={{ width: `${percent}%` }}
+            style={{ width: `${percent ?? 0}%` }}
           />
         </div>
         <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
-          {t("passages", { count: mine.length })}
+          {/* Null while the document has no recorded length — saved before the
+              column existed. The passage count still says something; a percentage
+              of an unknown total would not. */}
+          {percent === null
+            ? t("passages", { count: mine.length })
+            : t("codedShare", { percent, count: mine.length })}
         </span>
       </div>
     </button>

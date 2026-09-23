@@ -364,13 +364,19 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
       return;
     }
 
-    if (/^\/app\/project\/[^/]+\/analysis/.test(pathname)) {
+    // On one of a study's workshops, the section header moves the PAGE. These are
+    // rooms of a study, not passes over a document, so "go to editing" from the
+    // coding workshop means the study's own page — and setting the preference
+    // alone left the sidebar saying one thing over a screen that was another.
+    // The study comes from the URL when the scope names none, so it still works
+    // while the sidebar is showing every study.
+    const workshop = /^\/app\/project\/([^/]+)\/(?:coding|analysis)/.exec(
+      pathname,
+    );
+    if (workshop) {
+      const id = study ?? workshop[1];
       router.push(
-        value === "coding" && study
-          ? `/app/project/${study}/coding`
-          : study
-            ? `/app/project/${study}`
-            : "/app",
+        value === "coding" ? `/app/project/${id}/coding` : `/app/project/${id}`,
       );
       return;
     }

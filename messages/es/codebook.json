@@ -218,7 +218,8 @@
       "empty": {
         "title": "Todavía no hay codebook de verbatim",
         "description": "Codificar una transcripción requiere una rejilla cuyos códigos se apliquen a un pasaje de texto."
-      }
+      },
+      "codedShare": "{percent}% codificado · {count} pasajes"
     }
   }
 }

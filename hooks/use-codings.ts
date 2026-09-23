@@ -31,6 +31,12 @@ export type NewCoding = {
   id: string;
   codebookId: string;
   codeId: string;
+  /**
+   * Characters the passage spans. Only the client can know it — the transcript
+   * may be end-to-end encrypted — and it is what makes "how much of this
+   * interview is coded" answerable at all.
+   */
+  textLength: number;
 };
 
 /**

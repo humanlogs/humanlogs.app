@@ -173,6 +173,10 @@ model Transcription {
   /// reads it in the creation request, nothing reads it at rest afterwards.
   vocabulary                Json?
   speakerCount              Int                @default(1)
+  /// Characters of transcript, as the client counted them on the last save. The
+  /// denominator of "how much of this interview is coded"; null until saved once,
+  /// and never read for anything that has to be exact.
+  textLength                Int?
   state                     TranscriptionState @default(PENDING)
   errorMessage              String?
   /// Credits debited for this transcription at creation, so a job that never
@@ -282,6 +286,13 @@ model Coding {
   userId          String
   codebookId      String
   codeId          String
+  /// How many characters the coded passage spans, as the client counted them when
+  /// it was applied. Not authoritative and not maintained: the passage is an anchor
+  /// in the transcript and moves with it, so this is a snapshot, kept because
+  /// "how much of this interview is coded" has no other answer the server can
+  /// give — the transcript may be end-to-end encrypted. Overlapping codings double
+  /// count; the ratio is clamped where it is shown.
+  textLength      Int           @default(0)
   createdAt       DateTime      @default(now())
   transcription   Transcription @relation(fields: [transcriptionId], references: [id], onDelete: Cascade)
   user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -218,7 +218,8 @@
       "empty": {
         "title": "Aucun codebook de verbatim",
         "description": "Coder une transcription demande une grille dont les codes s'appliquent à un passage de texte."
-      }
+      },
+      "codedShare": "{percent}% codé · {count} passages"
     }
   }
 }
