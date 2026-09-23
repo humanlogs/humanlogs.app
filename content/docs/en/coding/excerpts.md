@@ -9,11 +9,13 @@ related: coding/codebooks, coding/export
 
 Coding a corpus is only half the work. The other half is reading it back: *every passage I read as "violence", by the people I coded "manager", across these twelve interviews*. That is what the excerpt table is for.
 
-It is a panel docked to the right of the app, open on every page, and it answers from a copy of your corpus held **in your browser**. Nothing is sent anywhere to build it, which is also why it works on an end to end encrypted study, where the server cannot read the text at all.
+It is a panel docked to the right of a document, in either of its phases, and it answers from a copy of your corpus held **in your browser**. Nothing is sent anywhere to build it, which is also why it works on an end to end encrypted study, where the server cannot read the text at all.
 
 ## Opening it
 
-The table icon in the top bar opens and closes it. Entering the coding phase on a document opens it for you, if your screen is wide enough for a second column. Close it once and it stops doing that until you reload.
+The table icon in the top bar opens and closes it. Entering the coding phase opens it for you, if your screen is wide enough for a second column; close it once and it stops doing that until you reload.
+
+It appears on a document and nowhere else, but what you set on it survives: filter a study down, open a second interview, and the table is still asking the same question.
 
 ## What a row is
 

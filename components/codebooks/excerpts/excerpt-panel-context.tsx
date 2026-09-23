@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { CodeRef } from "@/lib/codebooks/codebook";
 import {
   DEFAULT_PHRASE_GROUP_BY,
@@ -12,13 +12,13 @@ import {
 /**
  * The excerpt panel's state, and the thread between it and the editor.
  *
- * The panel is GLOBAL: one instance, docked to the right of the whole app, alive
- * across navigation. That is deliberate — the question it answers ("everything coded
- * «violence» in this study") is not a property of the page you happen to be on, and
- * a researcher who opens a second interview to check a passage should not lose the
- * table they were reading it against.
+ * The panel's STATE is global and its presence is not. One instance, one filter,
+ * one width, alive across navigation, so a researcher who opens a second interview
+ * to check a passage comes back to the table exactly as they left it. But it is
+ * only ever SHOWN on a document (see {@link useExcerptPanelOnPage}): everywhere
+ * else it was open over a page that had not asked its question.
  *
- * Being global means the pages have to tell it where they are, which is what
+ * Living outside the pages means they have to tell it where they are, which is what
  * {@link useExcerptPanelContext} is for: the editor announces the document it has
  * open and the codebook being used, and the panel adopts the defaults that follow
  * from that — this document, grouped by the codes of that codebook — unless the
@@ -117,11 +117,11 @@ type ExcerptPanelValue = {
   /**
    * Say that an editor is mounted and will act on the table's clicks itself.
    *
-   * The panel is global and the editor is not: on the home page, on the account
-   * settings, on a codebook, clicking a row used to publish a focus that nobody
-   * was listening for, and the row simply highlighted. The fallback below
-   * navigates in that case — but only then, or a row clicked next to an open
-   * editor would both scroll and navigate.
+   * The panel outlives any one editor: while a document is loading, or failed to
+   * decrypt, the table can be on screen with no bridge behind it, and a click used
+   * to publish a focus nobody was listening for. The fallback below navigates in
+   * that case — but only then, or a row clicked next to a mounted editor would
+   * both scroll and navigate.
    */
   claimFocus: () => () => void;
   /** Open the panel on entering a coding pass — see the implementation. */
@@ -504,6 +504,24 @@ export function ExcerptPanelProvider({
       {children}
     </ExcerptPanelContext.Provider>
   );
+}
+
+/**
+ * Whether the excerpt table belongs on the page you are on.
+ *
+ * Only a document, in either of its phases. The panel used to follow you
+ * everywhere, which is what "global" bought: the table survived opening a second
+ * interview. It also meant it sat open over the home page, the account settings
+ * and a study's page, answering a question none of them had asked.
+ *
+ * Decided from the ROUTE rather than from `context.documentId`, because that is
+ * reported by the pages that bother to report it: a page that forgets would leave
+ * the previous document's id standing and the panel with it. A route cannot
+ * forget where it is.
+ */
+export function useExcerptPanelOnPage(): boolean {
+  const pathname = usePathname();
+  return pathname?.startsWith("/app/transcription/") ?? false;
 }
 
 export function useExcerptPanel(): ExcerptPanelValue {

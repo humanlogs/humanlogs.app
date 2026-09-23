@@ -16,6 +16,7 @@ import {
   MAX_PANEL_WIDTH,
   MIN_PANEL_WIDTH,
   useExcerptPanel,
+  useExcerptPanelOnPage,
 } from "./excerpt-panel-context";
 import { useExcerptDocuments } from "./use-excerpt-documents";
 import { useExcerptQuery } from "./use-excerpt-query";
@@ -40,8 +41,11 @@ export function ExcerptPanel() {
   const { data: codebooks = [] } = useCodebooks();
 
   // Codebooks are still a beta surface, and an excerpt table with no codebook to
-  // read against would be a permanently empty panel.
-  const live = panel.open && betaFeatures;
+  // read against would be a permanently empty panel. And it belongs on a document,
+  // in either phase: everywhere else it was answering a question the page had not
+  // asked. Neither the sync nor the read runs while it is not shown.
+  const onPage = useExcerptPanelOnPage();
+  const live = panel.open && betaFeatures && onPage;
 
   const projectId = panel.context.projectId;
   // Neither the sync nor the read should cost anything to a researcher who never
