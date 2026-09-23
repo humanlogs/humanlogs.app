@@ -160,11 +160,13 @@
           "docx": "Word (.docx)",
           "csv": "Spreadsheet (.csv)"
         },
-        "hintShort": "Grouped by code, capped at 2000 passages per theme."
+        "hintShort": "Grouped by code, capped at 2000 passages per theme.",
+        "menuLabel": "Coding"
       },
       "play": "Play this passage",
       "recode": "Codes on this passage",
-      "recodeMine": "You can only take back your own readings."
+      "recodeMine": "You can only take back your own readings.",
+      "open": "Open this interview"
     }
   }
 }

@@ -160,11 +160,13 @@
           "docx": "Word (.docx)",
           "csv": "Hoja de cálculo (.csv)"
         },
-        "hintShort": "Agrupado por código, limitado a 2000 pasajes por tema."
+        "hintShort": "Agrupado por código, limitado a 2000 pasajes por tema.",
+        "menuLabel": "Codificación"
       },
       "play": "Escuchar este pasaje",
       "recode": "Códigos de este pasaje",
-      "recodeMine": "Solo puede retirar sus propias lecturas."
+      "recodeMine": "Solo puede retirar sus propias lecturas.",
+      "open": "Abrir esta entrevista"
     }
   }
 }

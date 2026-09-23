@@ -12,8 +12,6 @@ import {
   sanitizeLinks,
   speakerKey,
   speakersMatchingCodes,
-  takeGroups,
-  type PhraseGroup,
 } from "@/lib/local/phrase-query";
 
 /**
@@ -518,50 +516,6 @@ describe("phraseMatchesAnchors", () => {
   });
 });
 
-describe("takeGroups", () => {
-  const group = (key: string, count: number): PhraseGroup => ({
-    key,
-    label: { type: "all" },
-    phrases: Array.from({ length: count }, (_, i) => ({
-      id: `${key}-${i}`,
-      documentId: "doc1",
-      projectId: "study1",
-      speakerId: "speaker_0",
-      text: "…",
-      offset: i,
-      codingIds: [`${key}-${i}`],
-    })),
-  });
-
-  it("returns everything when the page is bigger than the result", () => {
-    const page = takeGroups([group("a", 2), group("b", 3)], 60);
-    expect(page.groups.map((g) => g.phrases.length)).toEqual([2, 3]);
-    expect(page.remaining).toBe(0);
-  });
-
-  it("cuts inside the group that crosses the limit", () => {
-    const page = takeGroups([group("a", 2), group("b", 5)], 4);
-    expect(page.groups.map((g) => g.phrases.length)).toEqual([2, 2]);
-    expect(page.remaining).toBe(3);
-  });
-
-  it("keeps the empty groups past the limit — they say what was not coded", () => {
-    const page = takeGroups(
-      [group("a", 4), group("empty", 0), group("b", 2)],
-      4,
-    );
-    expect(page.groups.map((g) => g.key)).toEqual(["a", "empty"]);
-    expect(page.remaining).toBe(2);
-  });
-
-  it("counts what is left across every group, not only the one it cut", () => {
-    const page = takeGroups(
-      [group("a", 10), group("b", 10), group("c", 10)],
-      5,
-    );
-    expect(page.remaining).toBe(25);
-  });
-});
 
 /**
  * The audio bounds of a coded passage.

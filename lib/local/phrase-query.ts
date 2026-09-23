@@ -409,32 +409,3 @@ function groupPhrases(
   }
   return Array.from(buckets.values());
 }
-
-/**
- * The first `limit` excerpts of a grouped result, and how many are left.
- *
- * The panel renders a page at a time and grows as the reader scrolls: a study can
- * hold tens of thousands of coded passages, and mounting them all would be as slow
- * as it sounds. Groups are kept WHOLE down to the row — an empty code group is one
- * line and says something (nothing was coded with it) — so only rows are counted.
- */
-export function takeGroups(
-  groups: readonly PhraseGroup[],
-  limit: number,
-): { groups: PhraseGroup[]; remaining: number } {
-  let budget = Math.max(0, limit);
-  let total = 0;
-  const out: PhraseGroup[] = [];
-  for (const group of groups) {
-    total += group.phrases.length;
-    if (budget === 0 && group.phrases.length > 0) continue;
-    if (group.phrases.length <= budget) {
-      out.push(group);
-      budget -= group.phrases.length;
-    } else {
-      out.push({ ...group, phrases: group.phrases.slice(0, budget) });
-      budget = 0;
-    }
-  }
-  return { groups: out, remaining: Math.max(0, total - limit) };
-}

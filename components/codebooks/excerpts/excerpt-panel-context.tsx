@@ -126,6 +126,11 @@ type ExcerptPanelValue = {
   claimFocus: () => () => void;
   /** Open the panel on entering a coding pass — see the implementation. */
   autoOpen: () => void;
+  /**
+   * Open the interview a row comes from WITHOUT resetting the table to it. The
+   * only way to reach a row's play and code controls from a study-wide view.
+   */
+  followDocument: (documentId: string, codingId?: string) => void;
 
   /**
    * The document whose audio is currently playable, if any.
@@ -214,6 +219,37 @@ function readStored<T>(key: string, parse: (raw: string) => T, fallback: T): T {
   }
 }
 
+/**
+ * A capability the open editor LENDS the panel, for one document.
+ *
+ * Two of these exist and they had the same fifteen lines twice: the audio player
+ * and the ability to write a coding both live inside the editor, and the panel can
+ * use them only for the interview currently on screen. The subtle half is the
+ * deregistration, which is why this is shared rather than written out twice: only
+ * the document that registered may clear the slot. Navigating between two
+ * interviews MOUNTS the next editor before unmounting the previous one, so a blind
+ * clear on unmount would wipe the arrival.
+ */
+function useLentCapability<T>() {
+  const [held, setHeld] = React.useState<{
+    documentId: string;
+    value: T;
+  } | null>(null);
+
+  const register = React.useCallback((documentId: string, value: T | null) => {
+    setHeld((current) => {
+      if (!value) {
+        return current?.documentId === documentId ? null : current;
+      }
+      return current?.documentId === documentId && current.value === value
+        ? current
+        : { documentId, value };
+    });
+  }, []);
+
+  return { held, register };
+}
+
 export function ExcerptPanelProvider({
   children,
 }: {
@@ -232,14 +268,8 @@ export function ExcerptPanelProvider({
     codebookId: null,
   });
   const [focused, setFocused] = React.useState<PhraseFocus | null>(null);
-  const [audio, setAudio] = React.useState<{
-    documentId: string;
-    seek: (seconds: number) => void;
-  } | null>(null);
-  const [coding, setCoding] = React.useState<{
-    documentId: string;
-    toggle: PhraseCodingToggle;
-  } | null>(null);
+  const audio = useLentCapability<(seconds: number) => void>();
+  const coding = useLentCapability<PhraseCodingToggle>();
 
   // Restored after mount rather than during render: the server has no localStorage,
   // and a first paint that disagreed with it would hydrate-mismatch.
@@ -347,6 +377,25 @@ export function ExcerptPanelProvider({
   }, []);
 
   /**
+   * Go to the interview a row comes from, keeping the table exactly as it is.
+   *
+   * Reading a study-wide table, the rows of other interviews can be neither played
+   * nor recoded: both need that document open. Following one used to mean losing
+   * the view, because arriving on a document resets the table to it. So this says
+   * "I am going there ON PURPOSE, do not reset" and the reset below stands down
+   * once.
+   */
+  const keepView = React.useRef(false);
+  const followDocument = React.useCallback(
+    (documentId: string, codingId?: string) => {
+      keepView.current = true;
+      const anchor = codingId ? `&coding=${encodeURIComponent(codingId)}` : "";
+      router.push(`/app/transcription/${documentId}?phase=coding${anchor}`);
+    },
+    [router],
+  );
+
+  /**
    * Opening a document sets the defaults that go with it: this document, and its
    * codes grouped by the codebook being used.
    *
@@ -361,6 +410,12 @@ export function ExcerptPanelProvider({
     if (documentId === lastDocument.current) return;
     lastDocument.current = documentId;
     if (!documentId) return;
+    // Arrived by following a row: the reader chose this document FROM the table
+    // they had built, so rebuilding it under them is the opposite of helping.
+    if (keepView.current) {
+      keepView.current = false;
+      return;
+    }
     setFilter((current) => ({
       ...current,
       scope: "document",
@@ -394,51 +449,18 @@ export function ExcerptPanelProvider({
    * mounts the next bridge before unmounting the previous one, and a boolean
    * would be left false by the unmount that happens last.
    */
-  const registerAudio = React.useCallback(
-    (documentId: string, seek: ((seconds: number) => void) | null) => {
-      setAudio((current) => {
-        if (!seek) {
-          // Only the document that registered may deregister: navigating between
-          // two interviews mounts the next player before the previous one
-          // unmounts, and a blind clear would wipe the new one.
-          return current?.documentId === documentId ? null : current;
-        }
-        return current?.documentId === documentId && current.seek === seek
-          ? current
-          : { documentId, seek };
-      });
-    },
-    [],
-  );
-
   const seekAudio = React.useCallback(
     (seconds: number) => {
-      audio?.seek(seconds);
+      audio.held?.value(seconds);
     },
     [audio],
   );
 
-  const registerCoding = React.useCallback(
-    (documentId: string, toggle: PhraseCodingToggle | null) => {
-      setCoding((current) => {
-        // Only the document that registered may deregister — the same reason as the
-        // audio: navigating between two interviews mounts the next editor before
-        // the previous one unmounts.
-        if (!toggle) {
-          return current?.documentId === documentId ? null : current;
-        }
-        return current?.documentId === documentId && current.toggle === toggle
-          ? current
-          : { documentId, toggle };
-      });
-    },
-    [],
-  );
-
   const togglePhraseCode = React.useCallback(
     (intent: PhraseCodingIntent) => {
-      if (!coding || coding.documentId !== intent.documentId) return false;
-      return coding.toggle({
+      const held = coding.held;
+      if (!held || held.documentId !== intent.documentId) return false;
+      return held.value({
         codingIds: intent.codingIds,
         codebookId: intent.codebookId,
         codeId: intent.codeId,
@@ -491,11 +513,12 @@ export function ExcerptPanelProvider({
     subscribe,
     claimFocus,
     autoOpen,
-    audioDocumentId: audio?.documentId ?? null,
-    registerAudio,
+    followDocument,
+    audioDocumentId: audio.held?.documentId ?? null,
+    registerAudio: audio.register,
     seekAudio,
-    codingDocumentId: coding?.documentId ?? null,
-    registerCoding,
+    codingDocumentId: coding.held?.documentId ?? null,
+    registerCoding: coding.register,
     togglePhraseCode,
   };
 

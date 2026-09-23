@@ -10,6 +10,7 @@ import { useCodebooks } from "@/hooks/use-codebooks";
 import { codebooksInScopeForProject } from "@/lib/codebooks/codebook";
 import { verbatimCodebooks } from "@/lib/codebooks/coding";
 import { useLocalIndexSync } from "@/hooks/use-local-index";
+import { ExcerptExportButton } from "./excerpt-export";
 import { ExcerptFilters } from "./excerpt-filters";
 import { ExcerptList } from "./excerpt-list";
 import {
@@ -106,9 +107,12 @@ export function ExcerptPanel() {
         <span className="text-xs text-muted-foreground tabular-nums">
           {query.total}
         </span>
-        {/* No close button and no export here. Closing is the toggle in the app's
-            top bar, which is where it was opened from; the export lives in the
-            document's own download menu, with every other file it produces. */}
+        <span className="ml-auto" />
+        {/* No close button: the toggle in the app's top bar is where this was
+            opened from and is where it closes. The export is here as a SHORTCUT
+            from the table it exports, and lives in full in the document's own
+            download menu, with every other file it produces. */}
+        <ExcerptExportButton disabled={query.total === 0} />
       </div>
 
       <ExcerptFilters documents={documents} codebooks={codebooks} />

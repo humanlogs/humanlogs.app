@@ -4,7 +4,7 @@ import { DocumentCodesMenu } from "@/components/codebooks/document-codes-menu";
 import { useTranslations } from "@/components/locale-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExcerptExportSubmenu } from "@/components/codebooks/excerpts/excerpt-export-submenu";
+import { ExcerptExportSubmenu } from "@/components/codebooks/excerpts/excerpt-export";
 import {
   DropdownMenu,
   DropdownMenuItem,

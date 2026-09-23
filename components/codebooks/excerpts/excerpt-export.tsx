@@ -1,9 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { FileTextIcon, Loader2Icon, TableIcon } from "lucide-react";
-import { useTranslations } from "@/components/locale-provider";
 import {
+  DownloadIcon,
+  FileTextIcon,
+  Loader2Icon,
+  TagsIcon,
+} from "lucide-react";
+import { useTranslations } from "@/components/locale-provider";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
   DropdownMenuItem,
   DropdownMenuSub,
 } from "@/components/ui/dropdown-menu";
@@ -30,7 +37,14 @@ import { useExcerptRequest } from "./use-excerpt-query";
  * What comes out is a Thème / Phrases / Analyse table of the passages the current
  * filter keeps, always grouped by code. See `lib/codebooks/excerpt-export.ts`.
  */
-export function ExcerptExportSubmenu() {
+/**
+ * Assembling the export: the question, the labels, the file's name.
+ *
+ * A hook rather than a component so the two places that offer the export (the
+ * document's download menu and the excerpt panel's own shortcut) share every line
+ * of it and can differ only in their chrome.
+ */
+function useExport() {
   const t = useTranslations("codebook.excerpts");
   const betaFeatures = useBetaFeatures();
   const { data: profile } = useUserProfile();
@@ -66,21 +80,23 @@ export function ExcerptExportSubmenu() {
   });
 
   // Codebooks are a beta surface, and there is nothing to excerpt without one.
-  if (!betaFeatures) return null;
+  // Reported rather than returned early: a hook cannot bail before its own hooks
+  // have run, so the callers decide whether to render.
+  return { run, progress, error, available: betaFeatures };
+}
 
+/**
+ * The three formats, the caveat, and the progress. Identical wherever the export
+ * is offered from, which is the point of it being a component.
+ */
+function ExcerptExportItems({
+  run,
+  progress,
+  error,
+}: ReturnType<typeof useExport>) {
+  const t = useTranslations("codebook.excerpts");
   return (
-    <DropdownMenuSub
-      trigger={
-        <>
-          {progress ? (
-            <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <TableIcon className="mr-2 h-4 w-4" />
-          )}
-          {t("export.label")}
-        </>
-      }
-    >
+    <>
       {EXCERPT_EXPORT_FORMATS.map((format) => (
         <DropdownMenuItem
           key={format}
@@ -105,6 +121,75 @@ export function ExcerptExportSubmenu() {
           {t("export.failed")}
         </p>
       )}
+    </>
+  );
+}
+
+/**
+ * In the document's own download menu, under "Download as".
+ *
+ * Labelled "Coding" rather than "Export the table": next to TXT, Word and the
+ * subtitle formats, the thing being chosen is WHICH MATERIAL, not which file. The
+ * table is what coding produces.
+ */
+export function ExcerptExportSubmenu() {
+  const t = useTranslations("codebook.excerpts");
+  const state = useExport();
+  if (!state.available) return null;
+
+  return (
+    <DropdownMenuSub
+      trigger={
+        <>
+          {state.progress ? (
+            <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <TagsIcon className="mr-2 h-4 w-4" />
+          )}
+          {t("export.menuLabel")}
+        </>
+      }
+    >
+      <ExcerptExportItems {...state} />
     </DropdownMenuSub>
+  );
+}
+
+/**
+ * The same export, one click away on the panel that shows the table.
+ *
+ * A shortcut, not a second implementation: someone reading the table and deciding
+ * to take it away should not have to go and find the document's menu.
+ */
+export function ExcerptExportButton({ disabled }: { disabled?: boolean }) {
+  const t = useTranslations("codebook.excerpts");
+  const state = useExport();
+  if (!state.available) return null;
+
+  return (
+    <DropdownMenu
+      align="end"
+      trigger={
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-7"
+          disabled={disabled || state.progress !== null}
+          aria-label={t("export.label")}
+          title={t("export.label")}
+        >
+          {state.progress ? (
+            <Loader2Icon className="size-4 animate-spin" />
+          ) : (
+            <DownloadIcon className="size-4" />
+          )}
+        </Button>
+      }
+    >
+      <div className="px-2 py-1 text-xs font-medium text-muted-foreground">
+        {t("export.label")}
+      </div>
+      <ExcerptExportItems {...state} />
+    </DropdownMenu>
   );
 }

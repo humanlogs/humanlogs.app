@@ -160,11 +160,13 @@
           "docx": "Word (.docx)",
           "csv": "Tabelle (.csv)"
         },
-        "hintShort": "Nach Code gruppiert, maximal 2000 Passagen pro Thema."
+        "hintShort": "Nach Code gruppiert, maximal 2000 Passagen pro Thema.",
+        "menuLabel": "Codierung"
       },
       "play": "Diese Passage anhören",
       "recode": "Codes dieser Passage",
-      "recodeMine": "Sie können nur Ihre eigenen Lesarten zurücknehmen."
+      "recodeMine": "Sie können nur Ihre eigenen Lesarten zurücknehmen.",
+      "open": "Dieses Interview öffnen"
     }
   }
 }

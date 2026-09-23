@@ -695,6 +695,8 @@ export function TranscriptEditor({
                   scope={codingController.scope}
                   onScopeChange={codingController.setScope}
                   disabled={!canWrite || !documentSelection}
+                  audioControls={audioControls}
+                  hasListenAccess={hasListenAccess}
                 />
               ) : (
                 <EditorToolbar

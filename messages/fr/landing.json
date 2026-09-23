@@ -101,7 +101,8 @@
         "subtitle": "Un espace de travail moderne et privé pour tout le parcours de recherche qualitative. Voici où nous en sommes et ce qui arrive.",
         "status": {
             "live": "Disponible",
-            "soon": "Bientôt"
+            "soon": "Bientôt",
+            "beta": "Disponible"
         },
         "stages": {
             "transcription": {

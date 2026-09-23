@@ -11,6 +11,8 @@ import {
 } from "@/lib/codebooks/coding";
 import { cn } from "@/lib/utils/utils";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import type { AudioControls } from "../../audio/helpers";
+import { AudioTransport } from "./audio-transport";
 
 /**
  * The always-visible coding bar: every top-level code as a button, and the legend that
@@ -33,6 +35,8 @@ export function CodingBar({
   scope,
   onScopeChange,
   disabled,
+  audioControls,
+  hasListenAccess = false,
 }: {
   /** The codes currently shown: the top level, or the sub-codes we opened into. */
   level: CodingOption[];
@@ -49,11 +53,28 @@ export function CodingBar({
   onScopeChange: (scope: CodingScope) => void;
   /** No selection: the chips are a legend only. */
   disabled: boolean;
+  /** The player, so a coding pass can listen. Null while it is still loading. */
+  audioControls?: AudioControls | null;
+  /** Whether the reader may hear the audio at all. */
+  hasListenAccess?: boolean;
 }) {
   const t = useTranslations("codebook.coding");
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {/* Play, speed and position. This bar REPLACES the transcription toolbar,
+          which is where they used to live, so without them entering the coding
+          phase silently took the audio controls away from someone coding an
+          interview by listening to it. */}
+      {hasListenAccess && (
+        <div className="flex shrink-0 items-center gap-0">
+          <AudioTransport
+            audioControls={audioControls ?? null}
+            enabled={hasListenAccess}
+          />
+        </div>
+      )}
+
       {/* The prism first: it decides what the rest of the row means. */}
       <Select
         size="sm"
