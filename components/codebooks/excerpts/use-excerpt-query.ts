@@ -11,9 +11,11 @@ import {
   type DecryptedCodebook,
 } from "@/lib/codebooks/codebook";
 import { verbatimCodebooks } from "@/lib/codebooks/coding";
+import { describeFacet } from "@/lib/analysis/analysis-facets";
 import { documentsMatchingCodes } from "@/lib/local/phrase-query";
 import {
   buildSpeakerIdentity,
+  normalizeSpeakerName,
   speakerPersonMap,
   speakersMatchingCodesByPerson,
 } from "@/lib/local/speaker-identity";
@@ -53,6 +55,15 @@ export type ExcerptLabels = {
   codebookName: (codebookId: string) => string;
   documentTitle: (documentId: string) => string;
   speakerName: (documentId: string, speakerId: string | null) => string;
+  /**
+   * One facet of an analysis slice, in words — "«cadre»", "Renée", "entretien 3".
+   *
+   * Resolved here because this is the one place that holds the codebooks, the
+   * document list AND the speaker identity at once. An analysis stores opaque
+   * facet tokens, exactly as the index stores opaque ids, so a code renamed or a
+   * speaker named for the first time reads correctly with nothing stored touched.
+   */
+  facetLabel: (facet: string) => string;
 };
 
 export type ExcerptQueryResult = {
@@ -206,7 +217,20 @@ export function useExcerptRequest({
     const rosters = new Map(documents.map((doc) => [doc.id, doc.speakers]));
     const names = new Map(codebooks.map((c) => [c.id, c.name]));
 
-    return {
+    // A person's facet is the key the query groups them under — their normalized
+    // name when they have one, the (document, speaker) pair when they do not. This
+    // turns it back into something a reader recognises.
+    const personNames = new Map<string, string>();
+    for (const doc of documents) {
+      for (const speaker of doc.speakers) {
+        const person = normalizeSpeakerName(speaker.name);
+        if (person && speaker.name && !personNames.has(person)) {
+          personNames.set(person, speaker.name);
+        }
+      }
+    }
+
+    const self: ExcerptLabels = {
       codebookName: (codebookId) =>
         names.get(codebookId) || t("unknownCodebook"),
       codeLabel: (ref) =>
@@ -225,7 +249,41 @@ export function useExcerptRequest({
           ? t("speakerFallback", { index: position + 1 })
           : t("unknownSpeaker");
       },
+      facetLabel: (facet) => {
+        const parsed = describeFacet(facet);
+        switch (parsed.kind) {
+          case "code":
+          case "context":
+            return self.codeLabel({
+              codebookId: parsed.codebookId!,
+              codeId: parsed.codeId!,
+            }).label;
+          case "codebook":
+            return self.codebookName(parsed.id!);
+          case "document":
+            return self.documentTitle(parsed.id!);
+          case "speaker": {
+            const named = personNames.get(parsed.id!);
+            if (named) return named;
+            // An unnamed speaker: the key is the (document, speaker) pair the
+            // index uses — `<documentId>:<speakerId>`, split at the LAST colon
+            // since a document id never contains one — which `speakerName` can
+            // still resolve to a position.
+            const pair = parsed.id ?? "";
+            const cut = pair.lastIndexOf(":");
+            return cut < 0
+              ? pair
+              : self.speakerName(
+                  pair.slice(0, cut),
+                  pair.slice(cut + 1) || null,
+                );
+          }
+          default:
+            return facet;
+        }
+      },
     };
+    return self;
   }, [codebooks, documents, t]);
 
   return { request, labels };

@@ -57,6 +57,7 @@ model User {
   referralsSent         Referral[]
   comments              Comment[]
   codings               Coding[]
+  analyses              Analysis[]
   codebooks             Codebook[]
   notifications         Notification[]       @relation("NotificationRecipient")
   threadSubscriptions   ThreadSubscription[]
@@ -98,6 +99,7 @@ model Project {
   updatedAt      DateTime        @updatedAt
   transcriptions Transcription[]
   codebooks      CodebookStudy[]
+  analyses       Analysis[]
   user           User            @relation(fields: [userId], references: [id])
 
   @@index([userId])
@@ -286,6 +288,37 @@ model Coding {
 
   @@index([transcriptionId])
   @@index([transcriptionId, userId])
+}
+
+/// A researcher's written analysis of one SLICE of a study.
+///
+/// Not attached to a passage — to the combination of facets the excerpt table was
+/// showing when it was written: the group, plus the filters. `key` is the
+/// canonical (sorted, deduplicated) form of that set, so the same question asked
+/// in a different order finds the same note; `facets` is the same set as a list,
+/// so a wider view can tell what makes this one narrower without re-parsing.
+/// See `lib/analysis/analysis-facets.ts`, which owns the vocabulary.
+///
+/// Per author, like `Coding`: two researchers reading the same slice write two
+/// analyses, and neither overwrites the other.
+model Analysis {
+  id        String   @id @default(uuid())
+  projectId String
+  /// Author. Their own analysis of this slice, not the study's.
+  userId    String
+  /// Canonical facet key. Empty string is the study as a whole, which is a real
+  /// place to write rather than a missing one.
+  key       String
+  /// The facets as a JSON array of strings, in the same canonical order.
+  facets    Json
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId, key])
+  @@index([projectId])
 }
 
 /// Generic in-app notification. Deliberately feature-agnostic: `type` names the event

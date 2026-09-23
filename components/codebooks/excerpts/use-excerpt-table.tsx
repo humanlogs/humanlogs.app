@@ -7,8 +7,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUserProfile } from "@/hooks/use-api";
 import { useCodebooks } from "@/hooks/use-codebooks";
 import { useLocalIndexSync } from "@/hooks/use-local-index";
+import {
+  useAnalyses,
+  useGroupAnalyses,
+  useSaveAnalysis,
+} from "@/hooks/use-analyses";
 import { codebooksInScopeForProject } from "@/lib/codebooks/codebook";
 import { verbatimCodebooks } from "@/lib/codebooks/coding";
+import type { ExcerptAnalysis } from "./excerpt-analysis";
 import { ExcerptFilters } from "./excerpt-filters";
 import { ExcerptList } from "./excerpt-list";
 import { useExcerptPanel } from "./excerpt-panel-context";
@@ -32,8 +38,15 @@ import { useExcerptQuery } from "./use-excerpt-query";
 export function useExcerptTable({
   /** Whether to run the query at all. The panel closes; a tab is unmounted. */
   enabled,
+  /**
+   * Offer an analysis column beside each group. Only the full-page analysis view
+   * does: the docked panel is too narrow for a second column, and a coding pass
+   * is not where a researcher writes up what they make of the material.
+   */
+  withAnalysis = false,
 }: {
   enabled: boolean;
+  withAnalysis?: boolean;
 }) {
   const t = useTranslations("codebook.excerpts");
   const panel = useExcerptPanel();
@@ -72,6 +85,38 @@ export function useExcerptTable({
     };
   }, [panel, codebooks, projectId]);
 
+  /**
+   * The written analyses, keyed on the slice each group is.
+   *
+   * The view half of the key is the FILTER, taken from the panel rather than from
+   * the query's request: the request has already resolved context codes into
+   * document and speaker ids, and a note keyed on ids would be orphaned the moment
+   * a document joined the study. The facets stay the question, not its answer.
+   */
+  const analyses = useAnalyses(withAnalysis ? projectId : null);
+  const save = useSaveAnalysis(projectId);
+  const view = {
+    codes: panel.filter.codes,
+    contextCodes: panel.filter.contextCodes,
+    documentId:
+      panel.filter.scope === "document" ? panel.context.documentId : null,
+  };
+  const groupNotes = useGroupAnalyses(
+    analyses.data,
+    view,
+    query.groups.map((group) => group.key),
+  );
+
+  const saveMutation = save.mutate;
+  const analysis: ExcerptAnalysis | undefined = withAnalysis
+    ? {
+        of: (groupKey) => groupNotes.get(groupKey),
+        save: (facets, body) => saveMutation({ facets, body }),
+        describe: (facet) => query.labels.facetLabel(facet),
+        saving: save.isPending,
+      }
+    : undefined;
+
   return {
     total: query.total,
     node: (
@@ -97,6 +142,7 @@ export function useExcerptTable({
             labels={query.labels}
             deepen={query.deepen}
             coding={coding}
+            analysis={analysis}
           />
         )}
       </>

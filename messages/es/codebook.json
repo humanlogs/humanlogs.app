@@ -189,7 +189,9 @@
     },
     "analysis": {
       "title": "Análisis",
-      "description": "Todos los pasajes codificados de este estudio, en una sola tabla. Elija un documento en la barra lateral para limitarlo a esa entrevista."
+      "description": "Todos los pasajes codificados de este estudio, en una sola tabla. Elija un documento en la barra lateral para limitarlo a esa entrevista.",
+      "placeholder": "¿Qué concluye de estos pasajes?",
+      "narrower": "Escrito sobre conjuntos más precisos"
     }
   }
 }

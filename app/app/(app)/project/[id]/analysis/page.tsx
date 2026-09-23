@@ -81,7 +81,10 @@ function StudyAnalysisContent() {
     );
   }, [documentId, setFilter]);
 
-  const table = useExcerptTable({ enabled: !!betaFeatures && !!project });
+  const table = useExcerptTable({
+    enabled: !!betaFeatures && !!project,
+    withAnalysis: true,
+  });
 
   if (isLoading) {
     return (

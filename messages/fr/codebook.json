@@ -189,7 +189,9 @@
     },
     "analysis": {
       "title": "Analyse",
-      "description": "Tous les extraits codés de cette étude, dans un seul tableau. Choisissez un document dans la barre latérale pour le restreindre à cet entretien."
+      "description": "Tous les extraits codés de cette étude, dans un seul tableau. Choisissez un document dans la barre latérale pour le restreindre à cet entretien.",
+      "placeholder": "Que retenez-vous de ces passages ?",
+      "narrower": "Écrit sur des ensembles plus précis"
     }
   }
 }

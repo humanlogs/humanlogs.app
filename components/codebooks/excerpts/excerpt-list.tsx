@@ -5,6 +5,7 @@ import { useTranslations } from "@/components/locale-provider";
 import { usePhraseRows } from "@/hooks/use-local-index";
 import { codeColorVar } from "@/lib/codebooks/coding";
 import { codingIdsOf } from "@/lib/local/phrase-index";
+import { cn } from "@/lib/utils/utils";
 import {
   takeRefs,
   type PhraseRef,
@@ -16,6 +17,7 @@ import {
   useExcerptPanel,
   type PhraseFocus,
 } from "./excerpt-panel-context";
+import { AnalysisBox, type ExcerptAnalysis } from "./excerpt-analysis";
 import { ExcerptRow, type ExcerptCoding, type Provenance } from "./excerpt-row";
 import type { ExcerptLabels } from "./use-excerpt-query";
 
@@ -45,12 +47,19 @@ export function ExcerptList({
   labels,
   deepen,
   coding,
+  analysis,
 }: {
   groups: StreamedGroup[];
   labels: ExcerptLabels;
   deepen: () => void;
   /** Present only while an editor is lending the table its document. */
   coding?: ExcerptCoding;
+  /**
+   * Present only on the full-page analysis view. The panel docked beside a
+   * transcript is too narrow for a second column, and writing an analysis is not
+   * what a coding pass is for.
+   */
+  analysis?: ExcerptAnalysis;
 }) {
   const t = useTranslations("codebook.excerpts");
   const panel = useExcerptPanel();
@@ -232,6 +241,7 @@ export function ExcerptList({
           onSelect={panel.focus}
           onFollow={followDocument}
           coding={coding}
+          analysis={analysis}
           onPlay={playable ? onPlay : undefined}
           playingPhraseId={playingPhraseId}
         />
@@ -292,6 +302,7 @@ function ExcerptGroupSection({
   playingPhraseId,
   onFollow,
   coding,
+  analysis,
 }: {
   group: StreamedGroup;
   hydrated: HydratedPhrases | undefined;
@@ -308,9 +319,11 @@ function ExcerptGroupSection({
   playingPhraseId?: string | null;
   onFollow: (documentId: string, codingId?: string) => void;
   coding?: ExcerptCoding;
+  analysis?: ExcerptAnalysis;
 }) {
   const t = useTranslations("codebook.excerpts");
   const [collapsed, setCollapsed] = React.useState(false);
+  const note = analysis?.of(group.key);
   const header = groupHeader(group, labels);
   // Under a code heading, repeating that code on every row says nothing. The
   // OTHER codes a passage carries are exactly what the reader wants to see there
@@ -342,31 +355,49 @@ function ExcerptGroupSection({
       {/* The rows keep their inset; only the rules and the sticky heading run the
           full width of the panel, which is what makes them read as separators
           rather than as the edges of a card. */}
-      {!collapsed &&
-        (group.refs.length === 0 ? (
-          <p className="px-3 py-1.5 text-xs text-muted-foreground/60">
-            {t("groupEmpty")}
-          </p>
-        ) : (
-          <div className="px-2 pt-1">
-            {group.refs.map((ref) => (
-              <ExcerptRow
-                key={`${group.key}:${ref.id}`}
-                phraseRef={ref}
-                hydrated={hydrated}
-                grouping={grouping}
-                labels={labels}
-                focused={focusMatchesPhrase(focused, asPhrase(ref))}
-                provenance={provenance}
-                onSelect={onSelect}
-                onPlay={onPlay}
-                playing={playingPhraseId === ref.id}
-                onFollow={onFollow}
-                coding={coding}
-              />
-            ))}
+      {!collapsed && (
+        // Two columns where there is an analysis to write: the passages are the
+        // evidence, the note is what is made of them, and they have to be read
+        // against each other. The note STICKS, because a group can be thirty
+        // ragged blocks of prose and an analysis that scrolled away at the third
+        // one would be written from memory.
+        <div
+          className={cn(
+            "px-2 pt-1",
+            note && "gap-4 lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]",
+          )}
+        >
+          <div className="min-w-0">
+            {group.refs.length === 0 ? (
+              <p className="px-1 py-1.5 text-xs text-muted-foreground/60">
+                {t("groupEmpty")}
+              </p>
+            ) : (
+              group.refs.map((ref) => (
+                <ExcerptRow
+                  key={`${group.key}:${ref.id}`}
+                  phraseRef={ref}
+                  hydrated={hydrated}
+                  grouping={grouping}
+                  labels={labels}
+                  focused={focusMatchesPhrase(focused, asPhrase(ref))}
+                  provenance={provenance}
+                  onSelect={onSelect}
+                  onPlay={onPlay}
+                  playing={playingPhraseId === ref.id}
+                  onFollow={onFollow}
+                  coding={coding}
+                />
+              ))
+            )}
           </div>
-        ))}
+          {note && analysis && (
+            <div className="mt-2 min-w-0 lg:mt-0 lg:sticky lg:top-10 lg:self-start">
+              <AnalysisBox group={note} analysis={analysis} />
+            </div>
+          )}
+        </div>
+      )}
     </section>
   );
 }

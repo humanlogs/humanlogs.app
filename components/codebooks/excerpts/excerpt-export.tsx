@@ -21,6 +21,7 @@ import {
   type ExcerptExportFormat,
 } from "@/lib/codebooks/excerpt-export";
 import { useExcerptDocuments } from "./use-excerpt-documents";
+import { useAnalyses } from "@/hooks/use-analyses";
 import { useExcerptExport } from "./use-excerpt-export";
 import { useExcerptPanel } from "./excerpt-panel-context";
 import { useExcerptRequest } from "./use-excerpt-query";
@@ -71,12 +72,24 @@ function useExport() {
   );
   const title = scoped?.title || study?.name || t("title");
 
+  // The written analyses travel with the table: the third column of a thematic
+  // export exists to hold them, and a file that left the tool empty there would
+  // drop the part of the work the tool cannot reproduce.
+  const { data: analyses } = useAnalyses(panel.context.projectId);
+
   const { run, progress, error } = useExcerptExport({
     request,
     labels,
     title,
     caption: [title, new Date().toLocaleDateString()].join(" · "),
     enabled: betaFeatures,
+    analyses,
+    analysisView: {
+      codes: panel.filter.codes,
+      contextCodes: panel.filter.contextCodes,
+      documentId:
+        panel.filter.scope === "document" ? panel.context.documentId : null,
+    },
   });
 
   // Codebooks are a beta surface, and there is nothing to excerpt without one.

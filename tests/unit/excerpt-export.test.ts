@@ -214,3 +214,56 @@ describe("a passage that carries a timecode", () => {
     expect(formatPassage(untimed)).toBe("« on tient » — Cadre A, Entretien 1");
   });
 });
+
+/**
+ * The third column stopped being empty: an analysis is written per theme (crossed
+ * with whatever filters were on) and travels with the table. A file that left the
+ * tool with an empty Analyse column would drop the only part of the work the tool
+ * cannot reproduce from the corpus.
+ */
+describe("the analysis column", () => {
+  const analysed: ExcerptTable = {
+    ...table,
+    rows: [
+      {
+        theme: "Violence",
+        passages: [{ text: "on tient", speaker: "Cadre A", document: "E1" }],
+        analysis: 'Récurrent chez les cadres, jamais dit "violence"',
+      },
+      { theme: "Institution", passages: [] },
+    ],
+  };
+
+  it("writes the note in the third field", () => {
+    const line = toCsv(analysed).split("\r\n")[1];
+    expect(line).toContain(
+      '"Récurrent chez les cadres, jamais dit ""violence"""',
+    );
+  });
+
+  it("leaves the field empty, not absent, for a theme with no note", () => {
+    const rows = toCsv(analysed).split("\r\n");
+    // Header, two themes, trailing newline: the second theme still has 3 fields.
+    expect(rows[2].endsWith(',""')).toBe(true);
+  });
+
+  it("keeps a note with a newline inside one field", () => {
+    const csv = toCsv({
+      ...analysed,
+      rows: [{ theme: "T", passages: [], analysis: "un\ndeux" }],
+    });
+    expect(csv).toContain('"un\ndeux"');
+    // One record, not two: the quoting is what holds the line break in.
+    expect(csv.split("\r\n").length).toBe(3);
+  });
+
+  it("produces a Word file that still parses with a note in it", async () => {
+    const blob = await excerptTableBlob(analysed, "docx");
+    expect(blob.size).toBeGreaterThan(0);
+  });
+
+  it("produces a PDF that still parses with a note in it", async () => {
+    const blob = await excerptTableBlob(analysed, "pdf");
+    expect(blob.size).toBeGreaterThan(0);
+  });
+});

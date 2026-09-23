@@ -34,6 +34,12 @@ export type ExcerptPassage = {
 export type ExcerptTableRow = {
   theme: string;
   passages: ExcerptPassage[];
+  /**
+   * What the researcher wrote about this theme, if anything. Empty for a table
+   * exported to be written INTO — which is still the common case, and why the
+   * column exists even when nothing fills it.
+   */
+  analysis?: string;
 };
 
 export type ExcerptTable = {
@@ -96,7 +102,7 @@ export function toCsv(table: ExcerptTable): string {
         // Blank-line separated inside one cell: a spreadsheet shows it as a
         // multi-line cell, which is the shape the row actually has.
         csvField(row.passages.map(formatPassage).join("\n\n")),
-        csvField(""),
+        csvField(row.analysis ?? ""),
       ].join(","),
     );
   }
@@ -177,11 +183,13 @@ export async function toDocxBlob(table: ExcerptTable): Promise<Blob> {
                   )
                 : [new Paragraph({ text: "" })],
           }),
-          // The analysis column: one empty paragraph, so the cell exists and has
-          // somewhere to put a caret.
+          // The analysis column: what was written about this theme, or one empty
+          // paragraph so the cell exists and has somewhere to put a caret.
           new TableCell({
             width: { size: 30, type: WidthType.PERCENTAGE },
-            children: [new Paragraph({ text: "" })],
+            children: (row.analysis ? row.analysis.split("\n") : [""]).map(
+              (line) => new Paragraph({ text: line }),
+            ),
           }),
         ],
       }),
@@ -362,6 +370,34 @@ export async function toPdfBlob(table: ExcerptTable): Promise<Blob> {
     });
     themeBottom = y + theme.length * PDF.lineHeight + 2 * PDF.padding;
 
+    /**
+     * The analysis, in the third column, at the top of the band like the theme.
+     *
+     * Drawn once and not reflowed across pages, for the same reason the theme is
+     * not repeated: it belongs to the band, and a note continued under a blank
+     * theme cell reads as a second row. A note longer than a page is a sign the
+     * table is the wrong container for it, not something to paginate.
+     */
+    let analysisBottom = themeBottom;
+    if (row.analysis) {
+      doc.setFontSize(8.5);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(60);
+      const note = doc.splitTextToSize(
+        row.analysis,
+        columns[2] - 2 * PDF.padding,
+      ) as string[];
+      note.forEach((line, i) => {
+        doc.text(
+          line,
+          x[2] + PDF.padding,
+          y + PDF.padding + (i + 1) * PDF.lineHeight - 1,
+        );
+      });
+      analysisBottom = y + note.length * PDF.lineHeight + 2 * PDF.padding;
+      doc.setTextColor(0);
+    }
+
     y += PDF.padding;
 
     /** What one page can hold below its header — the tallest atomic passage. */
@@ -405,7 +441,7 @@ export async function toPdfBlob(table: ExcerptTable): Promise<Blob> {
     }
     if (row.passages.length === 0) y += PDF.lineHeight;
 
-    y = Math.max(y + PDF.padding, themeBottom);
+    y = Math.max(y + PDF.padding, themeBottom, analysisBottom);
     closeBand(bandTop, y);
   }
 
