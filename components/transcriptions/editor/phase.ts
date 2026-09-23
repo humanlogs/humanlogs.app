@@ -31,13 +31,31 @@ export function parseDocumentPhase(value: unknown): DocumentPhase {
 }
 
 /**
- * The three spaces of the work, including the one that does not exist yet.
+ * The three spaces of the work.
  *
- * `analysis` is not a document phase: there is no analysis pass over a single
- * interview, and nothing ships for it. It is here because the COLOUR belongs to
- * the same scale, and a scale defined in two halves drifts.
+ * `analysis` is NOT a document phase, which is why it is a separate list rather
+ * than a third entry in {@link DOCUMENT_PHASES}: there is no analysis pass over a
+ * single interview. You analyse a corpus — the excerpt table over a whole study,
+ * narrowed to one interview at most. So it has no `?phase=analysis` URL and no
+ * read-only editor; it has a page of its own, and a document named in the
+ * sidebar under it is a FILTER on that page, not a document to open.
+ *
+ * The order is the order of the work, and the chevron in the header reads it
+ * left to right.
  */
-export type WorkspaceArea = DocumentPhase | "analysis";
+export const WORKSPACE_AREAS = [
+  ...DOCUMENT_PHASES,
+  "analysis",
+] as const satisfies readonly string[];
+
+export type WorkspaceArea = (typeof WORKSPACE_AREAS)[number];
+
+export function isWorkspaceArea(value: unknown): value is WorkspaceArea {
+  return (
+    typeof value === "string" &&
+    (WORKSPACE_AREAS as readonly string[]).includes(value)
+  );
+}
 
 /**
  * One colour per space, so a researcher can tell at a glance what the app is

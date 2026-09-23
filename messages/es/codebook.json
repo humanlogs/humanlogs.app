@@ -106,7 +106,8 @@
       "phase": {
         "label": "Fase",
         "transcription": "Edición",
-        "coding": "Codificación"
+        "coding": "Codificación",
+        "analysis": "Análisis"
       },
       "apply": "Codificar",
       "comment": "Comentar",
@@ -185,6 +186,10 @@
       "none": "Sin códigos",
       "failed": "El documento se creó, pero sus códigos no se pudieron guardar",
       "add": "Añadir códigos"
+    },
+    "analysis": {
+      "title": "Análisis",
+      "description": "Todos los pasajes codificados de este estudio, en una sola tabla. Elija un documento en la barra lateral para limitarlo a esa entrevista."
     }
   }
 }

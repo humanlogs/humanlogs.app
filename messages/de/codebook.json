@@ -106,7 +106,8 @@
       "phase": {
         "label": "Phase",
         "transcription": "Bearbeitung",
-        "coding": "Codierung"
+        "coding": "Codierung",
+        "analysis": "Analyse"
       },
       "apply": "Codieren",
       "comment": "Kommentieren",
@@ -185,6 +186,10 @@
       "none": "Keine Codes",
       "failed": "Das Dokument wurde erstellt, aber seine Codes konnten nicht gespeichert werden",
       "add": "Codes hinzufügen"
+    },
+    "analysis": {
+      "title": "Analyse",
+      "description": "Alle codierten Passagen dieser Studie in einer Tabelle. Wählen Sie in der Seitenleiste ein Dokument, um sie auf dieses Interview einzugrenzen."
     }
   }
 }

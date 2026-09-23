@@ -3,8 +3,11 @@
 import { CannotAccessTranscription } from "@/components/encryption";
 import { DocumentPhaseSwitch } from "@/components/transcriptions/document-phase-switch";
 import {
+  DOCUMENT_PHASES,
   parseDocumentPhase,
+  WORKSPACE_AREAS,
   type DocumentPhase,
+  type WorkspaceArea,
 } from "@/components/transcriptions/editor/phase";
 import { TranscriptionActions } from "@/components/transcriptions/transcription-actions";
 import { TranscriptionEditor } from "@/components/transcriptions/transcription-editor";
@@ -15,7 +18,10 @@ import { useBetaFeatures, useProjects } from "@/hooks/use-api";
 import { useDocumentTitle } from "@/hooks/use-document-title";
 import { useDocumentViewPrefs } from "@/hooks/use-document-view-prefs";
 import { useEncryptionStatus } from "@/hooks/use-encryption";
-import { useTranscription, useTranscriptions } from "@/hooks/use-transcriptions";
+import {
+  useTranscription,
+  useTranscriptions,
+} from "@/hooks/use-transcriptions";
 import { useTranscriptionDeleteModal } from "@/components/transcriptions/dialogs/transcription-delete-dialog";
 import { PencilIcon } from "lucide-react";
 import Link from "next/link";
@@ -67,6 +73,14 @@ function TranscriptionPageContent({ params }: TranscriptionPageProps) {
     if (prefs.phase !== phase) update({ phase });
   }, [phase, prefs.phase, update]);
 
+  /**
+   * The steps the switch offers here. Analysis is a study-level space, so it is
+   * only reachable from a document that has a study.
+   */
+  const areas: WorkspaceArea[] = transcription?.projectId
+    ? [...WORKSPACE_AREAS]
+    : [...DOCUMENT_PHASES];
+
   const setPhase = (next: DocumentPhase) => {
     const query = new URLSearchParams(searchParams.toString());
     if (next === "transcription") query.delete("phase");
@@ -75,6 +89,20 @@ function TranscriptionPageContent({ params }: TranscriptionPageProps) {
     router.replace(`/app/transcription/${id}${suffix ? `?${suffix}` : ""}`, {
       scroll: false,
     });
+  };
+
+  const setArea = (next: WorkspaceArea) => {
+    // Analysis is not a pass over this document: it is the study's excerpt table,
+    // opened on the interview that was being read. Leaving with the document named
+    // is what makes it continuous with the coding that came before it.
+    if (next === "analysis") {
+      update({ phase: "analysis" });
+      router.push(
+        `/app/project/${transcription?.projectId}/analysis?document=${id}`,
+      );
+      return;
+    }
+    setPhase(next);
   };
 
   const isEncryptionError = error?.message === "error_encrypted";
@@ -194,7 +222,11 @@ function TranscriptionPageContent({ params }: TranscriptionPageProps) {
                   )}
                 </span>
                 {betaFeatures && transcription.state === "COMPLETED" && (
-                  <DocumentPhaseSwitch phase={phase} onChange={setPhase} />
+                  <DocumentPhaseSwitch
+                    area={phase}
+                    areas={areas}
+                    onChange={setArea}
+                  />
                 )}
               </div>
               <TranscriptionActions

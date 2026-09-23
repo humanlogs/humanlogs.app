@@ -106,7 +106,8 @@
       "phase": {
         "label": "Phase",
         "transcription": "Editing",
-        "coding": "Coding"
+        "coding": "Coding",
+        "analysis": "Analysis"
       },
       "apply": "Code",
       "comment": "Comment",
@@ -185,6 +186,10 @@
       "none": "No codes",
       "failed": "The document was created, but its codes could not be saved",
       "add": "Add codes"
+    },
+    "analysis": {
+      "title": "Analysis",
+      "description": "Every coded passage in this study, as one table. Pick a document in the sidebar to narrow it to that interview."
     }
   }
 }

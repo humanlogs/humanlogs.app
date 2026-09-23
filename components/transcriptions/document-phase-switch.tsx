@@ -2,9 +2,9 @@
 
 import { useTranslations } from "@/components/locale-provider";
 import {
-  DOCUMENT_PHASES,
   WORKSPACE_ACCENT,
-  type DocumentPhase,
+  WORKSPACE_AREAS,
+  type WorkspaceArea,
 } from "@/components/transcriptions/editor/phase";
 import { cn } from "@/lib/utils/utils";
 
@@ -25,22 +25,29 @@ function stepClip(first: boolean, last: boolean): string | undefined {
 }
 
 /**
- * Switches the document between its phases. Sits next to the title because the phase
+ * Moves between the spaces of the work. Sits next to the title because the space
  * qualifies the document you are looking at — "this interview, being coded" — rather
  * than being one more action in the toolbar.
  *
- * Shaped as a chevron rather than as two equal pills: the phases are a PROGRESSION,
- * not a pair of unrelated views — you transcribe, then you code, then (one day) you
- * analyse. Each step points into the next, which says that much without a word of
- * interface text, and the selected one carries the colour of its space, the same one
- * the rule under the header and the sidebar's phase headers use.
+ * Shaped as a chevron rather than as equal pills: the spaces are a PROGRESSION, not
+ * unrelated views — you transcribe, then you code, then you analyse. Each step points
+ * into the next, which says that much without a word of interface text, and the
+ * selected one carries the colour of its space, the same one the rule under the
+ * header and the sidebar's section headers use.
+ *
+ * `analysis` is offered only when the document belongs to a study, because it is not
+ * a pass over this document: it leaves for the study's excerpt table, filtered to the
+ * interview you were reading. A loose document has no corpus to analyse.
  */
 export function DocumentPhaseSwitch({
-  phase,
+  area,
+  areas = WORKSPACE_AREAS,
   onChange,
 }: {
-  phase: DocumentPhase;
-  onChange: (phase: DocumentPhase) => void;
+  area: WorkspaceArea;
+  /** Which steps to offer, in order. Defaults to all three. */
+  areas?: readonly WorkspaceArea[];
+  onChange: (area: WorkspaceArea) => void;
 }) {
   const t = useTranslations("codebook.coding.phase");
 
@@ -50,10 +57,10 @@ export function DocumentPhaseSwitch({
       aria-label={t("label")}
       className="flex shrink-0 items-center overflow-hidden rounded-md border bg-muted/40"
     >
-      {DOCUMENT_PHASES.map((value, index) => {
+      {areas.map((value, index) => {
         const first = index === 0;
-        const last = index === DOCUMENT_PHASES.length - 1;
-        const selected = phase === value;
+        const last = index === areas.length - 1;
+        const selected = area === value;
         return (
           <button
             key={value}

@@ -106,7 +106,8 @@
       "phase": {
         "label": "Phase",
         "transcription": "Édition",
-        "coding": "Codage"
+        "coding": "Codage",
+        "analysis": "Analyse"
       },
       "apply": "Coder",
       "comment": "Commenter",
@@ -185,6 +186,10 @@
       "none": "Aucun code",
       "failed": "Le document a été créé, mais ses codes n'ont pas pu être enregistrés",
       "add": "Ajouter des codes"
+    },
+    "analysis": {
+      "title": "Analyse",
+      "description": "Tous les extraits codés de cette étude, dans un seul tableau. Choisissez un document dans la barre latérale pour le restreindre à cet entretien."
     }
   }
 }

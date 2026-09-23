@@ -1,5 +1,6 @@
 "use client";
 
+import { useExcerptPanel } from "@/components/codebooks/excerpts/excerpt-panel-context";
 import { useLocale, useTranslations } from "@/components/locale-provider";
 import { DocumentViewSettings } from "@/components/sidebar/document-view-settings";
 import {
@@ -10,8 +11,8 @@ import { SidebarUserMenu } from "@/components/sidebar/sidebar-user-menu";
 import { StudyList, type StudyEntry } from "@/components/sidebar/study-list";
 import { TranscriptionMenuItem } from "@/components/sidebar/transcription-menu-item";
 import {
-  DOCUMENT_PHASES,
-  type DocumentPhase,
+  WORKSPACE_AREAS,
+  type WorkspaceArea,
 } from "@/components/transcriptions/editor/phase";
 import {
   Sidebar,
@@ -261,7 +262,60 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
   // without the opt-in there is only one pass over a document, so there is only
   // one section and it needs no header at all.
   const betaFeatures = useBetaFeatures();
-  const phase: DocumentPhase = betaFeatures ? prefs.phase : "transcription";
+  const area: WorkspaceArea = betaFeatures ? prefs.phase : "transcription";
+
+  /**
+   * The interview the analysis table is currently narrowed to, if any.
+   *
+   * Read from the excerpt panel's context — which the analysis page sets — rather
+   * than from `useSearchParams`: this component is in the layout wrapping every
+   * route, and that hook there would demand a Suspense boundary around all of
+   * them. Guarded by the route, because the editor reports a document too.
+   */
+  const panel = useExcerptPanel();
+  const analysisDocumentId = pathname.endsWith("/analysis")
+    ? panel.context.documentId
+    : null;
+
+  /** The study the two workshops are about, when the scope names a real one. */
+  const study =
+    scope !== STUDY_SCOPE_ALL && scope !== STUDY_SCOPE_NONE ? scope : null;
+
+  /**
+   * The sections on offer. Analysis needs a study to be about — it has no
+   * document route at all, only a page for the corpus — so it is absent while the
+   * sidebar is showing every study, or the documents filed under none.
+   */
+  const areas = WORKSPACE_AREAS.filter(
+    (value) =>
+      (betaFeatures || value === "transcription") &&
+      (value !== "analysis" || study),
+  );
+
+  /**
+   * The documents the later passes list.
+   *
+   * A document still being transcribed, or one whose transcription failed, has no
+   * settled text: there is nothing to code and nothing to analyse. Listing it
+   * there offered a row that opens onto a spinner or an error — those belong to
+   * editing, which is where they are dealt with.
+   */
+  const readable = React.useMemo(
+    () => documents.filter((doc) => doc.state === "COMPLETED"),
+    [documents],
+  );
+
+  const readableGroups = React.useMemo(
+    () =>
+      groupDocuments({
+        documents: readable,
+        projects: studies,
+        codebooks: groupingCodebooks,
+        groupBy,
+        sortBy: prefs.sortBy,
+      }),
+    [readable, studies, groupingCodebooks, groupBy, prefs.sortBy],
+  );
 
   // Outside of the "by study" grouping the study is no longer implied by the
   // header, so each row carries it as a prefix.
@@ -283,7 +337,7 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
   );
 
   /**
-   * Opening a phase section.
+   * Opening a section.
    *
    * It sets which list is shown — and, when a document is actually open, moves
    * that document into the phase too. The phase lives in the URL, and the page
@@ -291,9 +345,31 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
    * preference was immediately overruled by the document still being in the other
    * one: the section snapped shut and coding could not be left. Changing the URL
    * is what makes the header a switch rather than a suggestion.
+   *
+   * Analysis is not a phase of a document, so it moves the PAGE instead: there is
+   * one screen for it, the study's excerpt table. And leaving it has to move the
+   * page too, or the sidebar would say "coding" over a screen that is still the
+   * analysis table.
    */
-  const openPhase = (value: DocumentPhase) => {
+  const openArea = (value: WorkspaceArea) => {
     update({ phase: value });
+
+    if (value === "analysis") {
+      if (study) router.push(`/app/project/${study}/analysis`);
+      return;
+    }
+
+    if (/^\/app\/project\/[^/]+\/analysis/.test(pathname)) {
+      router.push(
+        value === "coding" && study
+          ? `/app/project/${study}/coding`
+          : study
+            ? `/app/project/${study}`
+            : "/app",
+      );
+      return;
+    }
+
     const open = /^\/app\/transcription\/([^/]+)/.exec(pathname);
     if (!open) return;
     // Read from the URL itself rather than through `useSearchParams`: this lives
@@ -310,45 +386,61 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
     );
   };
 
-  /** The list of one phase: its groups, its rows, and where each row opens. */
-  const phaseList = (of: DocumentPhase) => {
-    if (documents.length === 0) {
+  /** The list of one section: its groups, its rows, and where each row opens. */
+  const areaList = (of: WorkspaceArea) => {
+    const shown = of === "transcription" ? groups : readableGroups;
+    const count = of === "transcription" ? documents.length : readable.length;
+
+    if (count === 0) {
       return (
         <p className="px-3.5 py-1.5 text-xs text-sidebar-foreground/60">
           {searchQuery.trim() ? t("noResults") : t("study.empty")}
         </p>
       );
     }
-    return groups.map((group) => (
+    return shown.map((group) => (
       <React.Fragment key={group.key}>
         {/* One group is the whole list: a header over all of it says nothing the
-            phase header above has not already said. */}
-        {groups.length > 1 && (
+            section header above has not already said. */}
+        {shown.length > 1 && (
           <PhaseGroupLabel>
             {groupLabelText(group.label, t, (id) => projectsById.get(id)?.name)}
           </PhaseGroupLabel>
         )}
         <SidebarMenu>
-          {group.documents.map((transcription) => (
-            <TranscriptionMenuItem
-              key={transcription.id}
-              transcription={transcription}
-              study={studyFor(transcription)}
-              phase={of}
-              indented
-              shared={transcription.isOwner === false}
-              isActive={
-                pathname === `/app/transcription/${transcription.id}` &&
-                phase === of
-              }
-            />
-          ))}
+          {group.documents.map((transcription) => {
+            // In analysis the row is a FILTER on the study's table, not a
+            // document to open — so it stays on that page and names the
+            // interview in the query string.
+            const analysisHref =
+              of === "analysis" && study
+                ? `/app/project/${study}/analysis?document=${transcription.id}`
+                : undefined;
+            return (
+              <TranscriptionMenuItem
+                key={transcription.id}
+                transcription={transcription}
+                study={studyFor(transcription)}
+                phase={of === "coding" ? "coding" : "transcription"}
+                href={analysisHref}
+                indented
+                shared={transcription.isOwner === false}
+                isActive={
+                  analysisHref
+                    ? pathname.endsWith("/analysis") &&
+                      analysisDocumentId === transcription.id
+                    : pathname === `/app/transcription/${transcription.id}` &&
+                      area === of
+                }
+              />
+            );
+          })}
         </SidebarMenu>
       </React.Fragment>
     ));
   };
 
-  const codedCount = documents.filter(
+  const codedCount = readable.filter(
     (doc) => (doc.codes ?? []).length > 0,
   ).length;
 
@@ -364,10 +456,7 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
    * The coding board needs a real study to be about, so it is absent on "all
    * studies" and on the loose documents.
    */
-  const phaseLead = (of: DocumentPhase) => {
-    const study =
-      scope !== STUDY_SCOPE_ALL && scope !== STUDY_SCOPE_NONE ? scope : null;
-
+  const areaLead = (of: WorkspaceArea) => {
     if (of === "transcription") {
       return (
         <SidebarMenu>
@@ -384,17 +473,21 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
     }
 
     if (!study) return null;
-    const href = `/app/project/${study}/coding`;
+    const href = `/app/project/${study}/${of}`;
     return (
       <SidebarMenu>
         <SidebarMenuItem>
           <Link href={href}>
             <SidebarMenuButton
-              isActive={pathname === href}
+              // In analysis the overview is the page with NO document filter, so
+              // it is the active row exactly when no document is named.
+              isActive={
+                pathname === href && (of !== "analysis" || !analysisDocumentId)
+              }
               className="pl-3.5 text-sidebar-foreground/80"
             >
               <LayoutGridIcon className="h-4 w-4" />
-              {t("codingOverview")}
+              {t("overview")}
             </SidebarMenuButton>
           </Link>
         </SidebarMenuItem>
@@ -482,24 +575,26 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
               onChange={(studyScope) => update({ studyScope })}
             >
               <div className="flex flex-col gap-0.5 px-2 py-1.5">
-                {DOCUMENT_PHASES.filter(
-                  (value) => betaFeatures || value === "transcription",
-                ).map((value) => (
+                {areas.map((value) => (
                   <PhaseSection
                     key={value}
                     label={tCoding(value)}
                     count={
                       value === "coding"
-                        ? `${codedCount}/${documents.length}`
-                        : String(documents.length)
+                        ? `${codedCount}/${readable.length}`
+                        : String(
+                            value === "transcription"
+                              ? documents.length
+                              : readable.length,
+                          )
                     }
                     area={value}
-                    open={phase === value}
-                    onOpen={() => openPhase(value)}
+                    open={area === value}
+                    onOpen={() => openArea(value)}
                     action={viewSettings}
                   >
-                    {phaseLead(value)}
-                    {phaseList(value)}
+                    {areaLead(value)}
+                    {areaList(value)}
                   </PhaseSection>
                 ))}
               </div>
