@@ -87,7 +87,7 @@ Oui, c'est même fréquent. On peut démarrer avec un échantillonnage par varia
 La taille dépend davantage de la [saturation théorique](/fr/blog/saturation-theorique-entretien) que de la stratégie elle-même. Certaines stratégies (homogène, théorique) atteignent la saturation avec moins de participants qu'une variation maximale, qui recherche justement la diversité.
 
 **L'échantillonnage par commodité est-il acceptable pour un mémoire de master ?**
-Il est accepté dans de nombreux cursus, à condition d'en reconnaître explicitement les limites (biais de disponibilité, absence de diversité recherchée) plutôt que de le présenter comme un choix méthodologique neutre.
+Il est accepté dans de nombreux cursus, à condition d'en reconnaître explicitement les limites (biais de disponibilité, absence de diversité recherchée) plutôt que de le présenter comme un choix méthodologique neutre. Pour dimensionner l'échantillon global d'un mémoire sur un calendrier d'un semestre, voir notre [guide sur le mémoire de master en recherche qualitative](/fr/blog/memoire-master-recherche-qualitative).
 
 **Faut-il un échantillon plus grand si les participants sont très hétérogènes ?**
 En général oui : plus les profils varient, plus il faut d'entretiens pour couvrir la diversité et atteindre la saturation sur chaque sous-groupe pertinent.

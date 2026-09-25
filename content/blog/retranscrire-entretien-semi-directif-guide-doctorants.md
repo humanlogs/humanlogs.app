@@ -8,7 +8,7 @@ author: "HumanLogs Team"
 tags: [recherche-qualitative, entretien-semi-directif, doctorat, transcription, RGPD]
 ---
 
-La retranscription d'entretiens représente l'une des tâches les plus chronophages de la recherche qualitative. Comptez traditionnellement **4 à 6 heures de travail pour chaque heure d'enregistrement**, soit deux semaines de travail pour vingt entretiens d'une heure. Pourtant, la plupart des mémoires de master et des thèses de doctorat en sciences humaines et sociales passent par là.
+La retranscription d'entretiens représente l'une des tâches les plus chronophages de la recherche qualitative. Comptez traditionnellement **4 à 6 heures de travail pour chaque heure d'enregistrement**, soit deux semaines de travail pour vingt entretiens d'une heure. Pourtant, la plupart des mémoires de master et des thèses de doctorat en sciences humaines et sociales passent par là. Pour un mémoire avec un calendrier resserré sur un semestre, voir aussi notre [guide dédié sur le mémoire de master en recherche qualitative](/fr/blog/memoire-master-recherche-qualitative), qui détaille où placer la transcription dans un planning serré.
 
 Ce guide vous donne la méthode complète : qu'est-ce qu'une retranscription verbatim, comment la structurer, quelles conventions utiliser, et comment les outils d'IA actuels permettent de réduire ce temps de 70 à 80 % sans sacrifier la rigueur scientifique.
 

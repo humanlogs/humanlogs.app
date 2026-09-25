@@ -46,7 +46,7 @@ Ce repère ne s'applique pas tel quel à toutes les situations :
 - **Question de recherche large ou exploratoire** : plus de variation attendue, donc plus d'entretiens avant stabilisation.
 - **Sujet sensible ou peu documenté** : les premiers entretiens peuvent être plus superficiels le temps d'établir la confiance, ce qui retarde l'émergence des thèmes réels.
 
-Pour une thèse ou un mémoire, mieux vaut annoncer dans le protocole une fourchette (par exemple « 10 à 20 entretiens, jusqu'à saturation ») plutôt qu'un chiffre fixe. Cela reste défendable devant un comité d'éthique ou un jury, tout en laissant la méthode guider la taille réelle de l'échantillon.
+Pour une thèse ou un mémoire, mieux vaut annoncer dans le protocole une fourchette (par exemple « 10 à 20 entretiens, jusqu'à saturation ») plutôt qu'un chiffre fixe. Cela reste défendable devant un comité d'éthique ou un jury, tout en laissant la méthode guider la taille réelle de l'échantillon. Pour un mémoire de master avec un calendrier d'un seul semestre, notre [guide dédié](/fr/blog/memoire-master-recherche-qualitative) détaille comment dimensionner cette fourchette de façon réaliste et que faire si la saturation n'est pas atteinte à temps.
 
 ## Les pièges à éviter
 

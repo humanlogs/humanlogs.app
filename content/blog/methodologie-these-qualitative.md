@@ -57,7 +57,7 @@ Rédiger ce chapitre suppose de retrouver rapidement, plusieurs mois après la c
 Il n'existe pas de norme universelle : cela dépend de la discipline et de l'école doctorale. Ce qui compte pour un jury est la complétude de l'argumentation (positionnement, terrain, collecte, analyse, limites), pas le nombre de pages.
 
 **Le chapitre méthodologie est-il identique pour un mémoire de master et une thèse ?**
-La structure est la même, mais la profondeur diffère. Un mémoire de master peut se contenter d'une justification plus synthétique de chaque choix, tandis qu'une thèse est attendue sur une discussion plus approfondie du positionnement épistémologique et des critères de rigueur.
+La structure est la même, mais la profondeur diffère. Un mémoire de master peut se contenter d'une justification plus synthétique de chaque choix, tandis qu'une thèse est attendue sur une discussion plus approfondie du positionnement épistémologique et des critères de rigueur. Pour dimensionner l'ensemble de la démarche (nombre d'entretiens, calendrier, méthode de collecte) sur un semestre plutôt que sur plusieurs années, voir notre [guide sur le mémoire de master en recherche qualitative](/fr/blog/memoire-master-recherche-qualitative).
 
 **Faut-il présenter des extraits de résultats dans le chapitre méthode ?**
 Non, en général : le chapitre méthode décrit la démarche, pas les résultats. Un exemple d'extrait de grille de codage peut illustrer la méthode d'analyse, mais sans anticiper les résultats présentés dans le chapitre suivant.
