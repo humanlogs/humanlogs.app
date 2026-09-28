@@ -201,7 +201,8 @@
       "title": "Analyse",
       "description": "Alle codierten Passagen dieser Studie in einer Tabelle. Wählen Sie in der Seitenleiste ein Dokument, um sie auf dieses Interview einzugrenzen.",
       "placeholder": "Was schließen Sie aus diesen Passagen?",
-      "narrower": "Zu enger gefassten Ausschnitten geschrieben"
+      "narrower": "Zu enger gefassten Ausschnitten geschrieben",
+      "fromCoding": "Aus der Codierung ({count})"
     },
     "start": {
       "title": "Dieses Interview codieren",

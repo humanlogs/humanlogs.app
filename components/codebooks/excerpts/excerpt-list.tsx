@@ -400,7 +400,11 @@ function ExcerptGroupSection({
             // it a separate object beside the evidence instead of the reading of
             // it. On a narrow screen the columns stack, so the rule goes across.
             <div className="mt-2 min-w-0 border-t pt-2 lg:sticky lg:top-10 lg:mt-0 lg:self-start lg:border-t-0 lg:border-l lg:pt-0 lg:pl-4">
-              <AnalysisBox group={note} analysis={analysis} />
+              <AnalysisBox
+                groupKey={group.key}
+                group={note}
+                analysis={analysis}
+              />
             </div>
           )}
         </div>

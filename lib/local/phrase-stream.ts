@@ -65,6 +65,15 @@ export type StreamedGroup = {
   label: PhraseGroupLabel;
   /** Every phrase in this group, counted — not only the ones kept below. */
   count: number;
+  /**
+   * The comment threads written inside this group's passages, capped.
+   *
+   * Collected during the pass rather than fetched afterwards: the walk already
+   * touches every link, and the alternative — hydrating a group's three hundred
+   * references to find out whether any of them was commented — is the thing the
+   * whole streaming design exists to avoid.
+   */
+  commentIds: string[];
   /** The first `perGroup` of them, in reading order. */
   refs: PhraseRef[];
 };
@@ -83,6 +92,15 @@ export type PhraseStreamResult = {
  * another pass.
  */
 export const DEFAULT_PER_GROUP = 300;
+
+/**
+ * How many comment threads one group remembers.
+ *
+ * A reading aid, not a corpus: past a couple of hundred notes under one theme
+ * nobody is reading them, and an unbounded set would put the study back in memory
+ * — which is the one thing this module exists not to do.
+ */
+const MAX_GROUP_COMMENTS = 200;
 
 export type PhraseStream = {
   /**
@@ -183,6 +201,7 @@ export function createPhraseStream({
         path: placement.path,
         label: placement.path[0] ?? { type: "all" },
         count: 0,
+        commentIds: [],
         refs: [],
       };
       groups.set(key, group);
@@ -250,10 +269,27 @@ export function createPhraseStream({
 
     if (!matched || !ref) return;
     total++;
+    // One phrase's threads, deduplicated across its links before they are merged
+    // into every group it lands in.
+    let threads: string[] | null = null;
+    for (const link of kept) {
+      if (!link.commentIds?.length) continue;
+      threads ??= [];
+      for (const id of link.commentIds) {
+        if (!threads.includes(id)) threads.push(id);
+      }
+    }
+
     for (const placement of placementsOf(chain, kept, context)) {
       const group = ensure(placement);
       group.count++;
       insert(group.refs, ref, perGroup);
+      if (threads) {
+        for (const id of threads) {
+          if (group.commentIds.length >= MAX_GROUP_COMMENTS) break;
+          if (!group.commentIds.includes(id)) group.commentIds.push(id);
+        }
+      }
     }
   };
 

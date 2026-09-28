@@ -5,6 +5,7 @@ import { RefreshCwIcon } from "lucide-react";
 import { useTranslations } from "@/components/locale-provider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserProfile } from "@/hooks/use-api";
+import { useStudyComments } from "@/hooks/use-comments";
 import { useCodebooks } from "@/hooks/use-codebooks";
 import { useLocalIndexSync } from "@/hooks/use-local-index";
 import {
@@ -14,7 +15,7 @@ import {
 } from "@/hooks/use-analyses";
 import { codebooksInScopeForProject } from "@/lib/codebooks/codebook";
 import { verbatimCodebooks } from "@/lib/codebooks/coding";
-import type { ExcerptAnalysis } from "./excerpt-analysis";
+import type { CommentThread, ExcerptAnalysis } from "./excerpt-analysis";
 import { ExcerptFilters } from "./excerpt-filters";
 import { ExcerptList } from "./excerpt-list";
 import { useExcerptPanel } from "./excerpt-panel-context";
@@ -35,6 +36,9 @@ import { useExcerptQuery } from "./use-excerpt-query";
  * a component because it hands back three pieces the two frames arrange
  * differently: the count for their own header, the body, and the sync line.
  */
+/** Stable identity, so a group with no thread does not re-render on every pass. */
+const NO_THREADS: CommentThread[] = [];
+
 export function useExcerptTable({
   /** Whether to run the query at all. The panel closes; a tab is unmounted. */
   enabled,
@@ -103,12 +107,67 @@ export function useExcerptTable({
   };
   const groupNotes = useGroupAnalyses(analyses.data, view, query.groups);
 
+  /**
+   * The comment threads, resolved per group from the ids the pass collected.
+   *
+   * Scoped as narrowly as the view is: one interview while coding, the study on
+   * the analysis page. The pass already knows WHICH threads a group holds (the
+   * ids ride on the index rows); this only fetches the words.
+   */
+  const scopedDocument =
+    panel.filter.scope === "document" ? panel.context.documentId : null;
+  const { data: comments = [] } = useStudyComments(
+    withAnalysis ? projectId : null,
+    scopedDocument,
+  );
+
+  const threadsByAnchor = new Map<string, CommentThread>();
+  for (const note of comments) {
+    let thread = threadsByAnchor.get(note.anchorId);
+    if (!thread) {
+      thread = {
+        anchorId: note.anchorId,
+        documentId: note.transcriptionId,
+        // Named only when the table spans more than one interview; on a
+        // document-scoped view every thread comes from the same place.
+        documentTitle: scopedDocument
+          ? ""
+          : query.labels.documentTitle(note.transcriptionId),
+        notes: [],
+      };
+      threadsByAnchor.set(note.anchorId, thread);
+    }
+    thread.notes.push({
+      id: note.id,
+      text: note.text,
+      author: note.author?.name || note.author?.email || null,
+      createdAt: note.createdAt,
+    });
+  }
+
+  const commentsByGroup = new Map<string, CommentThread[]>();
+  for (const group of query.groups) {
+    const threads: CommentThread[] = [];
+    for (const anchorId of group.commentIds) {
+      const thread = threadsByAnchor.get(anchorId);
+      if (thread) threads.push(thread);
+    }
+    if (threads.length > 0) commentsByGroup.set(group.key, threads);
+  }
+
+  const followThread = panel.followThread;
   const saveMutation = save.mutate;
   const analysis: ExcerptAnalysis | undefined = withAnalysis
     ? {
         of: (groupKey) => groupNotes.get(groupKey),
         save: (facets, body) => saveMutation({ facets, body }),
         describe: (facet) => query.labels.facetLabel(facet),
+        commentsOf: (groupKey) => commentsByGroup.get(groupKey) ?? NO_THREADS,
+        // The passage a remark is about is most of what the remark means, so a
+        // thread opens where it was written rather than being quoted in full
+        // here. Same jump a row of the table makes.
+        openThread: (thread) =>
+          followThread(thread.documentId, thread.anchorId),
         saving: save.isPending,
       }
     : undefined;

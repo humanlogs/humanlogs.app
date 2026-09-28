@@ -163,6 +163,12 @@ type ExcerptPanelValue = {
    */
   followDocument: (documentId: string, codingId?: string) => void;
   /**
+   * Open the interview at a COMMENT thread. The analysis column shows the notes
+   * written while coding, and a remark is mostly about the sentence it sits on —
+   * so following one has to land on that sentence, not on the document.
+   */
+  followThread: (documentId: string, anchorId: string) => void;
+  /**
    * "I am arriving on this document on purpose, do not rebuild the table."
    *
    * The same suppression {@link followDocument} uses, exposed because a LINK can
@@ -457,6 +463,16 @@ export function ExcerptPanelProvider({
     [router],
   );
 
+  const followThread = React.useCallback(
+    (documentId: string, anchorId: string) => {
+      keepView.current = true;
+      router.push(
+        `/app/transcription/${documentId}?phase=coding&comment=${encodeURIComponent(anchorId)}`,
+      );
+    },
+    [router],
+  );
+
   /**
    * Opening a document sets the defaults that go with it: this document, and its
    * codes grouped by the codebook being used.
@@ -598,6 +614,7 @@ export function ExcerptPanelProvider({
     claimFocus,
     autoOpen,
     followDocument,
+    followThread,
     keepView: holdView,
     audioDocumentId: audio.held?.documentId ?? null,
     registerAudio: audio.register,

@@ -35,11 +35,12 @@ import { tokenize } from "./phrase-tokens";
 
 /**
  * Bumped whenever a DERIVED row gains a field the reader depends on — v5 added
- * the audio bounds of a passage, v6 the word index behind free-text search. The upgrade drops the derived stores and lets
- * the sync refill them, which is the honest cost of this being a cache: correct
- * immediately, at the price of one re-index paced over the usual minutes.
+ * the audio bounds of a passage, v6 the word index behind free-text search, v7 the
+ * comment threads anchored inside a passage. The upgrade drops the derived stores
+ * and lets the sync refill them, which is the honest cost of this being a cache:
+ * correct immediately, at the price of one re-index paced over the usual minutes.
  */
-const DB_VERSION = 6;
+const DB_VERSION = 7;
 
 export const STORE_DOCUMENTS = "documents";
 export const STORE_PHRASES = "phrases";

@@ -357,6 +357,7 @@ describe("takeRefs", () => {
     facets: [],
     path: [{ type: "all" }],
     label: { type: "all" },
+    commentIds: [],
     count,
     refs: Array.from({ length: refs }, (_, i) => ({
       id: `${key}-${i}`,

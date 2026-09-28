@@ -62,7 +62,9 @@ export type Participant = {
 };
 
 /** Everyone with access to a transcription, with display names. */
-export function useTranscriptionParticipants(transcriptionId: string | undefined) {
+export function useTranscriptionParticipants(
+  transcriptionId: string | undefined,
+) {
   return useQuery({
     queryKey: ["transcriptions", transcriptionId, "participants"],
     enabled: !!transcriptionId,
@@ -299,6 +301,73 @@ export function useDeleteComment(transcriptionId: string) {
       queryClient.invalidateQueries({
         queryKey: ["comments", transcriptionId],
       });
+    },
+  });
+}
+
+/** A comment as the excerpt table reads it: decrypted, and knowing its document. */
+export type StudyComment = DecryptedComment & { transcriptionId: string };
+
+/**
+ * Every comment on a study (or on one interview), for the excerpt table.
+ *
+ * A separate query from {@link useComments}, not a wider version of it: the two
+ * have different keys, different lifetimes and different consumers, and making the
+ * editor's comment rail depend on a study-wide fetch would be a much larger
+ * request on every document opened.
+ *
+ * Scoped as narrowly as the view allows — the open interview while coding, the
+ * study on the analysis page — so the common case is the same rows the editor
+ * already has, and the expensive case happens where it is actually needed.
+ */
+export function useStudyComments(
+  projectId: string | null | undefined,
+  documentId?: string | null,
+) {
+  const decrypt = useDecryptData();
+
+  return useQuery({
+    queryKey: ["study-comments", projectId ?? null, documentId ?? null],
+    enabled: !!projectId || !!documentId,
+    queryFn: async (): Promise<StudyComment[]> => {
+      const params = new URLSearchParams();
+      if (projectId) params.set("projectId", projectId);
+      if (documentId) params.set("documentId", documentId);
+      const response = await fetchGateway(`/api/comments?${params.toString()}`);
+      if (!response.ok) throw new Error("Failed to fetch comments");
+      const { comments } = (await response.json()) as {
+        comments: Array<CommentDTO & { transcriptionId: string }>;
+      };
+
+      return Promise.all(
+        comments.map(async (c) => {
+          let text = "";
+          if (isEncryptedEntity(c.body)) {
+            try {
+              const dec = await decrypt<{ text: string }>(c.body);
+              text = dec.text ?? "";
+            } catch {
+              // A document this device holds no key for: the thread is real and
+              // unreadable here, which is different from absent. Shown as empty
+              // rather than dropped would be a blank note, so it is dropped below.
+              text = "";
+            }
+          } else {
+            text = (c.body as { text?: string })?.text ?? "";
+          }
+          return {
+            id: c.id,
+            transcriptionId: c.transcriptionId,
+            anchorId: c.anchorId,
+            userId: c.userId,
+            author: c.author,
+            resolved: c.resolved,
+            createdAt: c.createdAt,
+            updatedAt: c.updatedAt,
+            text,
+          };
+        }),
+      ).then((rows) => rows.filter((row) => row.text.trim().length > 0));
     },
   });
 }

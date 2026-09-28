@@ -306,11 +306,17 @@ export function useExcerptBridge({
   // scroll issued before the text exists would find nothing to scroll to.
   React.useEffect(() => {
     if (typeof window === "undefined") return;
-    const wanted = new URLSearchParams(window.location.search).get("coding");
+    const params = new URLSearchParams(window.location.search);
+    // A coded passage, or a comment thread: the analysis column links to both,
+    // and they are the same mechanism — an id on a mark — so one loop serves.
+    const coding = params.get("coding");
+    const comment = params.get("comment");
+    const wanted = coding ?? comment;
     if (!wanted) return;
+    const attribute = coding ? "data-coding-id" : "data-comment-id";
     let attempts = 0;
     const tick = () => {
-      if (scrollToCoding([wanted])) return;
+      if (scrollToAnchor(attribute, [wanted])) return;
       if (attempts++ > 40) return; // ~8s, then give up rather than spin
       timer = setTimeout(tick, 200);
     };
@@ -331,10 +337,21 @@ export function useExcerptBridge({
  * loop waits on.
  */
 function scrollToCoding(codingIds: string[]): boolean {
+  return scrollToAnchor("data-coding-id", codingIds);
+}
+
+/**
+ * The same, for either kind of anchor.
+ *
+ * Coding ids and comment ids are both space-separated SETS on their attribute (a
+ * run can carry several), which is what `~=` matches; the only difference between
+ * the two is the attribute's name.
+ */
+function scrollToAnchor(attribute: string, ids: string[]): boolean {
   if (typeof document === "undefined") return false;
-  for (const id of codingIds) {
+  for (const id of ids) {
     const target = document.querySelector<HTMLElement>(
-      `.tiptap [data-coding-id~="${CSS.escape(id)}"]`,
+      `.tiptap [${attribute}~="${CSS.escape(id)}"]`,
     );
     if (!target) continue;
     target.scrollIntoView({ block: "center", behavior: "smooth" });
