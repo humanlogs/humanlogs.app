@@ -59,7 +59,7 @@ Lisez et relisez l'ensemble du corpus. Prenez des notes libres, notez ce qui vou
 
 **3. Coder**
 
-Le codage consiste à attribuer une étiquette à chaque segment de texte pertinent. Un code peut être descriptif ("parle de son directeur de thèse"), interprétatif ("sentiment d'isolement") ou conceptuel. Vous pouvez coder à la main (surlignage, annotations) ou avec un logiciel dédié (Atlas.ti, NVivo, MAXQDA, Taguette).
+Le codage consiste à attribuer une étiquette à chaque segment de texte pertinent. Un code peut être descriptif ("parle de son directeur de thèse"), interprétatif ("sentiment d'isolement") ou conceptuel. Vous pouvez coder à la main (surlignage, annotations) ou avec un logiciel dédié (Atlas.ti, NVivo, MAXQDA, Taguette). Pour le détail pas à pas (codage ouvert, arbre de codes, dictionnaire des codes), voir notre guide sur la [codification d'un entretien](/fr/blog/codification-entretien).
 
 **4. Regrouper les codes en thèmes ou catégories**
 
