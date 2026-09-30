@@ -57,7 +57,6 @@ model User {
   referralsSent         Referral[]
   comments              Comment[]
   codings               Coding[]
-  analyses              Analysis[]
   codebooks             Codebook[]
   notifications         Notification[]       @relation("NotificationRecipient")
   threadSubscriptions   ThreadSubscription[]
@@ -99,7 +98,7 @@ model Project {
   updatedAt      DateTime        @updatedAt
   transcriptions Transcription[]
   codebooks      CodebookStudy[]
-  analyses       Analysis[]
+  comments       Comment[]
   user           User            @relation(fields: [userId], references: [id])
 
   @@index([userId])
@@ -242,24 +241,40 @@ model TranscriptionHistory {
 /// (AES-GCM payload + per-authorized-user RSA-wrapped key) when the transcription is
 /// encrypted, or plain `{ text }` otherwise.
 model Comment {
-  id              String        @id @default(uuid())
-  transcriptionId String
-  // Groups notes into a thread; equals the `commentId` attribute of the mark in the doc.
+  id              String         @id @default(uuid())
+  /// The interview a PASSAGE note is on. Null for a SLICE note, which is about a
+  /// question asked of the corpus rather than about any one document.
+  transcriptionId String?
+  /// The study a SLICE note belongs to. Null for a passage note, which reaches its
+  /// study through the document.
+  projectId       String?
+  /// What `anchorId` names — see `lib/comments/anchor.ts`.
+  /// `passage`: the `commentId` of a mark in a transcript (the original kind).
+  /// `slice`:   the canonical facet key of a question the excerpt table was asked.
+  anchorType      String         @default("passage")
+  /// Groups notes into a thread. A mark id, or a facet key, per `anchorType`.
   anchorId        String
-  // Author of this note.
+  /// A slice note's facets as a JSON array of strings, in canonical order. Kept
+  /// beside the key because "every note narrower than this one" is a containment
+  /// test over sets, which no index serves and no key can be parsed into cheaply.
+  facets          Json?
+  /// Author of this note.
   userId          String
   // EncryptedDataEntity (encrypted) or { text: string } (plaintext).
   body            Json
-  resolved        Boolean       @default(false)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  resolved        Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
   deletedAt       DateTime?
-  transcription   Transcription @relation(fields: [transcriptionId], references: [id], onDelete: Cascade)
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transcription   Transcription? @relation(fields: [transcriptionId], references: [id], onDelete: Cascade)
+  project         Project?       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([transcriptionId])
   @@index([transcriptionId, anchorId])
+  @@index([projectId, anchorType])
 }
+
 
 /// One verbatim code applied to one passage by one author.
 ///
@@ -301,36 +316,6 @@ model Coding {
   @@index([transcriptionId, userId])
 }
 
-/// A researcher's written analysis of one SLICE of a study.
-///
-/// Not attached to a passage — to the combination of facets the excerpt table was
-/// showing when it was written: the group, plus the filters. `key` is the
-/// canonical (sorted, deduplicated) form of that set, so the same question asked
-/// in a different order finds the same note; `facets` is the same set as a list,
-/// so a wider view can tell what makes this one narrower without re-parsing.
-/// See `lib/analysis/analysis-facets.ts`, which owns the vocabulary.
-///
-/// Per author, like `Coding`: two researchers reading the same slice write two
-/// analyses, and neither overwrites the other.
-model Analysis {
-  id        String   @id @default(uuid())
-  projectId String
-  /// Author. Their own analysis of this slice, not the study's.
-  userId    String
-  /// Canonical facet key. Empty string is the study as a whole, which is a real
-  /// place to write rather than a missing one.
-  key       String
-  /// The facets as a JSON array of strings, in the same canonical order.
-  facets    Json
-  body      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([projectId, userId, key])
-  @@index([projectId])
-}
 
 /// Generic in-app notification. Deliberately feature-agnostic: `type` names the event
 /// ("comment.reply", "comment.mention", …) and `entityType`/`entityId` point at whatever

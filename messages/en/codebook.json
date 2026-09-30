@@ -202,7 +202,8 @@
       "description": "Every coded passage in this study, as one table. Pick a document in the sidebar to narrow it to that interview.",
       "placeholder": "What do you make of these passages?",
       "narrower": "Written about narrower slices",
-      "fromCoding": "From the coding ({count})"
+      "fromCoding": "From the coding ({count})",
+      "others": "Other readings"
     },
     "start": {
       "title": "Code this interview",

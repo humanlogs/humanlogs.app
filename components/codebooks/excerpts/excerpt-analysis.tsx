@@ -26,7 +26,16 @@ import * as React from "react";
 export type ExcerptAnalysis = {
   /** The note for a group, and the narrower ones under it. */
   of: (groupKey: string) => GroupAnalysis | undefined;
-  save: (facets: AnalysisFacet[], body: string) => void;
+  /**
+   * Write the reader's note on a slice. `existingId` is the note already there,
+   * because a slice is a THREAD now: writing replaces your own note rather than
+   * adding a second one beside it, and an empty body retracts it.
+   */
+  save: (
+    facets: AnalysisFacet[],
+    body: string,
+    existingId: string | null,
+  ) => void;
   /** One facet in words, for labelling a narrower note. */
   describe: (facet: AnalysisFacet) => string;
   /** The comment threads written inside this group's passages. */
@@ -92,6 +101,7 @@ export function AnalysisBox({
    * and so has a new identity every time, and depending on it below would restart
    * the debounce on every render of the page rather than on every keystroke.
    */
+  const ownId = group.own?.id ?? null;
   const write = React.useRef(analysis.save);
   React.useEffect(() => {
     write.current = analysis.save;
@@ -100,12 +110,12 @@ export function AnalysisBox({
   React.useEffect(() => {
     if (draft === stored) return;
     const timer = setTimeout(
-      () => write.current(facetsOf(facetKey), draft),
+      () => write.current(facetsOf(facetKey), draft, ownId),
       SAVE_DEBOUNCE_MS,
     );
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft, stored, facetKey]);
+  }, [draft, stored, facetKey, ownId]);
 
   /**
    * Grow to the text.
@@ -127,7 +137,7 @@ export function AnalysisBox({
   // clicks away and navigates would otherwise lose the last thing they typed.
   const flush = () => {
     if (draft === stored) return;
-    analysis.save(facetsOf(facetKey), draft);
+    analysis.save(facetsOf(facetKey), draft, ownId);
   };
 
   return (
@@ -149,6 +159,29 @@ export function AnalysisBox({
           "placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:outline-none",
         )}
       />
+
+      {group.others.length > 0 && (
+        <div className="space-y-2">
+          {/* The other half of what folding analyses into comments bought: a slice
+              is a thread, so two researchers reading the same question see each
+              other instead of each writing into a box only they can see. */}
+          <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+            {t("others")}
+          </p>
+          {group.others.map((note) => (
+            <div key={note.id} className="rounded-md border p-2">
+              {note.author && (
+                <p className="mb-0.5 text-[11px] font-medium text-muted-foreground">
+                  {note.author}
+                </p>
+              )}
+              <p className="text-xs whitespace-pre-wrap text-muted-foreground">
+                {note.body}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {group.narrower.length > 0 && (
         <div className="space-y-2">

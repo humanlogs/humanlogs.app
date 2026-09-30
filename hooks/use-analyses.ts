@@ -9,8 +9,28 @@ import {
   type AnalysisFacet,
   type AnalysisView,
 } from "@/lib/analysis/analysis-facets";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchGateway } from "./fetch";
+import { sliceAnchorId } from "@/lib/comments/anchor";
+import {
+  useDeleteSliceNote,
+  useSaveSliceNote,
+  useStudyComments,
+  type StudyComment,
+} from "./use-comments";
+
+/**
+ * The written analyses of a study — which are comments, anchored to a slice.
+ *
+ * There used to be a table of their own for this. There is not any more: a
+ * comment and an analysis are the same act at two scales, and the only thing that
+ * differed was what the anchor named (`lib/comments/anchor.ts`). Folding them
+ * gave the analysis side end-to-end encryption, threads, and one query — this
+ * module is what is left of the analysis side, which is the wider/narrower rule
+ * and nothing else.
+ *
+ * All of a study's notes come back in one request: "every note narrower than this
+ * slice" is a containment test over facet sets, which no index answers, and a
+ * study holds tens to hundreds of them.
+ */
 
 export type Analysis = {
   id: string;
@@ -18,56 +38,43 @@ export type Analysis = {
   facets: AnalysisFacet[];
   body: string;
   updatedAt: string;
+  /** Whose reading it is. Null on a note whose author was deleted. */
+  author: string | null;
+  userId: string;
 };
 
-/**
- * Every analysis written on a study, held in one place.
- *
- * All of them, not a page: what a group needs is "the note for this slice, and
- * every note narrower than it", which is a containment test over facet sets. No
- * index answers that, and a study holds tens to hundreds of notes — so the whole
- * set is fetched once and intersected in memory, the same trade the local index
- * makes for a very different reason.
- */
-export function useAnalyses(projectId: string | null | undefined) {
-  return useQuery<Analysis[]>({
-    queryKey: ["analyses", projectId],
-    enabled: !!projectId,
-    queryFn: async () => {
-      const response = await fetchGateway(
-        `/api/analysis?projectId=${encodeURIComponent(projectId!)}`,
-      );
-      if (!response.ok) throw new Error("Failed to load analyses");
-      const data = (await response.json()) as { analyses: Analysis[] };
-      return data.analyses;
-    },
-  });
-}
-
-export function useSaveAnalysis(projectId: string | null | undefined) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (input: { facets: AnalysisFacet[]; body: string }) => {
-      const response = await fetchGateway("/api/analysis", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId, ...input }),
-      });
-      if (!response.ok) throw new Error("Failed to save the analysis");
-      return (await response.json()) as { analysis: Analysis | null };
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["analyses", projectId] });
-    },
-  });
+/** A study's slice notes, out of the same fetch the passage comments come from. */
+export function sliceNotesOf(comments: StudyComment[] | undefined): Analysis[] {
+  const out: Analysis[] = [];
+  for (const note of comments ?? []) {
+    if (note.anchorType !== "slice") continue;
+    out.push({
+      id: note.id,
+      key: note.anchorId,
+      facets: note.facets ?? [],
+      body: note.text,
+      updatedAt: note.updatedAt,
+      author: note.author?.name || note.author?.email || null,
+      userId: note.userId,
+    });
+  }
+  return out;
 }
 
 /** What one group shows in its analysis column. */
 export type GroupAnalysis = {
   /** The facets this group's own note is keyed on. */
   facets: AnalysisFacet[];
-  /** The note for exactly this slice, if one has been written. */
+  /** The current reader's note on exactly this slice, if they wrote one. */
   own: Analysis | null;
+  /**
+   * Notes by OTHER people on exactly this slice.
+   *
+   * New with the merge, and the reason it was worth doing: a slice is a thread
+   * now, so two researchers reading the same question see each other rather than
+   * each writing into a box that only they can see.
+   */
+  others: Analysis[];
   /**
    * Notes written about narrower slices of the same material — the answer to
    * "show me everything grouped by code, having earlier written per speaker".
@@ -87,13 +94,15 @@ export function useGroupAnalyses(
   analyses: Analysis[] | undefined,
   view: Omit<AnalysisView, "groupFacets">,
   groups: ReadonlyArray<{ key: string; facets: readonly string[] }>,
+  /** Whose notes go in the editable box rather than beside it. */
+  userId: string | undefined,
 ): Map<string, GroupAnalysis> {
   const out = new Map<string, GroupAnalysis>();
   const rows = analyses ?? [];
   for (const { key: groupKey, facets: groupFacets } of groups) {
     const facets = facetsOfView({ ...view, groupFacets });
     const key = analysisKey(facets);
-    const own = rows.find((row) => row.key === key) ?? null;
+    const here = rows.filter((row) => row.key === key);
     const narrower = rows
       .filter((row) => isNarrowerThan(row.facets, facets))
       .map((analysis) => ({
@@ -101,7 +110,12 @@ export function useGroupAnalyses(
         extra: extraFacets(analysis.facets, facets),
       }))
       .sort((a, b) => a.extra.length - b.extra.length);
-    out.set(groupKey, { facets, own, narrower });
+    out.set(groupKey, {
+      facets,
+      own: here.find((row) => row.userId === userId) ?? null,
+      others: here.filter((row) => row.userId !== userId),
+      narrower,
+    });
   }
   return out;
 }
@@ -113,3 +127,10 @@ export function analysisApplies(
 ): boolean {
   return covers(analysis.facets, facets);
 }
+
+export {
+  sliceAnchorId,
+  useDeleteSliceNote,
+  useSaveSliceNote,
+  useStudyComments,
+};

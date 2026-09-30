@@ -5,14 +5,10 @@ import { RefreshCwIcon } from "lucide-react";
 import { useTranslations } from "@/components/locale-provider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserProfile } from "@/hooks/use-api";
-import { useStudyComments } from "@/hooks/use-comments";
 import { useCodebooks } from "@/hooks/use-codebooks";
 import { useLocalIndexSync } from "@/hooks/use-local-index";
-import {
-  useAnalyses,
-  useGroupAnalyses,
-  useSaveAnalysis,
-} from "@/hooks/use-analyses";
+import { sliceNotesOf, useGroupAnalyses } from "@/hooks/use-analyses";
+import { useSaveSliceNote, useStudyComments } from "@/hooks/use-comments";
 import { codebooksInScopeForProject } from "@/lib/codebooks/codebook";
 import { verbatimCodebooks } from "@/lib/codebooks/coding";
 import type { CommentThread, ExcerptAnalysis } from "./excerpt-analysis";
@@ -96,17 +92,11 @@ export function useExcerptTable({
    * the query's request: the request has already resolved context codes into
    * document and speaker ids, and a note keyed on ids would be orphaned the moment
    * a document joined the study. The facets stay the question, not its answer.
+   *
+   * Out of the SAME fetch the passage comments come from, because they are the
+   * same rows — a note on a slice and a note on a sentence differ only in what
+   * their anchor names (`lib/comments/anchor.ts`).
    */
-  const analyses = useAnalyses(withAnalysis ? projectId : null);
-  const save = useSaveAnalysis(projectId);
-  const view = {
-    codes: panel.filter.codes,
-    contextCodes: panel.filter.contextCodes,
-    documentId:
-      panel.filter.scope === "document" ? panel.context.documentId : null,
-  };
-  const groupNotes = useGroupAnalyses(analyses.data, view, query.groups);
-
   /**
    * The comment threads, resolved per group from the ids the pass collected.
    *
@@ -123,16 +113,19 @@ export function useExcerptTable({
 
   const threadsByAnchor = new Map<string, CommentThread>();
   for (const note of comments) {
+    // Slice notes ride in the same list and belong to the box above, not to the
+    // threads beside it.
+    if (note.anchorType !== "passage" || !note.transcriptionId) continue;
     let thread = threadsByAnchor.get(note.anchorId);
     if (!thread) {
       thread = {
         anchorId: note.anchorId,
-        documentId: note.transcriptionId,
+        documentId: note.transcriptionId!,
         // Named only when the table spans more than one interview; on a
         // document-scoped view every thread comes from the same place.
         documentTitle: scopedDocument
           ? ""
-          : query.labels.documentTitle(note.transcriptionId),
+          : query.labels.documentTitle(note.transcriptionId!),
         notes: [],
       };
       threadsByAnchor.set(note.anchorId, thread);
@@ -155,12 +148,27 @@ export function useExcerptTable({
     if (threads.length > 0) commentsByGroup.set(group.key, threads);
   }
 
+  const save = useSaveSliceNote(projectId);
+  const view = {
+    codes: panel.filter.codes,
+    contextCodes: panel.filter.contextCodes,
+    documentId:
+      panel.filter.scope === "document" ? panel.context.documentId : null,
+  };
+  const groupNotes = useGroupAnalyses(
+    sliceNotesOf(comments),
+    view,
+    query.groups,
+    profile?.id,
+  );
+
   const followThread = panel.followThread;
   const saveMutation = save.mutate;
   const analysis: ExcerptAnalysis | undefined = withAnalysis
     ? {
         of: (groupKey) => groupNotes.get(groupKey),
-        save: (facets, body) => saveMutation({ facets, body }),
+        save: (facets, body, existingId) =>
+          saveMutation({ facets, text: body, existingId }),
         describe: (facet) => query.labels.facetLabel(facet),
         commentsOf: (groupKey) => commentsByGroup.get(groupKey) ?? NO_THREADS,
         // The passage a remark is about is most of what the remark means, so a

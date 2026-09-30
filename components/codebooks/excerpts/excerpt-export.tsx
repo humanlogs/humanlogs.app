@@ -21,7 +21,8 @@ import {
   type ExcerptExportFormat,
 } from "@/lib/codebooks/excerpt-export";
 import { useExcerptDocuments } from "./use-excerpt-documents";
-import { useAnalyses } from "@/hooks/use-analyses";
+import { sliceNotesOf } from "@/hooks/use-analyses";
+import { useStudyComments } from "@/hooks/use-comments";
 import { useExcerptExport } from "./use-excerpt-export";
 import { useExcerptPanel } from "./excerpt-panel-context";
 import { useExcerptRequest } from "./use-excerpt-query";
@@ -75,7 +76,8 @@ function useExport() {
   // The written analyses travel with the table: the third column of a thematic
   // export exists to hold them, and a file that left the tool empty there would
   // drop the part of the work the tool cannot reproduce.
-  const { data: analyses } = useAnalyses(panel.context.projectId);
+  const { data: comments } = useStudyComments(panel.context.projectId);
+  const analyses = sliceNotesOf(comments);
 
   const { run, progress, error } = useExcerptExport({
     request,
