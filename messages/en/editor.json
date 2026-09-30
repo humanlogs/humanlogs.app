@@ -7,7 +7,10 @@
             "italic": "Italic (⌘I)",
             "underline": "Underline (⌘U)",
             "strikethrough": "Strikethrough (⌘⇧X)",
-            "comment": "Comment (⌘⌥M)"
+            "comment": "Comment (⌘⌥M)",
+            "confidence": "Doubtful words",
+            "showConfidence": "Show doubtful words (underlined in red)",
+            "hideConfidence": "Hide doubtful words"
         },
         "search": {
             "findPlaceholder": "Find...",
@@ -170,6 +173,11 @@
             "subscribe": "Follow this thread",
             "unsubscribe": "Stop following this thread",
             "hide": "Hide comments"
+        },
+        "confidence": {
+            "score": "{value}% sure",
+            "validate": "Validate",
+            "validateHint": "The word was heard correctly: remove the underline (editing the word removes it too)"
         }
     }
 }

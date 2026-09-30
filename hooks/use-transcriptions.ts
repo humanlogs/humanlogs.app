@@ -118,6 +118,11 @@ export type TranscriptionSegment = {
   // table; this only records which passage is coded, for the same reasons as
   // `comments` above.
   codings?: string[];
+  // Speech-to-text confidence in [0, 1], on words the engine was unsure of and nobody
+  // has since corrected or validated. Once the document has been through the editor
+  // only doubtful words keep it (it is the `lowConfidence` mark's projection); before
+  // that, provider fields may stand in — see `readConfidence`.
+  confidence?: number;
 };
 
 export type HistoryEntry = {

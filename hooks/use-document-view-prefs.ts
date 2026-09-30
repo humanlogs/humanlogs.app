@@ -23,6 +23,8 @@ export type DocumentViewPrefs = {
   studyScope: StudyScope;
   /** Which phase section is open. The two are exclusive, so one name is enough. */
   phase: DocumentPhase;
+  /** Underline the words the speech-to-text engine was unsure of. */
+  showConfidence: boolean;
 };
 
 const DEFAULTS: DocumentViewPrefs = {
@@ -30,6 +32,7 @@ const DEFAULTS: DocumentViewPrefs = {
   sortBy: DEFAULT_SORT_BY,
   studyScope: DEFAULT_STUDY_SCOPE,
   phase: DEFAULT_DOCUMENT_PHASE,
+  showConfidence: true,
 };
 
 // localStorage is an external store, so it is read through
@@ -50,6 +53,7 @@ function parse(raw: string | null): DocumentViewPrefs {
       sortBy: parsed.sortBy ?? DEFAULTS.sortBy,
       studyScope: parsed.studyScope ?? DEFAULTS.studyScope,
       phase: parsed.phase ?? DEFAULTS.phase,
+      showConfidence: parsed.showConfidence ?? DEFAULTS.showConfidence,
     };
   } catch {
     return DEFAULTS;
@@ -85,7 +89,8 @@ function subscribe(onChange: () => void): () => void {
 }
 
 /**
- * How the document list is scoped, grouped and sorted, and which phase is open.
+ * How the document list is scoped, grouped and sorted, which phase is open, and
+ * whether doubtful words are underlined.
  * Kept in localStorage rather than on the user: these are per-device view
  * preferences, not account data — two people sharing a study rarely want to be
  * looking at the same thing at the same moment.

@@ -7,6 +7,7 @@ import {
   Bold,
   Italic,
   MessageSquarePlus,
+  SpellCheck,
   Strikethrough,
   Underline,
 } from "lucide-react";
@@ -44,6 +45,9 @@ interface EditorToolbarProps {
   hasListenAccess: boolean;
   /** Anchor a comment on the current selection (expands to the whole word). */
   onComment?: () => void;
+  /** Whether doubtful words are underlined, and the switch for it. */
+  showConfidence?: boolean;
+  onToggleConfidence?: () => void;
 }
 
 export function EditorToolbar({
@@ -54,6 +58,8 @@ export function EditorToolbar({
   hasWriteAccess,
   hasListenAccess,
   onComment,
+  showConfidence,
+  onToggleConfidence,
 }: EditorToolbarProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const t = useTranslations("editor");
@@ -249,6 +255,35 @@ export function EditorToolbar({
             title={t("toolbar.comment")}
           >
             <MessageSquarePlus className="h-3.5 w-3.5" />
+          </Button>
+        </>
+      )}
+
+      {onToggleConfidence && (
+        <>
+          <Separator
+            orientation="vertical"
+            className="mx-2 h-4 w-px bg-slate-500/20"
+          />
+          {/* A view setting, not an edit: offered to readers too, and it never
+              touches the doubts themselves — only whether they are drawn. */}
+          <Button
+            variant={showConfidence ? "secondary" : "ghost"}
+            size="sm"
+            onMouseDown={(e) => {
+              e.preventDefault(); // keep focus/selection in editor
+              onToggleConfidence();
+            }}
+            className="h-7 w-7 p-0"
+            title={t(
+              showConfidence
+                ? "toolbar.hideConfidence"
+                : "toolbar.showConfidence",
+            )}
+            aria-label={t("toolbar.confidence")}
+            aria-pressed={!!showConfidence}
+          >
+            <SpellCheck className="h-3.5 w-3.5" />
           </Button>
         </>
       )}

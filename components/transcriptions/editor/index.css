@@ -106,6 +106,45 @@
   );
 }
 
+/* Words the speech-to-text engine was unsure of: a red squiggle, like a spell
+   checker's. Drawn as a background image rather than a text-decoration because the
+   comment anchor and the user's own "u" format already own the underline, and nested
+   spans' decorations would stack at the same offset into an unreadable smear. Removed
+   per word by editing or validating it (the mark goes); hidden as a whole by the
+   toolbar toggle (.hide-confidence) and in the coding phase, which reads the words as
+   settled. */
+.hl-confidence {
+  /* Gradients, not an SVG data URI: the CSP (proxy.ts) has no img-src, so `data:`
+     images are blocked and the squiggle would silently not render. */
+  --confidence-squiggle: var(--color-red-600);
+  background-image:
+    linear-gradient(
+      45deg,
+      transparent 65%,
+      var(--confidence-squiggle) 80%,
+      transparent 90%
+    ),
+    linear-gradient(
+      135deg,
+      transparent 5%,
+      var(--confidence-squiggle) 15%,
+      transparent 30%
+    );
+  background-repeat: repeat-x;
+  background-position: left bottom;
+  background-size: 4px 4px;
+  padding-bottom: 2px;
+}
+
+.dark .hl-confidence {
+  --confidence-squiggle: var(--color-red-400);
+}
+
+.hide-confidence .hl-confidence,
+.phase-coding .hl-confidence {
+  background-image: none;
+}
+
 /* Coded passages. The background itself is NOT set here: it depends on which codes
    cover the run and on which of them the researcher is currently looking at, so it is
    generated per attribute value by <CodingHighlightStyles>. This rule only carries what

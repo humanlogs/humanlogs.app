@@ -7,7 +7,10 @@
             "italic": "Cursiva (⌘I)",
             "underline": "Subrayado (⌘U)",
             "strikethrough": "Tachado (⌘⇧X)",
-            "comment": "Comentario (⌘⌥M)"
+            "comment": "Comentario (⌘⌥M)",
+            "confidence": "Palabras dudosas",
+            "showConfidence": "Mostrar palabras dudosas (subrayadas en rojo)",
+            "hideConfidence": "Ocultar palabras dudosas"
         },
         "search": {
             "findPlaceholder": "Buscar...",
@@ -170,6 +173,11 @@
             "subscribe": "Seguir este hilo",
             "unsubscribe": "Dejar de seguir este hilo",
             "hide": "Ocultar comentarios"
+        },
+        "confidence": {
+            "score": "Seguro al {value} %",
+            "validate": "Validar",
+            "validateHint": "La palabra está bien transcrita: quitar el subrayado (editar la palabra también lo quita)"
         }
     }
 }

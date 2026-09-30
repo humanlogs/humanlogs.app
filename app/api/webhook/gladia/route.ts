@@ -72,7 +72,10 @@ export async function POST(request: NextRequest) {
     const event = String(payload.event || "").toLowerCase();
 
     // Intermediate lifecycle events — acknowledge and do nothing
-    if (event === "transcription.created" || event === "transcription.processing") {
+    if (
+      event === "transcription.created" ||
+      event === "transcription.processing"
+    ) {
       return NextResponse.json({ received: true, status: event });
     }
 
@@ -179,6 +182,7 @@ function mapGladiaToTranscriptionResult(payload: any): TranscriptionResult {
     end: number;
     type?: string;
     speakerId?: string;
+    confidence?: number;
   }> = [];
 
   const speakerMap = new Map<number, string>();
@@ -207,6 +211,10 @@ function mapGladiaToTranscriptionResult(payload: any): TranscriptionResult {
             end: word.end || 0,
             type: "word",
             speakerId: speakerId,
+            // Kept so the editor can underline the words Gladia was unsure of.
+            ...(typeof word.confidence === "number"
+              ? { confidence: word.confidence }
+              : {}),
           });
         }
       }
