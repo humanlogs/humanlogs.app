@@ -61,35 +61,57 @@ export function CodingBar({
   const t = useTranslations("codebook.coding");
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      {/* Play, speed and position. This bar REPLACES the transcription toolbar,
-          which is where they used to live, so without them entering the coding
-          phase silently took the audio controls away from someone coding an
-          interview by listening to it. */}
-      {hasListenAccess && (
-        <div className="flex shrink-0 items-center gap-0">
-          <AudioTransport
-            audioControls={audioControls ?? null}
-            enabled={hasListenAccess}
-          />
-        </div>
-      )}
+    // Two rows, not one.
+    //
+    // The codes were a `flex-1` column wedged between two fixed-width selects, so
+    // with the excerpt panel open they got a sliver of the width and stacked one
+    // per line — six rows of chrome above a transcript, which is the thing being
+    // read. They are also the POINT of this phase: the selects say which grille
+    // and whose pass, once, and then every gesture for the next hour is a chip.
+    // So the settings take the first row at their natural size and the codes take
+    // the whole of the second, where they wrap the way a legend should.
+    <div className="flex flex-col gap-1.5">
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Play, speed and position. This bar REPLACES the transcription toolbar,
+            which is where they used to live, so without them entering the coding
+            phase silently took the audio controls away from someone coding an
+            interview by listening to it. */}
+        {hasListenAccess && (
+          <div className="flex shrink-0 items-center gap-0">
+            <AudioTransport
+              audioControls={audioControls ?? null}
+              enabled={hasListenAccess}
+            />
+          </div>
+        )}
 
-      {/* The prism first: it decides what the rest of the row means. */}
-      <Select
-        size="sm"
-        className="w-52 shrink-0"
-        options={codebooks.map((c) => ({
-          value: c.id,
-          label: c.name || t("untitled"),
-        }))}
-        value={codebookId ?? undefined}
-        onChange={onCodebookChange}
-        placeholder={t("codebook")}
-        disabled={codebooks.length === 0}
-      />
+        {/* The prism: it decides what the row below means. */}
+        <Select
+          size="sm"
+          className="w-52 shrink-0"
+          options={codebooks.map((c) => ({
+            value: c.id,
+            label: c.name || t("untitled"),
+          }))}
+          value={codebookId ?? undefined}
+          onChange={onCodebookChange}
+          placeholder={t("codebook")}
+          disabled={codebooks.length === 0}
+        />
 
-      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+        <Select
+          size="sm"
+          className="w-44 shrink-0"
+          options={[
+            { value: "mine", label: t("scope.mine") },
+            { value: "everyone", label: t("scope.everyone") },
+          ]}
+          value={scope}
+          onChange={(value) => onScopeChange(value as CodingScope)}
+        />
+      </div>
+
+      <div className="flex min-w-0 flex-wrap items-center gap-1.5">
         {/* Inside a group, the way out comes first — a row of sub-codes with no
             visible parent reads as a different codebook, not as a level. */}
         {trail.length > 0 && (
@@ -126,17 +148,6 @@ export function CodingBar({
           <span className="text-xs text-muted-foreground">{t("noCodes")}</span>
         )}
       </div>
-
-      <Select
-        size="sm"
-        className="w-44 shrink-0"
-        options={[
-          { value: "mine", label: t("scope.mine") },
-          { value: "everyone", label: t("scope.everyone") },
-        ]}
-        value={scope}
-        onChange={(value) => onScopeChange(value as CodingScope)}
-      />
     </div>
   );
 }

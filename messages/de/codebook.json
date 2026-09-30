@@ -166,7 +166,8 @@
       "play": "Diese Passage anhören",
       "recode": "Codes dieser Passage",
       "recodeMine": "Sie können nur Ihre eigenen Lesarten zurücknehmen.",
-      "open": "Dieses Interview öffnen"
+      "open": "Dieses Interview öffnen",
+      "pause": "Pause"
     }
   }
 }

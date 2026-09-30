@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ArrowUpRightIcon, PlayIcon, TagIcon } from "lucide-react";
+import { ArrowUpRightIcon, PauseIcon, PlayIcon, TagIcon } from "lucide-react";
 import { useTranslations } from "@/components/locale-provider";
 import { CodeCheckItems } from "@/components/codebooks/code-picker";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
@@ -165,6 +165,7 @@ export function ExcerptRow({
   provenance,
   onSelect,
   onPlay,
+  playing = false,
   onFollow,
   coding,
 }: {
@@ -178,7 +179,14 @@ export function ExcerptRow({
   provenance: Provenance;
   onSelect: (focus: PhraseFocus) => void;
   /** Present only while this row's interview is the one with a player. */
-  onPlay?: (documentId: string, seconds: number) => void;
+  onPlay?: (phrase: {
+    documentId: string;
+    phraseId: string;
+    from: number;
+    to?: number;
+  }) => void;
+  /** This passage is the one currently being replayed. */
+  playing?: boolean;
   /** Open this row's interview, keeping the table as it is. */
   onFollow: (documentId: string, codingId?: string) => void;
   /** Present only while this row's interview is the one open and writable. */
@@ -209,12 +217,28 @@ export function ExcerptRow({
         {canPlay && (
           <button
             type="button"
-            onClick={() => onPlay(phraseRef.documentId, startTime)}
-            aria-label={t("play")}
+            onClick={() =>
+              onPlay({
+                documentId: phraseRef.documentId,
+                phraseId: phraseRef.id,
+                from: startTime,
+                // The end, so the replay stops with the sentence instead of
+                // running on into the rest of the interview.
+                to: row?.endTime,
+              })
+            }
+            aria-label={playing ? t("pause") : t("play")}
             title={formatTimecode(startTime)}
-            className="flex size-6 items-center justify-center rounded-full border bg-background text-muted-foreground hover:text-foreground"
+            className={cn(
+              "flex size-6 items-center justify-center rounded-full border bg-background hover:text-foreground",
+              playing ? "text-foreground" : "text-muted-foreground",
+            )}
           >
-            <PlayIcon className="size-3" />
+            {playing ? (
+              <PauseIcon className="size-3" />
+            ) : (
+              <PlayIcon className="size-3" />
+            )}
           </button>
         )}
         {canCode && (

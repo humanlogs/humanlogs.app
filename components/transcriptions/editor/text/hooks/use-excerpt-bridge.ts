@@ -7,6 +7,7 @@ import {
   useExcerptPanelContext,
   type PhraseCodingToggle,
 } from "@/components/codebooks/excerpts/excerpt-panel-context";
+import type { AudioControls } from "../../audio/helpers";
 import { useAudio } from "@/components/transcriptions/editor/audio/audio-context";
 import { useBetaFeatures } from "@/hooks/use-api";
 import { useLiveDocumentIndex } from "@/hooks/use-local-index";
@@ -58,7 +59,7 @@ export function useExcerptBridge({
    * The player's controls, for the play button on a row. Absent until the audio
    * has loaded, and on a document that has none.
    */
-  audioControls?: { play: () => void } | null;
+  audioControls?: AudioControls | null;
   /**
    * Put a code on, or take one off, a passage the TABLE names. Absent while the
    * document is read-only or has no codebook, and the panel then offers no picker
@@ -167,25 +168,76 @@ export function useExcerptBridge({
   // the provider, and that failure mode is a frozen page rather than a missed
   // update.
   const { seekTo } = useAudio();
-  const playRef = React.useRef<((seconds: number) => void) | undefined>(
-    undefined,
-  );
+  const leaseRef = React.useRef<{
+    play: (from: number, to: number | undefined, onStopped: () => void) => void;
+    pause: () => void;
+  }>({ play: () => {}, pause: () => {} });
+
   React.useEffect(() => {
-    playRef.current = (seconds: number) => {
-      seekTo(seconds);
-      audioControls?.play();
+    /** Undo the watcher of whatever was playing before. */
+    let stopWatching: (() => void) | null = null;
+
+    leaseRef.current = {
+      play: (from, to, onStopped) => {
+        stopWatching?.();
+        stopWatching = null;
+        seekTo(from);
+        audioControls?.play();
+        if (to === undefined || !audioControls) return;
+
+        // Replaying an EXCERPT means replaying that sentence. Without this the
+        // click plays the rest of the interview, and the pause button on the row
+        // would stand for something nobody asked to start. A small margin,
+        // because the passage's end is the end of its last word and cutting
+        // exactly there clips it.
+        const until = to + 0.15;
+        stopWatching = audioControls.onTimeUpdate((time) => {
+          if (time < until) return;
+          stopWatching?.();
+          stopWatching = null;
+          audioControls.pause();
+          onStopped();
+        });
+      },
+      pause: () => {
+        stopWatching?.();
+        stopWatching = null;
+        audioControls?.pause();
+      },
     };
+
+    return () => stopWatching?.();
   }, [seekTo, audioControls]);
 
-  const playFrom = React.useCallback((seconds: number) => {
-    playRef.current?.(seconds);
-  }, []);
+  // A STABLE object over the ref, for the same reason the coding below is: this
+  // crosses a context boundary, and anything whose identity changes per render
+  // re-registers on every render, which re-renders the provider, which renders
+  // this again. That failure mode is a frozen page, not a missed update.
+  const audioLease = React.useMemo(
+    () => ({
+      play: (from: number, to: number | undefined, onStopped: () => void) =>
+        leaseRef.current.play(from, to, onStopped),
+      pause: () => leaseRef.current.pause(),
+    }),
+    [],
+  );
 
   const registerAudio = panel.registerAudio;
   React.useEffect(() => {
-    registerAudio(transcriptionId, playFrom);
+    registerAudio(transcriptionId, audioLease);
     return () => registerAudio(transcriptionId, null);
-  }, [registerAudio, transcriptionId, playFrom]);
+  }, [registerAudio, transcriptionId, audioLease]);
+
+  /**
+   * The player stopped without the table asking — the transport's own pause, the
+   * end of the file, someone scrubbing. The row has to drop out of "playing" or
+   * it keeps offering a pause for something that is not running.
+   */
+  const reportStopped = panel.reportPlaybackStopped;
+  const isPlaying = audioControls?.isPlaying ?? false;
+  React.useEffect(() => {
+    if (!isPlaying) reportStopped();
+  }, [isPlaying, reportStopped]);
 
   // --- Lend it the ability to code, too.
   //

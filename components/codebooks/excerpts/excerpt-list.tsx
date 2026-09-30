@@ -196,15 +196,25 @@ export function ExcerptList({
    * the editor, and a play control that silently does nothing on the other 999
    * interviews of a study would be worse than none.
    */
-  const seekAudio = panel.seekAudio;
+  const playPhrase = panel.playPhrase;
+  const stopPhrase = panel.stopPhrase;
+  const playingPhraseId = panel.playingPhraseId;
   const playable = panel.audioDocumentId;
   const followDocument = panel.followDocument;
   const onPlay = React.useCallback(
-    (documentId: string, seconds: number) => {
-      if (documentId !== playable) return;
-      seekAudio(seconds);
+    (phrase: {
+      documentId: string;
+      phraseId: string;
+      from: number;
+      to?: number;
+    }) => {
+      if (phrase.documentId !== playable) return;
+      // The same button both ways: a passage already playing is one click from
+      // stopping, which is what a control that has turned into a pause promises.
+      if (playingPhraseId === phrase.phraseId) stopPhrase();
+      else playPhrase(phrase);
     },
-    [playable, seekAudio],
+    [playable, playingPhraseId, playPhrase, stopPhrase],
   );
 
   const behind = plan.total - plan.shown;
@@ -223,6 +233,7 @@ export function ExcerptList({
           onFollow={followDocument}
           coding={coding}
           onPlay={playable ? onPlay : undefined}
+          playingPhraseId={playingPhraseId}
         />
       ))}
       <div ref={sentinelRef} aria-hidden className="h-px" />
@@ -278,6 +289,7 @@ function ExcerptGroupSection({
   provenance,
   onSelect,
   onPlay,
+  playingPhraseId,
   onFollow,
   coding,
 }: {
@@ -287,7 +299,13 @@ function ExcerptGroupSection({
   focused: PhraseFocus | null;
   provenance: Provenance;
   onSelect: (focus: PhraseFocus) => void;
-  onPlay?: (documentId: string, seconds: number) => void;
+  onPlay?: (phrase: {
+    documentId: string;
+    phraseId: string;
+    from: number;
+    to?: number;
+  }) => void;
+  playingPhraseId?: string | null;
   onFollow: (documentId: string, codingId?: string) => void;
   coding?: ExcerptCoding;
 }) {
@@ -342,6 +360,7 @@ function ExcerptGroupSection({
                 provenance={provenance}
                 onSelect={onSelect}
                 onPlay={onPlay}
+                playing={playingPhraseId === ref.id}
                 onFollow={onFollow}
                 coding={coding}
               />

@@ -166,7 +166,8 @@
       "play": "Play this passage",
       "recode": "Codes on this passage",
       "recodeMine": "You can only take back your own readings.",
-      "open": "Open this interview"
+      "open": "Open this interview",
+      "pause": "Pause"
     }
   }
 }

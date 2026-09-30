@@ -142,11 +142,27 @@ type ExcerptPanelValue = {
    * which is a different piece of work.
    */
   audioDocumentId: string | null;
-  registerAudio: (
-    documentId: string,
-    seek: ((seconds: number) => void) | null,
-  ) => void;
-  seekAudio: (seconds: number) => void;
+  registerAudio: (documentId: string, lease: AudioLease | null) => void;
+  /**
+   * The passage currently being replayed, if any.
+   *
+   * Held here rather than derived from the player's clock: the panel would have to
+   * re-render on every tick to ask, and the excerpt list is the most expensive
+   * thing on the screen. It changes when a passage is STARTED and when playback
+   * stops — twice per listen, not sixty times a second.
+   */
+  playingPhraseId: string | null;
+  /** Replay one passage, stopping at its end. */
+  playPhrase: (phrase: {
+    documentId: string;
+    phraseId: string;
+    from: number;
+    to?: number;
+  }) => void;
+  /** Stop a replay in progress. */
+  stopPhrase: () => void;
+  /** Told by the editor when the player stopped on its own. */
+  reportPlaybackStopped: () => void;
 
   /**
    * The document whose codes the table may change, if any.
@@ -179,6 +195,19 @@ export type PhraseCodingIntent = {
 export type PhraseCodingToggle = (
   intent: Omit<PhraseCodingIntent, "documentId">,
 ) => boolean;
+
+/**
+ * The player, as the panel borrows it.
+ *
+ * `play` takes the END of the passage as well as its start, because replaying an
+ * excerpt means replaying THAT SENTENCE: without it, clicking a one-line quote
+ * plays the rest of a fifty-minute interview, and "is this still playing?" has no
+ * answer anyone would recognise. The editor stops there and says so.
+ */
+export type AudioLease = {
+  play: (from: number, to: number | undefined, onStopped: () => void) => void;
+  pause: () => void;
+};
 
 const ExcerptPanelContext = React.createContext<ExcerptPanelValue | null>(null);
 
@@ -268,7 +297,7 @@ export function ExcerptPanelProvider({
     codebookId: null,
   });
   const [focused, setFocused] = React.useState<PhraseFocus | null>(null);
-  const audio = useLentCapability<(seconds: number) => void>();
+  const audio = useLentCapability<AudioLease>();
   const coding = useLentCapability<PhraseCodingToggle>();
 
   // Restored after mount rather than during render: the server has no localStorage,
@@ -449,12 +478,34 @@ export function ExcerptPanelProvider({
    * mounts the next bridge before unmounting the previous one, and a boolean
    * would be left false by the unmount that happens last.
    */
-  const seekAudio = React.useCallback(
-    (seconds: number) => {
-      audio.held?.value(seconds);
-    },
-    [audio],
+  const [playingPhraseId, setPlayingPhraseId] = React.useState<string | null>(
+    null,
   );
+
+  const reportPlaybackStopped = React.useCallback(
+    () => setPlayingPhraseId(null),
+    [],
+  );
+
+  const playPhrase = React.useCallback(
+    (phrase: {
+      documentId: string;
+      phraseId: string;
+      from: number;
+      to?: number;
+    }) => {
+      const held = audio.held;
+      if (!held || held.documentId !== phrase.documentId) return;
+      setPlayingPhraseId(phrase.phraseId);
+      held.value.play(phrase.from, phrase.to, reportPlaybackStopped);
+    },
+    [audio, reportPlaybackStopped],
+  );
+
+  const stopPhrase = React.useCallback(() => {
+    audio.held?.value.pause();
+    setPlayingPhraseId(null);
+  }, [audio]);
 
   const togglePhraseCode = React.useCallback(
     (intent: PhraseCodingIntent) => {
@@ -516,7 +567,10 @@ export function ExcerptPanelProvider({
     followDocument,
     audioDocumentId: audio.held?.documentId ?? null,
     registerAudio: audio.register,
-    seekAudio,
+    playingPhraseId,
+    playPhrase,
+    stopPhrase,
+    reportPlaybackStopped,
     codingDocumentId: coding.held?.documentId ?? null,
     registerCoding: coding.register,
     togglePhraseCode,
