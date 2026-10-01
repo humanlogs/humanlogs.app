@@ -81,7 +81,7 @@ Il n'y a pas de nombre cible. Pour un mémoire ou une thèse, on rencontre souve
 C'est possible, mais rarement recommandé : le texte permet de comparer, rechercher et citer précisément des extraits. L'audio reste utile pour lever un doute sur le ton, une hésitation ou un passage ambigu.
 
 **Quelle différence entre codage et catégorisation ?**
-Le codage étiquette des extraits, la catégorisation regroupe ces codes en ensembles plus larges. Les deux se font souvent en va-et-vient, pas dans un ordre strict.
+Le codage étiquette des extraits, la catégorisation regroupe ces codes en ensembles plus larges. Les deux se font souvent en va-et-vient, pas dans un ordre strict. Pour la suite, voir notre guide de l'[analyse thématique d'entretien](/fr/blog/analyse-thematique-entretien).
 
 **Peut-on demander à une IA de proposer des codes ?**
 Elle peut suggérer des codes candidats sur un sous-ensemble, à condition que le chercheur les évalue et les corrige lui-même. Voir notre article sur [l'IA dans l'analyse de données qualitatives](/en/blog/using-ai-to-analyse-qualitative-data) (en anglais).
