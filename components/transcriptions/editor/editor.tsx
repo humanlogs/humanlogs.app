@@ -6,6 +6,7 @@ import {
 } from "@/hooks/use-notifications";
 import { useTranscriptionCursors } from "@/hooks/use-transcription-cursors";
 import { cn } from "@/lib/utils/utils";
+import { useDocumentViewPrefs } from "@/hooks/use-document-view-prefs";
 import {
   useEffect,
   useLayoutEffect,
@@ -27,6 +28,7 @@ import { CodingBar } from "./text/components/coding-bar";
 import { CodingHighlightStyles } from "./text/components/coding-highlight-styles";
 import { CodingSelectionToolbar } from "./text/components/coding-selection-toolbar";
 import { CommentRail } from "./text/components/comment-rail";
+import { ConfidenceBubble } from "./text/components/confidence-bubble";
 import { EditorToolbar } from "./text/components/editor-toolbar";
 import { SearchHighlights } from "./text/components/search-highlights";
 import { SelectionRangeHighlight } from "./text/components/selection-range-highlight";
@@ -613,6 +615,12 @@ export function TranscriptEditor({
     canGoBack: codingController.trail.length > 0,
   });
 
+  // Underlining doubtful words is a per-device view preference, on by default: the
+  // doubts themselves live in the document (the `lowConfidence` mark) and go away
+  // only when a word is corrected or validated.
+  const { prefs: viewPrefs, update: updateViewPrefs } = useDocumentViewPrefs();
+  const showConfidence = viewPrefs.showConfidence;
+
   return (
     <div
       ref={containerRef}
@@ -622,6 +630,7 @@ export function TranscriptEditor({
         "h-full min-w-0 overflow-x-hidden",
         !commentThreads.railOpen && "comments-idle",
         coding && "phase-coding",
+        !showConfidence && "hide-confidence",
       )}
     >
       {revertedBy && (
@@ -707,6 +716,10 @@ export function TranscriptEditor({
                   hasWriteAccess={canWrite}
                   hasListenAccess={hasListenAccess}
                   onComment={commentThreads.startNewComment}
+                  showConfidence={showConfidence}
+                  onToggleConfidence={() =>
+                    updateViewPrefs({ showConfidence: !showConfidence })
+                  }
                 />
               )}
             </div>
@@ -762,6 +775,9 @@ export function TranscriptEditor({
                   transcript that is read-only, where nothing is being typed
                   underneath it, and it is the only way to apply a code with the
                   mouse. */}
+              {!coding && showConfidence && canWrite && (
+                <ConfidenceBubble editor={tiptapEditor} editorAPI={editorAPI} />
+              )}
               {coding ? (
                 <CodingSelectionToolbar
                   editor={tiptapEditor}

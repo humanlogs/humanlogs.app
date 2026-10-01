@@ -42,6 +42,8 @@ import {
 } from "../collab/timing-reference";
 import { AutoWrapExtension } from "../extensions/auto-wrap-extension";
 import { CodingMark } from "../extensions/coding-mark";
+import { ConfidenceMark } from "../extensions/confidence-mark";
+import { PRESERVE_CONFIDENCE_META } from "../utils/confidence";
 import { CommentMark } from "../extensions/comment-mark";
 import { segmentsToHtml } from "../utils/html";
 import {
@@ -342,6 +344,7 @@ export function useTiptapEditor({
         UnderlineNoShortcut,
         CommentMark,
         CodingMark,
+        ConfidenceMark,
         SpeakerParagraph,
         Placeholder.configure({
           placeholder: "Start typing…",
@@ -651,6 +654,8 @@ export function useTiptapEditor({
           .setContent(segmentsHtmlRef.current)
           .setTextSelection(0)
           .setMeta("addToHistory", false)
+          // Seeding is not editing: the doubtful words it lays down must survive it.
+          .setMeta(PRESERVE_CONFIDENCE_META, true)
           .run();
       }
       seedSpeakersMap();

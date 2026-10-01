@@ -172,6 +172,15 @@ export function normalizeEditorSegments(
         end: seg.end ?? prev.end,
         speakerId: prev.speakerId ?? seg.speakerId,
         modifiers: prev.modifiers ?? seg.modifiers,
+        // One word made of two tokens is as doubtful as its most doubtful half.
+        ...(prev.confidence !== undefined || seg.confidence !== undefined
+          ? {
+              confidence: Math.min(
+                prev.confidence ?? Infinity,
+                seg.confidence ?? Infinity,
+              ),
+            }
+          : {}),
       };
     } else {
       merged.push({ ...seg });

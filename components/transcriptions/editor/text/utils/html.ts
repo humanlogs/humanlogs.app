@@ -2,6 +2,11 @@ import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { normalizeEditorSegments } from "../hooks/use-normalize-editor-segments";
 import { formatCommentIds } from "../extensions/comment-mark";
 import { formatCodingIds } from "../extensions/coding-mark";
+import {
+  formatConfidence,
+  isLowConfidence,
+  readConfidence,
+} from "./confidence";
 
 export function escapeHtml(text: string): string {
   return text
@@ -90,7 +95,12 @@ export function segmentsToHtml(
     const codings = seg.codings?.length
       ? [`coding:${formatCodingIds(seg.codings)}`]
       : [];
-    return [...mods, ...comments, ...codings];
+    // Innermost of all, and on words only: a doubt is about one word, so the spaces
+    // between two doubtful words stay unmarked and each word reads on its own.
+    const confidence = isLowConfidence(seg)
+      ? [`confidence:${formatConfidence(readConfidence(seg)!)}`]
+      : [];
+    return [...mods, ...comments, ...codings, ...confidence];
   };
 
   const openTag = (tag: string): string => {
@@ -102,10 +112,16 @@ export function segmentsToHtml(
       const id = tag.slice("coding:".length);
       return `<span data-coding-id="${escapeAttr(id)}">`;
     }
+    if (tag.startsWith("confidence:")) {
+      const value = tag.slice("confidence:".length);
+      return `<span data-confidence="${escapeAttr(value)}">`;
+    }
     return `<${tag}>`;
   };
   const closeTag = (tag: string): string =>
-    tag.startsWith("comment:") || tag.startsWith("coding:")
+    tag.startsWith("comment:") ||
+    tag.startsWith("coding:") ||
+    tag.startsWith("confidence:")
       ? "</span>"
       : `</${tag}>`;
 

@@ -3,6 +3,7 @@ import type { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { normalizeEditorSegments } from "../hooks/use-normalize-editor-segments";
 import { parseCommentIds } from "../extensions/comment-mark";
 import { parseCodingIds } from "../extensions/coding-mark";
+import { LOW_CONFIDENCE_MARK, parseConfidence } from "../utils/confidence";
 
 /**
  * Deterministic, idempotent, order-independent repair of a token sequence's
@@ -120,6 +121,12 @@ function marksToCodings(node: PMNode): string[] | undefined {
   return ids.length ? ids : undefined;
 }
 
+/** The confidence carried by a node's `lowConfidence` mark, if it has one. */
+function markToConfidence(node: PMNode): number | undefined {
+  const mark = node.marks.find((m) => m.type.name === LOW_CONFIDENCE_MARK);
+  return mark ? parseConfidence(mark.attrs?.confidence) : undefined;
+}
+
 /** Split a text run into word / spacing tokens, inheriting speaker + modifiers. */
 function pushTextRun(
   out: TranscriptionSegment[],
@@ -128,6 +135,7 @@ function pushTextRun(
   modifiers: ("b" | "i" | "u" | "s")[] | undefined,
   comments: string[] | undefined,
   codings: string[] | undefined,
+  confidence?: number,
 ) {
   if (!text) return;
   for (const part of text.split(/(\s+)/)) {
@@ -150,6 +158,7 @@ function pushTextRun(
         ...(modifiers ? { modifiers } : {}),
         ...(comments ? { comments } : {}),
         ...(codings ? { codings } : {}),
+        ...(confidence !== undefined ? { confidence } : {}),
       });
     }
   }
@@ -180,6 +189,7 @@ function docToStructureSegments(doc: PMNode): TranscriptionSegment[] {
           marksToMods(inline),
           marksToComments(inline),
           marksToCodings(inline),
+          markToConfidence(inline),
         );
       } else if (inline.type.name === "hardBreak") {
         out.push({ type: "spacing", text: "\n", speakerId });

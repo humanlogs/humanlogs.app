@@ -7,6 +7,7 @@ import {
   Bold,
   Italic,
   MessageSquarePlus,
+  SpellCheck,
   Strikethrough,
   Underline,
 } from "lucide-react";
@@ -44,6 +45,9 @@ interface EditorToolbarProps {
   hasListenAccess: boolean;
   /** Anchor a comment on the current selection (expands to the whole word). */
   onComment?: () => void;
+  /** Whether doubtful words are underlined, and the switch for it. */
+  showConfidence?: boolean;
+  onToggleConfidence?: () => void;
 }
 
 export function EditorToolbar({
@@ -54,6 +58,8 @@ export function EditorToolbar({
   hasWriteAccess,
   hasListenAccess,
   onComment,
+  showConfidence,
+  onToggleConfidence,
 }: EditorToolbarProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const t = useTranslations("editor");
@@ -172,6 +178,28 @@ export function EditorToolbar({
       document.removeEventListener("keydown", onKeyDown, { capture: true });
   }, [onComment]);
 
+  // A view setting, not an edit: offered to readers too, and it never touches the
+  // doubts themselves — only whether they are drawn. Sits just before the comment
+  // button, with the other "review" action.
+  const confidenceToggle = onToggleConfidence ? (
+    <Button
+      variant={showConfidence ? "secondary" : "ghost"}
+      size="sm"
+      onMouseDown={(e) => {
+        e.preventDefault(); // keep focus/selection in editor
+        onToggleConfidence();
+      }}
+      className="h-7 w-7 p-0"
+      title={t(
+        showConfidence ? "toolbar.hideConfidence" : "toolbar.showConfidence",
+      )}
+      aria-label={t("toolbar.confidence")}
+      aria-pressed={!!showConfidence}
+    >
+      <SpellCheck className="h-3.5 w-3.5" />
+    </Button>
+  ) : null;
+
   return (
     <div className="flex items-center gap-0 shrink-0">
       <AudioTransport audioControls={audioControls} enabled={hasListenAccess} />
@@ -238,6 +266,8 @@ export function EditorToolbar({
             className="mx-2 h-4 w-px bg-slate-500/20"
           />
 
+          {confidenceToggle}
+
           <Button
             variant="ghost"
             size="sm"
@@ -252,6 +282,10 @@ export function EditorToolbar({
           </Button>
         </>
       )}
+
+      {/* Readers get the toggle alone: the formats and the comment around it are
+          edits they cannot make. */}
+      {!hasWriteAccess && confidenceToggle}
 
       <SearchReplaceToolbar
         searchTerm={searchReplace.searchTerm}
