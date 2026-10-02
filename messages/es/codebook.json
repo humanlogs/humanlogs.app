@@ -91,6 +91,83 @@
       "create": "Crear un codebook",
       "untitled": "Codebook sin nombre",
       "failed": "No se han podido guardar los códigos del documento"
+    },
+    "coding": {
+      "phase": {
+        "label": "Fase",
+        "transcription": "Edición",
+        "coding": "Codificación"
+      },
+      "apply": "Codificar",
+      "comment": "Comentar",
+      "noCodes": "Ningún codebook de verbatim cubre todavía este estudio.",
+      "scope": {
+        "mine": "Mis códigos",
+        "everyone": "Los códigos de todos"
+      },
+      "codebook": "Codebook",
+      "untitled": "Codebook sin nombre"
+    },
+    "excerpts": {
+      "title": "Extractos",
+      "close": "Cerrar el panel de extractos",
+      "empty": "Ningún pasaje codificado coincide con este filtro.",
+      "groupEmpty": "Todavía no hay nada codificado aquí",
+      "search": "Buscar en los extractos",
+      "reset": "Borrar los filtros",
+      "narrowed": "Documentos en esta selección: {count}",
+      "scope": {
+        "document": "Este documento",
+        "study": "Todo el estudio"
+      },
+      "filter": {
+        "codes": "Códigos",
+        "context": "Documentos y personas"
+      },
+      "authors": {
+        "everyone": "Todos",
+        "mine": "Míos"
+      },
+      "groupBy": {
+        "label": "Agrupar por",
+        "none": "Sin agrupar",
+        "code": "Por código",
+        "codebook": "Por libro de códigos",
+        "document": "Por documento",
+        "speaker": "Por hablante"
+      },
+      "unknownCode": "Código eliminado",
+      "unknownCodebook": "Libro de códigos eliminado",
+      "untitledDocument": "Documento sin título",
+      "unknownSpeaker": "Hablante desconocido",
+      "speakerFallback": "Hablante {index}",
+      "syncing": "Indexando el estudio… {done}/{total}",
+      "syncFailed": "Documentos que no se pudieron indexar: {count}",
+      "more": "{count} más abajo",
+      "indexingEmpty": "Indexando el estudio… los extractos aparecen a medida que se leen los documentos.",
+      "export": {
+        "label": "Exportar la tabla",
+        "matched": "{count} pasajes",
+        "hint": "Agrupado por código, {count} pasajes.",
+        "capped": "Cada tema se limita a {count} pasajes.",
+        "running": "Preparando… {done}/{total}",
+        "failed": "La exportación ha fallado.",
+        "theme": "Tema",
+        "passages": "Frases",
+        "analysis": "Análisis",
+        "format": {
+          "pdf": "PDF (.pdf)",
+          "docx": "Word (.docx)",
+          "csv": "Hoja de cálculo (.csv)"
+        },
+        "hintShort": "Agrupado por código, limitado a 2000 pasajes por tema.",
+        "menuLabel": "Codificación"
+      },
+      "play": "Escuchar este pasaje",
+      "recode": "Códigos de este pasaje",
+      "recodeMine": "Solo puede retirar sus propias lecturas.",
+      "open": "Abrir esta entrevista",
+      "pause": "Pausa"
     }
   }
 }

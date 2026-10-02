@@ -52,8 +52,9 @@ describe("createRoomGrant", () => {
     // the browser store compares this against Date.now() to decide when to renew,
     // so seconds-vs-milliseconds would silently mean "always expired".
     expect(expiresAt).toBeGreaterThan(before);
-    expect(Math.abs(expiresAt - (before + ROOM_GRANT_TTL_SECONDS * 1000))).
-      toBeLessThan(1500);
+    expect(
+      Math.abs(expiresAt - (before + ROOM_GRANT_TTL_SECONDS * 1000)),
+    ).toBeLessThan(1500);
   });
 
   it("marks only owner and write as able to change the document", () => {

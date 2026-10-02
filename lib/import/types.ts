@@ -41,7 +41,10 @@ export const IMPORT_EXTENSIONS = [
 ] as const;
 
 /** Formats a user can pick explicitly. `auto` infers from extension/content. */
-export const IMPORT_FORMAT_OPTIONS: Array<{ value: ImportFormat | "auto"; label: string }> = [
+export const IMPORT_FORMAT_OPTIONS: Array<{
+  value: ImportFormat | "auto";
+  label: string;
+}> = [
   { value: "auto", label: "Auto-detect" },
   { value: "json", label: "JSON transcript" },
   { value: "csv", label: "CSV (speaker, text)" },

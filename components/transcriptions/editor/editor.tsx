@@ -6,6 +6,7 @@ import {
 } from "@/hooks/use-notifications";
 import { useTranscriptionCursors } from "@/hooks/use-transcription-cursors";
 import { cn } from "@/lib/utils/utils";
+import { useDocumentViewPrefs } from "@/hooks/use-document-view-prefs";
 import {
   useEffect,
   useLayoutEffect,
@@ -23,14 +24,23 @@ import {
 import { InteractiveAudio } from "./audio";
 import { EditorAPI } from "./text/api";
 import { ActiveSegmentHighlight } from "./text/components/active-segment-highlight";
+import { CodingBar } from "./text/components/coding-bar";
+import { CodingHighlightStyles } from "./text/components/coding-highlight-styles";
+import { CodingSelectionToolbar } from "./text/components/coding-selection-toolbar";
 import { CommentRail } from "./text/components/comment-rail";
+import { ConfidenceBubble } from "./text/components/confidence-bubble";
 import { EditorToolbar } from "./text/components/editor-toolbar";
 import { SearchHighlights } from "./text/components/search-highlights";
+import { SelectionRangeHighlight } from "./text/components/selection-range-highlight";
 import { SelectionToolbar } from "./text/components/selection-toolbar";
 import { SpeakerColumn } from "./text/components/speaker-column";
 import { SpeakerRenameDialog } from "./text/components/speaker-rename-dialog";
 import { useAudioSync } from "./text/hooks/use-audio-sync";
+import { useCoding } from "./text/hooks/use-coding";
+import { useCodingShortcuts } from "./text/hooks/use-coding-shortcuts";
 import { useCommentThreads } from "./text/hooks/use-comment-threads";
+import { useExcerptBridge } from "./text/hooks/use-excerpt-bridge";
+import { useWordSnappedSelection } from "./text/hooks/use-word-snapped-selection";
 import { SaveStatus, useAutoSave } from "./text/hooks/use-auto-save";
 import { useFormat } from "./text/hooks/use-format";
 import { useNavigationMode } from "./text/hooks/use-navigation-mode";
@@ -41,8 +51,11 @@ import {
   sortByInnermost,
 } from "./text/utils/comment-actions";
 import { parseCommentIds } from "./text/extensions/comment-mark";
+import { parseCodingIds } from "./text/extensions/coding-mark";
+import { getCodingRanges } from "./text/utils/coding-actions";
 import { segmentsToHtml } from "./text/utils/html";
 import { AudioControls } from "./audio/helpers";
+import type { DocumentPhase } from "./phase";
 
 /** Roughly where the sticky header ends, used to probe the first visible line. */
 const HEADER_SAFE_TOP = 140;
@@ -54,6 +67,14 @@ const HEADER_SAFE_TOP = 140;
  * is the problem.
  */
 const SELECTION_TOOLBAR_ENABLED = false;
+
+/**
+ * How long the transcript save waits after an anchor changes, and how long it may be
+ * pushed back by a run of them. The delay has to clear the segment projection's own
+ * 300ms debounce, or the save would go out without the mark that triggered it.
+ */
+const ANCHOR_FLUSH_DELAY_MS = 1200;
+const ANCHOR_FLUSH_MAX_WAIT_MS = 5000;
 
 function SegmentsHtmlDebugPanel({ editorAPI }: { editorAPI: EditorAPI }) {
   const [html, setHtml] = useState("");
@@ -94,15 +115,19 @@ export function TranscriptEditor({
   hasWriteAccess,
   hasListenAccess,
   transcription,
+  phase = "transcription",
   onEditorReady,
   onSaveStatusChange,
 }: {
   hasWriteAccess: boolean;
   hasListenAccess: boolean;
   transcription: TranscriptionDetail;
+  /** Which pass over the document the researcher is making (see ./phase). */
+  phase?: DocumentPhase;
   onEditorReady?: (editorAPI: EditorAPI) => void;
   onSaveStatusChange?: (status: SaveStatus) => void;
 }) {
+  const coding = phase === "coding";
   const containerRef = useRef<HTMLDivElement | null>(null);
   // Lazy initialiser: constructed once, stable identity, and never re-created
   // on re-render (which `useRef(new EditorAPI())` would do, then discard).
@@ -116,9 +141,10 @@ export function TranscriptEditor({
     null,
   );
   const { selectionUpdate } = useAudioSync(editorAPI);
-  const { state, currentIndex, goToOffset } = useNavigationMode(
+  const { state, currentIndex, selection, goToOffset } = useNavigationMode(
     editorAPI,
     audioControls,
+    { readOnly: coding },
   );
   const {
     applyFormat,
@@ -207,6 +233,38 @@ export function TranscriptEditor({
   // Comment threads: creating/focusing threads, and dropping abandoned anchors.
   const commentThreads = useCommentThreads({ editorAPI, canWrite });
 
+  // --- Verbatim coding -------------------------------------------------------
+  // The codes on offer for this document and what applying one does. Declared up here
+  // with the other controllers because the click handling below reads it — clicking a
+  // coded passage selects it, and only what is actually shown may be selected.
+  const codingController = useCoding({
+    transcriptionId: transcription.id,
+    projectId: transcription.projectId,
+    editorAPI,
+    canWrite,
+  });
+
+  // The excerpt panel's end of the coding loop: it learns which document and
+  // codebook are open, gets this document's rows rewritten as passages are coded,
+  // and trades scroll positions with the table.
+  const excerpts = useExcerptBridge({
+    transcriptionId: transcription.id,
+    projectId: transcription.projectId ?? null,
+    title: transcription.title,
+    serverUpdatedAt: transcription.updatedAt,
+    codebookId: codingController.codebook?.id ?? null,
+    editorAPI,
+    codings: codingController.codings,
+    audioControls,
+    // Lent only when there is something to code with and the right to do it: the
+    // panel shows a code picker on a row exactly when that picker would work.
+    toggleCodeOnPhrase:
+      canWrite && codingController.hasCodes
+        ? codingController.toggleCodeOnPhrase
+        : undefined,
+    active: coding,
+  });
+
   // Notifications about this document are about its comments, so they are cleared when
   // the rail is actually opened — not merely by landing on the page, which would wipe
   // the sidebar badge before the user has seen what it was pointing at. Guarded on the
@@ -292,11 +350,58 @@ export function TranscriptEditor({
     if (range) goToOffset(range.from - 1);
   };
 
+  /**
+   * Clicking a coded passage selects the whole of it.
+   *
+   * A coding is a unit — the researcher chose those words together — so pointing at it
+   * should hand it back whole, ready to be coded again, commented, or taken off. Having
+   * to re-drag over a passage that is already marked out was busywork the document
+   * already knew the answer to.
+   *
+   * Only what is actually SHOWN counts. A mark can outlive what made it visible: a
+   * coding by a colleague while reading your own pass, one made through another prism,
+   * one whose code has since been deleted. The passage then looks like plain text, and
+   * grabbing a whole sentence off a click there is the editor acting on something the
+   * researcher cannot see.
+   *
+   * The narrowest coding under the pointer wins: overlapping codings share a span, so a
+   * click lands on all of them, and the tightest is the one being aimed at.
+   */
+  const selectCodingAtClick = (target: HTMLElement | null): boolean => {
+    const editor = editorAPI.getEditor();
+    const span = target?.closest?.("span[data-coding-id]");
+    const visible = new Set(
+      codingController.visibleCodings.map((coding) => coding.id),
+    );
+    const ids = parseCodingIds(span?.getAttribute("data-coding-id")).filter(
+      (id) => visible.has(id),
+    );
+    if (!editor || ids.length === 0) return false;
+
+    const ranges = getCodingRanges(editor).filter((r) =>
+      ids.includes(r.codingId),
+    );
+    if (ranges.length === 0) return false;
+    const innermost = ranges.reduce((a, b) =>
+      b.to - b.from < a.to - a.from ? b : a,
+    );
+    editor.commands.setTextSelection({
+      from: innermost.from,
+      to: innermost.to,
+    });
+    return true;
+  };
+
   // Focus a thread when its highlighted text is clicked in the editor.
   useEffect(() => {
     let bound: HTMLElement | null = null;
     const onClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
+      // In the coding phase a coded passage is the unit being worked on, so it wins
+      // over the comment underneath it — the thread stays one click away on its own
+      // underline where the two do not overlap.
+      if (coding && selectCodingAtClick(target)) return;
+
       const span = target?.closest?.("span[data-comment-id]");
       const ids = parseCommentIds(span?.getAttribute("data-comment-id"));
       if (ids.length === 0) return;
@@ -306,6 +411,18 @@ export function TranscriptEditor({
       const anchorId = editor ? sortByInnermost(editor, ids)[0] : ids[0];
       commentThreads.openThread(anchorId);
       focusThreadAnchor(anchorId);
+      // Coding reads a selection, so give it the commented passage whole too.
+      if (coding) {
+        const range = getCommentRanges(editor!).find(
+          (r) => r.anchorId === anchorId,
+        );
+        if (range) {
+          editor!.commands.setTextSelection({
+            from: range.from,
+            to: range.to,
+          });
+        }
+      }
     };
     const bind = () => {
       const el = editorAPI.getEditorElement();
@@ -321,7 +438,13 @@ export function TranscriptEditor({
       bound?.removeEventListener("click", onClick);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editorAPI, commentThreads.openThread, goToOffset]);
+  }, [
+    editorAPI,
+    commentThreads.openThread,
+    goToOffset,
+    coding,
+    codingController.visibleCodings,
+  ]);
 
   // Stable session AES key (E2E). The collab provider must not start until this is
   // resolved for an encrypted transcription, so content is never relayed in clear.
@@ -348,15 +471,49 @@ export function TranscriptEditor({
   });
 
   /**
-   * A note is stored the moment it is sent, but its anchor lives in the transcript,
-   * which only autosaves after a debounce — closing the tab in between would leave the
-   * note with nothing to attach to. So persist the transcript as soon as an anchor
-   * appears or disappears, after letting the (debounced) segment projection catch up
-   * with the mark that was just added or removed.
+   * A note or a coding is stored the moment it is made, but its anchor lives in the
+   * transcript, which only autosaves after a debounce — closing the tab in between
+   * would leave the row with nothing to attach to. So persist the transcript as soon
+   * as an anchor appears or disappears, after letting the (debounced) segment
+   * projection catch up with the mark.
+   *
+   * COALESCED, because coding is a burst: a code every second or two through a whole
+   * interview, and one save each meant a full transcript upload — and the refetches
+   * that follow it — per code. Repeated calls push the save back, up to a ceiling so a
+   * long uninterrupted run still gets written down along the way.
    */
+  const anchorFlushRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const anchorFlushDeadlineRef = useRef<number>(0);
   const flushAnchors = () => {
-    setTimeout(() => flushSave(), 500);
+    const now = Date.now();
+    if (!anchorFlushRef.current) {
+      anchorFlushDeadlineRef.current = now + ANCHOR_FLUSH_MAX_WAIT_MS;
+    } else if (now + ANCHOR_FLUSH_DELAY_MS > anchorFlushDeadlineRef.current) {
+      return; // already scheduled at the ceiling; pushing it back would starve it
+    } else {
+      clearTimeout(anchorFlushRef.current);
+    }
+    anchorFlushRef.current = setTimeout(() => {
+      anchorFlushRef.current = null;
+      flushSave();
+    }, ANCHOR_FLUSH_DELAY_MS);
   };
+  useEffect(() => {
+    return () => {
+      if (anchorFlushRef.current) clearTimeout(anchorFlushRef.current);
+    };
+  }, []);
+
+  // A coding row is stored the moment it is applied, but its anchor lives in the
+  // transcript — same race as a comment anchor, same answer.
+  useEffect(() => {
+    const onCodingsChange = () => flushAnchors();
+    editorAPI.addListener("codingsChange", onCodingsChange);
+    return () => {
+      editorAPI.removeListener("codingsChange", onCodingsChange);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editorAPI, flushSave]);
 
   // When this client becomes the save leader (authority handoff), persist the
   // current state immediately so no edits sit in an unsaved window.
@@ -417,6 +574,53 @@ export function TranscriptEditor({
     onSaveStatusChange?.(saveStatus);
   }, [saveStatus, onSaveStatusChange]);
 
+  // The document selection is the coding target, and it moves for reasons React cannot
+  // see (a keyboard range, a drag, a thread being opened). This ticks on every
+  // selection update so what the menus tick, and whether there is anything to code, are
+  // re-read from the editor rather than mirrored into a second source of truth.
+  const [selectionTick, setSelectionTick] = useState(0);
+  const documentSelection = (() => {
+    void selectionTick;
+    const sel = tiptapEditor?.state.selection;
+    return sel && sel.to > sel.from ? sel : null;
+  })();
+  const appliedCodeKeys = (() => {
+    void selectionTick;
+    return documentSelection
+      ? codingController.appliedAtSelection()
+      : new Set<string>();
+  })();
+
+  // Coding rounds every range out to whole words when it applies it; snapping the
+  // selection as it is made is what lets the researcher see that before committing.
+  useWordSnappedSelection({ editor: tiptapEditor, enabled: coding });
+
+  // A new passage starts from the themes again. Opening a group is about the passage
+  // in front of you — carrying it over to the next one leaves the researcher typing a
+  // letter against sub-codes they had forgotten they were inside.
+  useEffect(() => {
+    codingController.resetTrail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documentSelection?.from, documentSelection?.to]);
+
+  // Bound for the whole coding phase, not only when something is selected: the
+  // letters open groups as well as applying codes, so browsing the tree with the
+  // keyboard has to work before a passage is chosen. Applying to nothing is a no-op.
+  useCodingShortcuts({
+    enabled: coding && canWrite,
+    level: codingController.level,
+    onPick: codingController.pick,
+    onBack: codingController.back,
+    onUndo: codingController.undo,
+    canGoBack: codingController.trail.length > 0,
+  });
+
+  // Underlining doubtful words is a per-device view preference, on by default: the
+  // doubts themselves live in the document (the `lowConfidence` mark) and go away
+  // only when a word is corrected or validated.
+  const { prefs: viewPrefs, update: updateViewPrefs } = useDocumentViewPrefs();
+  const showConfidence = viewPrefs.showConfidence;
+
   return (
     <div
       ref={containerRef}
@@ -425,6 +629,8 @@ export function TranscriptEditor({
       className={cn(
         "h-full min-w-0 overflow-x-hidden",
         !commentThreads.railOpen && "comments-idle",
+        coding && "phase-coding",
+        !showConfidence && "hide-confidence",
       )}
     >
       {revertedBy && (
@@ -440,6 +646,18 @@ export function TranscriptEditor({
       )}
       <SpeakerRenameDialog />
 
+      {/* Coded passages are painted from a generated stylesheet — see the component
+          for why the colour cannot live on the mark itself. Only in the coding phase:
+          the transcript pass is about the words, and a page washed in code colours is
+          a page you read past. The marks stay in the document either way. */}
+      {coding && (
+        <CodingHighlightStyles
+          editorAPI={editorAPI}
+          options={codingController.options}
+          visibleCodings={codingController.visibleCodings}
+        />
+      )}
+
       {/* Emphasising the hovered/focused thread as a CSS rule rather than a class on the
           spans: those are ProseMirror-managed, so any class set imperatively is dropped
           the next time it redraws them. A rule keyed on the id always matches, however
@@ -447,10 +665,12 @@ export function TranscriptEditor({
       {emphasisedAnchorId && /^[\w-]+$/.test(emphasisedAnchorId) && (
         <style>{`
           .hl-comment[data-comment-id~="${emphasisedAnchorId}"] {
-            background-color: color-mix(in oklab, var(--color-yellow-400) 70%, transparent);
+            text-decoration-color: var(--color-yellow-600);
+            text-decoration-thickness: 3px;
           }
           .dark .hl-comment[data-comment-id~="${emphasisedAnchorId}"] {
-            background-color: color-mix(in oklab, var(--color-yellow-500) 50%, transparent);
+            text-decoration-color: var(--color-yellow-300);
+            text-decoration-thickness: 3px;
           }
         `}</style>
       )}
@@ -471,15 +691,37 @@ export function TranscriptEditor({
               <div className="pt-2"></div>
             )}
             <div className="px-4 pb-2">
-              <EditorToolbar
-                applyFormat={applyFormat}
-                activeFormats={activeFormats}
-                searchReplace={searchReplace}
-                audioControls={audioControls}
-                hasWriteAccess={canWrite}
-                hasListenAccess={hasListenAccess}
-                onComment={commentThreads.startNewComment}
-              />
+              {coding ? (
+                <CodingBar
+                  level={codingController.level}
+                  trail={codingController.trail}
+                  onBack={codingController.back}
+                  appliedKeys={appliedCodeKeys}
+                  onPick={codingController.pick}
+                  codebooks={codingController.availableCodebooks}
+                  codebookId={codingController.codebook?.id ?? null}
+                  onCodebookChange={codingController.selectCodebook}
+                  scope={codingController.scope}
+                  onScopeChange={codingController.setScope}
+                  disabled={!canWrite || !documentSelection}
+                  audioControls={audioControls}
+                  hasListenAccess={hasListenAccess}
+                />
+              ) : (
+                <EditorToolbar
+                  applyFormat={applyFormat}
+                  activeFormats={activeFormats}
+                  searchReplace={searchReplace}
+                  audioControls={audioControls}
+                  hasWriteAccess={canWrite}
+                  hasListenAccess={hasListenAccess}
+                  onComment={commentThreads.startNewComment}
+                  showConfidence={showConfidence}
+                  onToggleConfidence={() =>
+                    updateViewPrefs({ showConfidence: !showConfidence })
+                  }
+                />
+              )}
             </div>
           </div>,
           document.getElementById("header-sub-portal")!,
@@ -501,24 +743,64 @@ export function TranscriptEditor({
               <ActiveSegmentHighlight
                 editorAPI={editorAPI}
                 segmentIndex={currentIndex}
-                visible={state === "navigate" && currentIndex >= 0}
+                // While anything is selected the SELECTION is the highlight — the
+                // same one, grown. The active word stays in the model (it is the
+                // moving end) but drawing it too would put a second box inside the
+                // first, which in the coding phase is a third signal over the code
+                // colour with nothing to tell them apart.
+                visible={
+                  state === "navigate" &&
+                  currentIndex >= 0 &&
+                  !documentSelection
+                }
               />
-              {/* The floating selection toolbar is disabled for now: it lands on
-                  top of the transcript and hides the very text being edited,
-                  which is what users reported. Nothing is lost meanwhile — the
-                  header toolbar carries the same formats and the same comment
-                  action (with its shortcut), which is what the bubble mirrored.
-                  Flip SELECTION_TOOLBAR_ENABLED back on once it can be placed
-                  without covering the line. */}
-              {SELECTION_TOOLBAR_ENABLED && (
-                <SelectionToolbar
+              {/* In the coding phase the editor is never focused, so its selection
+                  is always ours to draw. In the transcript phase the browser draws
+                  it while typing, and only a keyboard selection (made blurred, in
+                  navigate mode) needs drawing. */}
+              <SelectionRangeHighlight
+                editor={tiptapEditor}
+                editorAPI={editorAPI}
+                visible={coding || (state === "navigate" && !!selection)}
+              />
+              {/* The transcription phase's floating toolbar is disabled for now:
+                  it lands on top of the transcript and hides the very text being
+                  edited, which is what users reported. Nothing is lost meanwhile
+                  — the header toolbar carries the same formats and the same
+                  comment action (with its shortcut), which is what the bubble
+                  mirrored. Flip SELECTION_TOOLBAR_ENABLED back on once it can be
+                  placed without covering the line.
+
+                  The CODING toolbar is not covered by that: it appears over a
+                  transcript that is read-only, where nothing is being typed
+                  underneath it, and it is the only way to apply a code with the
+                  mouse. */}
+              {!coding && showConfidence && canWrite && (
+                <ConfidenceBubble editor={tiptapEditor} editorAPI={editorAPI} />
+              )}
+              {coding ? (
+                <CodingSelectionToolbar
                   editor={tiptapEditor}
                   editorAPI={editorAPI}
-                  canWrite={canWrite}
-                  applyFormat={applyFormat}
-                  activeFormats={activeFormats}
+                  level={codingController.level}
+                  trail={codingController.trail}
+                  onBack={codingController.back}
+                  appliedKeys={appliedCodeKeys}
+                  onPick={codingController.pick}
                   onComment={commentThreads.startNewComment}
+                  canWrite={canWrite}
                 />
+              ) : (
+                SELECTION_TOOLBAR_ENABLED && (
+                  <SelectionToolbar
+                    editor={tiptapEditor}
+                    editorAPI={editorAPI}
+                    canWrite={canWrite}
+                    applyFormat={applyFormat}
+                    activeFormats={activeFormats}
+                    onComment={commentThreads.startNewComment}
+                  />
+                )
               )}
               <div className="w-full min-w-0 max-w-full overflow-hidden">
                 <TranscriptEditorContentTipTap
@@ -528,6 +810,7 @@ export function TranscriptEditor({
                   isEncrypted={isEncrypted}
                   aesKey={aesKey}
                   encryptionReady={encryptionReady}
+                  serverUpdatedAt={transcription.updatedAt}
                   editorAPI={editorAPI}
                   onChange={() => {
                     editorAPI.emit("change");
@@ -541,8 +824,13 @@ export function TranscriptEditor({
                     );
                     selectionUpdate();
                     formatSelectionUpdate(editor);
+                    excerpts.publishSelection();
+                    setSelectionTick((tick) => tick + 1);
                   }}
                   hasWriteAccess={canWrite}
+                  // Coding is a reading pass: the transcript is fixed, so the editor
+                  // is read-only even for someone who could write it.
+                  editable={canWrite && !coding}
                 />
               </div>
             </div>

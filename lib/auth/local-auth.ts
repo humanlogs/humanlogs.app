@@ -106,7 +106,7 @@ async function authenticateLDAP(
               scope: "sub",
               attributes: ["mail", "cn", "displayName"],
             },
-             
+
             (searchErr: Error | null, searchRes: any) => {
               if (searchErr) {
                 client.unbind();
@@ -118,7 +118,6 @@ async function authenticateLDAP(
               let userEmail: string | null = null;
               let userName: string | null = null;
 
-               
               searchRes.on("searchEntry", (entry: any) => {
                 userDN = entry.objectName || null;
                 userEmail =

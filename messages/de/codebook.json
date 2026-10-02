@@ -91,6 +91,83 @@
       "create": "Codebook erstellen",
       "untitled": "Unbenanntes Codebook",
       "failed": "Die Codes des Dokuments konnten nicht gespeichert werden"
+    },
+    "coding": {
+      "phase": {
+        "label": "Phase",
+        "transcription": "Bearbeitung",
+        "coding": "Codierung"
+      },
+      "apply": "Codieren",
+      "comment": "Kommentieren",
+      "noCodes": "Noch kein Verbatim-Codebook deckt diese Studie ab.",
+      "scope": {
+        "mine": "Meine Codes",
+        "everyone": "Codes aller"
+      },
+      "codebook": "Codebook",
+      "untitled": "Unbenanntes Codebook"
+    },
+    "excerpts": {
+      "title": "Auszüge",
+      "close": "Auszugsbereich schließen",
+      "empty": "Keine kodierte Passage entspricht diesem Filter.",
+      "groupEmpty": "Hier ist noch nichts kodiert",
+      "search": "Auszüge durchsuchen",
+      "reset": "Filter zurücksetzen",
+      "narrowed": "Dokumente in dieser Auswahl: {count}",
+      "scope": {
+        "document": "Dieses Dokument",
+        "study": "Ganze Studie"
+      },
+      "filter": {
+        "codes": "Codes",
+        "context": "Dokumente & Personen"
+      },
+      "authors": {
+        "everyone": "Alle",
+        "mine": "Meine"
+      },
+      "groupBy": {
+        "label": "Gruppieren nach",
+        "none": "Keine Gruppierung",
+        "code": "Nach Code",
+        "codebook": "Nach Codebuch",
+        "document": "Nach Dokument",
+        "speaker": "Nach Sprecher"
+      },
+      "unknownCode": "Gelöschter Code",
+      "unknownCodebook": "Gelöschtes Codebuch",
+      "untitledDocument": "Dokument ohne Titel",
+      "unknownSpeaker": "Unbekannter Sprecher",
+      "speakerFallback": "Sprecher {index}",
+      "syncing": "Studie wird indexiert… {done}/{total}",
+      "syncFailed": "Dokumente, die nicht indexiert werden konnten: {count}",
+      "more": "{count} weitere unten",
+      "indexingEmpty": "Studie wird indexiert… Auszüge erscheinen, sobald Dokumente gelesen sind.",
+      "export": {
+        "label": "Tabelle exportieren",
+        "matched": "{count} Passagen",
+        "hint": "Nach Code gruppiert, {count} Passagen.",
+        "capped": "Pro Thema maximal {count} Passagen.",
+        "running": "Wird vorbereitet… {done}/{total}",
+        "failed": "Der Export ist fehlgeschlagen.",
+        "theme": "Thema",
+        "passages": "Passagen",
+        "analysis": "Analyse",
+        "format": {
+          "pdf": "PDF (.pdf)",
+          "docx": "Word (.docx)",
+          "csv": "Tabelle (.csv)"
+        },
+        "hintShort": "Nach Code gruppiert, maximal 2000 Passagen pro Thema.",
+        "menuLabel": "Codierung"
+      },
+      "play": "Diese Passage anhören",
+      "recode": "Codes dieser Passage",
+      "recodeMine": "Sie können nur Ihre eigenen Lesarten zurücknehmen.",
+      "open": "Dieses Interview öffnen",
+      "pause": "Pause"
     }
   }
 }

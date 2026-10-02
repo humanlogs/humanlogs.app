@@ -24,7 +24,13 @@ const reference = ref(
 describe("docToSegments — structure projection", () => {
   it("splits a paragraph into word / spacing tokens", () => {
     const segs = docToSegments(doc("Bonjour le monde"), null);
-    expect(segs.map((s) => s.text)).toEqual(["Bonjour", " ", "le", " ", "monde"]);
+    expect(segs.map((s) => s.text)).toEqual([
+      "Bonjour",
+      " ",
+      "le",
+      " ",
+      "monde",
+    ]);
     expect(segs.map((s) => s.type)).toEqual([
       "word",
       "spacing",
@@ -47,7 +53,9 @@ describe("docToSegments — structure projection", () => {
       ]),
       null,
     );
-    const boundary = segs.find((s) => s.type === "spacing" && s.text === "\n\n");
+    const boundary = segs.find(
+      (s) => s.type === "spacing" && s.text === "\n\n",
+    );
     expect(boundary).toBeDefined();
     // Flat char offsets must stay in sync with PM positions (PMpos == offset + 1),
     // which is what the audio cursor and search rely on.
@@ -67,7 +75,9 @@ describe("docToSegments — structure projection", () => {
       ]),
       null,
     );
-    expect(words(segs).find((w) => w.text === "gras")?.modifiers).toEqual(["b"]);
+    expect(words(segs).find((w) => w.text === "gras")?.modifiers).toEqual([
+      "b",
+    ]);
     expect(words(segs).find((w) => w.text === "souligne")?.modifiers).toEqual([
       "i",
       "u",

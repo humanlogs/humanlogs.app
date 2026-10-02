@@ -1,6 +1,12 @@
 import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { normalizeEditorSegments } from "../hooks/use-normalize-editor-segments";
 import { formatCommentIds } from "../extensions/comment-mark";
+import { formatCodingIds } from "../extensions/coding-mark";
+import {
+  formatConfidence,
+  isLowConfidence,
+  readConfidence,
+} from "./confidence";
 
 export function escapeHtml(text: string): string {
   return text
@@ -20,26 +26,27 @@ function escapeAttr(value: string): string {
 }
 
 /**
- * Re-attach a thread to the whitespace sitting inside its range.
+ * Re-attach an anchored range (a comment thread, a coding) to the whitespace sitting
+ * inside it.
  *
- * The flat projection used to carry `comments` on word tokens only, so a range that had
+ * The flat projection used to carry these ids on word tokens only, so a range that had
  * been saved and reloaded came back as one highlight per word with a gap at every
- * space. A spacing segment flanked by two segments of the same thread is inside that
- * thread's range, so it inherits it. Whitespace at the edges of a range keeps no
- * thread, and a line/paragraph break is never bridged — two threads on consecutive
- * lines must not merge into one band.
+ * space. A spacing segment flanked by two segments sharing an id is inside that range,
+ * so it inherits it. Whitespace at the edges keeps nothing, and a line/paragraph break
+ * is never bridged — two ranges on consecutive lines must not merge into one band.
  */
-function bridgeCommentSpacing(
+function bridgeAnchorSpacing(
   segments: TranscriptionSegment[],
+  field: "comments" | "codings",
 ): TranscriptionSegment[] {
   return segments.map((seg, i) => {
-    if (seg.type !== "spacing" || seg.comments?.length) return seg;
+    if (seg.type !== "spacing" || seg[field]?.length) return seg;
     if (seg.text.includes("\n")) return seg;
-    const before = segments[i - 1]?.comments;
-    const after = segments[i + 1]?.comments;
+    const before = segments[i - 1]?.[field];
+    const after = segments[i + 1]?.[field];
     if (!before?.length || !after?.length) return seg;
     const shared = before.filter((id) => after.includes(id));
-    return shared.length ? { ...seg, comments: shared } : seg;
+    return shared.length ? { ...seg, [field]: shared } : seg;
   });
 }
 
@@ -62,17 +69,22 @@ export function segmentsToHtml(
   // key ("b"|"i"|"u"|"s") or a comment span encoded as `comment:<threadId>`.
   let currentTags: string[] = [];
 
-  segments = bridgeCommentSpacing(normalizeEditorSegments(segments, options));
+  segments = bridgeAnchorSpacing(
+    bridgeAnchorSpacing(normalizeEditorSegments(segments, options), "comments"),
+    "codings",
+  );
 
   // Define consistent order for modifiers to ensure proper nesting
   const modifierOrder = ["b", "i", "u", "s"];
 
-  // Comment spans nest INSIDE the format tags (innermost) so a comment can start /
-  // end independently of bold/italic without breaking tag nesting.
+  // Anchor spans nest INSIDE the format tags (innermost) so a comment or a coding can
+  // start / end independently of bold/italic without breaking tag nesting. Codings sit
+  // inside comments — an arbitrary but FIXED order, which is all that matters: the two
+  // stacks must never interleave, or the tags would not nest.
   //
   // All the threads covering a token go into ONE span, never nested spans: the parser
   // keeps a single `comment` mark per character, so a nested pair would come back as
-  // one thread and the other would be lost on reload.
+  // one thread and the other would be lost on reload. Same for codings.
   const tagsForSegment = (seg: TranscriptionSegment): string[] => {
     const mods = (seg.modifiers ?? [])
       .filter((m) => modifierOrder.includes(m))
@@ -80,7 +92,15 @@ export function segmentsToHtml(
     const comments = seg.comments?.length
       ? [`comment:${formatCommentIds(seg.comments)}`]
       : [];
-    return [...mods, ...comments];
+    const codings = seg.codings?.length
+      ? [`coding:${formatCodingIds(seg.codings)}`]
+      : [];
+    // Innermost of all, and on words only: a doubt is about one word, so the spaces
+    // between two doubtful words stay unmarked and each word reads on its own.
+    const confidence = isLowConfidence(seg)
+      ? [`confidence:${formatConfidence(readConfidence(seg)!)}`]
+      : [];
+    return [...mods, ...comments, ...codings, ...confidence];
   };
 
   const openTag = (tag: string): string => {
@@ -88,10 +108,22 @@ export function segmentsToHtml(
       const id = tag.slice("comment:".length);
       return `<span data-comment-id="${escapeAttr(id)}">`;
     }
+    if (tag.startsWith("coding:")) {
+      const id = tag.slice("coding:".length);
+      return `<span data-coding-id="${escapeAttr(id)}">`;
+    }
+    if (tag.startsWith("confidence:")) {
+      const value = tag.slice("confidence:".length);
+      return `<span data-confidence="${escapeAttr(value)}">`;
+    }
     return `<${tag}>`;
   };
   const closeTag = (tag: string): string =>
-    tag.startsWith("comment:") ? "</span>" : `</${tag}>`;
+    tag.startsWith("comment:") ||
+    tag.startsWith("coding:") ||
+    tag.startsWith("confidence:")
+      ? "</span>"
+      : `</${tag}>`;
 
   for (let j = 0; j < segments.length; j++) {
     const nextSegment = segments[j + 1];

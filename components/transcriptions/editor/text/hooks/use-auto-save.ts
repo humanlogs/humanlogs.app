@@ -1,7 +1,6 @@
 "use client";
 
 import { useSaveTranscription } from "@/hooks/use-transcriptions";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   MutableRefObject,
   useCallback,
@@ -46,8 +45,10 @@ export function useAutoSave({
   const performSaveRef = useRef<
     (isManual?: boolean, forceSave?: boolean) => Promise<void>
   >(async () => {});
-  const queryClient = useQueryClient();
-  const saveTranscription = useSaveTranscription(transcriptionId, sessionAesKey);
+  const saveTranscription = useSaveTranscription(
+    transcriptionId,
+    sessionAesKey,
+  );
 
   // Track if this is the first render
   // Initialize as mounted on first render
@@ -84,14 +85,9 @@ export function useAutoSave({
         speakers: editorAPI.getSpeakers(),
       });
 
-      // Keep cache warm and fresh for fast back navigation to this transcription.
-      await queryClient.invalidateQueries({
-        queryKey: ["transcriptions", transcriptionId],
-      });
-      await queryClient.refetchQueries({
-        queryKey: ["transcriptions", transcriptionId],
-        type: "all",
-      });
+      // What the save does to the cache lives with the mutation
+      // (`useSaveTranscription`), not here: a second invalidate at this level was
+      // silently undone by the one inside it, which matched by prefix.
 
       lastSavedRef.current = currentState;
       lastSaveTimestampRef.current = Date.now();

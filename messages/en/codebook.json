@@ -91,6 +91,83 @@
       "create": "Create a codebook",
       "untitled": "Untitled codebook",
       "failed": "Could not save the document's codes"
+    },
+    "coding": {
+      "phase": {
+        "label": "Phase",
+        "transcription": "Editing",
+        "coding": "Coding"
+      },
+      "apply": "Code",
+      "comment": "Comment",
+      "noCodes": "No verbatim codebook covers this study yet.",
+      "scope": {
+        "mine": "My codes",
+        "everyone": "Everyone's codes"
+      },
+      "codebook": "Codebook",
+      "untitled": "Untitled codebook"
+    },
+    "excerpts": {
+      "title": "Excerpts",
+      "close": "Close the excerpt panel",
+      "empty": "No coded passage matches this filter yet.",
+      "groupEmpty": "Nothing coded here yet",
+      "search": "Search the excerpts",
+      "reset": "Clear the filters",
+      "narrowed": "Documents in this selection: {count}",
+      "scope": {
+        "document": "This document",
+        "study": "Whole study"
+      },
+      "filter": {
+        "codes": "Codes",
+        "context": "Documents & people"
+      },
+      "authors": {
+        "everyone": "Everyone",
+        "mine": "Mine"
+      },
+      "groupBy": {
+        "label": "Group by",
+        "none": "No grouping",
+        "code": "By code",
+        "codebook": "By codebook",
+        "document": "By document",
+        "speaker": "By speaker"
+      },
+      "unknownCode": "Deleted code",
+      "unknownCodebook": "Deleted codebook",
+      "untitledDocument": "Untitled document",
+      "unknownSpeaker": "Unknown speaker",
+      "speakerFallback": "Speaker {index}",
+      "syncing": "Indexing this study… {done}/{total}",
+      "syncFailed": "Documents that could not be indexed: {count}",
+      "more": "{count} more below",
+      "indexingEmpty": "Indexing this study… excerpts appear as documents are read.",
+      "export": {
+        "label": "Export the table",
+        "matched": "{count} passages",
+        "hint": "Grouped by code, {count} passages.",
+        "capped": "Themes are capped at {count} passages each.",
+        "running": "Preparing… {done}/{total}",
+        "failed": "The export failed.",
+        "theme": "Theme",
+        "passages": "Passages",
+        "analysis": "Analysis",
+        "format": {
+          "pdf": "PDF (.pdf)",
+          "docx": "Word (.docx)",
+          "csv": "Spreadsheet (.csv)"
+        },
+        "hintShort": "Grouped by code, capped at 2000 passages per theme.",
+        "menuLabel": "Coding"
+      },
+      "play": "Play this passage",
+      "recode": "Codes on this passage",
+      "recodeMine": "You can only take back your own readings.",
+      "open": "Open this interview",
+      "pause": "Pause"
     }
   }
 }

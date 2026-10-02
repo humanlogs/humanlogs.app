@@ -3,8 +3,8 @@ title: Codebooks
 description: Define the codes you will apply to your material, and apply them to people and documents.
 order: 1
 status: beta
-updated: 2026-07-28
-related: organize/studies, analysis/learn-more
+updated: 2026-09-23
+related: coding/excerpts, organize/studies
 ---
 
 A codebook is a set of codes you apply to your material: themes, sentiment, roles, whatever your analysis tracks.
@@ -15,7 +15,7 @@ The kind is chosen when you create the codebook and decides what its codes can b
 
 **Speaker codebooks** code *who is in the corpus*: a person, or a whole document. A role, a profile, a status. These work today.
 
-**Verbatim codebooks** code *what is said*: a passage of the transcript. You can define them now, but applying them is not shipped yet, so they sit unused until passage coding lands. See [What is coming](/docs/analysis/learn-more).
+**Verbatim codebooks** code *what is said*: a passage of the transcript. Select a passage in the coding phase of a document and apply a code to it. Everything coded that way is read back through [the excerpt table](/docs/coding/excerpts).
 
 ## Create one
 
@@ -42,7 +42,9 @@ Deleting a codebook deletes its sub-codebooks; documents keep the codes they got
 
 ## Applying codes
 
-Three places, all for speaker codebooks:
+For **verbatim codebooks**, in the coding phase of a document: select a passage and pick a code. The selection snaps to whole words, and a passage can carry several codes at once, from you and from your co-coders. You can also add or remove a code from a row of the excerpt table, without going back to find the passage.
+
+For **speaker codebooks**, three places:
 
 - **A person, from the transcript.** The speaker badge in the editor opens their codes.
 - **A document, from its menu.** The document actions carry the same gesture, one level up.

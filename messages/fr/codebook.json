@@ -91,6 +91,83 @@
       "create": "Créer un codebook",
       "untitled": "Codebook sans nom",
       "failed": "Impossible d'enregistrer les codes du document"
+    },
+    "coding": {
+      "phase": {
+        "label": "Phase",
+        "transcription": "Édition",
+        "coding": "Codage"
+      },
+      "apply": "Coder",
+      "comment": "Commenter",
+      "noCodes": "Aucun codebook de verbatim ne couvre encore cette étude.",
+      "scope": {
+        "mine": "Mes codes",
+        "everyone": "Les codes de tous"
+      },
+      "codebook": "Codebook",
+      "untitled": "Codebook sans nom"
+    },
+    "excerpts": {
+      "title": "Extraits",
+      "close": "Fermer le panneau des extraits",
+      "empty": "Aucun passage codé ne correspond à ce filtre.",
+      "groupEmpty": "Rien de codé ici pour l’instant",
+      "search": "Rechercher dans les extraits",
+      "reset": "Réinitialiser les filtres",
+      "narrowed": "Documents dans cette sélection : {count}",
+      "scope": {
+        "document": "Ce document",
+        "study": "Toute l’étude"
+      },
+      "filter": {
+        "codes": "Codes",
+        "context": "Documents et personnes"
+      },
+      "authors": {
+        "everyone": "Tout le monde",
+        "mine": "Moi"
+      },
+      "groupBy": {
+        "label": "Grouper par",
+        "none": "Sans groupe",
+        "code": "Par code",
+        "codebook": "Par grille",
+        "document": "Par document",
+        "speaker": "Par locuteur"
+      },
+      "unknownCode": "Code supprimé",
+      "unknownCodebook": "Grille supprimée",
+      "untitledDocument": "Document sans titre",
+      "unknownSpeaker": "Locuteur inconnu",
+      "speakerFallback": "Locuteur {index}",
+      "syncing": "Indexation de l’étude… {done}/{total}",
+      "syncFailed": "Documents qui n’ont pas pu être indexés : {count}",
+      "more": "{count} de plus en dessous",
+      "indexingEmpty": "Indexation de l’étude… les extraits apparaissent au fur et à mesure.",
+      "export": {
+        "label": "Exporter le tableau",
+        "matched": "{count} passages",
+        "hint": "Regroupé par code, {count} passages.",
+        "capped": "Chaque thème est limité à {count} passages.",
+        "running": "Préparation… {done}/{total}",
+        "failed": "L’export a échoué.",
+        "theme": "Thème",
+        "passages": "Phrases",
+        "analysis": "Analyse",
+        "format": {
+          "pdf": "PDF (.pdf)",
+          "docx": "Word (.docx)",
+          "csv": "Tableur (.csv)"
+        },
+        "hintShort": "Regroupé par code, limité à 2000 passages par thème.",
+        "menuLabel": "Codage"
+      },
+      "play": "Écouter ce passage",
+      "recode": "Codes de ce passage",
+      "recodeMine": "Vous ne pouvez retirer que vos propres lectures.",
+      "open": "Ouvrir cet entretien",
+      "pause": "Pause"
     }
   }
 }

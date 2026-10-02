@@ -38,7 +38,10 @@ export function primeRoomGrant(
   grant: { token?: unknown; expiresAt?: unknown } | null | undefined,
 ): void {
   if (!transcriptionId) return;
-  if (typeof grant?.token !== "string" || typeof grant?.expiresAt !== "number") {
+  if (
+    typeof grant?.token !== "string" ||
+    typeof grant?.expiresAt !== "number"
+  ) {
     return;
   }
   grants.set(transcriptionId, {

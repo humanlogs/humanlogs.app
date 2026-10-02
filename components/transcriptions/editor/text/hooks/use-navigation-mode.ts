@@ -1,8 +1,15 @@
 "use client";
 
 import { useCustomShortcuts } from "@/hooks/use-shortcuts";
-import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { CustomShortcut } from "@/components/transcriptions/editor/text/utils/shortcuts";
+import {
+  ensureWordIndex,
+  orderedRange,
+  stepSentence,
+  stepToPunctuation,
+  stepWord,
+  type SegmentRange,
+} from "@/components/transcriptions/editor/text/utils/segment-navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useAnyModalOpen } from "../../../../use-modal";
@@ -10,6 +17,19 @@ import { EditorAPI } from "../api";
 import { AudioControls } from "../../audio/helpers";
 
 export type NavigationState = "edit" | "navigate";
+
+/**
+ * `?keydebug` in the URL turns on a running log of what the keyboard is doing.
+ *
+ * Navigation is the part of this editor that cannot be inspected from the outside —
+ * a combination that "does nothing" may have been filtered here, may never have
+ * reached the page at all (window managers take Ctrl+arrow on macOS), or may have
+ * moved somewhere unexpected. The log says which.
+ */
+function keyDebugEnabled(): boolean {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).has("keydebug");
+}
 
 /**
  * Smart window scroll that automatically uses instant scroll if called
@@ -39,13 +59,41 @@ const createSmartScroll = () => {
 export function useNavigationMode(
   editorAPI: EditorAPI,
   audioControls: AudioControls | null,
+  options?: {
+    /**
+     * The document cannot be typed into (the coding phase). Editing shortcuts —
+     * Enter, Delete, "type a letter to start editing" — are then inert, so the
+     * letters stay free for the code shortcuts and no keystroke can slip an edit
+     * into a transcript the researcher is only reading.
+     */
+    readOnly?: boolean;
+  },
 ) {
+  const readOnly = options?.readOnly ?? false;
   const [state, setState] = useState<NavigationState>("navigate");
   const [currentIndex, setCurrentIndex] = useState<number>(-1);
+  /**
+   * Where a keyboard selection started, or null when nothing is selected. The moving
+   * end is `currentIndex`, so growing a selection and moving the active word are the
+   * same operation seen from two sides.
+   */
+  const [selectionAnchor, setSelectionAnchor] = useState<number | null>(null);
   const isModalOpen = useAnyModalOpen();
   const lastNavigationTime = useRef<number>(0);
   const smartScrollRef = useRef(createSmartScroll());
   const { data: customShortcuts = [] } = useCustomShortcuts();
+
+  // The document key handlers below are bound once, so the moving state they read
+  // goes through refs — re-binding a listener on every arrow press would be a lot of
+  // churn on the hottest path in the editor.
+  const stateRef = useRef(state);
+  const currentIndexRef = useRef(currentIndex);
+  const selectionAnchorRef = useRef(selectionAnchor);
+  useEffect(() => {
+    stateRef.current = state;
+    currentIndexRef.current = currentIndex;
+    selectionAnchorRef.current = selectionAnchor;
+  });
 
   useEffect(() => {
     if (isModalOpen) {
@@ -57,25 +105,25 @@ export function useNavigationMode(
   useEffect(() => {
     if (!audioControls) return;
     const unsubscribe = audioControls.onTimeUpdate((currentTime) => {
-        if (Date.now() - lastNavigationTime.current < 500) return;
-        // Update the current index based on the current time
-        const currentSegmentIndex = editorAPI
-          .getSegments()
-          .findIndex(
-            (segment) =>
-              segment.start !== undefined &&
-              segment.end !== undefined &&
-              currentTime >= segment.start &&
-              currentTime <= segment.end,
-          );
-        // Only update if a matching segment was found — avoids scrolling to
-        // position 0 when audio is past all timestamps or on words with no timing
-        if (currentSegmentIndex !== -1) {
-          setCurrentIndex(
-            ensureWord(currentSegmentIndex, editorAPI.getSegments(), "r"),
-          );
-        }
-      });
+      if (Date.now() - lastNavigationTime.current < 500) return;
+      // Update the current index based on the current time
+      const currentSegmentIndex = editorAPI
+        .getSegments()
+        .findIndex(
+          (segment) =>
+            segment.start !== undefined &&
+            segment.end !== undefined &&
+            currentTime >= segment.start &&
+            currentTime <= segment.end,
+        );
+      // Only update if a matching segment was found — avoids scrolling to
+      // position 0 when audio is past all timestamps or on words with no timing
+      if (currentSegmentIndex !== -1) {
+        setCurrentIndex(
+          ensureWordIndex(currentSegmentIndex, editorAPI.getSegments(), "r"),
+        );
+      }
+    });
     return unsubscribe;
   }, [audioControls, state]);
 
@@ -121,6 +169,12 @@ export function useNavigationMode(
       if (selection) {
         selection.removeAllRanges();
       }
+      // The DOM selection is not the whole story: ProseMirror keeps its own, and the
+      // active-word overlay stands down whenever anything is selected. Leaving the
+      // text with a range still on the document — pressing Tab to hear it again, say
+      // — left navigate mode with no visible position at all.
+      editorAPI.collapseSelection();
+      setSelectionAnchor(null);
       setState("navigate");
     };
     editorAPI.addListener("focus", handleFocus);
@@ -228,189 +282,246 @@ export function useNavigationMode(
     [state, audioControls],
   );
 
-  // Navigate in editorAPI.getSegments()
-  useHotkeys(
-    [
-      "ArrowRight",
-      "ArrowDown",
-      "ArrowLeft",
-      "ArrowUp",
-      "Shift+ArrowRight",
-      "Shift+ArrowDown",
-      "Shift+ArrowLeft",
-      "Shift+ArrowUp",
-    ],
-    (event) => {
-      if (state !== "navigate") return;
-      event.preventDefault();
+  // Moving through the transcript.
+  //
+  //  - arrows             → one word (and one line, up/down)
+  //  - Ctrl + arrows      → one sentence. This used to be Shift; Shift now grows a
+  //                         selection, which the coding phase needs and which reads
+  //                         the same way it does in every other text surface.
+  //  - Shift + ←/→        → one more / one less word in the selection
+  //  - Shift + ↑/↓        → out to the next / previous punctuation
+  //  - Ctrl + Shift + ←→↑↓ → the same, a whole sentence at a time
+  //
+  // Owned directly (a capture-phase document listener), like play/pause above and
+  // for the same reason: react-hotkeys-hook was not delivering the modifier
+  // combinations reliably, and these are the keys the whole coding pass is made of.
+  // Reading `event.ctrlKey`/`shiftKey` ourselves also means one handler covers every
+  // combination instead of twelve registered strings.
+  useEffect(() => {
+    const ARROWS = ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"];
+    const debug = keyDebugEnabled();
 
+    // With `?keydebug`, log EVERY keydown before any of our filtering. If a
+    // combination never shows up here, the browser never received it — on macOS
+    // Ctrl+arrow is taken by Mission Control before the page sees it, and no amount
+    // of JavaScript will get it back.
+    const onAnyKeyDown = (event: KeyboardEvent) => {
+      const el = (event.target as HTMLElement) ?? null;
+      console.log("[nav] keydown", {
+        key: event.key,
+        code: event.code,
+        ctrl: event.ctrlKey,
+        shift: event.shiftKey,
+        alt: event.altKey,
+        meta: event.metaKey,
+        target: el?.tagName,
+        contentEditable: !!el?.isContentEditable,
+        state: stateRef.current,
+        currentIndex: currentIndexRef.current,
+        selectionAnchor: selectionAnchorRef.current,
+        isModalOpen,
+      });
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!ARROWS.includes(event.key)) return;
+
+      const el = (event.target as HTMLElement) ?? null;
+      const tag = el?.tagName;
+      const skip =
+        (isModalOpen && "modal open") ||
+        (event.altKey && "alt is the playback-speed modifier") ||
+        ((tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") &&
+          "typing in a form field") ||
+        (el?.isContentEditable && "typing in the editor") ||
+        (stateRef.current !== "navigate" && "not in navigate mode") ||
+        (editorAPI.getSegments().length === 0 && "no segments");
+      if (skip) {
+        if (debug) console.log("[nav] arrow ignored:", skip, event.key);
+        return;
+      }
+
+      const segments = editorAPI.getSegments();
+
+      event.preventDefault();
       lastNavigationTime.current = Date.now();
 
-      // Back arrows stop the playback
+      // Back arrows stop the playback.
       if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
         audioControls?.pause();
       }
 
-      let selection = 0;
+      const forward = event.key === "ArrowRight" || event.key === "ArrowDown";
+      const direction: "r" | "l" = forward ? "r" : "l";
+      const vertical = event.key === "ArrowUp" || event.key === "ArrowDown";
+      const bySentence = event.ctrlKey || event.metaKey;
+      const current = currentIndexRef.current;
+      const anchor = selectionAnchorRef.current;
 
-      if (currentIndex !== -1) {
-        selection = currentIndex;
+      // A plain arrow on a selection CANCELS it rather than moving on from it: the
+      // way out of a selection you no longer want is the same key that would have
+      // grown it, without Shift. It collapses onto the edge you are heading for, so
+      // the next press carries on from where you were looking.
+      if (!event.shiftKey && anchor !== null && current !== -1) {
+        const range = orderedRange(anchor, current);
+        const edge = forward ? range.to : range.from;
+        if (debug) console.log("[nav] collapse selection to", edge);
+        setSelectionAnchor(null);
+        setCurrentIndex(edge);
+        audioControls?.seekTo(segments[edge]?.start || 0);
+        return;
+      }
 
-        // Find the next / previous segment or top / bottom segment in DOM and seek to it
-        if (event.shiftKey) {
-          // First first segment in the sentence starting by previous word
-          // Or first word of next sentence
-          // Basically start from previous / next word, then move up to one of this cases:
-          // - Word or spacing contains a dot, exclamation mark or question mark (end of sentence) -> go to next word segment
-          if (event.key === "ArrowRight") {
-            let found = false;
-            for (
-              let i = currentIndex + 1;
-              i < editorAPI.getSegments().length;
-              i++
-            ) {
-              if (
-                /.*[.!?].*/.test(editorAPI.getSegments()[i].text) ||
-                (editorAPI.getSegments()[i].type === "spacing" &&
-                  duration(editorAPI.getSegments()[i]) > 1)
-              ) {
-                selection = i;
-                found = true;
-                break;
-              }
-            }
-            if (!found) selection = editorAPI.getSegments().length - 1;
-          } else if (event.key === "ArrowLeft") {
-            let found = false;
-            for (let i = currentIndex - 3; i >= 0; i--) {
-              console.log(editorAPI.getSegments()[i]);
-              if (
-                /.*[.!?].*/.test(editorAPI.getSegments()[i].text) ||
-                (editorAPI.getSegments()[i].type === "spacing" &&
-                  duration(editorAPI.getSegments()[i]) > 1)
-              ) {
-                selection = i;
-                found = true;
-                break;
-              }
-            }
-            if (!found) selection = 0;
-          }
-          for (
-            let i = selection + (selection > 0 ? 1 : 0);
-            i < editorAPI.getSegments().length;
-            i++
-          ) {
-            if (editorAPI.getSegments()[i].type === "word") {
-              selection = i;
-              break;
-            }
-          }
+      let next = 0;
+
+      if (current !== -1) {
+        if (bySentence) {
+          next = stepSentence(segments, current, direction);
+        } else if (event.shiftKey) {
+          // Growing a selection: one word sideways, a whole clause vertically.
+          next = vertical
+            ? stepToPunctuation(segments, current, direction)
+            : stepWord(segments, current, direction);
+        } else if (vertical) {
+          // Line movement: the closest segment on the next line in the DOM.
+          next = ensureWordIndex(
+            closestSegmentOnNextLine(editorAPI, current, forward ? 1 : -1),
+            segments,
+            direction,
+          );
         } else {
-          if (event.key === "ArrowRight") {
-            selection = currentIndex + 1;
-          } else if (event.key === "ArrowLeft") {
-            selection = currentIndex - 1;
-          }
+          next = stepWord(segments, current, direction);
         }
+      }
 
-        // For up and down, find the segment that is the closest in the DOM
-        // TODO: In plain text mode, this needs to be reimplemented using getSegmentBounds()
-        // to find editorAPI.getSegments() on different lines
-        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-          const currentRect = editorAPI.getSegmentBounds(currentIndex);
-          if (!currentRect) {
-            // Fallback to simple left/right navigation
-            selection =
-              event.key === "ArrowDown" ? currentIndex + 1 : currentIndex - 1;
-          } else {
-            // Find the segment on the next/previous line that's closest horizontally
-            const direction = event.key === "ArrowDown" ? 1 : -1;
-            let candidateIndex = currentIndex + direction;
-            let foundLineChange = false;
-            let closest = { index: currentIndex, distance: Infinity };
-
-            // Scan editorAPI.getSegments() to find one on a different line
-            while (
-              candidateIndex >= 0 &&
-              candidateIndex < editorAPI.getSegments().length
-            ) {
-              const candidateRect = editorAPI.getSegmentBounds(candidateIndex);
-              if (!candidateRect) {
-                candidateIndex += direction;
-                continue;
-              }
-
-              const isDifferentLine = differentVerticalLine(
-                currentRect,
-                candidateRect,
-              );
-
-              if (isDifferentLine) {
-                foundLineChange = true;
-                const horizontalDistance = Math.abs(
-                  candidateRect.left - currentRect.left,
-                );
-
-                if (horizontalDistance < closest.distance) {
-                  closest = {
-                    index: candidateIndex,
-                    distance: horizontalDistance,
-                  };
-                }
-
-                // If we're moving away horizontally, we've found the best match on this line
-                if (
-                  closest.distance < Infinity &&
-                  horizontalDistance > closest.distance
-                ) {
-                  break;
-                }
-              }
-
-              candidateIndex += direction;
-            }
-
-            if (foundLineChange) {
-              selection = closest.index;
-            } else {
-              // No line change found, stay on current segment
-              selection = currentIndex;
-            }
-          }
-        }
-
-        // Ensure the selection is a word
-        selection = ensureWord(
-          selection,
-          editorAPI.getSegments(),
-          event.key === "ArrowRight" || event.key === "ArrowDown" ? "r" : "l",
+      // Shift keeps (or opens) the selection — with Ctrl too, which is what makes
+      // Ctrl+Shift+arrow "select the next sentence". Anything else collapses it,
+      // which is the way out of a selection you no longer want.
+      if (event.shiftKey) {
+        setSelectionAnchor((anchor) =>
+          anchor === null ? (current === -1 ? next : current) : anchor,
         );
+      } else {
+        setSelectionAnchor(null);
+      }
+
+      if (debug) {
+        console.log("[nav] arrow", event.key, {
+          mode: bySentence
+            ? "sentence"
+            : event.shiftKey
+              ? vertical
+                ? "extend-to-punctuation"
+                : "extend-word"
+              : vertical
+                ? "line"
+                : "word",
+          from: current,
+          to: next,
+          text: segments[next]?.text,
+        });
       }
 
       audioControls?.seekTo(
-        editorAPI.getSegments()[
-          Math.max(0, Math.min(editorAPI.getSegments().length, selection))
-        ].start || 0,
+        segments[Math.max(0, Math.min(segments.length - 1, next))].start || 0,
       );
-      setCurrentIndex(selection);
-    },
-    {},
-    [state, audioControls, currentIndex],
-  );
+      setCurrentIndex(next);
+    };
+
+    document.addEventListener("keydown", onKeyDown, { capture: true });
+    if (debug)
+      document.addEventListener("keydown", onAnyKeyDown, { capture: true });
+    return () => {
+      document.removeEventListener("keydown", onKeyDown, { capture: true });
+      if (debug)
+        document.removeEventListener("keydown", onAnyKeyDown, {
+          capture: true,
+        });
+    };
+  }, [audioControls, editorAPI, isModalOpen]);
+
+  /**
+   * Undo / redo while NOT typing.
+   *
+   * TipTap registers Mod-z as a ProseMirror keymap, which only fires when the editor
+   * has focus — and navigate mode is precisely the state where it does not. So the
+   * shortcut did nothing for anyone driving the transcript from the keyboard, which
+   * is most of the time. Read-only phases have nothing to undo.
+   */
+  useEffect(() => {
+    if (readOnly) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (isModalOpen) return;
+      if (!(event.metaKey || event.ctrlKey) || event.altKey) return;
+      const key = event.key.toLowerCase();
+      if (key !== "z" && key !== "y") return;
+
+      const el = (event.target as HTMLElement) ?? null;
+      const tag = el?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      // Focused editor: ProseMirror's own keymap has it, and handling it here too
+      // would undo twice.
+      if (el?.isContentEditable) return;
+
+      const editor = editorAPI.getEditor();
+      if (!editor) return;
+
+      event.preventDefault();
+      if (key === "y" || event.shiftKey) editor.commands.redo();
+      else editor.commands.undo();
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [editorAPI, isModalOpen, readOnly]);
+
+  /**
+   * The current keyboard selection, or null when the active word is just a caret.
+   * Mirrored into the ProseMirror selection below so the rest of the editor — coding,
+   * comments, the floating bar — reads one notion of "what is selected".
+   */
+  const selection: SegmentRange | null =
+    selectionAnchor === null || currentIndex === -1
+      ? null
+      : orderedRange(selectionAnchor, currentIndex);
+
+  // Mirror it into the document. Only on a transition: pushing a collapsed selection
+  // on every arrow press would fight the click-to-select the mouse still does, so the
+  // editor is left alone until a keyboard selection appears — and cleared once, when
+  // it goes away, because the overlay that draws it reads the document selection.
+  const hadSelectionRef = useRef(false);
+  useEffect(() => {
+    if (state !== "navigate") return;
+    if (selection) {
+      hadSelectionRef.current = true;
+      editorAPI.selectSegmentRange(selection.from, selection.to);
+    } else if (hadSelectionRef.current) {
+      hadSelectionRef.current = false;
+      editorAPI.collapseSelection();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selection?.from, selection?.to, state]);
 
   useHotkeys(
     ["Delete", "Backspace"],
 
     (event) => {
       if (isModalOpen) return;
+      if (readOnly) return;
       if (state !== "navigate") return;
       event.preventDefault();
 
-      // Select the current segment and focus the editor
-      editorAPI.focus(currentIndex, true); // true = select the segment content
+      // Select what is to be deleted — the keyboard selection when there is one,
+      // the active word otherwise — and focus the editor on it.
+      if (selectionAnchor !== null && currentIndex !== -1) {
+        const range = orderedRange(selectionAnchor, currentIndex);
+        editorAPI.selectSegmentRange(range.from, range.to);
+        editorAPI.focus();
+      } else {
+        editorAPI.focus(currentIndex, true); // true = select the segment content
+      }
 
-      // If a letter was typed or there's a custom shortcut replacement, insert that text
       editorAPI.execCommand("delete");
 
       const nextDomElement =
@@ -429,7 +540,7 @@ export function useNavigationMode(
       }
     },
     {},
-    [isModalOpen, state, currentIndex],
+    [isModalOpen, readOnly, state, currentIndex, selectionAnchor],
   );
 
   // "Enter" key enters in focus mode and select the current word
@@ -451,6 +562,10 @@ export function useNavigationMode(
       ) {
         return;
       }
+
+      // The coding phase never types into the document: letters drive the code
+      // shortcuts there, and Enter/Escape belong to the coding bar.
+      if (readOnly) return;
 
       const replacement = handleCustomShortcut(event, customShortcuts);
 
@@ -477,7 +592,17 @@ export function useNavigationMode(
 
       // Set the selection range
       if (state === "navigate") {
-        editorAPI.focus(currentIndex, true); // true = select the segment content
+        // A keyboard selection carries into edit mode WHOLE: Shift+arrows is how you
+        // pick the passage you are about to retype, so entering the text with only
+        // its last word selected would throw that away. Without one, it is the
+        // active word, as it has always been.
+        if (selectionAnchor !== null && currentIndex !== -1) {
+          const range = orderedRange(selectionAnchor, currentIndex);
+          editorAPI.selectSegmentRange(range.from, range.to);
+          editorAPI.focus(); // no argument: keeps the selection we just set
+        } else {
+          editorAPI.focus(currentIndex, true); // true = select the segment content
+        }
       } else {
         // In edit mode, just focus to maintain existing selection
         editorAPI.focus();
@@ -494,7 +619,14 @@ export function useNavigationMode(
       enableOnContentEditable: true,
       enableOnFormTags: true,
     },
-    [isModalOpen, state, currentIndex, customShortcuts],
+    [
+      isModalOpen,
+      readOnly,
+      state,
+      currentIndex,
+      selectionAnchor,
+      customShortcuts,
+    ],
   );
 
   /**
@@ -521,7 +653,7 @@ export function useNavigationMode(
         }
         charCount = segmentEnd;
       }
-      index = ensureWord(index, segments, "r");
+      index = ensureWordIndex(index, segments, "r");
 
       // Keep the audio-time watcher from overwriting us before the seek lands.
       lastNavigationTime.current = Date.now();
@@ -536,28 +668,32 @@ export function useNavigationMode(
     ["Escape"],
     (event) => {
       if (isModalOpen) return;
-      if (state !== "edit") return;
-      event.preventDefault();
-      editorAPI.blur();
+      // Escape means "get me out of what I am in": out of the text while editing,
+      // out of a selection while navigating.
+      if (state === "edit") {
+        event.preventDefault();
+        editorAPI.blur();
+        return;
+      }
+      if (selectionAnchor !== null) {
+        event.preventDefault();
+        setSelectionAnchor(null);
+      }
     },
     {
       enableOnContentEditable: true,
       enableOnFormTags: true,
     },
-    [isModalOpen, state],
+    [isModalOpen, state, selectionAnchor],
   );
 
   return {
     state,
     currentIndex,
+    selection,
     goToOffset,
   };
 }
-
-const duration = (segment: TranscriptionSegment) => {
-  if (!segment.start || !segment.end) return 0;
-  return segment.end - segment.start;
-};
 
 const differentVerticalLine = (rect: DOMRect, rectCandidate: DOMRect) => {
   return (
@@ -566,22 +702,56 @@ const differentVerticalLine = (rect: DOMRect, rectCandidate: DOMRect) => {
   );
 };
 
-const ensureWord = (
-  selection: number,
-  segments: TranscriptionSegment[],
-  direction: "r" | "l",
-) => {
-  while (
-    segments[selection] &&
-    !(segments[selection].type === "word" || duration(segments[selection]) > 1)
-  ) {
-    if (direction === "r") {
-      selection++;
-    } else if (direction === "l") {
-      selection--;
+/**
+ * The segment on the next (or previous) visual line closest to the current one
+ * horizontally — what a plain Up/Down arrow lands on. Measured from the DOM because
+ * line breaks are a layout fact: the projection knows nothing about where the text
+ * wraps.
+ */
+const closestSegmentOnNextLine = (
+  editorAPI: EditorAPI,
+  currentIndex: number,
+  direction: 1 | -1,
+): number => {
+  const segments = editorAPI.getSegments();
+  const currentRect = editorAPI.getSegmentBounds(currentIndex);
+  if (!currentRect) return currentIndex + direction;
+
+  let candidateIndex = currentIndex + direction;
+  let foundLineChange = false;
+  let closest = { index: currentIndex, distance: Infinity };
+
+  while (candidateIndex >= 0 && candidateIndex < segments.length) {
+    const candidateRect = editorAPI.getSegmentBounds(candidateIndex);
+    if (!candidateRect) {
+      candidateIndex += direction;
+      continue;
     }
+
+    if (differentVerticalLine(currentRect, candidateRect)) {
+      foundLineChange = true;
+      const horizontalDistance = Math.abs(
+        candidateRect.left - currentRect.left,
+      );
+
+      if (horizontalDistance < closest.distance) {
+        closest = { index: candidateIndex, distance: horizontalDistance };
+      }
+
+      // Moving away horizontally: the best match on this line is behind us.
+      if (
+        closest.distance < Infinity &&
+        horizontalDistance > closest.distance
+      ) {
+        break;
+      }
+    }
+
+    candidateIndex += direction;
   }
-  return Math.max(0, Math.min(segments.length - 1, selection));
+
+  // No line change found: stay where we are rather than drift a word sideways.
+  return foundLineChange ? closest.index : currentIndex;
 };
 
 // Check for custom shortcuts first

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "@/components/locale-provider";
 import { ProjectBadge } from "@/components/projects/project-badge";
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import {
@@ -9,6 +10,8 @@ import {
   LoaderIcon,
 } from "lucide-react";
 import { useNotificationCounts } from "@/hooks/use-notifications";
+import type { DocumentPhase } from "@/components/transcriptions/editor/phase";
+import { cn } from "@/lib/utils/utils";
 import Link from "next/link";
 
 type TranscriptionState = "PENDING" | "COMPLETED" | "ERROR";
@@ -37,16 +40,30 @@ type TranscriptionMenuItemProps = {
     hasImage?: boolean;
     updatedAt?: string;
   } | null;
+  /**
+   * Which pass over the document the row opens. The sidebar lists every document
+   * under both phases, so the row carries the one it belongs to — that is the
+   * whole difference between the two lists.
+   */
+  phase?: DocumentPhase;
+  /** Sits under a group header, so it takes the same indent as the header. */
+  indented?: boolean;
+  /** Received from someone else — shown, since the study alone no longer says so. */
+  shared?: boolean;
 };
 
 export function TranscriptionMenuItem({
   transcription,
   isActive,
   study,
+  phase = "transcription",
+  indented = false,
+  shared = false,
 }: TranscriptionMenuItemProps) {
   // Unread notifications about this document (a mention, or a reply in a thread the
   // user follows). Opening the document clears them.
   const { data: counts } = useNotificationCounts();
+  const sharedLabel = useTranslations("sidebar")("sharedShort");
   const unread = counts?.byEntity[`transcription:${transcription.id}`] ?? 0;
 
   const getStatusIcon = () => {
@@ -80,10 +97,18 @@ export function TranscriptionMenuItem({
     }
   };
 
+  const href =
+    phase === "coding"
+      ? `/app/transcription/${transcription.id}?phase=coding`
+      : `/app/transcription/${transcription.id}`;
+
   return (
     <SidebarMenuItem>
-      <Link href={`/app/transcription/${transcription.id}`}>
-        <SidebarMenuButton isActive={isActive}>
+      <Link href={href}>
+        <SidebarMenuButton
+          isActive={isActive}
+          className={cn(indented && "pl-3.5")}
+        >
           {getStatusIcon()}
           <span className="flex min-w-0 flex-1 items-center gap-1">
             {study && (
@@ -98,6 +123,11 @@ export function TranscriptionMenuItem({
             )}
             <span className="truncate">{transcription.title}</span>
           </span>
+          {shared && (
+            <span className="shrink-0 rounded-full border px-1.5 text-[10px] leading-4 font-medium text-sidebar-foreground/60">
+              {sharedLabel}
+            </span>
+          )}
           {unread > 0 && (
             <span className="bg-primary text-primary-foreground flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full px-1 text-[10px] font-medium tabular-nums">
               {unread > 9 ? "9+" : unread}

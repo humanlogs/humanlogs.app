@@ -320,13 +320,25 @@ export const PATCH = withAuthRateLimit(
       });
 
       // Notify the owner AND every collaborator so their sidebar/header/detail
-      // queries refetch (the acting user is always one of them). This does NOT
-      // clobber a live collaborative editor: the editor seeds once and ignores
-      // later `segments` prop changes.
+      // queries refetch. This does NOT clobber a live collaborative editor: the
+      // editor seeds once and ignores later `segments` prop changes.
+      //
+      // The acting user is skipped when all they did was save the text. They are the
+      // ones who wrote it, their editor IS the current state, and their client has
+      // already marked its cached copy stale — so the refetch would return exactly
+      // what they sent. It costs nothing to skip once and everything to keep: the
+      // transcript is saved after every code applied, which is once or twice a
+      // second through a coding pass. Anything else on this route (a rename, a move,
+      // a code on the document) does change what their own lists show, so they are
+      // notified as before.
+      const contentOnly = Object.keys(updateData).every((field) =>
+        ["transcription", "speakers", "updatedBy"].includes(field),
+      );
       const recipients = new Set<string>([updated.userId]);
       const sharedUsers =
         (updated.shared as { userId?: string }[] | null) ?? [];
       for (const s of sharedUsers) if (s?.userId) recipients.add(s.userId);
+      if (contentOnly) recipients.delete(user.id);
       for (const uid of recipients) {
         notifyDatabaseChange(uid, "transcription", "update", {
           id: updated.id,

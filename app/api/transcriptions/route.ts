@@ -6,6 +6,7 @@ import { EncryptedDataEntity } from "../../../lib/encryption/encryption-entities
 import { pollPendingTranscriptions } from "./[id]/route";
 import { withAuthRateLimit } from "@/lib/router/rate-limit-middleware";
 import { findTranscriptionsSharedWith } from "@/lib/transcriptions/access";
+import { formatProject, type ProjectDTO } from "@/lib/projects/format";
 import { parseCodeRefs, parseSpeakerCodeRefs } from "@/lib/codebooks/codebook";
 import {
   parseSpeakers,
@@ -80,8 +81,9 @@ export const GET = withAuthRateLimit(async (request, user) => {
         );
 
         // Transform to match the frontend format
+        const updatedStudies = await studiesOf(updatedTranscriptions);
         const formattedTranscriptions = updatedTranscriptions.map((t) =>
-          formatTranscriptionList(t, user.id),
+          formatTranscriptionList(t, user.id, updatedStudies),
         );
 
         return NextResponse.json(formattedTranscriptions);
@@ -89,8 +91,9 @@ export const GET = withAuthRateLimit(async (request, user) => {
     }
 
     // Transform to match the frontend format
+    const studies = await studiesOf(transcriptions);
     const formattedTranscriptions = transcriptions.map((t) =>
-      formatTranscriptionList(t, user.id),
+      formatTranscriptionList(t, user.id, studies),
     );
 
     return NextResponse.json(formattedTranscriptions);
@@ -103,7 +106,35 @@ export const GET = withAuthRateLimit(async (request, user) => {
   }
 });
 
-const formatTranscriptionList = (t: Transcription, userId: string) => {
+/**
+ * The studies of a set of documents, by id.
+ *
+ * Looked up from the DOCUMENTS rather than from the caller's own studies: a
+ * document received through a share belongs to somebody else's study, and the
+ * sidebar has to name it — a shared interview with no study reads as loose
+ * material, which is precisely what it is not. Only studies reachable from a
+ * document the caller can already open are ever returned.
+ */
+async function studiesOf(
+  transcriptions: Transcription[],
+): Promise<Map<string, ProjectDTO>> {
+  const ids = Array.from(
+    new Set(
+      transcriptions
+        .map((t) => t.projectId)
+        .filter((id): id is string => typeof id === "string"),
+    ),
+  );
+  if (ids.length === 0) return new Map();
+  const projects = await prisma.project.findMany({ where: { id: { in: ids } } });
+  return new Map(projects.map((p) => [p.id, formatProject(p)]));
+}
+
+const formatTranscriptionList = (
+  t: Transcription,
+  userId: string,
+  studies: Map<string, ProjectDTO>,
+) => {
   type SharedUser = { userId: string; role: string };
   const shared = (t.shared as SharedUser[]) || [];
   const isOwner = t.userId === userId;
@@ -127,6 +158,9 @@ const formatTranscriptionList = (t: Transcription, userId: string) => {
     updatedAt: t.updatedAt.toISOString(),
     isTutorial: t.isTutorial,
     projectId: t.projectId,
+    // The study itself, not just its id: the sidebar groups and labels by it, and
+    // for a shared document the client has no other way to resolve it.
+    study: t.projectId ? (studies.get(t.projectId) ?? null) : null,
     speakerCount: t.speakerCount,
     speakerNames,
     speakers,

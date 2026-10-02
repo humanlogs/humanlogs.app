@@ -2,59 +2,79 @@
 
 import { useLocale, useTranslations } from "@/components/locale-provider";
 import { DocumentViewSettings } from "@/components/sidebar/document-view-settings";
+import {
+  PhaseGroupLabel,
+  PhaseSection,
+} from "@/components/sidebar/phase-section";
 import { SidebarUserMenu } from "@/components/sidebar/sidebar-user-menu";
+import { StudyPicker } from "@/components/sidebar/study-picker";
 import { TranscriptionMenuItem } from "@/components/sidebar/transcription-menu-item";
-import { buttonVariants } from "@/components/ui/button";
+import {
+  DOCUMENT_PHASES,
+  type DocumentPhase,
+} from "@/components/transcriptions/editor/phase";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarInput,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useProjects, useUpdateUser, useUserProfile } from "@/hooks/use-api";
+import {
+  useBetaFeatures,
+  useProjects,
+  useUpdateUser,
+  useUserProfile,
+  type Project,
+} from "@/hooks/use-api";
 import { useCodebooks } from "@/hooks/use-codebooks";
 import { useDocumentViewPrefs } from "@/hooks/use-document-view-prefs";
 import { groupableCodebooks } from "@/lib/codebooks/codebook";
-import { cn } from "@/lib/utils/utils";
 import {
   codebookIdFromGroupBy,
   DEFAULT_GROUP_BY,
+  filterByStudy,
+  groupByForScope,
   groupDocuments,
-  sortDocuments,
+  STUDY_SCOPE_ALL,
+  STUDY_SCOPE_NONE,
   type GroupLabel,
+  type StudyScope,
 } from "@/lib/documents/grouping";
 import {
   FilePlusCornerIcon,
   HomeIcon,
+  LayoutGridIcon,
   PlusIcon,
   SearchIcon,
   ShieldIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 import { useTranscriptions } from "../hooks/use-transcriptions";
 import { useWelcomeRedirect } from "../hooks/use-welcome-redirect";
 import { Locale, locales } from "../lib/utils/i18n";
 
 /**
- * Headers for the groups that aren't a study — studies render their own link
- * and add-document button.
+ * The text of a group header. `studyName` resolves a study group — grouping by
+ * study only happens while looking at every study, where the header is the only
+ * thing naming it; a group with no study is the documents never filed.
  */
 function groupLabelText(
   label: GroupLabel,
   t: (key: string) => string,
+  studyName: (projectId: string) => string | undefined,
 ): string {
   switch (label.type) {
     case "study":
-      return t("unassigned");
+      return (
+        (label.projectId ? studyName(label.projectId) : null) ?? t("unassigned")
+      );
     case "bucket":
       return t(`view.buckets.${label.bucket}`);
     case "code":
@@ -73,7 +93,9 @@ type AppSidebarProps = {
 
 export function AppSidebar({ user, children }: AppSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const t = useTranslations("sidebar");
+  const tCoding = useTranslations("codebook.coding.phase");
   const { setLocale } = useLocale();
   const [searchQuery, setSearchQuery] = React.useState("");
   useWelcomeRedirect();
@@ -93,17 +115,6 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
     [codebooks],
   );
 
-  // A stored `codebook:<id>` grouping outlives the codebook it points at —
-  // leaving the beta, or losing access to it, must fall back to the default
-  // axis rather than lumping every document under "uncoded".
-  const groupBy = React.useMemo(() => {
-    const codebookId = codebookIdFromGroupBy(prefs.groupBy);
-    if (!codebookId) return prefs.groupBy;
-    return groupingCodebooks.some((codebook) => codebook.id === codebookId)
-      ? prefs.groupBy
-      : DEFAULT_GROUP_BY;
-  }, [prefs.groupBy, groupingCodebooks]);
-
   // Sync language with locale provider when user profile loads
   React.useEffect(() => {
     if (userProfile?.language && locales.includes(userProfile.language)) {
@@ -111,18 +122,54 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
     }
   }, [userProfile, setLocale]);
 
-  // Separate owned and shared transcriptions
-  const ownedTranscriptions = React.useMemo(() => {
-    return transcriptions.filter((t) => t.isOwner !== false);
-  }, [transcriptions]);
+  /**
+   * Every study reachable from the document list, own or received.
+   *
+   * Not `useProjects()` alone: that is scoped to the studies you own, and a
+   * document shared with you belongs to somebody else's — which the list now
+   * carries, precisely so the scope can name it.
+   */
+  const studies: Project[] = React.useMemo(() => {
+    const byId = new Map<string, Project>(projects.map((p) => [p.id, p]));
+    for (const doc of transcriptions) {
+      if (doc.study && !byId.has(doc.study.id))
+        byId.set(doc.study.id, doc.study);
+    }
+    return Array.from(byId.values()).sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, {
+        numeric: true,
+        sensitivity: "base",
+      }),
+    );
+  }, [projects, transcriptions]);
 
-  const sharedTranscriptions = React.useMemo(() => {
-    return transcriptions.filter((t) => t.isOwner === false);
-  }, [transcriptions]);
+  // A stored scope outlives the study it points at — a study deleted, or a share
+  // withdrawn, must fall back to the whole corpus rather than to an empty list
+  // with no way of telling why.
+  const scope: StudyScope =
+    prefs.studyScope === STUDY_SCOPE_ALL ||
+    prefs.studyScope === "none" ||
+    studies.some((study) => study.id === prefs.studyScope)
+      ? prefs.studyScope
+      : STUDY_SCOPE_ALL;
+
+  // A stored `codebook:<id>` grouping outlives the codebook it points at —
+  // leaving the beta, or losing access to it, must fall back to the default
+  // axis rather than lumping every document under "uncoded". And grouping by
+  // study says nothing once the list is scoped to one.
+  const groupBy = React.useMemo(() => {
+    const codebookId = codebookIdFromGroupBy(prefs.groupBy);
+    const resolved =
+      !codebookId ||
+      groupingCodebooks.some((codebook) => codebook.id === codebookId)
+        ? prefs.groupBy
+        : DEFAULT_GROUP_BY;
+    return groupByForScope(resolved, scope);
+  }, [prefs.groupBy, groupingCodebooks, scope]);
 
   const projectsById = React.useMemo(
-    () => new Map(projects.map((p) => [p.id, p])),
-    [projects],
+    () => new Map(studies.map((p) => [p.id, p])),
+    [studies],
   );
 
   const handleLocaleChange = async (newLocale: "en" | "fr" | "es" | "de") => {
@@ -134,69 +181,191 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
     }
   };
 
-  // Searching matches a document's title or its study's name — typing a study
-  // name keeps all of its documents, whatever the current grouping is.
-  const filteredOwned = React.useMemo(() => {
+  /**
+   * The documents both phases list: the chosen study, matching the search.
+   *
+   * Owned and received are no longer split. A shared interview belongs to a
+   * study like any other, and filing it under "Shared" said who gave it to you
+   * instead of what it is about — the row carries that as a marker.
+   */
+  const documents = React.useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return ownedTranscriptions;
-    return ownedTranscriptions.filter(
+    const inScope = filterByStudy(transcriptions, scope);
+    if (!query) return inScope;
+    // Typing a study name keeps all of its documents, whatever the grouping is.
+    return inScope.filter(
       (t) =>
         t.title.toLowerCase().includes(query) ||
         (t.projectId
           ? projectsById.get(t.projectId)?.name.toLowerCase().includes(query)
           : false),
     );
-  }, [ownedTranscriptions, searchQuery, projectsById]);
+  }, [transcriptions, scope, searchQuery, projectsById]);
 
   const groups = React.useMemo(
     () =>
       groupDocuments({
-        documents: filteredOwned,
-        projects,
+        documents,
+        projects: studies,
         codebooks: groupingCodebooks,
         groupBy,
         sortBy: prefs.sortBy,
       }),
-    [filteredOwned, projects, groupingCodebooks, groupBy, prefs.sortBy],
+    [documents, studies, groupingCodebooks, groupBy, prefs.sortBy],
   );
 
-  const filteredShared = React.useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    const matching = query
-      ? sharedTranscriptions.filter((t) =>
-          t.title.toLowerCase().includes(query),
-        )
-      : sharedTranscriptions;
-    return sortDocuments(matching, prefs.sortBy);
-  }, [searchQuery, sharedTranscriptions, prefs.sortBy]);
-
-  // The display-options button lives on the first header only — one control for
-  // the whole list. It falls through to the shared section so an account with
-  // only shared documents still has it.
-  const settingsGroupKey = groups[0]?.key ?? "shared";
+  // Coding is part of the codebooks beta, like the phase switch in the header:
+  // without the opt-in there is only one pass over a document, so there is only
+  // one section and it needs no header at all.
+  const betaFeatures = useBetaFeatures();
+  const phase: DocumentPhase = betaFeatures ? prefs.phase : "transcription";
 
   // Outside of the "by study" grouping the study is no longer implied by the
   // header, so each row carries it as a prefix.
-  const studyFor = (projectId?: string | null) =>
-    groupBy === "study" || !projectId
+  const studyFor = (doc: { projectId?: string; study?: Project | null }) =>
+    groupBy === "study" || scope !== STUDY_SCOPE_ALL
       ? null
-      : (projectsById.get(projectId) ?? null);
+      : (doc.study ??
+        (doc.projectId ? projectsById.get(doc.projectId) : null) ??
+        null);
 
   const viewSettings = (
     <DocumentViewSettings
       groupBy={groupBy}
       sortBy={prefs.sortBy}
       codebooks={groupingCodebooks}
+      allowGroupByStudy={scope === STUDY_SCOPE_ALL}
       onChange={update}
     />
   );
+
+  /**
+   * Opening a phase section.
+   *
+   * It sets which list is shown — and, when a document is actually open, moves
+   * that document into the phase too. The phase lives in the URL, and the page
+   * pushes it back onto these preferences, so a header that only changed the
+   * preference was immediately overruled by the document still being in the other
+   * one: the section snapped shut and coding could not be left. Changing the URL
+   * is what makes the header a switch rather than a suggestion.
+   */
+  const openPhase = (value: DocumentPhase) => {
+    update({ phase: value });
+    const open = /^\/app\/transcription\/([^/]+)/.exec(pathname);
+    if (!open) return;
+    // Read from the URL itself rather than through `useSearchParams`: this lives
+    // in the layout, which wraps every route, and that hook would demand a
+    // Suspense boundary around all of them. Inside a click handler there is
+    // always a window.
+    const query = new URLSearchParams(window.location.search);
+    if (value === "transcription") query.delete("phase");
+    else query.set("phase", value);
+    const suffix = query.toString();
+    router.replace(
+      `/app/transcription/${open[1]}${suffix ? `?${suffix}` : ""}`,
+      { scroll: false },
+    );
+  };
+
+  /** The list of one phase: its groups, its rows, and where each row opens. */
+  const phaseList = (of: DocumentPhase) => {
+    if (documents.length === 0) {
+      return (
+        <p className="px-3.5 py-1.5 text-xs text-sidebar-foreground/60">
+          {searchQuery.trim() ? t("noResults") : t("study.empty")}
+        </p>
+      );
+    }
+    return groups.map((group) => (
+      <React.Fragment key={group.key}>
+        {/* One group is the whole list: a header over all of it says nothing the
+            phase header above has not already said. */}
+        {groups.length > 1 && (
+          <PhaseGroupLabel>
+            {groupLabelText(group.label, t, (id) => projectsById.get(id)?.name)}
+          </PhaseGroupLabel>
+        )}
+        <SidebarMenu>
+          {group.documents.map((transcription) => (
+            <TranscriptionMenuItem
+              key={transcription.id}
+              transcription={transcription}
+              study={studyFor(transcription)}
+              phase={of}
+              indented
+              shared={transcription.isOwner === false}
+              isActive={
+                pathname === `/app/transcription/${transcription.id}` &&
+                phase === of
+              }
+            />
+          ))}
+        </SidebarMenu>
+      </React.Fragment>
+    ));
+  };
+
+  const codedCount = documents.filter(
+    (doc) => (doc.codes ?? []).length > 0,
+  ).length;
+
+  /**
+   * The one action that belongs INSIDE a phase rather than beside it.
+   *
+   * Each pass has a thing you do before working through the list: add material to
+   * transcribe, or step back and look at the whole study's coding. They used to be
+   * an icon on the study band, which put them at the same level as choosing a study
+   * and made them hard to find; as the first row of the phase they read as what
+   * they are, the start of that pass.
+   *
+   * The coding board needs a real study to be about, so it is absent on "all
+   * studies" and on the loose documents.
+   */
+  const phaseLead = (of: DocumentPhase) => {
+    const study =
+      scope !== STUDY_SCOPE_ALL && scope !== STUDY_SCOPE_NONE ? scope : null;
+
+    if (of === "transcription") {
+      return (
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <Link href={study ? `/app/new?projectId=${study}` : "/app/new"}>
+              <SidebarMenuButton className="pl-3.5 text-sidebar-foreground/80">
+                <PlusIcon className="h-4 w-4" />
+                {t("addDocument")}
+              </SidebarMenuButton>
+            </Link>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      );
+    }
+
+    if (!study) return null;
+    const href = `/app/project/${study}/coding`;
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <Link href={href}>
+            <SidebarMenuButton
+              isActive={pathname === href}
+              className="pl-3.5 text-sidebar-foreground/80"
+            >
+              <LayoutGridIcon className="h-4 w-4" />
+              {t("codingOverview")}
+            </SidebarMenuButton>
+          </Link>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
+  };
 
   return (
     <>
       <Sidebar>
         <SidebarHeader>
-          {/* Logo Section */}
-          <div className="flex items-center gap-2 px-2 py-2">
+          {/* Logo Section. The header already pads; only the horizontal inset is
+              ours, so the mark lines up with the menu icons below it. */}
+          <div className="flex h-8 items-center gap-2 px-2">
             <img
               src="/logo.svg"
               alt="Logo"
@@ -206,8 +375,8 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
           </div>
         </SidebarHeader>
 
-        <SidebarContent>
-          <SidebarMenu className="px-2">
+        <SidebarContent className="gap-1">
+          <SidebarMenu className="gap-0.5 px-2">
             <SidebarMenuItem>
               <Link href="/app">
                 <SidebarMenuButton isActive={pathname === "/app"}>
@@ -238,9 +407,11 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
               </SidebarMenuItem>
             )}
 
-            <SidebarMenuItem>
+            {/* Separated from the two links above: this filters the documents in
+                the block below, it is not a third place to go. */}
+            <SidebarMenuItem className="mt-1 mb-3">
               <div className="relative">
-                <SearchIcon className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 pointer-events-none" />
+                <SearchIcon className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 pointer-events-none text-muted-foreground" />
                 <SidebarInput
                   type="search"
                   placeholder={t("search")}
@@ -252,87 +423,47 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
             </SidebarMenuItem>
           </SidebarMenu>
 
-          {/* Documents, grouped and sorted per the display options */}
+          {/* The study says what the list is about; the phases are the list. The
+              scope used to be a tab on a bordered card, which framed the corpus as
+              one object among several in the column — but it is not an object in
+              the column, it is the column. Full-bleed, with a tinted rule under the
+              scope, it reads as the heading of everything below rather than as a
+              box beside the navigation. The phases' filled headers and the group
+              rules inside them are still three distinct devices, which is what
+              keeps three levels of heading legible in 256px. */}
+          <SidebarGroup className="p-0">
+            <div className="flex flex-col">
+              <StudyPicker
+                scope={scope}
+                studies={studies}
+                documentCount={documents.length}
+                onChange={(studyScope) => update({ studyScope })}
+              />
 
-          {groups.map((group) => {
-            const project =
-              group.label.type === "study" && group.label.projectId
-                ? projectsById.get(group.label.projectId)
-                : undefined;
-
-            return (
-              <SidebarGroup key={group.key}>
-                <SidebarGroupLabel className="group/label">
-                  {project ? (
-                    <>
-                      <Link
-                        href={`/app/project/${project.id}`}
-                        className="flex-1 truncate hover:underline"
-                      >
-                        {project.name}
-                      </Link>
-                      <Link
-                        href={`/app/new?projectId=${project.id}`}
-                        className={cn(
-                          buttonVariants({
-                            variant: "ghost",
-                            size: "icon-xs",
-                          }),
-                          "opacity-0 group-hover/label:opacity-100 transition-opacity",
-                        )}
-                        aria-label={t("addDocument")}
-                        title={t("addDocument")}
-                      >
-                        <PlusIcon className="h-3 w-3" />
-                      </Link>
-                    </>
-                  ) : (
-                    <span className="flex-1 truncate">
-                      {groupLabelText(group.label, t)}
-                    </span>
-                  )}
-                  {group.key === settingsGroupKey && viewSettings}
-                </SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {group.documents.map((transcription) => (
-                      <TranscriptionMenuItem
-                        key={transcription.id}
-                        transcription={transcription}
-                        study={studyFor(transcription.projectId)}
-                        isActive={
-                          pathname === `/app/transcription/${transcription.id}`
-                        }
-                      />
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            );
-          })}
-
-          {/* Shared section */}
-          {filteredShared.length > 0 && (
-            <SidebarGroup>
-              <SidebarGroupLabel className="group/label">
-                <span className="flex-1 truncate">{t("shared")}</span>
-                {settingsGroupKey === "shared" && viewSettings}
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {filteredShared.map((transcription) => (
-                    <TranscriptionMenuItem
-                      key={transcription.id}
-                      transcription={transcription}
-                      isActive={
-                        pathname === `/app/transcription/${transcription.id}`
-                      }
-                    />
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )}
+              <div className="flex flex-col gap-0.5 px-2 py-1.5">
+                {DOCUMENT_PHASES.filter(
+                  (value) => betaFeatures || value === "transcription",
+                ).map((value) => (
+                  <PhaseSection
+                    key={value}
+                    label={tCoding(value)}
+                    count={
+                      value === "coding"
+                        ? `${codedCount}/${documents.length}`
+                        : String(documents.length)
+                    }
+                    accent={value === "coding"}
+                    open={phase === value}
+                    onOpen={() => openPhase(value)}
+                    action={viewSettings}
+                  >
+                    {phaseLead(value)}
+                    {phaseList(value)}
+                  </PhaseSection>
+                ))}
+              </div>
+            </div>
+          </SidebarGroup>
         </SidebarContent>
 
         <SidebarFooter>

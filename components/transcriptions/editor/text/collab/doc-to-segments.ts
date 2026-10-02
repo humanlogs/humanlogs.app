@@ -2,6 +2,8 @@ import type { Node as PMNode } from "@tiptap/pm/model";
 import type { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { normalizeEditorSegments } from "../hooks/use-normalize-editor-segments";
 import { parseCommentIds } from "../extensions/comment-mark";
+import { parseCodingIds } from "../extensions/coding-mark";
+import { LOW_CONFIDENCE_MARK, parseConfidence } from "../utils/confidence";
 
 /**
  * Deterministic, idempotent, order-independent repair of a token sequence's
@@ -51,7 +53,8 @@ function enforceTimestampInvariant(
   let lastEnd: number | null = null;
   for (let i = 0; i < n; i++) {
     const t = tokens[i];
-    if (t.start != null && lastEnd != null && t.start < lastEnd) t.start = lastEnd;
+    if (t.start != null && lastEnd != null && t.start < lastEnd)
+      t.start = lastEnd;
     if (t.start != null && t.end != null && t.end < t.start) t.end = t.start;
     if (t.end != null) lastEnd = t.end;
     else if (t.start != null) lastEnd = t.start;
@@ -102,6 +105,28 @@ function marksToComments(node: PMNode): string[] | undefined {
   return ids.length ? ids : undefined;
 }
 
+/**
+ * Collect coding ids from a node's `coding` mark. As with comments there is at most one
+ * such mark, listing every coding covering the run — so a passage carrying three codes
+ * (possibly from three researchers) lands whole in the projection.
+ */
+function marksToCodings(node: PMNode): string[] | undefined {
+  const ids: string[] = [];
+  for (const m of node.marks) {
+    if (m.type.name !== "coding") continue;
+    for (const id of parseCodingIds(m.attrs?.codingIds)) {
+      if (!ids.includes(id)) ids.push(id);
+    }
+  }
+  return ids.length ? ids : undefined;
+}
+
+/** The confidence carried by a node's `lowConfidence` mark, if it has one. */
+function markToConfidence(node: PMNode): number | undefined {
+  const mark = node.marks.find((m) => m.type.name === LOW_CONFIDENCE_MARK);
+  return mark ? parseConfidence(mark.attrs?.confidence) : undefined;
+}
+
 /** Split a text run into word / spacing tokens, inheriting speaker + modifiers. */
 function pushTextRun(
   out: TranscriptionSegment[],
@@ -109,6 +134,8 @@ function pushTextRun(
   speakerId: string,
   modifiers: ("b" | "i" | "u" | "s")[] | undefined,
   comments: string[] | undefined,
+  codings: string[] | undefined,
+  confidence?: number,
 ) {
   if (!text) return;
   for (const part of text.split(/(\s+)/)) {
@@ -121,6 +148,7 @@ function pushTextRun(
         text: part,
         speakerId,
         ...(comments ? { comments } : {}),
+        ...(codings ? { codings } : {}),
       });
     } else {
       out.push({
@@ -129,6 +157,8 @@ function pushTextRun(
         speakerId,
         ...(modifiers ? { modifiers } : {}),
         ...(comments ? { comments } : {}),
+        ...(codings ? { codings } : {}),
+        ...(confidence !== undefined ? { confidence } : {}),
       });
     }
   }
@@ -158,6 +188,8 @@ function docToStructureSegments(doc: PMNode): TranscriptionSegment[] {
           speakerId,
           marksToMods(inline),
           marksToComments(inline),
+          marksToCodings(inline),
+          markToConfidence(inline),
         );
       } else if (inline.type.name === "hardBreak") {
         out.push({ type: "spacing", text: "\n", speakerId });

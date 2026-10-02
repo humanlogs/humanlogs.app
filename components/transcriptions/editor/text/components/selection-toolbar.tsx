@@ -27,23 +27,27 @@ interface SelectionToolbarProps {
   onComment: () => void;
 }
 
-const FORMATS: { key: Format; icon: typeof Bold; label: string; className: string }[] =
-  [
-    { key: "b", icon: Bold, label: "toolbar.bold", className: "font-bold" },
-    { key: "i", icon: Italic, label: "toolbar.italic", className: "italic" },
-    {
-      key: "u",
-      icon: Underline,
-      label: "toolbar.underline",
-      className: "underline",
-    },
-    {
-      key: "s",
-      icon: Strikethrough,
-      label: "toolbar.strikethrough",
-      className: "",
-    },
-  ];
+const FORMATS: {
+  key: Format;
+  icon: typeof Bold;
+  label: string;
+  className: string;
+}[] = [
+  { key: "b", icon: Bold, label: "toolbar.bold", className: "font-bold" },
+  { key: "i", icon: Italic, label: "toolbar.italic", className: "italic" },
+  {
+    key: "u",
+    icon: Underline,
+    label: "toolbar.underline",
+    className: "underline",
+  },
+  {
+    key: "s",
+    icon: Strikethrough,
+    label: "toolbar.strikethrough",
+    className: "",
+  },
+];
 
 /** Smallest rectangle containing all of `rects`. */
 function unionRect(rects: DOMRect[]): DOMRect {

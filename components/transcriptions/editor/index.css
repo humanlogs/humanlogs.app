@@ -1,149 +1,265 @@
 /* Audio waveform styles (if using audio player) */
 ::part(canvases) {
-    clip-path: none !important;
+  clip-path: none !important;
 }
 
 ::part(cursor) {
-    border-radius: 0 !important;
-    transition: all 0.1s;
+  border-radius: 0 !important;
+  transition: all 0.1s;
 }
 
 /* Editor paragraph styles */
 [contenteditable] {
-    white-space: pre-wrap;
-    word-wrap: break-word;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 [contenteditable]:empty:before {
-    content: attr(data-placeholder);
-    color: hsl(var(--muted-foreground));
-    opacity: 0.5;
+  content: attr(data-placeholder);
+  color: hsl(var(--muted-foreground));
+  opacity: 0.5;
 }
 
 /* Prevent blue outline on focus in some browsers */
 [contenteditable]:focus {
-    outline: none;
+  outline: none;
 }
 
 /* Format text modifiers */
 [contenteditable] b,
 [contenteditable] strong {
-    font-weight: 600;
+  font-weight: 600;
 }
 
 [contenteditable] i,
 [contenteditable] em {
-    font-style: italic;
+  font-style: italic;
 }
 
 [contenteditable] u {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
-/* Comment anchors: a soft yellow highlight behind the commented text — the same
-   treatment as search hits and the collaboration highlights, with the rounded padding
-   used by .word-span so every highlight sits on the text identically. The thread whose
-   panel is open is emphasised via .hl-comment-active. */
+/* Comment anchors: a yellow underline rather than a highlight.
+   Coding paints the BACKGROUND of a passage (see .hl-coding below), and a document is
+   read with both at once — two backgrounds fighting over the same words made neither
+   legible. An underline sits under the codes' colours instead of competing with them,
+   and still reads as "there is a note here". The thread whose panel is open is
+   emphasised by a rule generated in editor.tsx. */
 .hl-comment {
-    background-color: color-mix(in oklab, var(--color-yellow-300) 45%, transparent);
-    border-radius: 5px;
-    padding: 0 1px;
-    margin: 0 -1px;
-    cursor: pointer;
-    transition: background-color 0.15s ease-out;
+  text-decoration: underline;
+  text-decoration-color: color-mix(
+    in oklab,
+    var(--color-yellow-500) 85%,
+    transparent
+  );
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  text-decoration-skip-ink: none;
+  cursor: pointer;
+  transition: text-decoration-color 0.15s ease-out;
 }
 
 .hl-comment:hover {
-    background-color: color-mix(in oklab, var(--color-yellow-400) 70%, transparent);
+  text-decoration-color: var(--color-yellow-600);
 }
 
 .dark .hl-comment {
-    background-color: color-mix(in oklab, var(--color-yellow-500) 30%, transparent);
+  text-decoration-color: color-mix(
+    in oklab,
+    var(--color-yellow-400) 75%,
+    transparent
+  );
 }
 
 .dark .hl-comment:hover {
-    background-color: color-mix(in oklab, var(--color-yellow-500) 50%, transparent);
+  text-decoration-color: var(--color-yellow-300);
 }
 
 /* Overlapping threads share a single span (one mark per character), so they cannot be
-   drawn nested — a deeper tint is what signals "several comments here". */
+   drawn nested — a double underline is what signals "several comments here". */
 .hl-comment[data-comment-id*=" "] {
-    background-color: color-mix(in oklab, var(--color-yellow-400) 60%, transparent);
-}
-
-.dark .hl-comment[data-comment-id*=" "] {
-    background-color: color-mix(in oklab, var(--color-yellow-500) 42%, transparent);
+  text-decoration-style: double;
+  text-decoration-thickness: 1px;
 }
 
 /* Rail closed: the reader is on the transcript, not on the notes. The anchors stay
    visible enough to be found and clicked, but faint enough to read through — hover
    brings them back to full strength. */
 .comments-idle .hl-comment {
-    background-color: color-mix(in oklab, var(--color-yellow-300) 18%, transparent);
-}
-
-.comments-idle .hl-comment[data-comment-id*=" "] {
-    background-color: color-mix(in oklab, var(--color-yellow-400) 26%, transparent);
+  text-decoration-color: color-mix(
+    in oklab,
+    var(--color-yellow-500) 40%,
+    transparent
+  );
 }
 
 .comments-idle .hl-comment:hover {
-    background-color: color-mix(in oklab, var(--color-yellow-400) 55%, transparent);
+  text-decoration-color: var(--color-yellow-600);
 }
 
 .dark .comments-idle .hl-comment {
-    background-color: color-mix(in oklab, var(--color-yellow-500) 14%, transparent);
+  text-decoration-color: color-mix(
+    in oklab,
+    var(--color-yellow-400) 35%,
+    transparent
+  );
 }
 
-.dark .comments-idle .hl-comment:hover {
-    background-color: color-mix(in oklab, var(--color-yellow-500) 40%, transparent);
+/* Words the speech-to-text engine was unsure of: a red squiggle, like a spell
+   checker's. Drawn as a background image rather than a text-decoration because the
+   comment anchor and the user's own "u" format already own the underline, and nested
+   spans' decorations would stack at the same offset into an unreadable smear. Removed
+   per word by editing or validating it (the mark goes); hidden as a whole by the
+   toolbar toggle (.hide-confidence) and in the coding phase, which reads the words as
+   settled. */
+.hl-confidence {
+  /* Gradients, not an SVG data URI: the CSP (proxy.ts) has no img-src, so `data:`
+     images are blocked and the squiggle would silently not render. The faint tint
+     behind the word is what makes the doubts findable while scanning a page; the
+     squiggle alone read as noise at reading distance. */
+  --confidence-squiggle: var(--color-red-600);
+  background-color: color-mix(in oklab, var(--color-red-500) 12%, transparent);
+  background-image:
+    linear-gradient(
+      45deg,
+      transparent 60%,
+      var(--confidence-squiggle) 72%,
+      var(--confidence-squiggle) 82%,
+      transparent 92%
+    ),
+    linear-gradient(
+      135deg,
+      transparent 8%,
+      var(--confidence-squiggle) 18%,
+      var(--confidence-squiggle) 28%,
+      transparent 40%
+    );
+  background-repeat: repeat-x;
+  background-position: left bottom;
+  background-size: 6px 5px;
+  border-radius: 3px;
+  padding-bottom: 3px;
+}
+
+.dark .hl-confidence {
+  --confidence-squiggle: var(--color-red-400);
+  background-color: color-mix(in oklab, var(--color-red-400) 18%, transparent);
+}
+
+.hide-confidence .hl-confidence,
+.phase-coding .hl-confidence {
+  background-color: transparent;
+  background-image: none;
+}
+
+/* Coded passages. The background itself is NOT set here: it depends on which codes
+   cover the run and on which of them the researcher is currently looking at, so it is
+   generated per attribute value by <CodingHighlightStyles>. This rule only carries what
+   every coded passage shares, plus the neutral fallback for a run whose codes are all
+   filtered out or no longer exist — which must look untouched, not grey. */
+.hl-coding {
+  border-radius: 5px;
+  padding: 0 1px;
+  margin: 0 -1px;
+  background-color: transparent;
+  transition: background-color 0.15s ease-out;
+}
+
+/* Landing on a passage clicked in the excerpt panel. A coded run is already painted
+   with its code's colour, so "this is the one" cannot be another tint: it is a brief
+   ring, drawn outside the text so it does not reflow a line while it plays. */
+.hl-coding-flash {
+  animation: hl-coding-flash 1.2s ease-out;
+}
+
+@keyframes hl-coding-flash {
+  0%,
+  60% {
+    box-shadow: 0 0 0 3px var(--color-primary);
+  }
+  100% {
+    box-shadow: 0 0 0 3px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hl-coding-flash {
+    animation: none;
+    box-shadow: 0 0 0 3px var(--color-primary);
+  }
+}
+
+/* Outside the coding phase a coded passage is not a thing you interact with, and no
+   stylesheet paints it — the transcript pass is about the words. The mark is still
+   there; it simply has nothing to say until you come back to code. */
+.phase-coding .hl-coding {
+  cursor: pointer;
+}
+
+/* The browser's own selection highlight is switched off while coding: the selection
+   is drawn by the overlay instead (see components/highlight-box.tsx), snapped to whole
+   words and outlined rather than filled. Two selections over the same text — one blue
+   block ending mid-word, one outline ending at the word — read as a bug, and the block
+   buries the code colours underneath. Scoped to the transcript itself, so the comment
+   rail's own text stays selectable-looking. */
+.phase-coding .tiptap ::selection {
+  background-color: transparent;
+}
+
+.phase-coding .tiptap ::-moz-selection {
+  background-color: transparent;
 }
 
 /* Word span styles for audio sync */
-.word-span, .spacing-span {
-    display: inline;
-    border-radius: 5px;
-    padding: 0 1px;
-    margin: 0 -1px;
-    transition: background-color 0.2s ease-out;
+.word-span,
+.spacing-span {
+  display: inline;
+  border-radius: 5px;
+  padding: 0 1px;
+  margin: 0 -1px;
+  transition: background-color 0.2s ease-out;
 }
 
 /* Audio playback highlight */
-.word-span.active, .spacing-span.active {
-    min-width: 4px;
-    transition: none;
+.word-span.active,
+.spacing-span.active {
+  min-width: 4px;
+  transition: none;
 }
 
 /* Keyboard navigation mode highlight */
-.word-span.active-segment, .spacing-span.active-segment {
-    background-color: color-mix(in oklab, var(--color-blue-500) 25%, transparent);
-    outline: 1px solid color-mix(in oklab, var(--color-blue-500) 50%, transparent);
-    outline-offset: 1px;
+.word-span.active-segment,
+.spacing-span.active-segment {
+  background-color: color-mix(in oklab, var(--color-blue-500) 25%, transparent);
+  outline: 1px solid color-mix(in oklab, var(--color-blue-500) 50%, transparent);
+  outline-offset: 1px;
 }
 
 .tiptap p {
-    margin-bottom: 1.5em;
+  margin-bottom: 1.5em;
 }
 /* Remote collaboration carets (CollabCaret) */
 .collaboration-cursor__caret {
-    border-left: 1px solid currentColor;
-    border-right: 1px solid currentColor;
-    margin-left: -1px;
-    margin-right: -1px;
-    pointer-events: none;
-    position: relative;
-    word-break: normal;
+  border-left: 1px solid currentColor;
+  border-right: 1px solid currentColor;
+  margin-left: -1px;
+  margin-right: -1px;
+  pointer-events: none;
+  position: relative;
+  word-break: normal;
 }
 
 .collaboration-cursor__label {
-    border-radius: 3px 3px 3px 0;
-    color: #0d0d0d;
-    font-size: 12px;
-    font-weight: 600;
-    left: -1px;
-    line-height: normal;
-    padding: 0.1rem 0.3rem;
-    position: absolute;
-    top: -1.4em;
-    user-select: none;
-    white-space: nowrap;
+  border-radius: 3px 3px 3px 0;
+  color: #0d0d0d;
+  font-size: 12px;
+  font-weight: 600;
+  left: -1px;
+  line-height: normal;
+  padding: 0.1rem 0.3rem;
+  position: absolute;
+  top: -1.4em;
+  user-select: none;
+  white-space: nowrap;
 }

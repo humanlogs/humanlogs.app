@@ -3,9 +3,15 @@
 import {
   DEFAULT_GROUP_BY,
   DEFAULT_SORT_BY,
+  DEFAULT_STUDY_SCOPE,
   type GroupBy,
   type SortBy,
+  type StudyScope,
 } from "@/lib/documents/grouping";
+import {
+  DEFAULT_DOCUMENT_PHASE,
+  type DocumentPhase,
+} from "@/components/transcriptions/editor/phase";
 import * as React from "react";
 
 const STORAGE_KEY = "humanlogs.documentView";
@@ -13,11 +19,20 @@ const STORAGE_KEY = "humanlogs.documentView";
 export type DocumentViewPrefs = {
   groupBy: GroupBy;
   sortBy: SortBy;
+  /** The study the sidebar is scoped to — a project id, "all", or "none". */
+  studyScope: StudyScope;
+  /** Which phase section is open. The two are exclusive, so one name is enough. */
+  phase: DocumentPhase;
+  /** Underline the words the speech-to-text engine was unsure of. */
+  showConfidence: boolean;
 };
 
 const DEFAULTS: DocumentViewPrefs = {
   groupBy: DEFAULT_GROUP_BY,
   sortBy: DEFAULT_SORT_BY,
+  studyScope: DEFAULT_STUDY_SCOPE,
+  phase: DEFAULT_DOCUMENT_PHASE,
+  showConfidence: true,
 };
 
 // localStorage is an external store, so it is read through
@@ -36,6 +51,9 @@ function parse(raw: string | null): DocumentViewPrefs {
     return {
       groupBy: parsed.groupBy ?? DEFAULTS.groupBy,
       sortBy: parsed.sortBy ?? DEFAULTS.sortBy,
+      studyScope: parsed.studyScope ?? DEFAULTS.studyScope,
+      phase: parsed.phase ?? DEFAULTS.phase,
+      showConfidence: parsed.showConfidence ?? DEFAULTS.showConfidence,
     };
   } catch {
     return DEFAULTS;
@@ -71,8 +89,11 @@ function subscribe(onChange: () => void): () => void {
 }
 
 /**
- * How the document list is grouped and sorted. Kept in localStorage rather than
- * on the user: it is a per-device view preference, not account data.
+ * How the document list is scoped, grouped and sorted, which phase is open, and
+ * whether doubtful words are underlined.
+ * Kept in localStorage rather than on the user: these are per-device view
+ * preferences, not account data — two people sharing a study rarely want to be
+ * looking at the same thing at the same moment.
  */
 export function useDocumentViewPrefs() {
   const prefs = React.useSyncExternalStore(

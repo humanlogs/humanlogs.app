@@ -13,6 +13,12 @@ import {
   validateCodeRefs,
   validateSpeakerCodeRefs,
 } from "@/lib/codebooks/codebook";
+import {
+  CODEBOOK_PRESETS,
+  countPresetCodes,
+  getPreset,
+  type PresetCode,
+} from "@/lib/codebooks/presets";
 
 /**
  * Scoping and input validation for codebooks. `validateCodeRefs` is the guard
@@ -390,5 +396,57 @@ describe("parseCodebookInput", () => {
       { requireContent: false },
     );
     expect(result).toEqual({ data: { studyIds: ["p1", "p2"] } });
+  });
+});
+
+/**
+ * Presets are plain data, and the one thing data can get wrong is shape: a grid that
+ * has levels must arrive with levels. Flattened, the TAT's fifteen procedures become
+ * fifteen sibling rows — the series disappear, and the two-keystroke shortcut ("A"
+ * then "B") turns into a scan of the whole alphabet.
+ */
+describe("codebook presets", () => {
+  const walk = (codes: PresetCode[]): PresetCode[] =>
+    codes.flatMap((code) => [code, ...walk(code.children ?? [])]);
+
+  it("keeps the TAT grid organised by series", () => {
+    const tat = getPreset("tat-discursive");
+    expect(tat).toBeDefined();
+    expect(tat!.codes.map((code) => code.label[0])).toEqual([
+      "A",
+      "B",
+      "C",
+      "E",
+    ]);
+    // Every series has its procedures under it, and none is left at the top level.
+    expect(tat!.codes.every((code) => (code.children?.length ?? 0) >= 3)).toBe(
+      true,
+    );
+    expect(countPresetCodes(tat!.codes)).toBe(19);
+  });
+
+  it("colours the series, not each procedure", () => {
+    // Sub-codes inherit their parent's colour (see buildCodingOptions); giving each
+    // one its own would make the legend a list of fifteen dots.
+    const tat = getPreset("tat-discursive")!;
+    expect(tat.codes.every((code) => !!code.color)).toBe(true);
+    expect(
+      tat.codes.flatMap((code) => code.children ?? []).every((c) => !c.color),
+    ).toBe(true);
+  });
+
+  it("ships no unlabelled code at any depth", () => {
+    for (const preset of CODEBOOK_PRESETS) {
+      for (const code of walk(preset.codes)) {
+        expect(code.label.trim().length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("counts sub-codes in a preset's size", () => {
+    expect(countPresetCodes([{ label: "a" }])).toBe(1);
+    expect(countPresetCodes([{ label: "a", children: [{ label: "b" }] }])).toBe(
+      2,
+    );
   });
 });

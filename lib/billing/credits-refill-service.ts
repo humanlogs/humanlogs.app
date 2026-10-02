@@ -5,7 +5,8 @@ import { getCreditsRefillEmailTemplate } from "../email/email-templates-account"
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
 const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || "https://humanlogs.app";
+  process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
+  "https://humanlogs.app";
 
 /**
  * Notify a user that their monthly credits have been refilled.
@@ -44,7 +45,10 @@ export async function refillUserCredits() {
   const usersNeedingRefill = await prisma.user.findMany({
     where: {
       subscriptionStatus: "active",
-      OR: [{ lastCreditsRefill: { lt: thirtyDaysAgo } }, { lastCreditsRefill: null }],
+      OR: [
+        { lastCreditsRefill: { lt: thirtyDaysAgo } },
+        { lastCreditsRefill: null },
+      ],
     },
     select: {
       id: true,

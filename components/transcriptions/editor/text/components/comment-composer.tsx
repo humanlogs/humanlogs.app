@@ -113,12 +113,16 @@ export function CommentComposer({
       }
       if (e.key === "ArrowUp") {
         e.preventDefault();
-        setHighlighted((h) => (h - 1 + suggestions.length) % suggestions.length);
+        setHighlighted(
+          (h) => (h - 1 + suggestions.length) % suggestions.length,
+        );
         return;
       }
       if (e.key === "Enter" || e.key === "Tab") {
         e.preventDefault();
-        insertMention(suggestions[Math.min(highlighted, suggestions.length - 1)]);
+        insertMention(
+          suggestions[Math.min(highlighted, suggestions.length - 1)],
+        );
         return;
       }
       if (e.key === "Escape") {

@@ -10,6 +10,7 @@ import { TranscriptionSegment } from "@/hooks/use-transcriptions";
 import { Editor } from "@tiptap/react";
 import EventEmitter from "events";
 import { parseCommentIds } from "./extensions/comment-mark";
+import { rangeToCharOffsets } from "./utils/segment-navigation";
 
 /**
  * Creates an EditorAPI instance backed by a Tiptap editorRef.current.
@@ -244,6 +245,40 @@ export class EditorAPI extends EventEmitter {
       from: start + 1,
       to: end + 1,
     });
+  }
+
+  /**
+   * Collapse the document selection to a caret, without focusing.
+   *
+   * Navigate mode draws its selection from the document's, so letting go of a keyboard
+   * selection has to reach the document too — otherwise the outline stays on screen
+   * over a passage nothing is pointing at any more.
+   */
+  collapseSelection() {
+    const editor = this.editorRef.current;
+    if (!editor) return;
+    const { from, to } = editor.state.selection;
+    if (to === from) return;
+    editor.commands.setTextSelection(from);
+  }
+
+  /**
+   * Select whole segments `from`..`to` (inclusive) WITHOUT focusing the editor.
+   *
+   * This is how the keyboard selection of navigate mode reaches the document: the
+   * editor stays blurred (arrows keep navigating instead of moving a caret), but the
+   * ProseMirror selection is real, so everything downstream — coding a passage,
+   * anchoring a comment, measuring the range to place a floating bar — works off the
+   * document rather than off a parallel notion of "what is selected".
+   */
+  selectSegmentRange(from: number, to: number) {
+    const segments = this.getSegments();
+    if (!this.editorRef.current || segments.length === 0) return;
+    const { start, end } = rangeToCharOffsets(segments, {
+      from: Math.max(0, Math.min(from, to)),
+      to: Math.min(segments.length - 1, Math.max(from, to)),
+    });
+    this.restoreSelection(start, end);
   }
 
   getSpeakerPositions() {

@@ -1,7 +1,7 @@
 ---
 title: Keyboard shortcuts
 description: Coding is done with the mouse for now; what is planned for the keyboard.
-order: 3
+order: 4
 status: soon
 updated: 2026-07-28
 related: transcribe/keyboard-shortcuts, coding/codebooks

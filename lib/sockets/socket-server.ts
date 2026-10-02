@@ -149,20 +149,21 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
       const pending = memberships.get(transcriptionId);
       if (pending) return pending;
 
-      const authorized = verifyRoomGrant(grant, { userId, transcriptionId }).then(
-        (claims) => {
-          if (!claims) {
-            log(`Denied ${userId} access to transcription ${transcriptionId}`);
-            socket.emit("transcription:denied", { transcriptionId });
-            // Forget the refusal, so a client that comes back with a valid grant
-            // (it was just shared with, its grant had expired) is not stuck with
-            // this answer for the life of the socket.
-            memberships.delete(transcriptionId);
-            return null;
-          }
-          return { canWrite: claims.canWrite };
-        },
-      );
+      const authorized = verifyRoomGrant(grant, {
+        userId,
+        transcriptionId,
+      }).then((claims) => {
+        if (!claims) {
+          log(`Denied ${userId} access to transcription ${transcriptionId}`);
+          socket.emit("transcription:denied", { transcriptionId });
+          // Forget the refusal, so a client that comes back with a valid grant
+          // (it was just shared with, its grant had expired) is not stuck with
+          // this answer for the life of the socket.
+          memberships.delete(transcriptionId);
+          return null;
+        }
+        return { canWrite: claims.canWrite };
+      });
 
       memberships.set(transcriptionId, authorized);
       return authorized;

@@ -101,7 +101,9 @@ export function PricingStep({
         {/* Free */}
         <div className="flex flex-col rounded-2xl border p-5">
           <div className="text-sm font-semibold">{t("pricing.freeName")}</div>
-          <div className="mt-1 text-3xl font-bold">{t("pricing.freePrice")}</div>
+          <div className="mt-1 text-3xl font-bold">
+            {t("pricing.freePrice")}
+          </div>
           <div className="text-muted-foreground mt-0.5 text-xs">
             {t("pricing.freeMinutes")}
           </div>
@@ -113,7 +115,11 @@ export function PricingStep({
               </li>
             ))}
           </ul>
-          <Button variant="outline" className="mt-5 w-full" onClick={onContinue}>
+          <Button
+            variant="outline"
+            className="mt-5 w-full"
+            onClick={onContinue}
+          >
             {t("pricing.freeCta")}
           </Button>
         </div>

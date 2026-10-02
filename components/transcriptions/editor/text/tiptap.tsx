@@ -15,8 +15,18 @@ interface TranscriptEditorContentProps {
   aesKey?: string | null;
   /** Whether the two fields above are settled (see useTiptapEditor). */
   encryptionReady?: boolean;
+  /**
+   * The server's `updatedAt` for this document — the version any locally cached Yjs
+   * state must match to be trusted. See lib/local/doc-state.browser.ts.
+   */
+  serverUpdatedAt?: string | null;
   onChange: (segments: TranscriptionSegment[]) => void;
   hasWriteAccess: boolean;
+  /**
+   * Whether the document accepts edits. Defaults to `hasWriteAccess`; the coding phase
+   * passes false so a researcher who *could* write is still only reading.
+   */
+  editable?: boolean;
   onSelectionUpdate: (editor: Editor) => void;
 }
 
@@ -28,8 +38,10 @@ export function TranscriptEditorContentTipTap({
   isEncrypted,
   aesKey,
   encryptionReady,
+  serverUpdatedAt,
   onChange,
   hasWriteAccess,
+  editable,
   onSelectionUpdate,
 }: TranscriptEditorContentProps) {
   const { editor: tiptapEditor, segmentsRef } = useTiptapEditor({
@@ -38,9 +50,10 @@ export function TranscriptEditorContentTipTap({
     isEncrypted,
     aesKey,
     encryptionReady,
+    serverUpdatedAt,
     onChange,
     editorAPI,
-    editable: hasWriteAccess,
+    editable: editable ?? hasWriteAccess,
     onSelectionUpdate,
   });
 

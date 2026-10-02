@@ -52,7 +52,8 @@
         "subtitle": "Ein moderner, privater Arbeitsbereich für den gesamten qualitativen Forschungsprozess. Das haben wir und das kommt als Nächstes.",
         "status": {
             "live": "Verfügbar",
-            "soon": "Demnächst"
+            "soon": "Demnächst",
+            "beta": "Verfügbar"
         },
         "stages": {
             "transcription": {

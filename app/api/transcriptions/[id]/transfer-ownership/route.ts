@@ -114,6 +114,8 @@ export const POST = withAuthRateLimit(
       // Notify both the old owner and new owner of the change
       notifyDatabaseChange(user.id, "transcription", "update", { id });
       notifyDatabaseChange(body.newOwnerId, "transcription", "update", { id });
+      notifyDatabaseChange(user.id, "participants", "update", { id });
+      notifyDatabaseChange(body.newOwnerId, "participants", "update", { id });
 
       return NextResponse.json({
         success: true,

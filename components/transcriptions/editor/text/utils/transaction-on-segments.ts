@@ -128,7 +128,10 @@ const applyReplaceStep = (
   if (contextStart === undefined) {
     for (let i = segmentStartIndex - 1; i >= 0; i--) {
       const t = segments[i].end ?? segments[i].start;
-      if (t !== undefined) { contextStart = t; break; }
+      if (t !== undefined) {
+        contextStart = t;
+        break;
+      }
     }
   }
 
@@ -138,7 +141,10 @@ const applyReplaceStep = (
   if (contextEnd === undefined) {
     for (let i = segmentEndIndex + 1; i < segments.length; i++) {
       const t = segments[i].start ?? segments[i].end;
-      if (t !== undefined) { contextEnd = t; break; }
+      if (t !== undefined) {
+        contextEnd = t;
+        break;
+      }
     }
   }
 

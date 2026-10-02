@@ -196,7 +196,9 @@ export const securityConfig = {
   deletedAccountRetentionDays: config.has(
     "security.deletedAccountRetentionDays",
   )
-    ? Number(config.get<string | number>("security.deletedAccountRetentionDays"))
+    ? Number(
+        config.get<string | number>("security.deletedAccountRetentionDays"),
+      )
     : 365,
 };
 

@@ -1,5 +1,7 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { CodebookEditorDialog } from "@/components/codebooks/codebook-editor-dialog";
+import { ExcerptPanel } from "@/components/codebooks/excerpts/excerpt-panel";
+import { ExcerptPanelProvider } from "@/components/codebooks/excerpts/excerpt-panel-context";
 import { FeedbackAutoPrompt } from "@/components/feedback/feedback-auto-prompt";
 import { FeedbackDialog } from "@/components/dialogs/feedback-dialog";
 import { HelpDialog } from "@/components/dialogs/help-dialog";
@@ -48,6 +50,7 @@ export default async function AppLayout({
   return (
     <WelcomeIntro>
       <SidebarProvider>
+        <ExcerptPanelProvider>
         <AppSidebar user={user}>
         <SidebarInset className="flex flex-col">
           <AppHeader />
@@ -59,6 +62,10 @@ export default async function AppLayout({
           </main>
         </SidebarInset>
       </AppSidebar>
+      {/* A flex sibling of the inset, not an overlay: the excerpt table is meant to
+          be read ALONGSIDE the transcript while coding, so it takes width from the
+          document rather than covering it. */}
+      <ExcerptPanel />
       <TranscriptionRenameDialog />
       <TranscriptionDeleteDialog />
       <TranscriptionSetProjectDialog />
@@ -73,6 +80,7 @@ export default async function AppLayout({
       <FeedbackDialog />
       <FeedbackAutoPrompt />
       <HelpDialog />
+      </ExcerptPanelProvider>
       </SidebarProvider>
     </WelcomeIntro>
   );

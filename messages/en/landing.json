@@ -52,7 +52,8 @@
         "subtitle": "One modern, private workspace for the whole qualitative research journey. Here's where we are and what's next.",
         "status": {
             "live": "Available now",
-            "soon": "Coming soon"
+            "soon": "Coming soon",
+            "beta": "Available"
         },
         "stages": {
             "transcription": {

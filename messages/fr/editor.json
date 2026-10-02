@@ -7,7 +7,10 @@
             "italic": "Italique (⌘I)",
             "underline": "Souligné (⌘U)",
             "strikethrough": "Barré (⌘⇧X)",
-            "comment": "Commentaire (⌘⌥M)"
+            "comment": "Commentaire (⌘⌥M)",
+            "confidence": "Mots incertains",
+            "showConfidence": "Afficher les mots incertains (soulignés en rouge)",
+            "hideConfidence": "Masquer les mots incertains"
         },
         "search": {
             "findPlaceholder": "Rechercher...",
@@ -170,6 +173,11 @@
             "subscribe": "Suivre cette discussion",
             "unsubscribe": "Ne plus suivre cette discussion",
             "hide": "Masquer les commentaires"
+        },
+        "confidence": {
+            "score": "Sûr à {value} %",
+            "validate": "Valider",
+            "validateHint": "Le mot est bien transcrit : retirer le soulignement (modifier le mot le retire aussi)"
         }
     }
 }

@@ -171,6 +171,10 @@ export const POST = withAuthRateLimit(
       // Notify both owner and shared user of the change
       notifyDatabaseChange(user.id, "transcription", "update", { id });
       notifyDatabaseChange(targetUser.id, "transcription", "update", { id });
+      // Who has access changed, which is a different query from the document
+      // itself — see the db:change predicate in socket-client.ts.
+      notifyDatabaseChange(user.id, "participants", "update", { id });
+      notifyDatabaseChange(targetUser.id, "participants", "update", { id });
 
       return NextResponse.json({
         success: true,
@@ -310,6 +314,7 @@ export const DELETE = withAuthRateLimit(
       // Notify both owner and removed user of the change
       notifyDatabaseChange(user.id, "transcription", "update", { id });
       notifyDatabaseChange(userIdToRemove, "transcription", "update", { id });
+      notifyDatabaseChange(user.id, "participants", "update", { id });
 
       return NextResponse.json({ success: true, shared: updatedShared });
     } catch (error) {

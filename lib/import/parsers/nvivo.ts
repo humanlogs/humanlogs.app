@@ -40,8 +40,9 @@ function fromTable(rows: string[][]): ImportTurn[] {
   const dataRows = looksHeader ? rows.slice(1) : rows;
   const turns: ImportTurn[] = [];
   for (const r of dataRows) {
-    const text = (contentCol != null && r[contentCol] ? r[contentCol] : "")
-      .trim();
+    const text = (
+      contentCol != null && r[contentCol] ? r[contentCol] : ""
+    ).trim();
     if (!text) continue;
     const { start, end } =
       timeCol != null && timeCol !== -1 && r[timeCol]
@@ -67,7 +68,8 @@ function fromText(text: string): ImportTurn[] {
   for (const line of lines) {
     const timeMatch = line.match(new RegExp(TIME_TOKEN.source, "g"));
     const start = timeMatch ? timeToSeconds(timeMatch[0]) : undefined;
-    const end = timeMatch && timeMatch[1] ? timeToSeconds(timeMatch[1]) : undefined;
+    const end =
+      timeMatch && timeMatch[1] ? timeToSeconds(timeMatch[1]) : undefined;
 
     // Everything before the first time token may hold a speaker label; text is
     // whatever remains once time tokens are removed.
@@ -85,8 +87,17 @@ function fromText(text: string): ImportTurn[] {
     }
 
     const body = line
-      .replace(new RegExp(TIME_TOKEN.source + "(\\s*-\\s*" + TIME_TOKEN.source + ")?", "g"), "")
-      .replace(speaker ? new RegExp("^" + escapeRe(speaker) + "\\s*:?\\s*") : /^$/, "")
+      .replace(
+        new RegExp(
+          TIME_TOKEN.source + "(\\s*-\\s*" + TIME_TOKEN.source + ")?",
+          "g",
+        ),
+        "",
+      )
+      .replace(
+        speaker ? new RegExp("^" + escapeRe(speaker) + "\\s*:?\\s*") : /^$/,
+        "",
+      )
       .trim();
 
     if (body) turns.push({ text: body, speaker, start, end });

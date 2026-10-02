@@ -13,12 +13,17 @@ import {
 type Stage = {
   key: "transcription" | "coding" | "analysis";
   icon: LucideIcon;
-  status: "live" | "soon";
+  status: "live" | "beta" | "soon";
 };
 
+/**
+ * Three stages, three honest states. Coding is `beta` rather than `live` or
+ * `soon`: it ships behind an opt-in, so calling it available would overclaim and
+ * calling it coming would deny what people are already using every day.
+ */
 const STAGES: Stage[] = [
   { key: "transcription", icon: Mic, status: "live" },
-  { key: "coding", icon: Tags, status: "soon" },
+  { key: "coding", icon: Tags, status: "beta" },
   { key: "analysis", icon: BarChart3, status: "soon" },
 ];
 
@@ -40,6 +45,9 @@ export const RoadmapSection = () => {
         {STAGES.map((stage, index) => {
           const Icon = stage.icon;
           const isLive = stage.status === "live";
+          // Beta reads with the live stages, not the planned ones: it exists, it
+          // is drawn solid, and only the pill says it is still moving.
+          const shipped = stage.status !== "soon";
           const features = t(`stages.${stage.key}.features`) as unknown as
             | string[]
             | string;
@@ -48,7 +56,7 @@ export const RoadmapSection = () => {
             <div key={stage.key} className="contents">
               <div
                 className={`flex flex-1 flex-col rounded-2xl border p-5 md:p-6 ${
-                  isLive
+                  shipped
                     ? "border-black bg-white shadow-sm"
                     : "border-dashed border-gray-300 bg-gray-50/60"
                 }`}
@@ -59,7 +67,9 @@ export const RoadmapSection = () => {
                     className={`rounded-xl p-2 ${
                       isLive
                         ? "bg-green-100 text-green-600"
-                        : "bg-gray-200 text-gray-500"
+                        : stage.status === "beta"
+                          ? "bg-amber-100 text-amber-600"
+                          : "bg-gray-200 text-gray-500"
                     }`}
                   >
                     <Icon className="h-5 w-5" />
@@ -68,16 +78,18 @@ export const RoadmapSection = () => {
                     className={`rounded-full px-3 py-1 text-xs font-semibold ${
                       isLive
                         ? "bg-green-100 text-green-700"
-                        : "bg-amber-100 text-amber-700"
+                        : stage.status === "beta"
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-gray-100 text-gray-600"
                     }`}
                   >
-                    {isLive ? t("status.live") : t("status.soon")}
+                    {t(`status.${stage.status}`)}
                   </span>
                 </div>
 
                 <h3
                   className={`mt-3 text-lg font-bold ${
-                    isLive ? "text-black" : "text-gray-500"
+                    shipped ? "text-black" : "text-gray-500"
                   }`}
                 >
                   {t(`stages.${stage.key}.title`)}
@@ -90,12 +102,12 @@ export const RoadmapSection = () => {
                       <li key={i} className="flex items-start gap-2">
                         <Check
                           className={`mt-0.5 h-4 w-4 shrink-0 ${
-                            isLive ? "text-green-600" : "text-gray-400"
+                            shipped ? "text-green-600" : "text-gray-400"
                           }`}
                         />
                         <span
                           className={`text-sm ${
-                            isLive ? "text-gray-700" : "text-gray-500"
+                            shipped ? "text-gray-700" : "text-gray-500"
                           }`}
                         >
                           {feature}

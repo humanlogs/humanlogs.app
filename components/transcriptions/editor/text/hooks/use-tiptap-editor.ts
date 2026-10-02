@@ -13,6 +13,11 @@ import {
   aesCodec,
   plaintextCodec,
 } from "@/lib/sockets/yjs-collab-provider";
+import {
+  forgetDocState,
+  loadFreshDocState,
+  persistDocState,
+} from "@/lib/local/doc-state.browser";
 import { getUserColor } from "@/lib/utils/utils";
 import Bold from "@tiptap/extension-bold";
 import Collaboration, { isChangeOrigin } from "@tiptap/extension-collaboration";
@@ -36,6 +41,9 @@ import {
   isUnsyncedBlank,
 } from "../collab/timing-reference";
 import { AutoWrapExtension } from "../extensions/auto-wrap-extension";
+import { CodingMark } from "../extensions/coding-mark";
+import { ConfidenceMark } from "../extensions/confidence-mark";
+import { PRESERVE_CONFIDENCE_META } from "../utils/confidence";
 import { CommentMark } from "../extensions/comment-mark";
 import { segmentsToHtml } from "../utils/html";
 import {
@@ -102,6 +110,11 @@ interface UseTiptapEditorOptions {
    * down and back up mid-join.
    */
   encryptionReady?: boolean;
+  /**
+   * The server's `updatedAt` for this document. The version a locally cached Yjs
+   * state must match to be seeded from — see lib/local/doc-state.browser.ts.
+   */
+  serverUpdatedAt?: string | null;
   onChange: (segments: TranscriptionSegment[]) => void;
   editable: boolean;
   onSelectionUpdate?: (editor: any) => void;
@@ -125,6 +138,7 @@ export function useTiptapEditor({
   isEncrypted,
   aesKey,
   encryptionReady,
+  serverUpdatedAt,
   onChange,
   editorAPI,
   editable,
@@ -177,7 +191,7 @@ export function useTiptapEditor({
 
   const editorRef = useRef<Editor>(null);
   const normalizeDebounceRef = useRef<NodeJS.Timeout | null>(null);
-  const { data: userProfile } = useUserProfile();
+  const { data: userProfile, isPending: profilePending } = useUserProfile();
   const [isMounted, setIsMounted] = useState(false);
 
   // The editor is created once (deps `[]`), so its editorProps closures read the
@@ -257,6 +271,53 @@ export function useTiptapEditor({
     setIsMounted(true);
   }, []);
 
+  // --- The local copy of this document's Yjs state.
+  //
+  // Looked up BEFORE the transport starts, because the seed happens the moment the
+  // server hands us the authority role and there is no second chance: seeding from
+  // the transcript JSON creates fresh CRDT item ids, and a stored state applied
+  // afterwards would add a second copy of every sentence rather than reconcile with
+  // the first. `ready` is therefore a gate, not an optimisation — see
+  // lib/local/doc-state.browser.ts.
+  const localSeedRef = useRef<Uint8Array | null>(null);
+  const [localSeedReady, setLocalSeedReady] = useState(false);
+  const serverUpdatedAtRef = useRef<string | null | undefined>(serverUpdatedAt);
+  serverUpdatedAtRef.current = serverUpdatedAt;
+  const userId = userProfile?.id;
+  // Read by the transport effect, which must NOT re-run when the profile lands:
+  // recreating the provider would drop a socket that has already joined the room.
+  // By the time it runs, `localSeedReady` guarantees the profile has settled.
+  const userIdRef = useRef<string | undefined>(userId);
+  userIdRef.current = userId;
+
+  useEffect(() => {
+    if (!isMounted) return;
+    // Wait for the profile to settle rather than read "not loaded yet" as "no
+    // user": the whole point of the cache is the FIRST paint, and declining it
+    // because a query had not come back would be declining it every time.
+    if (profilePending) return;
+    // Without a user there is no per-user database to read, and without a version
+    // nothing stored could be proven fresh. Either way: seed from the server.
+    if (!userId || !serverUpdatedAt) {
+      setLocalSeedReady(true);
+      return;
+    }
+    let cancelled = false;
+    void loadFreshDocState(userId, transcriptionId, serverUpdatedAt).then(
+      (update) => {
+        if (cancelled) return;
+        localSeedRef.current = update;
+        setLocalSeedReady(true);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+    // Deliberately not re-run on a later `serverUpdatedAt`: by then the document is
+    // seeded, and re-reading the cache could only contradict what is on screen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMounted, profilePending, userId, transcriptionId]);
+
   const editor = useEditor(
     {
       extensions: [
@@ -282,6 +343,8 @@ export function useTiptapEditor({
         StrikeNoShortcut,
         UnderlineNoShortcut,
         CommentMark,
+        CodingMark,
+        ConfidenceMark,
         SpeakerParagraph,
         Placeholder.configure({
           placeholder: "Start typing…",
@@ -437,6 +500,8 @@ export function useTiptapEditor({
     // that had already joined the room).
     if (encryptionReady === false) return;
     if (isEncrypted && !aesKey) return;
+    // The local state must have been looked up before we can be handed the seed.
+    if (!localSeedReady) return;
     const codec = isEncrypted && aesKey ? aesCodec(aesKey) : plaintextCodec;
     const ydoc = yjsDoc.current;
 
@@ -553,6 +618,25 @@ export function useTiptapEditor({
 
     const seedNow = () => {
       const frag = ydoc.getXmlFragment("default");
+      const cached = localSeedRef.current;
+      if (frag.length === 0 && cached) {
+        // Seed from the copy this device already holds. Applying the stored update
+        // restores the CRDT as it was — same item ids, same marks, same speaker map
+        // and timing reference — rather than re-parsing the transcript into a
+        // brand-new document, so a returning reader gets the interview without a
+        // round trip and the app has something to show with no socket at all.
+        //
+        // The `"seed"` origin is what keeps it off the wire (the provider skips it:
+        // late joiners pull full state on join) and out of the collaborative undo
+        // stack, exactly as the HTML seed below arranges by other means.
+        try {
+          Y.applyUpdate(ydoc, cached, "seed");
+          editor.commands.setTextSelection(0);
+        } catch (error) {
+          console.warn("[local-doc-state] unusable cached state", error);
+          localSeedRef.current = null;
+        }
+      }
       if (frag.length === 0) {
         // `addToHistory: false` keeps the seed OUT of the collaborative undo
         // stack. Writing the transcript in is a local ProseMirror change like any
@@ -570,6 +654,8 @@ export function useTiptapEditor({
           .setContent(segmentsHtmlRef.current)
           .setTextSelection(0)
           .setMeta("addToHistory", false)
+          // Seeding is not editing: the doubtful words it lays down must survive it.
+          .setMeta(PRESERVE_CONFIDENCE_META, true)
           .run();
       }
       seedSpeakersMap();
@@ -627,6 +713,19 @@ export function useTiptapEditor({
     };
     trySetupProvider();
 
+    // Keep this device's copy of the document current. Debounced inside, and
+    // stamped with the version it includes at write time — a state we cannot prove
+    // fresh on the next open is one we would only read to throw away.
+    const persistUserId = userIdRef.current;
+    const detachPersistence = persistUserId
+      ? persistDocState({
+          userId: persistUserId,
+          documentId: transcriptionId,
+          doc: ydoc,
+          serverUpdatedAt: () => serverUpdatedAtRef.current,
+        })
+      : () => {};
+
     // A revert happened somewhere: leave the collab room IMMEDIATELY (drop the stale
     // in-memory doc so we never serve pre-revert state to a reloading peer), then let
     // the UI show a blocking "reload" prompt. The fresh session re-seeds from the
@@ -636,12 +735,20 @@ export function useTiptapEditor({
       cancelled = true;
       providerRef.current?.destroy();
       providerRef.current = null;
+      // The cached state is now a copy of a version that no longer exists. It would
+      // fail the freshness test on the next open anyway; dropping it here means the
+      // reload the UI is about to ask for cannot possibly reseed from it.
+      // Not flushed: the cached state is now a copy of a version that no longer
+      // exists, and writing it on the way out would race the delete below.
+      detachPersistence({ flush: false });
+      if (persistUserId) void forgetDocState(persistUserId, transcriptionId);
       editorAPI.emit("reverted", data);
     };
     onTranscriptionReverted(onReverted);
 
     return () => {
       cancelled = true;
+      detachPersistence();
       offTranscriptionReverted(onReverted);
       speakersMap.unobserve(onSpeakersMapChange);
       timingMap.unobserve(onTimingMapChange);
@@ -652,7 +759,7 @@ export function useTiptapEditor({
     };
     // Re-runs once the E2E session key resolves (isEncrypted/aesKey).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editor, isMounted, encryptionReady, isEncrypted, aesKey]);
+  }, [editor, isMounted, encryptionReady, isEncrypted, aesKey, localSeedReady]);
 
   // Publish our identity (name/color) into awareness so peers can label our remote
   // caret. yCursorPlugin writes our selection into awareness automatically.

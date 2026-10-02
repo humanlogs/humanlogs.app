@@ -49,6 +49,23 @@ npm test -- doc-to    # a single file
   typography included), that real edits — punctuation and capitalization too —
   ARE applied, that what surrounds them is never rewritten, and that anything
   which is not a recognizable round trip falls back to a normal paste.
+- **`phrase-index.test.ts`** — the coded-passage index the excerpt panel reads:
+  how a run of `coding` marks becomes an excerpt (two codes on one selection are
+  one row with two chips; a code covering half of another's passage is its own
+  row), that rebuilding an unchanged document produces the same ids, and the
+  faceted query over it — OR inside a dimension, AND across them, with deleted
+  codes filtered out the way `sanitizeCodings` filters them everywhere else.
+- **`local-sync-plan.test.ts`** — the decision to download a document or not.
+  Wrong in either direction it is silent: too eager and every load re-fetches the
+  corpus, too lazy and the panel answers with codes retracted last week. Pins the
+  two-timestamp rule (a document that was only *coded* is stale even though its
+  transcript never moved), and the fingerprint that lets the open document write
+  its own rows without making itself stale.
+- **`local-index-store.test.ts`** — the IndexedDB layer and the sync engine,
+  against a real IndexedDB (`fake-indexeddb`). What cannot be reasoned about on
+  paper: a document's rows being REPLACED rather than added to, cursors that must
+  not leak across studies or reach another user's database, and an engine that
+  comes back from a rate limit instead of leaving a hole in the index.
 
 ### `tests/integration` — the real protocol
 

@@ -1,8 +1,5 @@
 import type { Editor } from "@tiptap/react";
-import {
-  formatCommentIds,
-  parseCommentIds,
-} from "../extensions/comment-mark";
+import { formatCommentIds, parseCommentIds } from "../extensions/comment-mark";
 
 /**
  * Editor-side helpers for the comment anchor mark. The note bodies live in the
@@ -14,17 +11,22 @@ import {
 const WORD_CHAR = /[\w'’-]/;
 
 /**
- * Grow a range so it covers whole words — a comment should never be anchored to
- * "…faudr|ait reformuler la conclu|sion". Both ends are pushed out to the nearest word
- * boundary, after trimming any whitespace the drag picked up; an empty selection
- * becomes the word under the caret, which is what the bold/italic buttons do.
- * Returns null when there is no word to anchor to (e.g. an empty line).
+ * The whole-word range containing `from`..`to` — a comment should never be anchored to
+ * "…faudr|ait reformuler la conclu|sion", and neither should a code. Both ends are
+ * pushed out to the nearest word boundary, after trimming any whitespace the drag
+ * picked up; an empty range becomes the word under the caret, which is what the
+ * bold/italic buttons do. Returns null when there is no word there (an empty line).
+ *
+ * Computes without dispatching, so a caller can compare it against the current
+ * selection and stay quiet when it already matches — which is what keeps the coding
+ * phase's live snapping from looping on its own transactions.
  */
-export function expandSelectionToWord(
+export function wordRange(
   editor: Editor,
+  range: { from: number; to: number },
 ): { from: number; to: number } | null {
   const { doc } = editor.state;
-  let { from, to } = editor.state.selection;
+  let { from, to } = range;
 
   // Drop leading/trailing whitespace so a sloppy drag doesn't pull in the next word.
   while (to > from && /\s/.test(doc.textBetween(to - 1, to))) to--;
@@ -47,9 +49,17 @@ export function expandSelectionToWord(
   }
 
   if (from >= to) return null;
-
-  editor.commands.setTextSelection({ from, to });
   return { from, to };
+}
+
+/** {@link wordRange} applied to the current selection, and set back on the editor. */
+export function expandSelectionToWord(
+  editor: Editor,
+): { from: number; to: number } | null {
+  const range = wordRange(editor, editor.state.selection);
+  if (!range) return null;
+  editor.commands.setTextSelection(range);
+  return range;
 }
 
 /**
@@ -86,7 +96,11 @@ export function applyCommentMark(editor: Editor, commentId: string): boolean {
   });
 
   if (!tr.docChanged) return false;
-  view.dispatch(tr);
+  // Anchors are NOT undoable. The mark is one half of a pair — the other is a row in
+  // the database — and Ctrl+Z only knows about the document: undoing would take the
+  // highlight away and leave the row pointing at nothing. Taking a thread back is done
+  // by deleting its notes, which removes both halves together.
+  view.dispatch(tr.setMeta("addToHistory", false));
   return true;
 }
 
@@ -125,7 +139,7 @@ export function removeCommentMark(editor: Editor, commentId: string): void {
         )
       : tr.removeMark(e.from, e.to, markType);
   }
-  view.dispatch(tr);
+  view.dispatch(tr.setMeta("addToHistory", false));
 }
 
 /** Every thread covering the current selection, innermost (shortest range) first. */
@@ -266,7 +280,9 @@ export function excerptText(text: string, max = 70): string {
 
   const headCut = t.slice(0, headLen);
   const lastSpace = headCut.lastIndexOf(" ");
-  const head = (lastSpace > headLen / 2 ? headCut.slice(0, lastSpace) : headCut).trimEnd();
+  const head = (
+    lastSpace > headLen / 2 ? headCut.slice(0, lastSpace) : headCut
+  ).trimEnd();
 
   const tailCut = t.slice(t.length - tailLen);
   const firstSpace = tailCut.indexOf(" ");

@@ -262,14 +262,14 @@ class Mailer {
     // With attachments the message is multipart/mixed: [alternative body] +
     // [each attachment]. Without, it stays a plain multipart/alternative.
     if (hasAttachments) {
-      lines.push(
-        `Content-Type: multipart/mixed; boundary="${mixedBoundary}"`,
-      );
+      lines.push(`Content-Type: multipart/mixed; boundary="${mixedBoundary}"`);
       lines.push("");
       lines.push(`--${mixedBoundary}`);
     }
 
-    lines.push(`Content-Type: multipart/alternative; boundary="${altBoundary}"`);
+    lines.push(
+      `Content-Type: multipart/alternative; boundary="${altBoundary}"`,
+    );
     lines.push("");
 
     // Text part

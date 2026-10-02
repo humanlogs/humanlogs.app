@@ -23,7 +23,7 @@ The space bar inserts spaces when you are typing, so playback moves to **Alt/Ctr
 
 Speed is held, not toggled: hold **Alt** for 0.5×, **Ctrl** for 2×, **Alt + Ctrl** for 4×. In practice you hold Ctrl through the parts you have already checked and Alt through the mumbled ones, without ever opening a menu.
 
-Arrow keys move word by word, **Shift + arrows** sentence by sentence, **Enter** goes into edit mode and **Escape** comes back out. The full list is in [Keyboard shortcuts](/docs/transcribe/keyboard-shortcuts).
+Arrow keys move word by word, **Ctrl + arrows** sentence by sentence, **Enter** goes into edit mode and **Escape** comes back out. **Shift + arrows** selects instead of moving: left and right take one more word, up and down reach out to the next punctuation, and adding Ctrl takes a whole sentence at a time. The full list is in [Keyboard shortcuts](/docs/transcribe/keyboard-shortcuts).
 
 ## Correcting text
 

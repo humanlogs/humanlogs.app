@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { EditorAPI } from "../api";
+import { highlightBoxStyle } from "./highlight-box";
 
 interface ActiveSegmentHighlightProps {
   editorAPI: EditorAPI;
@@ -113,21 +114,19 @@ export function ActiveSegmentHighlight({
 
   return (
     <div
-      className={`absolute pointer-events-none rounded ${
+      className={`absolute pointer-events-none ${
         enableTransition
           ? "transition-all duration-150 ease-out"
           : "transition-all duration-50 ease-out"
       }`}
+      // Shared with the selection overlay: the active word and the selection it grows
+      // into are one object, so they must not be two designs. See highlight-box.ts.
       style={{
+        ...highlightBoxStyle,
         top: `${position.top}px`,
         left: `${position.left}px`,
         width: `${position.width}px`,
         height: `${position.height}px`,
-        backgroundColor:
-          "color-mix(in oklab, var(--color-blue-500) 25%, transparent)",
-        outline:
-          "1px solid color-mix(in oklab, var(--color-blue-500) 50%, transparent)",
-        outlineOffset: "1px",
         zIndex: 1,
       }}
     />

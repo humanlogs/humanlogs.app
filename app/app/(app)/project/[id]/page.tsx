@@ -3,6 +3,7 @@
 import { CodebookSection } from "@/components/codebooks/codebook-section";
 import { useProjectModal } from "@/components/dialogs/project-create-modal";
 import { GuideCallout } from "@/components/guidance/guide-callout";
+import { useExcerptPanelContext } from "@/components/codebooks/excerpts/excerpt-panel-context";
 import { useTranslations } from "@/components/locale-provider";
 import { PageLayout } from "@/components/page-layout";
 import { ProjectBadge } from "@/components/projects/project-badge";
@@ -18,6 +19,9 @@ import * as React from "react";
 export default function StudyPage() {
   const params = useParams<{ id: string }>();
   const projectId = params.id;
+  // The excerpt panel is global, so a page that is *about* a study has to say so:
+  // opened from here it answers about this corpus, with no document in focus.
+  useExcerptPanelContext({ documentId: null, projectId, codebookId: null });
   const t = useTranslations("study");
   const router = useRouter();
   const { openRename } = useProjectModal();

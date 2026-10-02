@@ -52,7 +52,8 @@
         "subtitle": "Un espacio de trabajo moderno y privado para todo el proceso de investigación cualitativa. Esto es lo que tenemos y lo que viene.",
         "status": {
             "live": "Disponible",
-            "soon": "Próximamente"
+            "soon": "Próximamente",
+            "beta": "Disponible"
         },
         "stages": {
             "transcription": {

@@ -71,7 +71,9 @@ export function InlineChoice({
               >
                 <span className="text-sm font-medium">{o.label}</span>
                 {o.desc && (
-                  <span className="text-xs text-muted-foreground">{o.desc}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {o.desc}
+                  </span>
                 )}
               </button>
             ))}

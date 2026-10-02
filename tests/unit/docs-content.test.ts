@@ -45,7 +45,8 @@ function translationFiles(locale: string): string[] {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
       const next = prefix ? `${prefix}/${entry.name}` : entry.name;
       if (entry.isDirectory()) walk(path.join(dir, entry.name), next);
-      else if (entry.name.endsWith(".md")) found.push(next.replace(/\.md$/, ""));
+      else if (entry.name.endsWith(".md"))
+        found.push(next.replace(/\.md$/, ""));
     }
   };
   walk(root, "");
@@ -57,16 +58,19 @@ describe("docs front-matter", () => {
     expect(slugs.length).toBeGreaterThan(0);
   });
 
-  it.each(slugs)("%s declares a title, description and valid status", (slug) => {
-    const doc = getDoc(slug, SOURCE);
-    expect(doc).not.toBeNull();
-    expect(doc!.title.trim()).not.toBe("");
-    expect(doc!.description.trim()).not.toBe("");
-    expect(STATUSES).toContain(doc!.status);
-    // `order` defaults to 999, which would silently dump the page at the
-    // bottom of its section instead of where the author meant it to be.
-    expect(doc!.order).toBeLessThan(999);
-  });
+  it.each(slugs)(
+    "%s declares a title, description and valid status",
+    (slug) => {
+      const doc = getDoc(slug, SOURCE);
+      expect(doc).not.toBeNull();
+      expect(doc!.title.trim()).not.toBe("");
+      expect(doc!.description.trim()).not.toBe("");
+      expect(STATUSES).toContain(doc!.status);
+      // `order` defaults to 999, which would silently dump the page at the
+      // bottom of its section instead of where the author meant it to be.
+      expect(doc!.order).toBeLessThan(999);
+    },
+  );
 
   it.each(slugs)("%s lives in a declared section", (slug) => {
     expect(sectionOrder).toContain(slug.split("/")[0]);
@@ -80,12 +84,18 @@ describe("docs navigation", () => {
     expect(seen).toEqual(sectionOrder.filter((slug) => seen.includes(slug)));
   });
 
-  it.each(locales)("has a translated title for every section in %s", (locale) => {
-    const titles = messagesFor(locale);
-    for (const section of getDocsNav(SOURCE)) {
-      expect(titles[section.slug], `missing docs.sections.${section.slug}`).toBeTruthy();
-    }
-  });
+  it.each(locales)(
+    "has a translated title for every section in %s",
+    (locale) => {
+      const titles = messagesFor(locale);
+      for (const section of getDocsNav(SOURCE)) {
+        expect(
+          titles[section.slug],
+          `missing docs.sections.${section.slug}`,
+        ).toBeTruthy();
+      }
+    },
+  );
 });
 
 describe("docs links", () => {
@@ -133,7 +143,9 @@ describe("docs translations", () => {
     (locale) => {
       // A translation whose path does not exist in English is invisible: the
       // navigation is built from the English tree.
-      expect(translationFiles(locale).filter((slug) => !slugs.includes(slug))).toEqual([]);
+      expect(
+        translationFiles(locale).filter((slug) => !slugs.includes(slug)),
+      ).toEqual([]);
     },
   );
 
@@ -198,9 +210,15 @@ describe("search index", () => {
 describe("heading anchors", () => {
   it("ignores headings inside code fences", () => {
     const headings = extractHeadings(
-      ["## Real", "", "```bash", "# not a heading", "```", "", "### Also real"].join(
-        "\n",
-      ),
+      [
+        "## Real",
+        "",
+        "```bash",
+        "# not a heading",
+        "```",
+        "",
+        "### Also real",
+      ].join("\n"),
     );
     expect(headings.map((h) => h.text)).toEqual(["Real", "Also real"]);
   });

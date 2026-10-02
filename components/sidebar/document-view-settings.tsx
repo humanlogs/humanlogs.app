@@ -16,19 +16,25 @@ import {
 } from "lucide-react";
 
 /**
- * The sidebar's "group by / sort by" control. It sits on the first group header
- * only — one control for the whole list, not one per group.
+ * The sidebar's "group by / sort by" control. One control for the whole list —
+ * it sits on the phase header, since the phases are what the list hangs from.
  */
 export function DocumentViewSettings({
   groupBy,
   sortBy,
   codebooks,
+  allowGroupByStudy,
   onChange,
 }: {
   groupBy: GroupBy;
   sortBy: SortBy;
   /** Codebooks offered as a grouping axis (roots covering every study). */
   codebooks: DecryptedCodebook[];
+  /**
+   * False once the list is scoped to one study: grouping by study would then
+   * put the whole list under a header repeating the scope above it.
+   */
+  allowGroupByStudy: boolean;
   onChange: (patch: { groupBy?: GroupBy; sortBy?: SortBy }) => void;
 }) {
   const t = useTranslations("sidebar");
@@ -36,7 +42,9 @@ export function DocumentViewSettings({
   const groupOptions: Array<{ value: GroupBy; label: string }> = [
     { value: "updatedAt", label: t("view.updatedAt") },
     { value: "createdAt", label: t("view.createdAt") },
-    { value: "study", label: t("view.study") },
+    ...(allowGroupByStudy
+      ? [{ value: "study" as GroupBy, label: t("view.study") }]
+      : []),
     ...codebooks.map((codebook) => ({
       value: `codebook:${codebook.id}` as GroupBy,
       label: codebook.name || t("view.untitledCodebook"),

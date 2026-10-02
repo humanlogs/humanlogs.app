@@ -5,6 +5,7 @@ import type {
 import type { ImportTurn } from "../types";
 import { buildTranscriptionContent } from "../synthesize-timestamps";
 import { asSpeakerId, toNum } from "./shared";
+import { readConfidence } from "@/lib/stt/confidence";
 
 /**
  * Parse a JSON transcript. Handles three shapes:
@@ -105,6 +106,7 @@ function buildFromWordLevel(
       speakerId: asSpeakerId(w.speakerId ?? w.speaker_id ?? w.speaker),
       start: toNum(w.start),
       end: toNum(w.end),
+      confidence: w.type === "spacing" ? undefined : readConfidence(w),
     }))
     .filter((w) => w.text.length > 0);
 
@@ -152,6 +154,7 @@ function buildFromWordLevel(
       speakerId: w.speakerId,
       ...(w.start !== undefined ? { start: w.start } : {}),
       ...(w.end !== undefined ? { end: w.end } : {}),
+      ...(w.confidence !== undefined ? { confidence: w.confidence } : {}),
     });
   }
 

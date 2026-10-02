@@ -1,6 +1,7 @@
 "use client";
 
 import { StudyCodingBoard } from "@/components/codebooks/study-coding-board";
+import { useExcerptPanelContext } from "@/components/codebooks/excerpts/excerpt-panel-context";
 import { useTranslations } from "@/components/locale-provider";
 import { PageLayout } from "@/components/page-layout";
 import { ProjectBadge } from "@/components/projects/project-badge";
@@ -18,6 +19,9 @@ import { useParams, useRouter } from "next/navigation";
 export default function StudyCodingPage() {
   const params = useParams<{ id: string }>();
   const projectId = params.id;
+  // The excerpt panel is global, so a page that is *about* a study has to say so:
+  // opened from here it answers about this corpus, with no document in focus.
+  useExcerptPanelContext({ documentId: null, projectId, codebookId: null });
   const t = useTranslations("codebook.board");
   const tStudy = useTranslations("study");
   const router = useRouter();

@@ -12,8 +12,8 @@ import type { Transaction } from "@tiptap/pm/state";
  *  - Word does not round-trip our custom attributes, so every paragraph comes
  *    back WITHOUT `data-speaker-id` and the whole transcript collapses onto
  *    `speaker_0` (see `docToSegments`, which falls back to it).
- *  - `span[data-comment-id]` is lost the same way, so every comment thread is
- *    silently orphaned.
+ *  - `span[data-comment-id]` and `span[data-coding-id]` are lost the same way, so
+ *    every comment thread and every coded passage is silently orphaned.
  *  - per-word audio timestamps are DERIVED by carrying them from the shared
  *    timing reference (`collab/doc-to-segments.ts`). A full replacement makes the
  *    changed "middle" span the whole transcript, which blows past that module's
@@ -720,9 +720,9 @@ function diffParagraph(
 
 /**
  * Marks shared by every text node in a range. Used for replacements so a
- * corrected word keeps the bold/italic AND the comment anchor of the word it
- * replaces — `$pos.marks()` would drop the comment mark, which is `inclusive:
- * false`, and punch a hole in the highlight band.
+ * corrected word keeps the bold/italic AND the comment / coding anchors of the
+ * word it replaces — `$pos.marks()` would drop those marks, which are
+ * `inclusive: false`, and punch a hole in the highlight band.
  */
 function marksForRange(doc: PMNode, from: number, to: number): readonly Mark[] {
   let marks: readonly Mark[] | null = null;

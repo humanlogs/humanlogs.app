@@ -1,6 +1,7 @@
 "use client";
 
 import type { CodeRef, SpeakerCodeRef } from "@/lib/codebooks/codebook";
+import type { Project } from "./use-api";
 import {
   encodeSpeakerCache,
   isEncryptedEntity,
@@ -16,6 +17,7 @@ import { primeRoomGrant } from "@/lib/sockets/room-grant.browser";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { browserCrypto } from "../lib/encryption/encryption-entities.browser";
+import { invalidationsAfterTranscriptionSave } from "@/lib/query/transcription-keys";
 import { fetchGateway } from "./fetch";
 import {
   DecryptedWithRaw,
@@ -30,6 +32,12 @@ type Transcription = {
   updatedAt: string;
   isTutorial?: boolean;
   projectId?: string;
+  /**
+   * The document's study, as the API resolved it. Sent alongside `projectId`
+   * because a document received through a share belongs to somebody else's
+   * study, which `useProjects` — scoped to your own — could never name.
+   */
+  study?: Project | null;
   speakerCount?: number;
   speakerNames?: (string | null)[];
   /**
@@ -106,6 +114,16 @@ export type TranscriptionSegment = {
   // which range is anchored so it survives save → reseed and is versioned with the
   // transcript. A token normally has at most one (a mark type is unique per position).
   comments?: string[];
+  // Coding ids anchored on this token (the `codingIds` of any `coding` mark covering
+  // it). Which code each one stands for, and who applied it, lives in the Coding
+  // table; this only records which passage is coded, for the same reasons as
+  // `comments` above.
+  codings?: string[];
+  // Speech-to-text confidence in [0, 1], on words the engine was unsure of and nobody
+  // has since corrected or validated. Once the document has been through the editor
+  // only doubtful words keep it (it is the `lowConfidence` mark's projection); before
+  // that, provider fields may stand in — see `readConfidence`.
+  confidence?: number;
 };
 
 export type HistoryEntry = {
@@ -514,13 +532,14 @@ export function useSaveTranscription(
       return responseData;
     },
     onSuccess: (data) => {
-      // Invalidate and refetch transcription queries
-      queryClient.invalidateQueries({
-        queryKey: ["transcriptions", transcriptionId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["transcriptions"],
-      });
+      // Named and tested, because "invalidate the transcription" is one careless
+      // keystroke away from invalidating four queries per open document — see
+      // lib/query/transcription-keys.ts.
+      for (const filters of invalidationsAfterTranscriptionSave(
+        transcriptionId,
+      )) {
+        queryClient.invalidateQueries(filters);
+      }
       return data;
     },
   });

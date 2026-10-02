@@ -50,7 +50,15 @@
         "thisMonth": "Ce mois-ci",
         "before": "Avant"
       }
-    }
+    },
+    "sharedShort": "partagé",
+    "study": {
+      "all": "Toutes les études",
+      "none": "Sans étude",
+      "open": "Ouvrir l'étude",
+      "empty": "Aucun document dans cette étude"
+    },
+    "codingOverview": "Vue d’ensemble"
   },
   "newTranscription": {
     "title": "Nouvelle Transcription",

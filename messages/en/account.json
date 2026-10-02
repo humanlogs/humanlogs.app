@@ -314,6 +314,12 @@
         },
         "referralCardTitle": "Referral",
         "referralCardDescription": "Invite friends and earn free transcription minutes",
-        "referralCardButton": "Open Referrals"
+        "referralCardButton": "Open Referrals",
+        "localData": {
+            "title": "Data kept on this device",
+            "summary": "Indexed documents: {count} · Coded passages: {phrases}. Removing them only means the next visit re-syncs.",
+            "empty": "Nothing is stored on this device yet.",
+            "forget": "Forget this device"
+        }
     }
 }

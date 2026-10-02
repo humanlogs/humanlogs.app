@@ -9,7 +9,12 @@ import { IMPORT_EXTENSIONS, IMPORT_FORMAT_OPTIONS } from "@/lib/import/types";
 import type { ImportFormat } from "@/lib/import/types";
 import { getLanguageOptions } from "@/lib/utils/languages";
 import { useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, FileTextIcon, Trash2Icon, UploadIcon } from "lucide-react";
+import {
+  AlertCircle,
+  FileTextIcon,
+  Trash2Icon,
+  UploadIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";

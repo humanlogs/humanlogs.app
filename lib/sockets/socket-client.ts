@@ -5,6 +5,7 @@ import { io, Socket } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUserProfile } from "@/hooks/use-api";
 import { clearAllRoomGrants, getRoomGrant } from "./room-grant.browser";
+import { queryMatchesTable } from "./db-change-match";
 
 type DatabaseChangeEvent = {
   table: string;
@@ -131,20 +132,10 @@ export function useSocket() {
       });
 
       socket.on("db:change", (event: DatabaseChangeEvent) => {
-        // Invalidate queries whose key references the changed table. The server
-        // emits the singular Prisma model name (e.g. "transcription") while query
-        // keys use the plural (["transcriptions", ...]) — tolerate both directions.
-        const table = event.table.toLowerCase();
+        // See queryMatchesTable for how a changed table maps onto the query keys it
+        // feeds — in particular why a transcription's sub-resources are left alone.
         queryClient.invalidateQueries({
-          predicate: (query) => {
-            const queryKey = query.queryKey;
-            if (!Array.isArray(queryKey)) return false;
-            return queryKey.some((key) => {
-              if (typeof key !== "string") return false;
-              const k = key.toLowerCase();
-              return k === table || `${k}s` === table || k === `${table}s`;
-            });
-          },
+          predicate: (query) => queryMatchesTable(query.queryKey, event.table),
         });
       });
 
@@ -208,7 +199,10 @@ export function leaveTranscriptionRoom(transcriptionId: string) {
       // A queued join never ran — just cancel it.
       pendingOperations.delete(transcriptionId);
     } else {
-      pendingOperations.set(transcriptionId, { type: "leave", transcriptionId });
+      pendingOperations.set(transcriptionId, {
+        type: "leave",
+        transcriptionId,
+      });
     }
   }
 }
