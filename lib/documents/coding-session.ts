@@ -17,26 +17,49 @@
  *
  * The study's coding workshop declares the coding space but never starts a pass,
  * because no grille is chosen there — arriving at a document from it still asks.
+ *
+ * A pass is over a CORPUS, so it remembers which study it is a pass over. The
+ * grilles available, the one chosen, and whether there is one at all are all per
+ * study: carrying a pass across studies meant that opening an interview in a
+ * study with no verbatim codebook skipped the question and landed on a coding bar
+ * that could only say "no codebook covers this study yet" — a dead end, in the
+ * one place that exists to offer making one.
  */
 
-let active = false;
+/** The study the pass is over, or null when no pass is under way. */
+let activeStudy: string | null = null;
+
+/** A document filed in no study still has a scope; it is just the empty one. */
+function key(projectId: string | null | undefined): string {
+  return projectId ?? "none";
+}
 
 /** The listeners are the screens deciding what to render. */
 const listeners = new Set<() => void>();
 
-export function isCodingSessionActive(): boolean {
-  return active;
+/**
+ * Whether a pass is under way OVER THIS STUDY.
+ *
+ * Asking without a study answers about any pass at all, which is what the
+ * `endCodingSession` side needs and nothing else should use.
+ */
+export function isCodingSessionActive(
+  projectId?: string | null | undefined,
+): boolean {
+  if (activeStudy === null) return false;
+  return projectId === undefined ? true : activeStudy === key(projectId);
 }
 
-export function startCodingSession(): void {
-  if (active) return;
-  active = true;
+export function startCodingSession(projectId?: string | null): void {
+  const next = key(projectId);
+  if (activeStudy === next) return;
+  activeStudy = next;
   for (const listener of listeners) listener();
 }
 
 export function endCodingSession(): void {
-  if (!active) return;
-  active = false;
+  if (activeStudy === null) return;
+  activeStudy = null;
   for (const listener of listeners) listener();
 }
 

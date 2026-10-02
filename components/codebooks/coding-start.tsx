@@ -2,6 +2,7 @@
 
 import { useCodebookModal } from "@/components/codebooks/codebook-editor-dialog";
 import { CodeDot } from "@/components/codebooks/coding-menu";
+import { GuideCallout } from "@/components/guidance/guide-callout";
 import { useTranslations } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -82,17 +83,22 @@ export function CodingStart({
       </header>
 
       {available.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-8 text-center">
-          <BookMarkedIcon className="mx-auto mb-3 size-6 text-muted-foreground" />
-          <p className="mb-1 font-medium">{t("empty.title")}</p>
-          <p className="mb-4 text-sm text-muted-foreground">
-            {t("empty.description")}
-          </p>
-          <Button onClick={() => openCreate(projectId, "verbatim")}>
-            <PlusIcon className="size-4" />
-            {t("create")}
-          </Button>
-        </div>
+        /* The same callout the study's coding workshop shows, from the same
+           component, because it is the same dead end reached from two directions
+           — and this is the better place to reach it from. Entering the coding
+           phase on a study with no verbatim grille used to land on the coding
+           bar, whose only word on the subject was "no codebook covers this study
+           yet": a statement, in the one screen that exists to offer making one. */
+        <GuideCallout
+          icon={<BookMarkedIcon className="h-5 w-5" />}
+          title={t("empty.title")}
+          description={t("empty.description")}
+          action={{
+            label: t("create"),
+            onClick: () => openCreate(projectId, "verbatim"),
+            icon: <PlusIcon className="h-4 w-4" />,
+          }}
+        />
       ) : (
         <div className="space-y-2">
           {available.map((codebook) => (

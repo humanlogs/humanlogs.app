@@ -99,28 +99,58 @@ describe("workspaceAreaOf", () => {
 });
 
 /**
- * The rule is "once per PASS, not once per document": eleven interviews read
- * through the same grille must ask once. Module state, deliberately, so it
- * survives navigation between documents and does not survive a reload.
+ * The rule is "once per PASS, not once per document" — and a pass is over a
+ * CORPUS, so it is also "once per study". The grilles on offer, the one chosen
+ * and whether there is one at all are all per study, so a pass carried across
+ * studies skipped the question on a study that had no grille at all and landed on
+ * a coding bar whose only word on the subject was that there was none.
+ *
+ * Module state, deliberately, so it survives navigation between documents of one
+ * study and does not survive a reload.
  */
 describe("the coding session", () => {
+  const STUDY = "study-1";
+  const OTHER = "study-2";
+
   it("starts inactive, so an interview opened cold asks", () => {
     endCodingSession();
-    expect(isCodingSessionActive()).toBe(false);
+    expect(isCodingSessionActive(STUDY)).toBe(false);
   });
 
-  it("stays active across documents once a pass has started", () => {
+  it("stays active across the documents of the same study", () => {
     endCodingSession();
-    startCodingSession();
-    expect(isCodingSessionActive()).toBe(true);
-    // Nothing between two documents ends it — only leaving the coding space.
-    expect(isCodingSessionActive()).toBe(true);
+    startCodingSession(STUDY);
+    expect(isCodingSessionActive(STUDY)).toBe(true);
+    // Nothing between two documents of that study ends it.
+    expect(isCodingSessionActive(STUDY)).toBe(true);
+  });
+
+  it("asks again in another study, which may have another grille or none", () => {
+    endCodingSession();
+    startCodingSession(STUDY);
+    expect(isCodingSessionActive(OTHER)).toBe(false);
+  });
+
+  it("moves with the reader rather than keeping the first study", () => {
+    endCodingSession();
+    startCodingSession(STUDY);
+    startCodingSession(OTHER);
+    expect(isCodingSessionActive(OTHER)).toBe(true);
+    expect(isCodingSessionActive(STUDY)).toBe(false);
+  });
+
+  it("treats the documents filed in no study as a scope of their own", () => {
+    endCodingSession();
+    startCodingSession(null);
+    expect(isCodingSessionActive(null)).toBe(true);
+    expect(isCodingSessionActive(undefined)).toBe(true);
+    expect(isCodingSessionActive(STUDY)).toBe(false);
   });
 
   it("ends when the app leaves coding", () => {
-    startCodingSession();
+    startCodingSession(STUDY);
     endCodingSession();
-    expect(isCodingSessionActive()).toBe(false);
+    expect(isCodingSessionActive(STUDY)).toBe(false);
   });
 
   it("tells the screens, and only on a real change", () => {
@@ -128,26 +158,29 @@ describe("the coding session", () => {
     let calls = 0;
     const stop = subscribeCodingSession(() => calls++);
 
-    startCodingSession();
+    startCodingSession(STUDY);
     expect(calls).toBe(1);
     // Starting twice is what two mounts of the same editor would do; it must not
     // re-render every screen a second time.
-    startCodingSession();
+    startCodingSession(STUDY);
     expect(calls).toBe(1);
+    // Moving to another study IS a change.
+    startCodingSession(OTHER);
+    expect(calls).toBe(2);
 
     endCodingSession();
-    expect(calls).toBe(2);
+    expect(calls).toBe(3);
     endCodingSession();
-    expect(calls).toBe(2);
+    expect(calls).toBe(3);
 
     stop();
-    startCodingSession();
-    expect(calls).toBe(2);
+    startCodingSession(STUDY);
+    expect(calls).toBe(3);
     endCodingSession();
   });
 
   it("reads as inactive on the server, so the question is always rendered", () => {
-    startCodingSession();
+    startCodingSession(STUDY);
     expect(codingSessionServerSnapshot()).toBe(false);
     endCodingSession();
   });

@@ -43,16 +43,19 @@ export function TranscriptionEditor({
    * A coding pass is under way, so this document goes straight into the editor.
    *
    * Otherwise the grille has not been chosen and the start screen asks — once per
-   * pass, not once per document (`lib/documents/coding-session.ts`).
+   * pass, not once per document (`lib/documents/coding-session.ts`). Per STUDY,
+   * because that is what a pass is over: the grilles on offer, the one chosen and
+   * whether there is one at all are all per study.
    *
    * The gate is HERE, above the editor, rather than inside it. Inside, the editor
    * was still constructed behind the screen and its effects measured a document
    * that had never been mounted — which TipTap answers by throwing from
    * `editor.view`. Not building it also spares a Yjs connection nobody is using.
    */
+  const study = transcription.projectId;
   const codingStarted = useSyncExternalStore(
     subscribeCodingSession,
-    isCodingSessionActive,
+    () => isCodingSessionActive(study),
     codingSessionServerSnapshot,
   );
 
@@ -76,7 +79,7 @@ export function TranscriptionEditor({
         textLength={transcription.textLength}
         onChoose={(codebookId) => {
           writeCodingCodebook(transcription.projectId, codebookId);
-          startCodingSession();
+          startCodingSession(transcription.projectId);
         }}
       />
     );
