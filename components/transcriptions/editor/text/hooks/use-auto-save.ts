@@ -1,7 +1,6 @@
 "use client";
 
 import { useSaveTranscription } from "@/hooks/use-transcriptions";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   MutableRefObject,
   useCallback,
@@ -46,7 +45,6 @@ export function useAutoSave({
   const performSaveRef = useRef<
     (isManual?: boolean, forceSave?: boolean) => Promise<void>
   >(async () => {});
-  const queryClient = useQueryClient();
   const saveTranscription = useSaveTranscription(
     transcriptionId,
     sessionAesKey,
@@ -87,17 +85,9 @@ export function useAutoSave({
         speakers: editorAPI.getSpeakers(),
       });
 
-      // Mark the cached copy stale so coming back to this document later reloads
-      // it — but do NOT refetch now. We are the ones who just wrote it, so the
-      // answer would be what we sent, and query keys match by PREFIX: this key
-      // covers the participants and the thread subscriptions too, so every save
-      // was pulling three unrelated lists down the wire. On a coding pass, where a
-      // save follows every code, that is the whole network tab.
-      await queryClient.invalidateQueries({
-        queryKey: ["transcriptions", transcriptionId],
-        exact: true,
-        refetchType: "none",
-      });
+      // What the save does to the cache lives with the mutation
+      // (`useSaveTranscription`), not here: a second invalidate at this level was
+      // silently undone by the one inside it, which matched by prefix.
 
       lastSavedRef.current = currentState;
       lastSaveTimestampRef.current = Date.now();

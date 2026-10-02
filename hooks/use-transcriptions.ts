@@ -531,12 +531,31 @@ export function useSaveTranscription(
       return responseData;
     },
     onSuccess: (data) => {
-      // Invalidate and refetch transcription queries
+      /**
+       * Two keys, and `exact` on both, because TanStack matches by PREFIX.
+       *
+       * `["transcriptions"]` on its own matches the list AND every document's
+       * detail AND `["transcriptions", <id>, "participants"]` AND
+       * `["transcriptions", <id>, "subscriptions"]` — so a plain invalidate here
+       * refetched all of those, for every document the session has open, on
+       * every save. During a coding pass a save follows every code applied, once
+       * a second or so, and the transcript is the largest payload in the app.
+       */
+      // The document itself: mark it stale so a later visit reloads it, but do
+      // not refetch now. We are the ones who just wrote it, so the answer would
+      // be what we sent.
       queryClient.invalidateQueries({
         queryKey: ["transcriptions", transcriptionId],
+        exact: true,
+        refetchType: "none",
       });
+      // The list DOES come back: it orders the sidebar by `updatedAt`, the query
+      // client does not refetch on window focus (it leaves that to the socket),
+      // and the save route deliberately does not notify the author of a
+      // content-only write. Nothing else would ever bring it up to date.
       queryClient.invalidateQueries({
         queryKey: ["transcriptions"],
+        exact: true,
       });
       return data;
     },
