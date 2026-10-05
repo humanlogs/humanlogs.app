@@ -2,6 +2,8 @@ _Dernière compilation : 2026-10-01 · 36 articles publiés · ⚠️ DataForSEO
 
 ## Résumé des chiffres et analyse
 
+- **05/10 : 1 nouvel article** (`analyse-de-contenu-entretien.md`, 15ᵉ du pillar `recherche-qualitative`). Pick automatique encore `transcription audio en texte` (0 candidat, volume 0, aucun PAA ; DataForSEO/Reddit/GSC toujours en panne), écarté. Angle repris du rapport du 01/10 : grille de catégories, unité d'analyse/comptage, fiabilité (kappa de Cohen), distinct de l'analyse thématique. Maillage depuis `analyse-thematique-entretien.md`. Prochain angle possible : `analyse verbatim`.
+
 **Production de contenu**
 - **01/10 : 1 nouvel article** (`analyse-thematique-entretien.md`, 14ᵉ du pillar `recherche-qualitative`). Le pick automatique est encore `transcription audio en texte` (0 candidat, volume 0, aucun PAA), écarté (19ᵉ collision consécutive). Angle choisi manuellement : passage des codes aux thèmes (Braun et Clarke), tableau de thèmes, rédaction avec verbatims ; jusque-là l'analyse thématique n'était qu'une sous-section de `analyse-qualitative.md`. Maillage ajouté depuis `codification-entretien.md`. Prochain angle possible : `analyse de contenu` ou `analyse verbatim`.
 - **29/09 : 1 nouvel article** (`codification-entretien.md`, 13ᵉ du pillar `recherche-qualitative`). Le pick automatique est encore `transcription audio en texte` (0 candidat, DataForSEO en HTTP 402 sur les 40 seeds, 4ᵉ run consécutif ; Reddit 0 post ; GSC toujours en `deleted_client`), écarté (18ᵉ collision consécutive). Sélection manuelle de l'angle `codification entretien`, piste déjà notée dans les stratégies prévues : le codage n'était traité qu'en sous-section dans `analyse-qualitative.md`. Maillage ajouté depuis `analyse-qualitative.md`.
@@ -16,6 +18,7 @@ _Dernière compilation : 2026-10-01 · 36 articles publiés · ⚠️ DataForSEO
 
 | Date | Keyword | Vol/mo | KD | Score | Pillar | Article |
 |---|---|---|---|---|---|---|
+| 2026-10-05 | analyse de contenu entretien (manuel, pick auto `transcription audio en texte` écarté) | 0 | Oui |
 | 2026-09-29 | codification entretien | — (hors scoring DataForSEO, panne de paiement, sélection manuelle) | — | — | recherche-qualitative | [codification-entretien](/fr/blog/codification-entretien) |
 | 2026-09-25 | mémoire de master recherche qualitative | — (hors scoring DataForSEO, panne de paiement, sélection manuelle) | — | — | these-master | [memoire-master-recherche-qualitative](/fr/blog/memoire-master-recherche-qualitative) |
 | 2026-09-21 | méthodologie de thèse qualitative | — (hors scoring DataForSEO, panne de paiement, sélection manuelle) | — | — | these-master | [methodologie-these-qualitative](/fr/blog/methodologie-these-qualitative) |

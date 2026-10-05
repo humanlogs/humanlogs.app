@@ -37,7 +37,7 @@ Les deux méthodes codent des textes, mais elles ne visent pas la même chose.
 | Grille de départ | Souvent construite au fil de la lecture | Parfois définie à l'avance |
 | Rendu | Récit organisé par thèmes, illustré de verbatims | Catégories et effectifs |
 
-Dans la pratique, les frontières se recoupent. L'important est de nommer la méthode que vous utilisez et de la justifier dans votre chapitre de méthode.
+Pour le détail de la seconde, voir notre guide sur l'[analyse de contenu d'entretien](/fr/blog/analyse-de-contenu-entretien). Dans la pratique, les frontières se recoupent. L'important est de nommer la méthode que vous utilisez et de la justifier dans votre chapitre de méthode.
 
 ## De la transcription aux thèmes, étape par étape
 
