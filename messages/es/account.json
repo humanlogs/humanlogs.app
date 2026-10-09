@@ -320,6 +320,13 @@
             "summary": "Documentos indexados: {count} · Pasajes codificados: {phrases}. Borrarlos solo implica volver a sincronizar en la próxima visita.",
             "empty": "Todavía no hay nada guardado en este dispositivo.",
             "forget": "Olvidar este dispositivo"
+        },
+        "collaborators": {
+            "title": "Colaboradores",
+            "description": "Las personas con las que compartes documentos, en un sentido u otro. El diálogo de compartir te las sugiere al escribir.",
+            "empty": "Todavía no compartes ningún documento.",
+            "documentsOne": "1 documento compartido",
+            "documentsOther": "{count} documentos compartidos"
         }
     }
 }

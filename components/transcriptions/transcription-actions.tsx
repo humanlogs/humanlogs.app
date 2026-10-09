@@ -487,6 +487,7 @@ export function TranscriptionActions({
           size="icon-sm"
           onClick={() => openShare(transcriptionId, shared, isOwner)}
           className="relative"
+          aria-label={t("share.title")}
         >
           <Users2Icon className="h-4 w-4" />
           {shared && shared.length > 0 && (

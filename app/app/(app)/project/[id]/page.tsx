@@ -7,6 +7,7 @@ import { useExcerptPanelContext } from "@/components/codebooks/excerpts/excerpt-
 import { useTranslations } from "@/components/locale-provider";
 import { PageLayout } from "@/components/page-layout";
 import { ProjectBadge } from "@/components/projects/project-badge";
+import { StudySharingSummary } from "@/components/projects/study-sharing-summary";
 import { DocumentList } from "@/components/transcriptions/document-list";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -141,6 +142,9 @@ export default function StudyPage() {
       {betaFeatures && documents.length > 0 && (
         <CodebookSection projectId={projectId} />
       )}
+
+      {/* Who has access to what — only once something here is shared. */}
+      <StudySharingSummary documents={documents} />
     </PageLayout>
   );
 }

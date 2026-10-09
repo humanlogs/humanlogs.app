@@ -2,6 +2,7 @@
 
 import { useTranslations } from "@/components/locale-provider";
 import { PageLayout } from "@/components/page-layout";
+import { CollaboratorsCard } from "@/components/sharing/collaborators-card";
 import {
   Card,
   CardContent,
@@ -318,6 +319,8 @@ ${includeAudio ? "- **audio file**: Original audio file (decrypted if it was enc
             </Button>
           </CardContent>
         </Card>
+
+        <CollaboratorsCard />
 
         {/* Referral Section */}
         <Card>

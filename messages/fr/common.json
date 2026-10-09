@@ -452,7 +452,14 @@
       "description": "Cette étude n'existe pas ou vous n'y avez plus accès.",
       "back": "Retour à l'accueil"
     },
-    "settings": "Paramètres"
+    "settings": "Paramètres",
+    "sharing": {
+      "title": "Partagée avec ({count})",
+      "allDocuments": "Tous les documents",
+      "someDocumentsOne": "1 document sur {total}",
+      "someDocumentsOther": "{count} documents sur {total}",
+      "unknownUser": "Utilisateur inconnu"
+    }
   },
   "notifications": {
     "title": "Notifications",
