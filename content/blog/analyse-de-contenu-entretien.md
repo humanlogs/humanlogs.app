@@ -80,7 +80,7 @@ Quelques précautions :
 
 - avec un petit échantillon d'entretiens, les chiffres décrivent **votre corpus**, pas une population : évitez les pourcentages qui laissent croire le contraire ;
 - une catégorie rare n'est pas forcément secondaire : un propos unique peut éclairer un mécanisme important ;
-- revenez toujours aux extraits : un effectif sans verbatim ne dit pas ce que les participants entendent par là.
+- revenez toujours aux extraits : un effectif sans verbatim ne dit pas ce que les participants entendent par là (voir notre méthode d'[analyse de verbatim](/fr/blog/analyse-verbatim)).
 
 ## Vérifier la fiabilité du codage
 

@@ -1,7 +1,8 @@
-_Dernière compilation : 2026-10-01 · 36 articles publiés · ⚠️ DataForSEO **toujours en panne de paiement** (HTTP 402, cinquième run consécutif à pool vide) · GSC **toujours cassé** (`deleted_client`, 20ᵉ run) · Reddit **toujours bloqué** (0 post)._
+_Dernière compilation : 2026-10-09 · 37 articles publiés · ⚠️ DataForSEO **toujours en panne de paiement** (HTTP 402, sixième run consécutif à pool vide) · GSC **toujours cassé** (`deleted_client`, 20ᵉ run) · Reddit **toujours bloqué** (0 post)._
 
 ## Résumé des chiffres et analyse
 
+- **09/10 : 1 nouvel article** (`analyse-verbatim.md`, 16ᵉ du pillar `recherche-qualitative`). Pick automatique encore `transcription audio en texte` (0 candidat, volume 0, aucun PAA ; Reddit 0 post), écarté. Angle repris du rapport du 05/10 : exploiter le verbatim (préparer, lire, découper, coder, choisir et présenter les citations), distinct de la production du verbatim (`retranscrire-entretien-semi-directif-guide-doctorants.md`). Maillage vers codification, analyse thématique et analyse de contenu. Pillar `recherche-qualitative` désormais très dense : prochains angles à chercher hors de l'analyse (recueil de données, entretien en ligne).
 - **05/10 : 1 nouvel article** (`analyse-de-contenu-entretien.md`, 15ᵉ du pillar `recherche-qualitative`). Pick automatique encore `transcription audio en texte` (0 candidat, volume 0, aucun PAA ; DataForSEO/Reddit/GSC toujours en panne), écarté. Angle repris du rapport du 01/10 : grille de catégories, unité d'analyse/comptage, fiabilité (kappa de Cohen), distinct de l'analyse thématique. Maillage depuis `analyse-thematique-entretien.md`. Prochain angle possible : `analyse verbatim`.
 
 **Production de contenu**
@@ -18,7 +19,8 @@ _Dernière compilation : 2026-10-01 · 36 articles publiés · ⚠️ DataForSEO
 
 | Date | Keyword | Vol/mo | KD | Score | Pillar | Article |
 |---|---|---|---|---|---|---|
-| 2026-10-05 | analyse de contenu entretien (manuel, pick auto `transcription audio en texte` écarté) | 0 | Oui |
+| 2026-10-09 | analyse verbatim | — (hors scoring DataForSEO, panne de paiement, sélection manuelle) | — | — | recherche-qualitative | [analyse-verbatim](/fr/blog/analyse-verbatim) |
+| 2026-10-05 | analyse de contenu entretien | — (hors scoring DataForSEO, panne de paiement, sélection manuelle) | — | — | recherche-qualitative | [analyse-de-contenu-entretien](/fr/blog/analyse-de-contenu-entretien) |
 | 2026-09-29 | codification entretien | — (hors scoring DataForSEO, panne de paiement, sélection manuelle) | — | — | recherche-qualitative | [codification-entretien](/fr/blog/codification-entretien) |
 | 2026-09-25 | mémoire de master recherche qualitative | — (hors scoring DataForSEO, panne de paiement, sélection manuelle) | — | — | these-master | [memoire-master-recherche-qualitative](/fr/blog/memoire-master-recherche-qualitative) |
 | 2026-09-21 | méthodologie de thèse qualitative | — (hors scoring DataForSEO, panne de paiement, sélection manuelle) | — | — | these-master | [methodologie-these-qualitative](/fr/blog/methodologie-these-qualitative) |
@@ -157,6 +159,7 @@ Pistes complémentaires :
 
 | Date | Keyword sélectionné | Score | Publié ? |
 |---|---|---|---|
+| 2026-10-09 | analyse verbatim (manuel, pick auto `transcription audio en texte` écarté) | 0 | Oui |
 | 2026-09-29 | codification entretien (manuel, pick auto `transcription audio en texte` écarté) | 0 | Oui |
 | 2026-09-25 | mémoire de master recherche qualitative (pick automatique écarté : "transcription audio en texte", identique mot pour mot aux picks écartés le 17/09 et le 21/09 — pool DataForSEO toujours à 0 candidat, panne de paiement HTTP 402 toujours active, troisième run consécutif ; cannibalisait toujours `transcription-automatique.md`/`logiciel-de-transcription.md`/`retranscrire-audio.md`/`transcribe-audio-to-text-free-online.md` ; 17ᵉ collision consécutive depuis le 21/07, 8ᵉ sur le pillar `transcription`. Sujet choisi manuellement en reprenant l'angle « mémoire vs thèse » du seed `master recherche these`, déjà identifié comme prochaine piste du pillar `these-master` dans le rapport du 21/09 — deuxième article du pillar consacré au calendrier et au dimensionnement d'un mémoire de master, publié à la place) | — (hors scoring DataForSEO, pool vide, sélection manuelle) | Oui |
 | 2026-09-21 | méthodologie de thèse qualitative (pick automatique écarté : "transcription audio en texte", identique mot pour mot au pick écarté le 17/09 — pool DataForSEO toujours à 0 candidat, panne de paiement HTTP 402 toujours active, deuxième run consécutif ; cannibalisait toujours `transcription-automatique.md`/`logiciel-de-transcription.md`/`retranscrire-audio.md`/`transcribe-audio-to-text-free-online.md` ; 16ᵉ collision consécutive depuis le 21/07, 7ᵉ sur le pillar `transcription`. Sujet choisi manuellement en repérant `these-master` comme pillar sous-exploité (1 seul article en 8 mois) dans `pipeline/seeds/fr.json` — premier article du pillar consacré à la rédaction du chapitre méthodologie lui-même, publié à la place) | — (hors scoring DataForSEO, pool vide, sélection manuelle) | Oui |
