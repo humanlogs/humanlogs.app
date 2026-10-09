@@ -793,6 +793,32 @@ export function useRevertTranscription(transcriptionId: string) {
   });
 }
 
+export type ShareContact = {
+  id: string;
+  name: string | null;
+  email: string;
+  picture: string | null;
+};
+
+/**
+ * People you already share documents with, most recent first — what the share
+ * dialog suggests. Never a search over all users: see `findShareContacts`.
+ */
+export function useShareContacts(enabled = true) {
+  return useQuery({
+    queryKey: ["share-contacts"],
+    enabled,
+    queryFn: async (): Promise<ShareContact[]> => {
+      const response = await fetchGateway("/api/user/contacts");
+      if (!response.ok) throw new Error("Failed to fetch contacts");
+      const { contacts } = (await response.json()) as {
+        contacts: ShareContact[];
+      };
+      return contacts;
+    },
+  });
+}
+
 // Share transcription mutation
 export function useShareTranscription(transcriptionId: string) {
   const queryClient = useQueryClient();
@@ -825,6 +851,7 @@ export function useShareTranscription(transcriptionId: string) {
       queryClient.invalidateQueries({
         queryKey: ["transcriptions"],
       });
+      queryClient.invalidateQueries({ queryKey: ["share-contacts"] });
     },
   });
 }

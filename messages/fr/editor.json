@@ -122,6 +122,7 @@
             "sharedBy": "Partagé par",
             "description": "Ajoutez des personnes pour collaborer sur cette transcription",
             "enterEmail": "Entrez une adresse e-mail pour partager",
+            "suggestions": "Personnes avec qui vous partagez déjà",
             "add": "Ajouter",
             "loading": "Chargement...",
             "unknownUser": "Utilisateur inconnu",

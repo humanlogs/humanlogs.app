@@ -150,3 +150,39 @@ export async function findAccessibleDocumentStamps(
   `;
   return rows;
 }
+
+/**
+ * The people `userId` already shares documents with, most recent first: the
+ * owner and every collaborator of each document they own or were given.
+ *
+ * This is what the share dialog may suggest. There is deliberately no search
+ * over all users — an email address is not something one researcher gets to
+ * look up about another — but everyone returned here is someone `userId` can
+ * already see in a document's participant list, so suggesting them discloses
+ * nothing new.
+ */
+export async function findShareContacts(
+  userId: string,
+  limit = 200,
+): Promise<Array<{ userId: string; lastSharedAt: Date }>> {
+  const mine = Prisma.sql`${JSON.stringify([{ userId }])}::jsonb`;
+  return prisma.$queryRaw<Array<{ userId: string; lastSharedAt: Date }>>`
+    WITH docs AS (
+      SELECT "userId", "shared", "updatedAt" FROM "Transcription"
+      WHERE "shared" IS NOT NULL
+        AND jsonb_typeof("shared"::jsonb) = 'array'
+        AND ("userId" = ${userId} OR "shared"::jsonb @> ${mine})
+    ),
+    people AS (
+      SELECT "userId" AS uid, "updatedAt" FROM docs
+      UNION ALL
+      SELECT entry->>'userId' AS uid, docs."updatedAt"
+      FROM docs, jsonb_array_elements(docs."shared"::jsonb) AS entry
+    )
+    SELECT uid AS "userId", MAX("updatedAt") AS "lastSharedAt" FROM people
+    WHERE uid IS NOT NULL AND uid <> ${userId}
+    GROUP BY uid
+    ORDER BY MAX("updatedAt") DESC
+    LIMIT ${limit}
+  `;
+}

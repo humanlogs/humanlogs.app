@@ -10,11 +10,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { useShareCodebooksForStudy } from "@/hooks/use-codebooks";
 import { useEncryptionStatus } from "@/hooks/use-encryption";
 import {
   SharedUser,
   useRemoveShare,
+  useShareContacts,
   useShareTranscription,
   useTranscription,
   useTransferOwnership,
@@ -94,17 +96,46 @@ export function TranscriptionShareDialog() {
   );
   const [userCache, setUserCache] = useState<Map<string, UserInfo>>(new Map());
   const [loadingUsers, setLoadingUsers] = useState<Set<string>>(new Set());
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [highlighted, setHighlighted] = useState(0);
 
   const shareCodebooks = useShareCodebooksForStudy();
   const shareMutation = useShareTranscription(transcriptionId);
   const removeMutation = useRemoveShare(transcriptionId);
   const transferOwnershipMutation = useTransferOwnership(transcriptionId);
+  const { data: contacts = [] } = useShareContacts(isOpen && isOwner);
+
+  // People you already share other documents with, minus those already on this
+  // one. Only these are ever suggested: there is no lookup over all users.
+  const query = newEmail.trim().toLowerCase();
+  const alreadyShared = new Set(shared.map((s) => s.userId));
+  const suggestions = emailFocused
+    ? contacts
+        .filter((c) => !alreadyShared.has(c.id))
+        .filter(
+          (c) =>
+            !query ||
+            c.email.toLowerCase().includes(query) ||
+            (c.name ?? "").toLowerCase().includes(query),
+        )
+        .slice(0, 6)
+    : [];
+  // Once the field holds a suggestion's exact address there is nothing to pick.
+  const pickerOpen =
+    suggestions.length > 0 &&
+    !(suggestions.length === 1 && suggestions[0].email.toLowerCase() === query);
+
+  const pickContact = (email: string) => {
+    setNewEmail(email);
+    setHighlighted(0);
+  };
 
   // Clear form when dialog closes
   useEffect(() => {
     if (!isOpen) {
       setNewEmail("");
       setNewRole("read");
+      setHighlighted(0);
     }
   }, [isOpen]);
 
@@ -466,44 +497,115 @@ export function TranscriptionShareDialog() {
 
             {/* Add new share */}
             {isOwner && (
-              <div className="flex gap-2 items-center">
-                <Input
-                  placeholder={t("share.enterEmail")}
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAddShare();
+              <div className="space-y-1">
+                <div className="flex gap-2 items-center">
+                  <Input
+                    placeholder={t("share.enterEmail")}
+                    value={newEmail}
+                    onChange={(e) => {
+                      setNewEmail(e.target.value);
+                      setHighlighted(0);
+                    }}
+                    onFocus={() => setEmailFocused(true)}
+                    onBlur={() => setEmailFocused(false)}
+                    onKeyDown={(e) => {
+                      if (pickerOpen) {
+                        if (e.key === "ArrowDown") {
+                          e.preventDefault();
+                          setHighlighted((h) => (h + 1) % suggestions.length);
+                          return;
+                        }
+                        if (e.key === "ArrowUp") {
+                          e.preventDefault();
+                          setHighlighted(
+                            (h) =>
+                              (h - 1 + suggestions.length) % suggestions.length,
+                          );
+                          return;
+                        }
+                        if (e.key === "Enter" || e.key === "Tab") {
+                          e.preventDefault();
+                          pickContact(
+                            suggestions[
+                              Math.min(highlighted, suggestions.length - 1)
+                            ].email,
+                          );
+                          return;
+                        }
+                      }
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddShare();
+                      }
+                    }}
+                    role="combobox"
+                    aria-expanded={pickerOpen}
+                    aria-autocomplete="list"
+                    autoComplete="off"
+                    disabled={shareMutation.isPending}
+                    className="grow"
+                  />
+                  <Select
+                    value={newRole}
+                    onChange={(value: string) =>
+                      setNewRole(value as "read" | "read+listen" | "write")
                     }
-                  }}
-                  disabled={shareMutation.isPending}
-                  className="grow"
-                />
-                <Select
-                  value={newRole}
-                  onChange={(value: string) =>
-                    setNewRole(value as "read" | "read+listen" | "write")
-                  }
-                  disabled={shareMutation.isPending}
-                  options={addRoleOptions}
-                  className="w-min"
-                  size="sm"
-                />
-                <Button
-                  size="default"
-                  onClick={handleAddShare}
-                  disabled={shareMutation.isPending || !newEmail.trim()}
-                >
-                  {shareMutation.isPending ? (
-                    <Loader2Icon className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <PlusIcon className="h-4 w-4" />
-                      {t("share.add")}
-                    </>
-                  )}
-                </Button>
+                    disabled={shareMutation.isPending}
+                    options={addRoleOptions}
+                    className="w-min"
+                    size="sm"
+                  />
+                  <Button
+                    size="default"
+                    onClick={handleAddShare}
+                    disabled={shareMutation.isPending || !newEmail.trim()}
+                  >
+                    {shareMutation.isPending ? (
+                      <Loader2Icon className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <PlusIcon className="h-4 w-4" />
+                        {t("share.add")}
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* Inline rather than floating: the dialog scrolls, and would clip it. */}
+                {pickerOpen && (
+                  <div role="listbox" className="rounded-lg border p-1">
+                    <div className="text-muted-foreground px-2 pt-1 pb-1.5 text-xs">
+                      {t("share.suggestions")}
+                    </div>
+                    {suggestions.map((c, i) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        role="option"
+                        aria-selected={i === highlighted}
+                        // The field must keep focus, so act on mousedown and swallow the blur.
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          pickContact(c.email);
+                        }}
+                        onMouseEnter={() => setHighlighted(i)}
+                        className={`flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left ${
+                          i === highlighted ? "bg-muted text-foreground" : ""
+                        }`}
+                      >
+                        <UserAvatar size="sm" user={c} />
+                        <span className="min-w-0 flex-1 truncate text-sm">
+                          {c.name || c.email}
+                        </span>
+                        {c.name && (
+                          <span className="text-muted-foreground min-w-0 truncate text-xs">
+                            {c.email}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
