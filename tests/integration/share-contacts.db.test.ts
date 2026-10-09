@@ -140,6 +140,28 @@ describe("findShareContacts", () => {
     expect(await contactsOf(me.id)).toEqual([recent.id, old.id]);
   });
 
+  it("counts the documents shared with each person, as a plain number", async () => {
+    const me = await makeUser();
+    const guest = await makeUser();
+    const host = await makeUser();
+
+    await makeDocument(me.id, [{ userId: guest.id, role: "read" }]);
+    await makeDocument(me.id, [{ userId: guest.id, role: "write" }]);
+    await makeDocument(host.id, [
+      { userId: me.id, role: "read" },
+      { userId: guest.id, role: "read" },
+    ]);
+
+    const counts = Object.fromEntries(
+      (await access.findShareContacts(me.id)).map((c) => [
+        c.userId,
+        c.documents,
+      ]),
+    );
+    // A bigint here would fail to serialise in the route's JSON response.
+    expect(counts).toEqual({ [guest.id]: 3, [host.id]: 1 });
+  });
+
   it("tolerates a malformed shared value instead of failing the query", async () => {
     const me = await makeUser();
     const guest = await makeUser();

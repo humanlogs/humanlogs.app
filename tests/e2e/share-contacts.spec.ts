@@ -5,6 +5,7 @@ import {
   openEditor,
   shareTranscription,
   signIn,
+  testPrisma,
 } from "./fixtures";
 
 /**
@@ -57,4 +58,51 @@ test("the share dialog suggests people you already share with", async ({
   // Already on this document: no longer offered.
   await field.focus();
   await expect(suggestions).toBeHidden();
+});
+
+test("the account page lists collaborators and the study recaps who has what", async ({
+  browser,
+  request,
+}) => {
+  const owner = await createUser(request, "Lead");
+  const colleague = await createUser(request, "Analyst");
+
+  const page = await signIn(browser, owner);
+  const study = await testPrisma().project.create({
+    data: { userId: owner.id, name: "Fieldwork" },
+  });
+  const ids: string[] = [];
+  for (const title of ["Interview A", "Interview B"]) {
+    const id = await createTranscription(page.request, {
+      title,
+      text: "Bonjour.",
+    });
+    await testPrisma().transcription.update({
+      where: { id },
+      data: { projectId: study.id },
+    });
+    ids.push(id);
+  }
+
+  // Nothing shared yet: no recap at the bottom of the study.
+  await page.goto(`/app/project/${study.id}`);
+  await expect(
+    page.getByRole("link", { name: /Interview A/ }).first(),
+  ).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId("study-sharing-summary")).toHaveCount(0);
+
+  await shareTranscription(page.request, ids[0], colleague.email, "read");
+
+  await page.reload();
+  const recap = page.getByTestId("study-sharing-summary");
+  await expect(recap).toContainText(colleague.email, { timeout: 30_000 });
+  await expect(recap).toContainText("1 of 2 documents");
+  await expect(recap).toContainText("Interview A");
+
+  await page.goto("/app/account");
+  await expect(page.getByText("Collaborators", { exact: true })).toBeVisible({
+    timeout: 60_000,
+  });
+  await expect(page.getByText(colleague.email)).toBeVisible();
+  await expect(page.getByText("1 shared document")).toBeVisible();
 });

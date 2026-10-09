@@ -798,6 +798,8 @@ export type ShareContact = {
   name: string | null;
   email: string;
   picture: string | null;
+  /** Documents you and this person both have access to. */
+  documents: number;
 };
 
 /**

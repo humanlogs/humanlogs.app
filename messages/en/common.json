@@ -452,7 +452,14 @@
       "description": "This study doesn't exist or you no longer have access to it.",
       "back": "Back to home"
     },
-    "settings": "Settings"
+    "settings": "Settings",
+    "sharing": {
+      "title": "Shared with ({count})",
+      "allDocuments": "All documents",
+      "someDocumentsOne": "1 of {total} documents",
+      "someDocumentsOther": "{count} of {total} documents",
+      "unknownUser": "Unknown user"
+    }
   },
   "notifications": {
     "title": "Notifications",

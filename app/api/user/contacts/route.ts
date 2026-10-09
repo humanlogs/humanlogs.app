@@ -25,7 +25,7 @@ export const GET = withAuthRateLimit(async (_request, user) => {
       // A share can outlive its user (account deleted): drop those.
       contacts: contacts.flatMap((c) => {
         const u = byId.get(c.userId);
-        return u ? [u] : [];
+        return u ? [{ ...u, documents: c.documents }] : [];
       }),
     });
   } catch (error) {

@@ -320,6 +320,13 @@
             "summary": "Documents indexés : {count} · Passages codés : {phrases}. Les supprimer implique simplement une resynchronisation à la prochaine visite.",
             "empty": "Rien n’est encore stocké sur cet appareil.",
             "forget": "Oublier cet appareil"
+        },
+        "collaborators": {
+            "title": "Collaborateurs",
+            "description": "Les personnes avec qui vous partagez des documents, dans un sens ou dans l'autre. La fenêtre de partage vous les propose à la saisie.",
+            "empty": "Vous ne partagez encore aucun document.",
+            "documentsOne": "1 document partagé",
+            "documentsOther": "{count} documents partagés"
         }
     }
 }

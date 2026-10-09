@@ -164,25 +164,39 @@ export async function findAccessibleDocumentStamps(
 export async function findShareContacts(
   userId: string,
   limit = 200,
-): Promise<Array<{ userId: string; lastSharedAt: Date }>> {
+): Promise<ShareContactRow[]> {
   const mine = Prisma.sql`${JSON.stringify([{ userId }])}::jsonb`;
-  return prisma.$queryRaw<Array<{ userId: string; lastSharedAt: Date }>>`
+  const rows = await prisma.$queryRaw<
+    Array<{ userId: string; lastSharedAt: Date; documents: bigint | number }>
+  >`
     WITH docs AS (
-      SELECT "userId", "shared", "updatedAt" FROM "Transcription"
+      SELECT "id", "userId", "shared", "updatedAt" FROM "Transcription"
       WHERE "shared" IS NOT NULL
         AND jsonb_typeof("shared"::jsonb) = 'array'
         AND ("userId" = ${userId} OR "shared"::jsonb @> ${mine})
     ),
     people AS (
-      SELECT "userId" AS uid, "updatedAt" FROM docs
+      SELECT "userId" AS uid, "id", "updatedAt" FROM docs
       UNION ALL
-      SELECT entry->>'userId' AS uid, docs."updatedAt"
+      SELECT entry->>'userId' AS uid, docs."id", docs."updatedAt"
       FROM docs, jsonb_array_elements(docs."shared"::jsonb) AS entry
     )
-    SELECT uid AS "userId", MAX("updatedAt") AS "lastSharedAt" FROM people
+    SELECT uid AS "userId",
+           MAX("updatedAt") AS "lastSharedAt",
+           COUNT(DISTINCT "id") AS "documents"
+    FROM people
     WHERE uid IS NOT NULL AND uid <> ${userId}
     GROUP BY uid
     ORDER BY MAX("updatedAt") DESC
     LIMIT ${limit}
   `;
+  // COUNT comes back as a bigint, which JSON cannot carry.
+  return rows.map((r) => ({ ...r, documents: Number(r.documents) }));
 }
+
+export type ShareContactRow = {
+  userId: string;
+  lastSharedAt: Date;
+  /** Documents you and this person both have access to. */
+  documents: number;
+};

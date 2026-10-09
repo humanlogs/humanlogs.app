@@ -452,7 +452,14 @@
       "description": "Diese Studie existiert nicht oder du hast keinen Zugriff mehr darauf.",
       "back": "Zurück zur Startseite"
     },
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "sharing": {
+      "title": "Geteilt mit ({count})",
+      "allDocuments": "Alle Dokumente",
+      "someDocumentsOne": "1 von {total} Dokumenten",
+      "someDocumentsOther": "{count} von {total} Dokumenten",
+      "unknownUser": "Unbekannter Benutzer"
+    }
   },
   "notifications": {
     "title": "Benachrichtigungen",

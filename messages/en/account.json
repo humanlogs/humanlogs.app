@@ -320,6 +320,13 @@
             "summary": "Indexed documents: {count} · Coded passages: {phrases}. Removing them only means the next visit re-syncs.",
             "empty": "Nothing is stored on this device yet.",
             "forget": "Forget this device"
+        },
+        "collaborators": {
+            "title": "Collaborators",
+            "description": "People you share documents with, in either direction. The share dialog suggests them as you type.",
+            "empty": "You don't share any document yet.",
+            "documentsOne": "1 shared document",
+            "documentsOther": "{count} shared documents"
         }
     }
 }

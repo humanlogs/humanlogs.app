@@ -452,7 +452,14 @@
       "description": "Este estudio no existe o ya no tienes acceso a él.",
       "back": "Volver al inicio"
     },
-    "settings": "Ajustes"
+    "settings": "Ajustes",
+    "sharing": {
+      "title": "Compartido con ({count})",
+      "allDocuments": "Todos los documentos",
+      "someDocumentsOne": "1 de {total} documentos",
+      "someDocumentsOther": "{count} de {total} documentos",
+      "unknownUser": "Usuario desconocido"
+    }
   },
   "notifications": {
     "title": "Notificaciones",
