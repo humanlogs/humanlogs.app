@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { baseURL } from "./config";
 import {
   createUser,
   createTranscription,
@@ -58,6 +59,12 @@ test("the share dialog suggests people you already share with", async ({
   // Already on this document: no longer offered.
   await field.focus();
   await expect(suggestions).toBeHidden();
+
+  // A profile — email included — is readable only for someone you share with.
+  const profile = (id: string) => page.request.get(`${baseURL}/api/user/${id}`);
+  expect((await profile(colleague.id)).status()).toBe(200);
+  expect((await profile(owner.id)).status()).toBe(200);
+  expect((await profile(stranger.id)).status()).toBe(404);
 });
 
 test("the account page lists collaborators and the study recaps who has what", async ({

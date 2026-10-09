@@ -173,3 +173,40 @@ describe("findShareContacts", () => {
     expect(await contactsOf(me.id)).toEqual([guest.id]);
   });
 });
+
+describe("sharesDocumentWith", () => {
+  it("agrees with findShareContacts, person by person", async () => {
+    const me = await makeUser();
+    const guest = await makeUser();
+    const host = await makeUser();
+    const colleague = await makeUser();
+    const stranger = await makeUser();
+    const strangersGuest = await makeUser();
+
+    await makeDocument(me.id, [{ userId: guest.id, role: "read" }]);
+    await makeDocument(host.id, [
+      { userId: me.id, role: "read" },
+      { userId: colleague.id, role: "write" },
+    ]);
+    await makeDocument(stranger.id, [
+      { userId: strangersGuest.id, role: "read" },
+    ]);
+
+    const contacts = new Set(await contactsOf(me.id));
+    for (const other of [guest, host, colleague, stranger, strangersGuest]) {
+      expect(await access.sharesDocumentWith(me.id, other.id)).toBe(
+        contacts.has(other.id),
+      );
+    }
+    expect(contacts).toEqual(new Set([guest.id, host.id, colleague.id]));
+  });
+
+  it("is symmetric, and always true for yourself", async () => {
+    const me = await makeUser();
+    const guest = await makeUser();
+    await makeDocument(me.id, [{ userId: guest.id, role: "read" }]);
+
+    expect(await access.sharesDocumentWith(guest.id, me.id)).toBe(true);
+    expect(await access.sharesDocumentWith(me.id, me.id)).toBe(true);
+  });
+});

@@ -194,6 +194,32 @@ export async function findShareContacts(
   return rows.map((r) => ({ ...r, documents: Number(r.documents) }));
 }
 
+/**
+ * Whether `otherId` is one of `userId`'s share contacts — the same relation as
+ * {@link findShareContacts}, asked about one person, so it holds however many
+ * contacts there are. Gates any read of another account's profile.
+ */
+export async function sharesDocumentWith(
+  userId: string,
+  otherId: string,
+): Promise<boolean> {
+  if (userId === otherId) return true;
+  const me = Prisma.sql`${JSON.stringify([{ userId }])}::jsonb`;
+  const other = Prisma.sql`${JSON.stringify([{ userId: otherId }])}::jsonb`;
+  const rows = await prisma.$queryRaw<unknown[]>`
+    SELECT 1 FROM "Transcription"
+    WHERE "shared" IS NOT NULL
+      AND jsonb_typeof("shared"::jsonb) = 'array'
+      AND (
+        ("userId" = ${userId} AND "shared"::jsonb @> ${other})
+        OR ("userId" = ${otherId} AND "shared"::jsonb @> ${me})
+        OR ("shared"::jsonb @> ${me} AND "shared"::jsonb @> ${other})
+      )
+    LIMIT 1
+  `;
+  return rows.length > 0;
+}
+
 export type ShareContactRow = {
   userId: string;
   lastSharedAt: Date;
