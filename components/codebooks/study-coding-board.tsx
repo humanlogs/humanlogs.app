@@ -4,6 +4,7 @@ import { useCodebookModal } from "@/components/codebooks/codebook-editor-dialog"
 import {
   CodeChips,
   CodeCheckItems,
+  CodeToggle,
   colorClass,
   type CodeState,
 } from "@/components/codebooks/code-picker";
@@ -37,11 +38,9 @@ import {
 import { cn } from "@/lib/utils/utils";
 import {
   BookMarkedIcon,
-  CheckIcon,
   ChevronDownIcon,
   Columns3Icon,
   FileTextIcon,
-  MinusIcon,
   PencilIcon,
   PlusIcon,
   Table2Icon,
@@ -648,34 +647,17 @@ function CodeCell({
   label: string;
   onToggle: () => void;
 }) {
+  // The whole cell is the switch, in the code's colour: a row reads as a strip
+  // of what it carries, and a column as who carries one code.
   return (
-    <td className="border-l p-0">
-      <button
-        type="button"
-        role="checkbox"
-        aria-checked={
-          state === "all" ? true : state === "some" ? "mixed" : false
-        }
-        aria-label={label}
-        title={label}
-        onClick={onToggle}
-        className="group flex h-10 w-full items-center justify-center transition-colors hover:bg-accent/50"
-      >
-        <span
-          className={cn(
-            "flex h-5 w-5 items-center justify-center rounded-md border transition-colors",
-            state === "none"
-              ? "border-input bg-background group-hover:border-foreground/40"
-              : cn(colorClass(code), "border-transparent text-white"),
-            // A person coded in some of their interviews only: visible, but
-            // clearly not the same as coded everywhere.
-            state === "some" && "opacity-50",
-          )}
-        >
-          {state === "all" && <CheckIcon className="h-3.5 w-3.5" />}
-          {state === "some" && <MinusIcon className="h-3.5 w-3.5" />}
-        </span>
-      </button>
+    <td className="border-l p-0.5">
+      <CodeToggle
+        code={code}
+        state={state}
+        label={label}
+        onToggle={onToggle}
+        className="h-10 w-full rounded-md px-2 text-xs"
+      />
     </td>
   );
 }
@@ -708,6 +690,7 @@ function CodebookCell({
                 refs={refs}
                 codebooks={[codebook]}
                 className="flex-1"
+                solid
               />
             ) : (
               <span className="flex-1 text-xs text-muted-foreground">

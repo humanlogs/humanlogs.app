@@ -88,7 +88,11 @@ function uploadWithProgress(
     };
 
     xhr.onload = () => {
-      resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, body: xhr.responseText });
+      resolve({
+        ok: xhr.status >= 200 && xhr.status < 300,
+        status: xhr.status,
+        body: xhr.responseText,
+      });
     };
     xhr.onerror = () => reject(new Error("Network error during upload"));
     xhr.onabort = () => reject(new Error("Upload aborted"));
@@ -96,7 +100,6 @@ function uploadWithProgress(
     xhr.send(formData);
   });
 }
-
 
 function NewTranscriptionForm() {
   const t = useTranslations("newTranscription");
@@ -194,8 +197,11 @@ function NewTranscriptionForm() {
     );
   }, [tagAudioEvents]);
 
-  // Codes for the documents as a whole, applied once they are created.
-  const [documentCodes, setDocumentCodes] = React.useState<CodeRef[]>([]);
+  // Codes for each document as a whole, by file, applied once they are created:
+  // a batch of files is rarely a batch of identical interviews.
+  const [documentCodes, setDocumentCodes] = React.useState<
+    Record<string, CodeRef[]>
+  >({});
   const importCodebooks = useImportCodebooks(projectId);
   const updateDocumentCodes = useUpdateDocumentCodesAcross();
 
@@ -213,7 +219,10 @@ function NewTranscriptionForm() {
   React.useEffect(() => {
     if (providerTouchedRef.current) return;
     const saved = localStorage.getItem("transcription_stt_provider");
-    if (!saved && (user?.dataResidency === "eu" || user?.dataResidency === "us")) {
+    if (
+      !saved &&
+      (user?.dataResidency === "eu" || user?.dataResidency === "us")
+    ) {
       setProvider(user.dataResidency);
     }
   }, [user?.dataResidency]);
@@ -628,16 +637,20 @@ function NewTranscriptionForm() {
       // The documents exist now: code them through the same route as the
       // editor, which checks the codes against the study's codebooks. A failure
       // there must not read as a failed upload — the transcription is running.
-      const codes = keepInScope(documentCodes, importCodebooks);
+      // The server creates them in the order the files were sent.
       const createdIds: string[] = result.transcriptions ?? [];
-      if (codes.length > 0 && createdIds.length > 0) {
+      const codeUpdates = createdIds
+        .map((transcriptionId, index) => ({
+          transcriptionId,
+          value: keepInScope(
+            documentCodes[audioFiles[index]?.id] ?? [],
+            importCodebooks,
+          ),
+        }))
+        .filter((update) => update.value.length > 0);
+      if (codeUpdates.length > 0) {
         try {
-          await updateDocumentCodes.mutateAsync(
-            createdIds.map((transcriptionId) => ({
-              transcriptionId,
-              value: codes,
-            })),
-          );
+          await updateDocumentCodes.mutateAsync(codeUpdates);
         } catch {
           toast.error(tCodebook("import.failed"));
         }
@@ -778,6 +791,18 @@ function NewTranscriptionForm() {
                         {formatSize(audioFile.size)}
                       </span>
                     </div>
+                    <ImportCodesPicker
+                      compact
+                      projectId={projectId}
+                      value={documentCodes[audioFile.id] ?? []}
+                      onChange={(codes) =>
+                        setDocumentCodes((current) => ({
+                          ...current,
+                          [audioFile.id]: codes,
+                        }))
+                      }
+                      disabled={isSubmitting}
+                    />
                   </div>
 
                   <div className="flex items-center">
@@ -849,13 +874,6 @@ function NewTranscriptionForm() {
                 searchPlaceholder={t("searchLanguages")}
               />
             </div>
-
-            <ImportCodesPicker
-              projectId={projectId}
-              value={documentCodes}
-              onChange={setDocumentCodes}
-              disabled={isSubmitting}
-            />
 
             {/* Custom Vocabulary */}
             <div className="space-y-2">

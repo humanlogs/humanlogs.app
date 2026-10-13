@@ -11,6 +11,7 @@ import {
 import { PROJECT_COLORS } from "@/lib/projects/appearance";
 import { cn } from "@/lib/utils/utils";
 import { CheckIcon, MinusIcon } from "lucide-react";
+import type * as React from "react";
 
 /**
  * The pieces shared by every place codes are applied: the checkable list inside
@@ -101,6 +102,64 @@ export function CodeCheckItems({
 }
 
 /**
+ * A code as a switch, drawn in its own colour: a faint tint while off, the full
+ * colour once applied, half-way for "some". The colour sits on a layer under the
+ * label so the tint never fades the text with it.
+ *
+ * Shared by the cells of the study coding board and the pills of the upload
+ * form — the same gesture wherever a code is applied in one click.
+ */
+export function CodeToggle({
+  code,
+  state,
+  onToggle,
+  label,
+  disabled,
+  className,
+  children,
+}: {
+  code: Code;
+  state: CodeState;
+  onToggle: () => void;
+  /** Accessible name, when the visible text alone is ambiguous. */
+  label?: string;
+  disabled?: boolean;
+  className?: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={state === "all" ? true : state === "some" ? "mixed" : false}
+      aria-label={label}
+      title={label ?? code.label}
+      disabled={disabled}
+      onClick={onToggle}
+      className={cn(
+        "group relative isolate inline-flex min-w-0 items-center justify-center overflow-hidden transition-colors disabled:opacity-50",
+        state === "all" ? "font-medium text-white" : "text-foreground",
+        className,
+      )}
+    >
+      <span
+        aria-hidden
+        className={cn(
+          "absolute inset-0 -z-10 transition-opacity",
+          colorClass(code),
+          state === "all"
+            ? "opacity-100"
+            : state === "some"
+              ? "opacity-45 group-hover:opacity-60"
+              : "opacity-10 group-hover:opacity-25",
+        )}
+      />
+      {children ?? <span className="truncate">{code.label}</span>}
+    </button>
+  );
+}
+
+/**
  * The codes a document or a speaker carries. Refs whose code no longer exists
  * are skipped rather than shown as unknown — deleting a code is what makes it
  * disappear from what it used to tag.
@@ -109,10 +168,13 @@ export function CodeChips({
   refs,
   codebooks,
   className,
+  solid,
 }: {
   refs: CodeRef[];
   codebooks: DecryptedCodebook[];
   className?: string;
+  /** Filled with the code's colour rather than a dot on an outline. */
+  solid?: boolean;
 }) {
   const resolved = refs
     .map((ref) => ({ ref, hit: findCode(codebooks, ref) }))
@@ -125,22 +187,35 @@ export function CodeChips({
 
   return (
     <div className={cn("flex flex-wrap items-center gap-1", className)}>
-      {resolved.map(({ ref, hit }) => (
-        <Badge
-          key={`${ref.codebookId}:${ref.codeId}`}
-          variant="outline"
-          className="max-w-[12rem] gap-1.5 text-xs"
-          title={hit.path.join(" › ")}
-        >
+      {resolved.map(({ ref, hit }) =>
+        solid ? (
           <span
+            key={`${ref.codebookId}:${ref.codeId}`}
             className={cn(
-              "h-2 w-2 shrink-0 rounded-full",
+              "inline-flex h-6 max-w-[12rem] items-center rounded-md px-2 text-xs font-medium text-white",
               colorClass(hit.code),
             )}
-          />
-          <span className="truncate">{hit.code.label}</span>
-        </Badge>
-      ))}
+            title={[...hit.path, hit.code.label].join(" › ")}
+          >
+            <span className="truncate">{hit.code.label}</span>
+          </span>
+        ) : (
+          <Badge
+            key={`${ref.codebookId}:${ref.codeId}`}
+            variant="outline"
+            className="max-w-[12rem] gap-1.5 text-xs"
+            title={hit.path.join(" › ")}
+          >
+            <span
+              className={cn(
+                "h-2 w-2 shrink-0 rounded-full",
+                colorClass(hit.code),
+              )}
+            />
+            <span className="truncate">{hit.code.label}</span>
+          </Badge>
+        ),
+      )}
     </div>
   );
 }

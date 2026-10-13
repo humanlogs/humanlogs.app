@@ -66,7 +66,14 @@ test("codes documents and people from the study coding board", async ({
     });
   }
 
-  await page.goto(`/app/project/${study.id}/coding`);
+  // The dev server can answer 404 while it compiles a route for the first
+  // time: navigate until the board is there.
+  await expect(async () => {
+    await page.goto(`/app/project/${study.id}/coding`);
+    await expect(
+      page.getByRole("checkbox", { name: "Cadre — Entretien A" }),
+    ).toBeVisible({ timeout: 10_000 });
+  }).toPass({ timeout: 90_000 });
 
   // A document: one cell, one code.
   const documentCell = page.getByRole("checkbox", {
@@ -124,15 +131,59 @@ test("codes documents and people from the study coding board", async ({
 
   // Coding on the way in: the import form offers the study's codes.
   await page.goto(`/app/new?projectId=${study.id}`);
+
+  // Audio: each file carries its own codes.
+  const wav = silentWav();
+  // One file at a time: headless Chromium reads the duration of the second of
+  // a batch unreliably, and the form appends either way.
+  const fileInput = page.locator('input[type="file"]').first();
+  for (const name of ["one.wav", "two.wav"]) {
+    await fileInput.setInputFiles({ name, mimeType: "audio/wav", buffer: wav });
+    await expect(
+      page.getByText(name.replace(".wav", ""), { exact: true }),
+    ).toBeVisible();
+  }
+  await expect(page.getByRole("checkbox", { name: "Ouvrier" })).toHaveCount(2);
+  const firstOuvrier = page.getByRole("checkbox", { name: "Ouvrier" }).first();
+  await firstOuvrier.click();
+  await expect(firstOuvrier).toHaveAttribute("aria-checked", "true");
+  await expect(
+    page.getByRole("checkbox", { name: "Ouvrier" }).nth(1),
+  ).toHaveAttribute("aria-checked", "false");
+  await page.screenshot({
+    path: "test-results/study-coding-board-audio.png",
+    fullPage: true,
+  });
+
   await page.getByRole("button", { name: "Text / document" }).click();
   const pill = page
     .locator("form:visible")
-    .getByRole("button", { name: "Cadre" });
-  await expect(pill).toHaveAttribute("aria-pressed", "false");
+    .getByRole("checkbox", { name: "Cadre" });
+  await expect(pill).toHaveAttribute("aria-checked", "false");
   await pill.click();
-  await expect(pill).toHaveAttribute("aria-pressed", "true");
+  await expect(pill).toHaveAttribute("aria-checked", "true");
   await page.screenshot({
     path: "test-results/study-coding-board-import.png",
     fullPage: true,
   });
 });
+
+/** One second of silence, 8 kHz mono — the smallest file the form accepts. */
+function silentWav(): Buffer {
+  const samples = 8000;
+  const buffer = Buffer.alloc(44 + samples * 2);
+  buffer.write("RIFF", 0);
+  buffer.writeUInt32LE(36 + samples * 2, 4);
+  buffer.write("WAVE", 8);
+  buffer.write("fmt ", 12);
+  buffer.writeUInt32LE(16, 16);
+  buffer.writeUInt16LE(1, 20);
+  buffer.writeUInt16LE(1, 22);
+  buffer.writeUInt32LE(8000, 24);
+  buffer.writeUInt32LE(16000, 28);
+  buffer.writeUInt16LE(2, 32);
+  buffer.writeUInt16LE(16, 34);
+  buffer.write("data", 36);
+  buffer.writeUInt32LE(samples * 2, 40);
+  return buffer;
+}
