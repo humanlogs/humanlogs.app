@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useModal } from "@/components/use-modal";
 import { useProjects } from "@/hooks/use-api";
@@ -41,10 +40,13 @@ import {
   ArrowRightIcon,
   CornerDownRightIcon,
   PlusIcon,
+  QuoteIcon,
   SparklesIcon,
   Trash2Icon,
+  UsersIcon,
   XIcon,
 } from "lucide-react";
+import { cn } from "@/lib/utils/utils";
 import * as React from "react";
 import { toast } from "sonner";
 
@@ -408,19 +410,42 @@ export function CodebookEditorDialog() {
 
           <div className="space-y-2">
             <Label>{t("target")}</Label>
-            <Select
-              options={CODEBOOK_TARGETS.map((value) => ({
-                value,
-                label: t(`targets.${value}`),
-              }))}
-              value={target}
-              onChange={(value) => setTarget(value as CodebookTarget)}
-            />
-            {/* Two targets say little on their own — the hint is what tells the
-                researcher where the codes will be applied. */}
-            <p className="text-xs text-muted-foreground">
-              {t(`targetHints.${target}`)}
-            </p>
+            {/* Two cards rather than a select: a one-word label ("speaker")
+                does not say that it also codes the whole document — the card
+                spells out what each one lands on before the choice is made. */}
+            <div
+              role="radiogroup"
+              aria-label={t("target")}
+              className="grid gap-2 sm:grid-cols-2"
+            >
+              {CODEBOOK_TARGETS.map((value) => {
+                const Icon = value === "speaker" ? UsersIcon : QuoteIcon;
+                const selected = target === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => setTarget(value)}
+                    className={cn(
+                      "flex flex-col gap-1 rounded-lg border p-3 text-left transition-colors",
+                      selected
+                        ? "border-primary bg-primary/5 ring-1 ring-primary"
+                        : "hover:bg-accent/50",
+                    )}
+                  >
+                    <span className="flex items-center gap-2 text-sm font-medium">
+                      <Icon className="h-4 w-4 shrink-0" />
+                      {t(`targets.${value}`)}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {t(`targetHints.${value}`)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <Separator />

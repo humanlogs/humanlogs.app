@@ -108,13 +108,6 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
   const updateLanguage = useUpdateUser();
   const { prefs, update } = useDocumentViewPrefs();
 
-  // Only codebooks covering every study, and only those whose codes land on a
-  // document — its own codes, or the codes of its participants.
-  const groupingCodebooks = React.useMemo(
-    () => groupableCodebooks(codebooks),
-    [codebooks],
-  );
-
   // Sync language with locale provider when user profile loads
   React.useEffect(() => {
     if (userProfile?.language && locales.includes(userProfile.language)) {
@@ -152,6 +145,22 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
     studies.some((study) => study.id === prefs.studyScope)
       ? prefs.studyScope
       : STUDY_SCOPE_ALL;
+
+  // Only codebooks whose codes land on a document — its own codes, or the codes
+  // of its participants — and that can apply to the documents listed: a study's
+  // own codebooks, not only the ones covering every study.
+  const groupingCodebooks = React.useMemo(
+    () =>
+      groupableCodebooks(
+        codebooks,
+        scope === STUDY_SCOPE_ALL
+          ? undefined
+          : scope === STUDY_SCOPE_NONE
+            ? null
+            : scope,
+      ),
+    [codebooks, scope],
+  );
 
   // A stored `codebook:<id>` grouping outlives the codebook it points at —
   // leaving the beta, or losing access to it, must fall back to the default

@@ -26,11 +26,11 @@
       "scopeSelected": "Ausgewählte Studien",
       "target": "Gilt für",
       "targets": {
-        "speaker": "Sprechende Person",
-        "verbatim": "Verbatim"
+        "speaker": "Dokument oder Person",
+        "verbatim": "Textpassage (Verbatim)"
       },
       "targetHints": {
-        "speaker": "Codes für die Personen: gelten für ein ganzes Dokument und für jede sprechende Person darin (Rolle, Gruppe, Profil).",
+        "speaker": "Codes für ein ganzes Dokument (Interviewart, Feld, Welle…) oder für eine darin sprechende Person (Rolle, Gruppe, Profil).",
         "verbatim": "Codes für das Gesagte: gelten für eine Passage des Transkripts, vom Wort bis zum ganzen Satz."
       },
       "codes": "Codes",
@@ -63,9 +63,9 @@
     },
     "board": {
       "title": "Codierung",
-      "description": "Weisen Sie die Codes eines Codebooks allen Dokumenten der Studie und den Personen darin zu.",
+      "description": "Weisen Sie die Codes Ihrer Codebooks den Dokumenten der Studie und den Personen darin zu.",
       "codebook": "Codebook",
-      "hint": "Nur Sprecher-Codebooks werden gelistet: Verbatim-Codes werden im Editor auf den Text gesetzt.",
+      "hint": "Nur Codebooks „Dokument oder Person“ werden angezeigt: Verbatim-Codes werden im Editor auf den Text gesetzt.",
       "documentCodes": "Dokument",
       "speakerCodes": "Codes",
       "speakerFallback": "Sprechende Person {index}",
@@ -73,7 +73,7 @@
       "empty": "Noch kein Dokument in dieser Studie",
       "failed": "Die Codes konnten nicht gespeichert werden",
       "noCodebook": {
-        "title": "Noch kein Sprecher-Codebook",
+        "title": "Kein Codebook für Dokumente oder Personen",
         "description": "Zum Codieren einer Studie braucht es ein Codebook, dessen Codes für Dokumente und sprechende Personen gelten.",
         "action": "Codebook erstellen"
       },
@@ -84,11 +84,21 @@
       "inDocuments": "In {count} Dokumenten",
       "loadRosters": "Sprechende Personen von {count} älteren Dokumenten laden",
       "loadingRosters": "Sprechende Personen von {count} Dokumenten werden geladen…",
-      "beta": "Codebooks sind noch in der Beta — aktivieren Sie sie in Ihrem Konto, um die Codierung zu nutzen."
+      "beta": "Codebooks sind noch in der Beta — aktivieren Sie sie in Ihrem Konto, um die Codierung zu nutzen.",
+      "view": {
+        "label": "Ansicht",
+        "codebook": "Nach Codebook",
+        "all": "Alle Codebooks"
+      },
+      "newCodebook": "Neues Codebook",
+      "editCodebook": "Bearbeiten",
+      "noCodes": "Dieses Codebook hat noch keine Codes.",
+      "addCodes": "Codes hinzufügen",
+      "pickCodes": "Auswählen…"
     },
     "document": {
       "menu": "Codes des Dokuments",
-      "create": "Codebook erstellen",
+      "create": "Codebook für Dokumente oder Personen erstellen",
       "untitled": "Unbenanntes Codebook",
       "failed": "Die Codes des Dokuments konnten nicht gespeichert werden"
     },
@@ -168,6 +178,12 @@
       "recodeMine": "Sie können nur Ihre eigenen Lesarten zurücknehmen.",
       "open": "Dieses Interview öffnen",
       "pause": "Pause"
+    },
+    "import": {
+      "label": "Dokument-Codes",
+      "hint": "Werden auf jedes importierte Dokument angewendet. Sie können sie später im Dokument oder auf der Codierungsseite der Studie ändern.",
+      "none": "Keine Codes",
+      "failed": "Das Dokument wurde erstellt, aber seine Codes konnten nicht gespeichert werden"
     }
   }
 }

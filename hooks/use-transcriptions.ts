@@ -698,28 +698,37 @@ export function useUpdateSpeakerCodes(transcriptionId: string) {
 
 /**
  * The same, for several documents at once — what coding a *person* means when
- * the same name appears in five interviews. Each document keeps its own list;
- * this only spares the caller five round trips and five cache updates.
+ * the same name appears in five interviews, or a column of the study coding
+ * board. Each document keeps its own list; this only spares the caller N round
+ * trips and N cache updates.
+ *
+ * Each call sends full lists computed from the cache at click time, so two calls
+ * in flight must land in order or the second could be overwritten by the first:
+ * the mutation scope queues them, one field at a time. For the same reason the
+ * list is refetched only once the last of them settles — a refetch in between
+ * would drop the optimistic state of the ones still queued, and the next click
+ * would compute its list from that.
  */
-export function useUpdateSpeakerCodesAcross() {
+function useCodesAcrossMutation<T extends CodeRef>(
+  field: "codes" | "speakerCodes",
+) {
   const queryClient = useQueryClient();
   const listKey = ["transcriptions"];
 
   return useMutation({
+    mutationKey: ["codes-across", field],
+    scope: { id: `codes-across:${field}` },
     mutationFn: async (
-      updates: Array<{
-        transcriptionId: string;
-        speakerCodes: SpeakerCodeRef[];
-      }>,
+      updates: Array<{ transcriptionId: string; value: T[] }>,
     ) => {
       const results = await Promise.all(
-        updates.map(async ({ transcriptionId, speakerCodes }) => {
+        updates.map(async ({ transcriptionId, value }) => {
           const response = await fetchGateway(
             `/api/transcriptions/${transcriptionId}`,
             {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ speakerCodes }),
+              body: JSON.stringify({ [field]: value }),
             },
           );
           return response.ok;
@@ -732,14 +741,12 @@ export function useUpdateSpeakerCodesAcross() {
     onMutate: async (updates) => {
       await queryClient.cancelQueries({ queryKey: listKey });
       const previousList = queryClient.getQueryData<Transcription[]>(listKey);
-      const byId = new Map(
-        updates.map((u) => [u.transcriptionId, u.speakerCodes]),
-      );
+      const byId = new Map(updates.map((u) => [u.transcriptionId, u.value]));
       if (previousList) {
         queryClient.setQueryData(
           listKey,
           previousList.map((doc) =>
-            byId.has(doc.id) ? { ...doc, speakerCodes: byId.get(doc.id) } : doc,
+            byId.has(doc.id) ? { ...doc, [field]: byId.get(doc.id) } : doc,
           ),
         );
       }
@@ -751,7 +758,10 @@ export function useUpdateSpeakerCodesAcross() {
       }
     },
     onSettled: (_data, _error, updates) => {
-      queryClient.invalidateQueries({ queryKey: listKey });
+      // Still counts itself while settling.
+      if (queryClient.isMutating({ mutationKey: ["codes-across"] }) <= 1) {
+        queryClient.invalidateQueries({ queryKey: listKey });
+      }
       for (const { transcriptionId } of updates) {
         queryClient.invalidateQueries({
           queryKey: ["transcriptions", transcriptionId],
@@ -759,6 +769,16 @@ export function useUpdateSpeakerCodesAcross() {
       }
     },
   });
+}
+
+/** Document codes, on several documents at once. */
+export function useUpdateDocumentCodesAcross() {
+  return useCodesAcrossMutation<CodeRef>("codes");
+}
+
+/** Speaker codes, on several documents at once. */
+export function useUpdateSpeakerCodesAcross() {
+  return useCodesAcrossMutation<SpeakerCodeRef>("speakerCodes");
 }
 
 // Revert transcription mutation

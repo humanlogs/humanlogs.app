@@ -32,7 +32,7 @@ export function findCode(
   return hit ? { code: hit.code, path: hit.path } : null;
 }
 
-function colorClass(code: Code): string {
+export function colorClass(code: Code): string {
   return (code.color && PROJECT_COLORS[code.color]) || "bg-muted-foreground";
 }
 

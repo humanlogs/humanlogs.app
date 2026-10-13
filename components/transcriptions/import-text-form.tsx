@@ -1,10 +1,17 @@
 "use client";
 
+import {
+  ImportCodesPicker,
+  keepInScope,
+  useImportCodebooks,
+} from "@/components/codebooks/import-codes-picker";
 import { useLocale, useTranslations } from "@/components/locale-provider";
 import { ProjectSelector } from "@/components/project-selector";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
+import { useUpdateDocumentCodesAcross } from "@/hooks/use-transcriptions";
+import type { CodeRef } from "@/lib/codebooks/codebook";
 import { IMPORT_EXTENSIONS, IMPORT_FORMAT_OPTIONS } from "@/lib/import/types";
 import type { ImportFormat } from "@/lib/import/types";
 import { getLanguageOptions } from "@/lib/utils/languages";
@@ -39,6 +46,7 @@ export function ImportTextForm({
   defaultLanguage: string;
 }) {
   const t = useTranslations("newTranscription");
+  const tCodebook = useTranslations("codebook");
   const { locale } = useLocale();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -52,6 +60,10 @@ export function ImportTextForm({
   const [isDragging, setIsDragging] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  // Codes for the document as a whole, applied once it is created.
+  const [documentCodes, setDocumentCodes] = React.useState<CodeRef[]>([]);
+  const importCodebooks = useImportCodebooks(projectId);
+  const updateDocumentCodes = useUpdateDocumentCodesAcross();
 
   const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -100,6 +112,20 @@ export function ImportTextForm({
       }
 
       queryClient.invalidateQueries({ queryKey: ["transcriptions"] });
+
+      // Coded through the same route as the editor, which checks the codes
+      // against the study's codebooks. The import itself succeeded either way.
+      const codes = keepInScope(documentCodes, importCodebooks);
+      if (codes.length > 0 && body.transcriptionId) {
+        try {
+          await updateDocumentCodes.mutateAsync([
+            { transcriptionId: body.transcriptionId, value: codes },
+          ]);
+        } catch {
+          toast.error(tCodebook("import.failed"));
+        }
+      }
+
       router.push(`/app/transcription/${body.transcriptionId}`);
     } catch {
       const message = "Something went wrong while importing the document";
@@ -208,6 +234,13 @@ export function ImportTextForm({
           placeholder="Format"
         />
       </div>
+
+      <ImportCodesPicker
+        projectId={projectId}
+        value={documentCodes}
+        onChange={setDocumentCodes}
+        disabled={isSubmitting}
+      />
 
       <Button type="submit" disabled={!file || isSubmitting} className="w-full">
         {isSubmitting ? "Importing…" : "Import transcript"}

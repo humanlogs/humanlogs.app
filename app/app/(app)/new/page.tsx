@@ -20,6 +20,13 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ImportTextForm } from "@/components/transcriptions/import-text-form";
+import {
+  ImportCodesPicker,
+  keepInScope,
+  useImportCodebooks,
+} from "@/components/codebooks/import-codes-picker";
+import { useUpdateDocumentCodesAcross } from "@/hooks/use-transcriptions";
+import type { CodeRef } from "@/lib/codebooks/codebook";
 import { getLanguageOptions, supportedLanguages } from "@/lib/utils/languages";
 import {
   AlertCircle,
@@ -93,6 +100,7 @@ function uploadWithProgress(
 
 function NewTranscriptionForm() {
   const t = useTranslations("newTranscription");
+  const tCodebook = useTranslations("codebook");
   const { locale } = useLocale();
   const { data: user } = useUserProfile();
   const router = useRouter();
@@ -185,6 +193,11 @@ function NewTranscriptionForm() {
       tagAudioEvents.toString(),
     );
   }, [tagAudioEvents]);
+
+  // Codes for the documents as a whole, applied once they are created.
+  const [documentCodes, setDocumentCodes] = React.useState<CodeRef[]>([]);
+  const importCodebooks = useImportCodebooks(projectId);
+  const updateDocumentCodes = useUpdateDocumentCodesAcross();
 
   // Save projectId to localStorage when it changes
   React.useEffect(() => {
@@ -612,6 +625,24 @@ function NewTranscriptionForm() {
 
       queryClient.invalidateQueries({ queryKey: ["transcriptions"] });
 
+      // The documents exist now: code them through the same route as the
+      // editor, which checks the codes against the study's codebooks. A failure
+      // there must not read as a failed upload — the transcription is running.
+      const codes = keepInScope(documentCodes, importCodebooks);
+      const createdIds: string[] = result.transcriptions ?? [];
+      if (codes.length > 0 && createdIds.length > 0) {
+        try {
+          await updateDocumentCodes.mutateAsync(
+            createdIds.map((transcriptionId) => ({
+              transcriptionId,
+              value: codes,
+            })),
+          );
+        } catch {
+          toast.error(tCodebook("import.failed"));
+        }
+      }
+
       // Socket.io will automatically update the sidebar via React Query
 
       // Redirect to the first transcription or home
@@ -818,6 +849,13 @@ function NewTranscriptionForm() {
                 searchPlaceholder={t("searchLanguages")}
               />
             </div>
+
+            <ImportCodesPicker
+              projectId={projectId}
+              value={documentCodes}
+              onChange={setDocumentCodes}
+              disabled={isSubmitting}
+            />
 
             {/* Custom Vocabulary */}
             <div className="space-y-2">
