@@ -1,6 +1,14 @@
 import { ElevenLabsClient as ElevenLabsSDK } from "@elevenlabs/elevenlabs-js";
-import { Agent } from "undici";
+import { Agent, fetch as undiciFetch } from "undici";
 import { getConfig } from "../config";
+
+// Without webhook mode, POST /v1/speech-to-text only answers once the whole
+// file is transcribed: 4–7 minutes for a 3h interview, more for longer ones.
+// Node's fetch stops waiting for response headers after 300s (undici's default
+// `headersTimeout`) and reports a bare "fetch failed", while ElevenLabs
+// finishes — and bills — the job anyway. So the upload gets its own deadline,
+// and the dispatcher's timers are set so they never fire before it does.
+const CONVERT_TIMEOUT_SECONDS = 60 * 60;
 
 export interface TranscriptionWord {
   text: string;
@@ -61,16 +69,29 @@ class ElevenLabsClient {
   constructor() {
     const config = getConfig();
 
-    const _dispatcher = new Agent({
-      headersTimeout: 15 * 60 * 1000,
-      bodyTimeout: 15 * 60 * 1000,
+    const dispatcher = new Agent({
+      headersTimeout: CONVERT_TIMEOUT_SECONDS * 1000,
+      bodyTimeout: CONVERT_TIMEOUT_SECONDS * 1000,
     });
 
     this.client = new ElevenLabsSDK({
       apiKey: config.stt.elevenlabs.apiKey,
       timeoutInSeconds: 15 * 60,
-      // fetch: ((input, init) =>
-      //   fetch(input, { ...init, dispatcher } as RequestInit)) as typeof fetch,
+      // undici's own fetch, so the dispatcher is guaranteed to match it
+      // whatever undici the Node runtime bundles.
+      fetch: (async (input: any, init: any) => {
+        try {
+          return await undiciFetch(input, { ...init, dispatcher });
+        } catch (error) {
+          // The SDK keeps only the message ("fetch failed"); the reason —
+          // timeout, reset, DNS — is in `cause`.
+          console.error(
+            "ElevenLabs request failed:",
+            (error as Error).cause ?? error,
+          );
+          throw error;
+        }
+      }) as unknown as typeof fetch,
     });
     this.useWebhook = config.stt.elevenlabs.useWebhook ?? false;
   }
@@ -133,10 +154,13 @@ class ElevenLabsClient {
         type: "audio/mpeg",
       });
 
-      const response = await this.client.speechToText.convert({
-        ...this.buildTranscriptionParams(request),
-        file,
-      });
+      const response = await this.client.speechToText.convert(
+        {
+          ...this.buildTranscriptionParams(request),
+          file,
+        },
+        { timeoutInSeconds: CONVERT_TIMEOUT_SECONDS },
+      );
 
       return this.extractTranscriptionId(response);
     } catch (error) {
@@ -153,10 +177,13 @@ class ElevenLabsClient {
     request: TranscriptionRequest,
   ): Promise<AsyncTranscriptionResponse> {
     try {
-      const response = await this.client.speechToText.convert({
-        ...this.buildTranscriptionParams(request),
-        cloudStorageUrl: request.audioUrl,
-      });
+      const response = await this.client.speechToText.convert(
+        {
+          ...this.buildTranscriptionParams(request),
+          cloudStorageUrl: request.audioUrl,
+        },
+        { timeoutInSeconds: CONVERT_TIMEOUT_SECONDS },
+      );
 
       return this.extractTranscriptionId(response);
     } catch (error) {
