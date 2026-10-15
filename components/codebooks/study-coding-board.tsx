@@ -647,17 +647,11 @@ function CodeCell({
   label: string;
   onToggle: () => void;
 }) {
-  // The whole cell is the switch, in the code's colour: a row reads as a strip
-  // of what it carries, and a column as who carries one code.
+  // A badge in the code's colour: a row reads as a strip of what it carries,
+  // and a column as who carries one code.
   return (
-    <td className="border-l p-0.5">
-      <CodeToggle
-        code={code}
-        state={state}
-        label={label}
-        onToggle={onToggle}
-        className="h-10 w-full rounded-md px-2 text-xs"
-      />
+    <td className="border-l p-2 text-center">
+      <CodeToggle code={code} state={state} label={label} onToggle={onToggle} />
     </td>
   );
 }

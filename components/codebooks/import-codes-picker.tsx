@@ -113,7 +113,6 @@ export function ImportCodesPicker({
               label={[...path, code.label].join(" › ")}
               disabled={disabled}
               onToggle={() => toggle(codebook.id, code.id)}
-              className="h-7 max-w-[14rem] rounded-full px-2.5 text-xs"
             >
               <span className="truncate">{code.label}</span>
             </CodeToggle>
@@ -127,7 +126,7 @@ export function ImportCodesPicker({
     return (
       <div className="flex items-start gap-2">
         <TagsIcon
-          className="mt-1.5 h-3.5 w-3.5 shrink-0 text-muted-foreground"
+          className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground"
           aria-label={t("import.label")}
         />
         {pills}

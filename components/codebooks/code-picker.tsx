@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
+import { Badge, badgeVariants } from "@/components/ui/badge";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import {
   flattenCodes,
@@ -137,8 +137,11 @@ export function CodeToggle({
       disabled={disabled}
       onClick={onToggle}
       className={cn(
-        "group relative isolate inline-flex min-w-0 items-center justify-center overflow-hidden transition-colors disabled:opacity-50",
-        state === "all" ? "font-medium text-white" : "text-foreground",
+        // The app's badge, as a switch: same size and shape as the code chips
+        // shown everywhere else, so a cell reads as a code, not as a button.
+        badgeVariants({ variant: "outline" }),
+        "group relative isolate max-w-[10rem] cursor-pointer border-transparent disabled:cursor-default disabled:opacity-50",
+        state === "all" ? "text-white" : "text-foreground",
         className,
       )}
     >
@@ -189,16 +192,13 @@ export function CodeChips({
     <div className={cn("flex flex-wrap items-center gap-1", className)}>
       {resolved.map(({ ref, hit }) =>
         solid ? (
-          <span
+          <Badge
             key={`${ref.codebookId}:${ref.codeId}`}
-            className={cn(
-              "inline-flex h-6 max-w-[12rem] items-center rounded-md px-2 text-xs font-medium text-white",
-              colorClass(hit.code),
-            )}
+            className={cn("max-w-[12rem] text-white", colorClass(hit.code))}
             title={[...hit.path, hit.code.label].join(" › ")}
           >
             <span className="truncate">{hit.code.label}</span>
-          </span>
+          </Badge>
         ) : (
           <Badge
             key={`${ref.codebookId}:${ref.codeId}`}
