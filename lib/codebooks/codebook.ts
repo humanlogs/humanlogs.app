@@ -136,18 +136,29 @@ export function codebooksInScopeForProject<
 }
 
 /**
- * The codebooks offered as a grouping axis in the sidebar: those that apply to
- * every study (as agreed for the "group by" menu), and whose target is one the
- * document list can actually group on — a document's own codes, or the codes of
- * its speakers.
+ * The codebooks offered as a grouping axis in the sidebar: those whose target is
+ * one the document list can actually group on — a document's own codes, or the
+ * codes of its speakers — and that can apply to the documents listed.
+ *
+ * `studyId` is the list's scope: `undefined` for the whole corpus (every
+ * codebook — a study's grid groups its own documents, the others land under
+ * "uncoded", which is still the answer), `null` for the documents outside any
+ * study (only the codebooks covering every study can code them), or a study id
+ * (the codebooks in scope for that study).
  */
 export function groupableCodebooks<
-  T extends { allStudies: boolean; target?: CodebookTarget },
->(codebooks: T[]): T[] {
-  return codebooks.filter(
-    (c) =>
-      c.allStudies &&
-      GROUPABLE_CODEBOOK_TARGETS.includes(c.target ?? DEFAULT_CODEBOOK_TARGET),
+  T extends {
+    allStudies: boolean;
+    studyIds: string[];
+    target?: CodebookTarget;
+  },
+>(codebooks: T[], studyId?: string | null): T[] {
+  const inScope =
+    studyId === undefined
+      ? codebooks
+      : codebooksInScopeForProject(codebooks, studyId);
+  return inScope.filter((c) =>
+    GROUPABLE_CODEBOOK_TARGETS.includes(c.target ?? DEFAULT_CODEBOOK_TARGET),
   );
 }
 

@@ -26,11 +26,11 @@
       "scopeSelected": "Selected studies",
       "target": "Applies to",
       "targets": {
-        "speaker": "Speaker",
-        "verbatim": "Verbatim"
+        "speaker": "Document or person",
+        "verbatim": "Text passage (verbatim)"
       },
       "targetHints": {
-        "speaker": "Codes for the people: applied to a document as a whole and to each of its speakers (role, group, profile).",
+        "speaker": "Codes applied to a whole document (interview type, site, wave…) or to a person speaking in it (role, group, profile).",
         "verbatim": "Codes for what is said: applied to a passage of the transcript, from a word to a whole sentence."
       },
       "codes": "Codes",
@@ -63,9 +63,9 @@
     },
     "board": {
       "title": "Coding",
-      "description": "Assign the codes of one codebook to every document of the study and to the people in them.",
+      "description": "Assign the codes of your codebooks to the documents of the study and to the people in them.",
       "codebook": "Codebook",
-      "hint": "Only speaker codebooks are listed: verbatim codes are applied to the text, inside the editor.",
+      "hint": "Only “document or person” codebooks are listed: verbatim codes are applied to the text, in the editor.",
       "documentCodes": "Document",
       "speakerCodes": "Codes",
       "speakerFallback": "Speaker {index}",
@@ -73,7 +73,7 @@
       "empty": "No document in this study yet",
       "failed": "Could not save the codes",
       "noCodebook": {
-        "title": "No speaker codebook yet",
+        "title": "No document or person codebook",
         "description": "Coding a study needs a codebook whose codes apply to documents and speakers.",
         "action": "Create a codebook"
       },
@@ -84,11 +84,21 @@
       "inDocuments": "In {count} documents",
       "loadRosters": "Load the speakers of {count} older documents",
       "loadingRosters": "Loading the speakers of {count} documents…",
-      "beta": "Codebooks are still in beta — turn them on from your account to use the coding board."
+      "beta": "Codebooks are still in beta — turn them on from your account to use the coding board.",
+      "view": {
+        "label": "View",
+        "codebook": "By codebook",
+        "all": "All codebooks"
+      },
+      "newCodebook": "New codebook",
+      "editCodebook": "Edit",
+      "noCodes": "This codebook has no codes yet.",
+      "addCodes": "Add codes",
+      "pickCodes": "Choose…"
     },
     "document": {
       "menu": "Document codes",
-      "create": "Create a codebook",
+      "create": "Create a document or person codebook",
       "untitled": "Untitled codebook",
       "failed": "Could not save the document's codes"
     },
@@ -168,6 +178,13 @@
       "recodeMine": "You can only take back your own readings.",
       "open": "Open this interview",
       "pause": "Pause"
+    },
+    "import": {
+      "label": "Document codes",
+      "hint": "Applied to each imported document. You can change them later from the document or the study's Coding page.",
+      "none": "No codes",
+      "failed": "The document was created, but its codes could not be saved",
+      "add": "Add codes"
     }
   }
 }

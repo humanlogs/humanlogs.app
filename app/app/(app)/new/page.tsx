@@ -20,6 +20,13 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ImportTextForm } from "@/components/transcriptions/import-text-form";
+import {
+  ImportCodesPicker,
+  keepInScope,
+  useImportCodebooks,
+} from "@/components/codebooks/import-codes-picker";
+import { useUpdateDocumentCodesAcross } from "@/hooks/use-transcriptions";
+import type { CodeRef } from "@/lib/codebooks/codebook";
 import { getLanguageOptions, supportedLanguages } from "@/lib/utils/languages";
 import {
   AlertCircle,
@@ -81,7 +88,11 @@ function uploadWithProgress(
     };
 
     xhr.onload = () => {
-      resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, body: xhr.responseText });
+      resolve({
+        ok: xhr.status >= 200 && xhr.status < 300,
+        status: xhr.status,
+        body: xhr.responseText,
+      });
     };
     xhr.onerror = () => reject(new Error("Network error during upload"));
     xhr.onabort = () => reject(new Error("Upload aborted"));
@@ -90,9 +101,9 @@ function uploadWithProgress(
   });
 }
 
-
 function NewTranscriptionForm() {
   const t = useTranslations("newTranscription");
+  const tCodebook = useTranslations("codebook");
   const { locale } = useLocale();
   const { data: user } = useUserProfile();
   const router = useRouter();
@@ -186,6 +197,14 @@ function NewTranscriptionForm() {
     );
   }, [tagAudioEvents]);
 
+  // Codes for each document as a whole, by file, applied once they are created:
+  // a batch of files is rarely a batch of identical interviews.
+  const [documentCodes, setDocumentCodes] = React.useState<
+    Record<string, CodeRef[]>
+  >({});
+  const importCodebooks = useImportCodebooks(projectId);
+  const updateDocumentCodes = useUpdateDocumentCodesAcross();
+
   // Save projectId to localStorage when it changes
   React.useEffect(() => {
     if (projectId) {
@@ -200,7 +219,10 @@ function NewTranscriptionForm() {
   React.useEffect(() => {
     if (providerTouchedRef.current) return;
     const saved = localStorage.getItem("transcription_stt_provider");
-    if (!saved && (user?.dataResidency === "eu" || user?.dataResidency === "us")) {
+    if (
+      !saved &&
+      (user?.dataResidency === "eu" || user?.dataResidency === "us")
+    ) {
       setProvider(user.dataResidency);
     }
   }, [user?.dataResidency]);
@@ -612,6 +634,28 @@ function NewTranscriptionForm() {
 
       queryClient.invalidateQueries({ queryKey: ["transcriptions"] });
 
+      // The documents exist now: code them through the same route as the
+      // editor, which checks the codes against the study's codebooks. A failure
+      // there must not read as a failed upload — the transcription is running.
+      // The server creates them in the order the files were sent.
+      const createdIds: string[] = result.transcriptions ?? [];
+      const codeUpdates = createdIds
+        .map((transcriptionId, index) => ({
+          transcriptionId,
+          value: keepInScope(
+            documentCodes[audioFiles[index]?.id] ?? [],
+            importCodebooks,
+          ),
+        }))
+        .filter((update) => update.value.length > 0);
+      if (codeUpdates.length > 0) {
+        try {
+          await updateDocumentCodes.mutateAsync(codeUpdates);
+        } catch {
+          toast.error(tCodebook("import.failed"));
+        }
+      }
+
       // Socket.io will automatically update the sidebar via React Query
 
       // Redirect to the first transcription or home
@@ -747,6 +791,18 @@ function NewTranscriptionForm() {
                         {formatSize(audioFile.size)}
                       </span>
                     </div>
+                    <ImportCodesPicker
+                      compact
+                      projectId={projectId}
+                      value={documentCodes[audioFile.id] ?? []}
+                      onChange={(codes) =>
+                        setDocumentCodes((current) => ({
+                          ...current,
+                          [audioFile.id]: codes,
+                        }))
+                      }
+                      disabled={isSubmitting}
+                    />
                   </div>
 
                   <div className="flex items-center">

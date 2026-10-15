@@ -26,11 +26,11 @@
       "scopeSelected": "Études sélectionnées",
       "target": "S'applique à",
       "targets": {
-        "speaker": "Locuteur",
-        "verbatim": "Verbatim"
+        "speaker": "Document ou personne",
+        "verbatim": "Passage du texte (verbatim)"
       },
       "targetHints": {
-        "speaker": "Codes des personnes : posés sur un document entier et sur chacun de ses locuteurs (rôle, groupe, profil).",
+        "speaker": "Codes posés sur un document entier (type d'entretien, terrain, vague…) ou sur une personne qui y parle (rôle, groupe, profil).",
         "verbatim": "Codes de ce qui est dit : posés sur un passage du transcript, du mot à la phrase entière."
       },
       "codes": "Codes",
@@ -63,9 +63,9 @@
     },
     "board": {
       "title": "Codage",
-      "description": "Attribuez les codes d'un codebook à tous les documents de l'étude et aux personnes qui s'y trouvent.",
+      "description": "Attribuez les codes de vos codebooks aux documents de l'étude et aux personnes qui s'y trouvent.",
       "codebook": "Codebook",
-      "hint": "Seuls les codebooks locuteur sont listés : les codes verbatim se posent sur le texte, dans l'éditeur.",
+      "hint": "Seuls les codebooks « document ou personne » sont listés : les codes verbatim se posent sur le texte, dans l'éditeur.",
       "documentCodes": "Document",
       "speakerCodes": "Codes",
       "speakerFallback": "Locuteur {index}",
@@ -73,7 +73,7 @@
       "empty": "Aucun document dans cette étude",
       "failed": "Impossible d'enregistrer les codes",
       "noCodebook": {
-        "title": "Aucun codebook locuteur",
+        "title": "Aucun codebook document ou personne",
         "description": "Coder une étude demande un codebook dont les codes s'appliquent aux documents et aux locuteurs.",
         "action": "Créer un codebook"
       },
@@ -84,11 +84,21 @@
       "inDocuments": "Dans {count} documents",
       "loadRosters": "Charger les locuteurs de {count} anciens documents",
       "loadingRosters": "Chargement des locuteurs de {count} documents…",
-      "beta": "Les codebooks sont encore en bêta — activez-les depuis votre compte pour utiliser le codage."
+      "beta": "Les codebooks sont encore en bêta — activez-les depuis votre compte pour utiliser le codage.",
+      "view": {
+        "label": "Affichage",
+        "codebook": "Par codebook",
+        "all": "Tous les codebooks"
+      },
+      "newCodebook": "Nouveau codebook",
+      "editCodebook": "Modifier",
+      "noCodes": "Ce codebook n'a encore aucun code.",
+      "addCodes": "Ajouter des codes",
+      "pickCodes": "Choisir…"
     },
     "document": {
       "menu": "Codes du document",
-      "create": "Créer un codebook",
+      "create": "Créer un codebook document ou personne",
       "untitled": "Codebook sans nom",
       "failed": "Impossible d'enregistrer les codes du document"
     },
@@ -168,6 +178,13 @@
       "recodeMine": "Vous ne pouvez retirer que vos propres lectures.",
       "open": "Ouvrir cet entretien",
       "pause": "Pause"
+    },
+    "import": {
+      "label": "Codes du document",
+      "hint": "Appliqués à chaque document importé. Modifiables ensuite depuis le document ou la page Codage de l'étude.",
+      "none": "Aucun code",
+      "failed": "Le document a été créé, mais ses codes n'ont pas pu être enregistrés",
+      "add": "Ajouter des codes"
     }
   }
 }

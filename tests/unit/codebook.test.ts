@@ -62,12 +62,21 @@ describe("codebooksInScopeForProject", () => {
 });
 
 describe("groupableCodebooks", () => {
-  it("offers only the codebooks that cover every study", () => {
+  it("follows the scope of the list", () => {
     const codebooks = [
       cb("all", { allStudies: true }),
-      cb("scoped", { studyIds: ["p1"] }),
+      cb("p1", { studyIds: ["p1"] }),
+      cb("p2", { studyIds: ["p2"] }),
     ];
-    expect(groupableCodebooks(codebooks).map((c) => c.id)).toEqual(["all"]);
+    const ids = (studyId?: string | null) =>
+      groupableCodebooks(codebooks, studyId).map((c) => c.id);
+
+    // The whole corpus: a study's own grid is still a way to group it.
+    expect(ids()).toEqual(["all", "p1", "p2"]);
+    // One study: its codebooks and the ones covering every study.
+    expect(ids("p1")).toEqual(["all", "p1"]);
+    // Documents outside any study: only what covers every study codes them.
+    expect(ids(null)).toEqual(["all"]);
   });
 
   it("keeps speaker codebooks and drops the verbatim ones", () => {

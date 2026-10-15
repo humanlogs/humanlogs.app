@@ -30,6 +30,27 @@ export const PROJECT_COLORS: Record<string, string> = {
   rose: "bg-rose-500",
 };
 
+/**
+ * The same palette as text colours — for a label drawn in its code's colour.
+ * Written out in full for the same reason as above.
+ */
+export const PROJECT_TEXT_COLORS: Record<string, string> = {
+  slate: "text-slate-500",
+  gray: "text-gray-500",
+  red: "text-red-500",
+  orange: "text-orange-500",
+  amber: "text-amber-500",
+  green: "text-emerald-500",
+  teal: "text-teal-500",
+  sky: "text-sky-500",
+  blue: "text-blue-500",
+  indigo: "text-indigo-500",
+  violet: "text-violet-500",
+  fuchsia: "text-fuchsia-500",
+  pink: "text-pink-500",
+  rose: "text-rose-500",
+};
+
 export const PROJECT_COLOR_KEYS = Object.keys(PROJECT_COLORS);
 
 export const DEFAULT_PROJECT_COLOR = "blue";
