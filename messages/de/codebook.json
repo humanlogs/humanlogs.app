@@ -183,7 +183,8 @@
       "label": "Dokument-Codes",
       "hint": "Werden auf jedes importierte Dokument angewendet. Sie können sie später im Dokument oder auf der Codierungsseite der Studie ändern.",
       "none": "Keine Codes",
-      "failed": "Das Dokument wurde erstellt, aber seine Codes konnten nicht gespeichert werden"
+      "failed": "Das Dokument wurde erstellt, aber seine Codes konnten nicht gespeichert werden",
+      "add": "Codes hinzufügen"
     }
   }
 }

@@ -8,7 +8,7 @@ import {
   type CodeRef,
   type DecryptedCodebook,
 } from "@/lib/codebooks/codebook";
-import { PROJECT_COLORS } from "@/lib/projects/appearance";
+import { PROJECT_COLORS, PROJECT_TEXT_COLORS } from "@/lib/projects/appearance";
 import { cn } from "@/lib/utils/utils";
 import { CheckIcon, MinusIcon } from "lucide-react";
 import type * as React from "react";
@@ -35,6 +35,12 @@ export function findCode(
 
 export function colorClass(code: Code): string {
   return (code.color && PROJECT_COLORS[code.color]) || "bg-muted-foreground";
+}
+
+function textColorClass(code: Code): string {
+  return (
+    (code.color && PROJECT_TEXT_COLORS[code.color]) || "text-muted-foreground"
+  );
 }
 
 /**
@@ -141,7 +147,9 @@ export function CodeToggle({
         // shown everywhere else, so a cell reads as a code, not as a button.
         badgeVariants({ variant: "outline" }),
         "group relative isolate max-w-[10rem] cursor-pointer border-transparent disabled:cursor-default disabled:opacity-50",
-        state === "all" ? "text-white" : "text-foreground",
+        // Off, the label is the code's own colour, faded: present enough to
+        // be found, quiet enough that what IS applied stands out.
+        state === "all" ? "text-white" : textColorClass(code),
         className,
       )}
     >
@@ -153,11 +161,18 @@ export function CodeToggle({
           state === "all"
             ? "opacity-100"
             : state === "some"
-              ? "opacity-45 group-hover:opacity-60"
-              : "opacity-10 group-hover:opacity-25",
+              ? "opacity-40 group-hover:opacity-55"
+              : "opacity-[0.06] group-hover:opacity-20",
         )}
       />
-      {children ?? <span className="truncate">{code.label}</span>}
+      <span
+        className={cn(
+          "flex min-w-0 items-center gap-1 transition-opacity",
+          state === "none" && "opacity-60 group-hover:opacity-100",
+        )}
+      >
+        {children ?? <span className="truncate">{code.label}</span>}
+      </span>
     </button>
   );
 }

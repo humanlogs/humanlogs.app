@@ -183,7 +183,8 @@
       "label": "Códigos del documento",
       "hint": "Se aplican a cada documento importado. Puede cambiarlos después desde el documento o la página Codificación del estudio.",
       "none": "Sin códigos",
-      "failed": "El documento se creó, pero sus códigos no se pudieron guardar"
+      "failed": "El documento se creó, pero sus códigos no se pudieron guardar",
+      "add": "Añadir códigos"
     }
   }
 }

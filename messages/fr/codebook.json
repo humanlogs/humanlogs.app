@@ -183,7 +183,8 @@
       "label": "Codes du document",
       "hint": "Appliqués à chaque document importé. Modifiables ensuite depuis le document ou la page Codage de l'étude.",
       "none": "Aucun code",
-      "failed": "Le document a été créé, mais ses codes n'ont pas pu être enregistrés"
+      "failed": "Le document a été créé, mais ses codes n'ont pas pu être enregistrés",
+      "add": "Ajouter des codes"
     }
   }
 }

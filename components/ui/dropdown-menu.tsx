@@ -264,7 +264,9 @@ export function DropdownMenuItem({
   };
 
   return (
+    // A menu item never submits the form the menu happens to sit in.
     <button
+      type="button"
       className={cn(
         "flex w-full items-center rounded-sm px-2 py-2 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
         className,

@@ -50,6 +50,22 @@ test("codes documents and people from the study coding board", async ({
     })
   ).json();
 
+  // A second grid, so the side-by-side view is offered.
+  await request.post(`${baseURL}/api/codebooks`, {
+    data: {
+      content: {
+        name: "Terrain",
+        codes: [
+          { id: "c-urbain", label: "Urbain", color: "teal" },
+          { id: "c-rural", label: "Rural", color: "amber" },
+        ],
+      },
+      allStudies: false,
+      studyIds: [study.id],
+      target: "speaker",
+    },
+  });
+
   const first = await createTranscription(request, {
     title: "Entretien A",
     filename: "a.csv",
@@ -70,6 +86,7 @@ test("codes documents and people from the study coding board", async ({
   // time: navigate until the board is there.
   await expect(async () => {
     await page.goto(`/app/project/${study.id}/coding`);
+    await page.getByRole("tab", { name: "Profil" }).click({ timeout: 10_000 });
     await expect(
       page.getByRole("checkbox", { name: "Cadre — Entretien A" }),
     ).toBeVisible({ timeout: 10_000 });
@@ -143,27 +160,17 @@ test("codes documents and people from the study coding board", async ({
       page.getByText(name.replace(".wav", ""), { exact: true }),
     ).toBeVisible();
   }
-  await expect(page.getByRole("checkbox", { name: "Ouvrier" })).toHaveCount(2);
-  const firstOuvrier = page.getByRole("checkbox", { name: "Ouvrier" }).first();
-  await firstOuvrier.click();
-  await expect(firstOuvrier).toHaveAttribute("aria-checked", "true");
-  await expect(
-    page.getByRole("checkbox", { name: "Ouvrier" }).nth(1),
-  ).toHaveAttribute("aria-checked", "false");
+  // Each file has its own menu; only what is picked shows on it.
+  const triggers = page.getByLabel(/Document codes|Codes du document/);
+  await expect(triggers).toHaveCount(2);
+  await triggers.first().click();
+  await page.getByRole("button", { name: "Ouvrier" }).click();
+  await page.keyboard.press("Escape");
+  await page.getByRole("heading", { level: 1 }).click();
+  await expect(triggers.first()).toContainText("Ouvrier");
+  await expect(triggers.nth(1)).not.toContainText("Ouvrier");
   await page.screenshot({
     path: "test-results/study-coding-board-audio.png",
-    fullPage: true,
-  });
-
-  await page.getByRole("button", { name: "Text / document" }).click();
-  const pill = page
-    .locator("form:visible")
-    .getByRole("checkbox", { name: "Cadre" });
-  await expect(pill).toHaveAttribute("aria-checked", "false");
-  await pill.click();
-  await expect(pill).toHaveAttribute("aria-checked", "true");
-  await page.screenshot({
-    path: "test-results/study-coding-board-import.png",
     fullPage: true,
   });
 });

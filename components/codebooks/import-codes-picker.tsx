@@ -1,7 +1,9 @@
 "use client";
 
 import { useCodebookModal } from "@/components/codebooks/codebook-editor-dialog";
-import { CodeToggle } from "@/components/codebooks/code-picker";
+import { CodeChips, CodeCheckItems } from "@/components/codebooks/code-picker";
+import { DropdownMenu } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils/utils";
 import { useTranslations } from "@/components/locale-provider";
 import { Label } from "@/components/ui/label";
 import { useBetaFeatures } from "@/hooks/use-api";
@@ -12,7 +14,7 @@ import {
   speakerCodebooks,
   type CodeRef,
 } from "@/lib/codebooks/codebook";
-import { PlusIcon, TagsIcon } from "lucide-react";
+import { ChevronDownIcon, PlusIcon, TagsIcon } from "lucide-react";
 
 /**
  * The codebooks a new document can be coded with: document-and-people ones in
@@ -39,9 +41,10 @@ export function keepInScope(
  * so they are picked on the upload form rather than in a second pass — per
  * document, since a batch of files is rarely a batch of identical interviews.
  *
- * Codes are pills in their own colour, a click each — the same switch as a cell
- * of the study coding board, without a menu to open. `compact` drops the label,
- * hint and empty state, for the row of each uploaded file.
+ * A menu rather than every code laid out: a form with five files and three
+ * codebooks would otherwise be mostly badges. Only the picked codes show, as
+ * badges on the trigger. `compact` drops the label, hint and empty state, for
+ * the row of each uploaded file.
  */
 export function ImportCodesPicker({
   projectId,
@@ -96,48 +99,47 @@ export function ImportCodesPicker({
     );
   }
 
-  const pills = (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-      {withCodes.map((codebook) => (
-        <div key={codebook.id} className="flex flex-wrap items-center gap-1.5">
-          {withCodes.length > 1 && (
-            <span className="text-xs text-muted-foreground">
-              {codebook.name || t("document.untitled")}
-            </span>
+  // Only what is picked is shown; the rest waits in the menu.
+  const picker = (
+    <DropdownMenu
+      align="start"
+      position="bottom"
+      trigger={
+        <span
+          className={cn(
+            "inline-flex min-h-7 cursor-pointer flex-wrap items-center gap-1 rounded-md border border-dashed px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent",
+            disabled && "pointer-events-none opacity-50",
           )}
-          {flattenCodes(codebook.codes).map(({ code, path }) => (
-            <CodeToggle
-              key={code.id}
-              code={code}
-              state={isOn(codebook.id, code.id) ? "all" : "none"}
-              label={[...path, code.label].join(" › ")}
-              disabled={disabled}
-              onToggle={() => toggle(codebook.id, code.id)}
-            >
-              <span className="truncate">{code.label}</span>
-            </CodeToggle>
-          ))}
-        </div>
-      ))}
-    </div>
+          aria-label={t("import.label")}
+        >
+          <TagsIcon className="h-3.5 w-3.5 shrink-0" />
+          {value.length > 0 ? (
+            <CodeChips refs={value} codebooks={withCodes} solid />
+          ) : (
+            <span>{t("import.add")}</span>
+          )}
+          <ChevronDownIcon className="h-3 w-3 shrink-0" />
+        </span>
+      }
+    >
+      <CodeCheckItems
+        codebooks={withCodes.map((c) =>
+          c.name ? c : { ...c, name: t("document.untitled") },
+        )}
+        stateOf={(codebookId, codeId) =>
+          isOn(codebookId, codeId) ? "all" : "none"
+        }
+        onToggle={toggle}
+      />
+    </DropdownMenu>
   );
 
-  if (compact) {
-    return (
-      <div className="flex items-start gap-2">
-        <TagsIcon
-          className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground"
-          aria-label={t("import.label")}
-        />
-        {pills}
-      </div>
-    );
-  }
+  if (compact) return picker;
 
   return (
     <div className="space-y-2">
       <Label>{t("import.label")}</Label>
-      {pills}
+      <div>{picker}</div>
       <p className="text-xs text-muted-foreground">{t("import.hint")}</p>
     </div>
   );

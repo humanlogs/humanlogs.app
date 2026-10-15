@@ -183,7 +183,8 @@
       "label": "Document codes",
       "hint": "Applied to each imported document. You can change them later from the document or the study's Coding page.",
       "none": "No codes",
-      "failed": "The document was created, but its codes could not be saved"
+      "failed": "The document was created, but its codes could not be saved",
+      "add": "Add codes"
     }
   }
 }

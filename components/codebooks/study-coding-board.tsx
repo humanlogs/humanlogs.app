@@ -41,9 +41,7 @@ import {
   ChevronDownIcon,
   Columns3Icon,
   FileTextIcon,
-  PencilIcon,
   PlusIcon,
-  Table2Icon,
   UserIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -110,7 +108,7 @@ export function StudyCodingBoard({ projectId }: { projectId: string }) {
     Record<string, SpeakerSummary[]>
   >({});
   const [loadMissing, setLoadMissing] = React.useState(false);
-  const [view, setView] = React.useState<BoardView>("codebook");
+  const [preferredView, setView] = React.useState<BoardView>("codebook");
 
   const documents: StudyDocument[] = React.useMemo(
     () =>
@@ -135,6 +133,9 @@ export function StudyCodingBoard({ projectId }: { projectId: string }) {
   const available = speakerCodebooks(
     codebooksInScopeForProject(codebooks, projectId),
   ).map((c) => (c.name ? c : { ...c, name: t("untitled") }));
+
+  // Side by side only means something with two codebooks or more.
+  const view: BoardView = available.length > 1 ? preferredView : "codebook";
 
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   // Falling back to the first one keeps the board usable before any choice, and
@@ -339,30 +340,46 @@ export function StudyCodingBoard({ projectId }: { projectId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
+        {/* One tab per codebook, then all of them side by side: picking the
+            grid and picking the layout are the same gesture. */}
         <div
           role="tablist"
           aria-label={t("view.label")}
-          className="inline-flex gap-1 rounded-lg border p-1"
+          className="inline-flex flex-wrap gap-1 rounded-lg border p-1"
         >
-          {(
-            [
-              ["codebook", Table2Icon],
-              ["all", Columns3Icon],
-            ] as const
-          ).map(([value, Icon]) => (
+          {available.map((c) => {
+            const selected = view === "codebook" && c.id === codebook.id;
+            return (
+              <Button
+                key={c.id}
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                variant={selected ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => {
+                  setSelectedId(c.id);
+                  setView("codebook");
+                }}
+              >
+                <BookMarkedIcon className="h-4 w-4" />
+                <span className="max-w-[14rem] truncate">{c.name}</span>
+              </Button>
+            );
+          })}
+          {available.length > 1 && (
             <Button
-              key={value}
               type="button"
               role="tab"
-              aria-selected={view === value}
-              variant={view === value ? "secondary" : "ghost"}
+              aria-selected={view === "all"}
+              variant={view === "all" ? "secondary" : "ghost"}
               size="sm"
-              onClick={() => setView(value)}
+              onClick={() => setView("all")}
             >
-              <Icon className="h-4 w-4" />
-              {t(`view.${value}`)}
+              <Columns3Icon className="h-4 w-4" />
+              {t("view.all")}
             </Button>
-          ))}
+          )}
         </div>
         <Button
           size="sm"
@@ -373,42 +390,6 @@ export function StudyCodingBoard({ projectId }: { projectId: string }) {
           {t("newCodebook")}
         </Button>
       </div>
-
-      {view === "codebook" && (
-        <div className="space-y-2">
-          {/* Chips rather than a select: switching grid is the most frequent
-              move on this screen, and every option stays in sight. */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            {available.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                aria-pressed={c.id === codebook.id}
-                onClick={() => setSelectedId(c.id)}
-                className={cn(
-                  "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors",
-                  c.id === codebook.id
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "hover:bg-accent",
-                )}
-              >
-                <BookMarkedIcon className="h-3.5 w-3.5" />
-                <span className="max-w-[14rem] truncate">{c.name}</span>
-              </button>
-            ))}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8"
-              onClick={() => openEdit(codebook.id)}
-            >
-              <PencilIcon className="h-3.5 w-3.5" />
-              {t("editCodebook")}
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">{t("hint")}</p>
-        </div>
-      )}
 
       <div className="overflow-x-auto rounded-lg border">
         <table className="w-full border-collapse text-sm">
