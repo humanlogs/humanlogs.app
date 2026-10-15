@@ -1,0 +1,31 @@
+import {
+  isDocumentPhase,
+  type WorkspaceArea,
+} from "@/components/transcriptions/editor/phase";
+
+/**
+ * Which space of the app a route is in.
+ *
+ * The route decides WHETHER there is a space at all, and the phase decides which
+ * one. Null where the question does not apply: the home page, the account, a
+ * study's own page. Those are not a pass over material, and colouring them would
+ * make the scale mean nothing.
+ *
+ * The phase is passed in rather than read from the query string here, because the
+ * one caller lives in the layout that wraps every route and `useSearchParams`
+ * there would demand a Suspense boundary around all of them.
+ */
+export function workspaceAreaOf(
+  pathname: string | null | undefined,
+  phase: string | null | undefined,
+): WorkspaceArea | null {
+  if (!pathname) return null;
+  // A study has three rooms and they are three routes. Analysis is ONLY ever one
+  // of these, having no document route at all; and the study's own page is where
+  // its material is assembled, which is the editing pass seen from the corpus.
+  if (/^\/app\/project\/[^/]+\/coding/.test(pathname)) return "coding";
+  if (/^\/app\/project\/[^/]+\/analysis/.test(pathname)) return "analysis";
+  if (/^\/app\/project\/[^/]+$/.test(pathname)) return "transcription";
+  if (!pathname.startsWith("/app/transcription/")) return null;
+  return isDocumentPhase(phase) ? phase : "transcription";
+}

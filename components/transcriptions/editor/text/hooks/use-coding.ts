@@ -5,6 +5,10 @@ import { useCodebooks } from "@/hooks/use-codebooks";
 import { useAddCoding, useCodings, useDeleteCoding } from "@/hooks/use-codings";
 import { codebooksInScopeForProject } from "@/lib/codebooks/codebook";
 import {
+  readCodingCodebook,
+  writeCodingCodebook,
+} from "@/lib/codebooks/coding-codebook";
+import {
   buildCodingOptions,
   codeKey,
   codingsInScope,
@@ -21,6 +25,20 @@ import {
   getCodingRanges,
   removeCodingMark,
 } from "../utils/coding-actions";
+import type { Editor } from "@tiptap/react";
+
+/**
+ * How long the coded passage is, in characters.
+ *
+ * Sent with the coding because only the client can count it: the transcript may
+ * be end-to-end encrypted, so the server stores the row without ever seeing what
+ * it spans. It is the numerator of "how much of this interview is coded" and it
+ * is deliberately approximate — a snapshot at write time, never maintained as the
+ * text moves under the anchor.
+ */
+function passageLength(editor: Editor, from: number, to: number): number {
+  return editor.state.doc.textBetween(from, to, " ").length;
+}
 
 /**
  * Everything the coding phase does to a document, in one place: which codes are on
@@ -64,9 +82,8 @@ export function useCoding({
    * single answer. Switching is one click, and codings made through another codebook
    * stay in the database untouched; they are simply not what you are looking at.
    */
-  const storageKey = `hl-coding-codebook:${projectId ?? "none"}`;
   const [chosenCodebookId, setChosenCodebookId] = useState<string | null>(() =>
-    typeof window === "undefined" ? null : localStorage.getItem(storageKey),
+    readCodingCodebook(projectId),
   );
   // Falling back to the first one keeps the bar usable before any choice, and after
   // the chosen codebook is deleted or moved out of this study.
@@ -78,9 +95,9 @@ export function useCoding({
   const selectCodebook = useCallback(
     (id: string) => {
       setChosenCodebookId(id);
-      if (typeof window !== "undefined") localStorage.setItem(storageKey, id);
+      writeCodingCodebook(projectId, id);
     },
-    [storageKey],
+    [projectId],
   );
 
   /** The codes on offer: those of the chosen codebook. */
@@ -226,7 +243,12 @@ export function useCoding({
       historyRef.current.push({ type: "apply", codingId: id });
       editorAPI.emit("codingsChange");
       addCoding.mutate(
-        { id, codebookId: option.codebookId, codeId: option.code.id },
+        {
+          id,
+          codebookId: option.codebookId,
+          codeId: option.code.id,
+          textLength: passageLength(editor, from, to),
+        },
         {
           onError: () => {
             // The row never landed: take the highlight back out rather than leave a
@@ -314,7 +336,12 @@ export function useCoding({
       }
       editorAPI.emit("codingsChange");
       addCoding.mutate(
-        { id, codebookId, codeId },
+        {
+          id,
+          codebookId,
+          codeId,
+          textLength: passageLength(editor, range.from, range.to),
+        },
         {
           onError: () => {
             removeCodingMark(editor, id);
@@ -385,7 +412,12 @@ export function useCoding({
     if (!applyCodingMark(editor, id)) return;
     editorAPI.emit("codingsChange");
     addCoding.mutate(
-      { id, codebookId: entry.codebookId, codeId: entry.codeId },
+      {
+        id,
+        codebookId: entry.codebookId,
+        codeId: entry.codeId,
+        textLength: passageLength(editor, from, to),
+      },
       {
         onError: () => {
           removeCodingMark(editor, id);

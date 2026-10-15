@@ -11,9 +11,11 @@ import {
   type DecryptedCodebook,
 } from "@/lib/codebooks/codebook";
 import { verbatimCodebooks } from "@/lib/codebooks/coding";
+import { describeFacet } from "@/lib/analysis/analysis-facets";
 import { documentsMatchingCodes } from "@/lib/local/phrase-query";
 import {
   buildSpeakerIdentity,
+  normalizeSpeakerName,
   speakerPersonMap,
   speakersMatchingCodesByPerson,
 } from "@/lib/local/speaker-identity";
@@ -53,6 +55,15 @@ export type ExcerptLabels = {
   codebookName: (codebookId: string) => string;
   documentTitle: (documentId: string) => string;
   speakerName: (documentId: string, speakerId: string | null) => string;
+  /**
+   * One facet of an analysis slice, in words — "«cadre»", "Renée", "entretien 3".
+   *
+   * Resolved here because this is the one place that holds the codebooks, the
+   * document list AND the speaker identity at once. An analysis stores opaque
+   * facet tokens, exactly as the index stores opaque ids, so a code renamed or a
+   * speaker named for the first time reads correctly with nothing stored touched.
+   */
+  facetLabel: (facet: string) => string;
 };
 
 export type ExcerptQueryResult = {
@@ -125,7 +136,7 @@ export function useExcerptRequest({
   userId: string | undefined;
 }): { request: Omit<StudyQuery, "signal">; labels: ExcerptLabels } {
   const t = useTranslations("codebook.excerpts");
-  const { filter, groupBy, context } = useExcerptPanel();
+  const { filter, rules, context } = useExcerptPanel();
 
   const inStudy = React.useMemo(
     () => documents.filter((doc) => doc.projectId === context.projectId),
@@ -167,6 +178,37 @@ export function useExcerptRequest({
     [inStudy],
   );
 
+  /**
+   * The codes carried by each person and each document, for a `context` grouping
+   * rule — "the cadres", as a row rather than as a filter.
+   *
+   * Built from the document list the app already holds, like the identity above:
+   * coding a person in the study board re-groups the table on the next render
+   * rather than after a reindex.
+   */
+  const contextByPerson = React.useMemo(() => {
+    const out: Record<string, string[]> = {};
+    for (const doc of inStudy) {
+      for (const ref of doc.speakerCodes ?? []) {
+        const person = identity.personOf(doc.id, ref.speakerId);
+        const key = `${ref.codebookId}:${ref.codeId}`;
+        const bucket = (out[person] ??= []);
+        if (!bucket.includes(key)) bucket.push(key);
+      }
+    }
+    return out;
+  }, [inStudy, identity]);
+
+  const contextByDocument = React.useMemo(() => {
+    const out: Record<string, string[]> = {};
+    for (const doc of inStudy) {
+      out[doc.id] = (doc.codes ?? []).map(
+        (ref) => `${ref.codebookId}:${ref.codeId}`,
+      );
+    }
+    return out;
+  }, [inStudy]);
+
   const speakerKeys =
     filter.contextCodes.length > 0 && filter.scope !== "document"
       ? speakersMatchingCodesByPerson(
@@ -179,8 +221,10 @@ export function useExcerptRequest({
 
   const request: Omit<StudyQuery, "signal"> = {
     projectId: context.projectId,
-    groupBy,
-    codeOrder: codeOrderFor({ groupBy, filter, codebooks, context }),
+    rules,
+    codeOrder: codeOrderFor({ rules, filter, codebooks, context }),
+    contextByPerson,
+    contextByDocument,
     sanitize: knownCodesOf(codebooks),
     speakerPersons,
     filter: {
@@ -206,7 +250,20 @@ export function useExcerptRequest({
     const rosters = new Map(documents.map((doc) => [doc.id, doc.speakers]));
     const names = new Map(codebooks.map((c) => [c.id, c.name]));
 
-    return {
+    // A person's facet is the key the query groups them under — their normalized
+    // name when they have one, the (document, speaker) pair when they do not. This
+    // turns it back into something a reader recognises.
+    const personNames = new Map<string, string>();
+    for (const doc of documents) {
+      for (const speaker of doc.speakers) {
+        const person = normalizeSpeakerName(speaker.name);
+        if (person && speaker.name && !personNames.has(person)) {
+          personNames.set(person, speaker.name);
+        }
+      }
+    }
+
+    const self: ExcerptLabels = {
       codebookName: (codebookId) =>
         names.get(codebookId) || t("unknownCodebook"),
       codeLabel: (ref) =>
@@ -225,7 +282,45 @@ export function useExcerptRequest({
           ? t("speakerFallback", { index: position + 1 })
           : t("unknownSpeaker");
       },
+      facetLabel: (facet) => {
+        const parsed = describeFacet(facet);
+        switch (parsed.kind) {
+          case "code":
+          case "context":
+            return self.codeLabel({
+              codebookId: parsed.codebookId!,
+              codeId: parsed.codeId!,
+            }).label;
+          case "codebook":
+            return self.codebookName(parsed.id!);
+          case "document":
+            return self.documentTitle(parsed.id!);
+          case "nocode":
+            return t("groupBy.uncoded", {
+              codebook: self.codebookName(parsed.id ?? ""),
+            });
+          case "speaker": {
+            const named = personNames.get(parsed.id!);
+            if (named) return named;
+            // An unnamed speaker: the key is the (document, speaker) pair the
+            // index uses — `<documentId>:<speakerId>`, split at the LAST colon
+            // since a document id never contains one — which `speakerName` can
+            // still resolve to a position.
+            const pair = parsed.id ?? "";
+            const cut = pair.lastIndexOf(":");
+            return cut < 0
+              ? pair
+              : self.speakerName(
+                  pair.slice(0, cut),
+                  pair.slice(cut + 1) || null,
+                );
+          }
+          default:
+            return facet;
+        }
+      },
     };
+    return self;
   }, [codebooks, documents, t]);
 
   return { request, labels };
@@ -307,21 +402,25 @@ function knownCodesOf(codebooks: DecryptedCodebook[]): KnownCodebooks {
  * and the choice would be a guess, so it declines.
  */
 function codeOrderFor({
-  groupBy,
+  rules,
   filter,
   codebooks,
   context,
 }: {
-  groupBy: ReturnType<typeof useExcerptPanel>["groupBy"];
+  rules: ReturnType<typeof useExcerptPanel>["rules"];
   filter: ReturnType<typeof useExcerptPanel>["filter"];
   codebooks: DecryptedCodebook[];
   context: ReturnType<typeof useExcerptPanel>["context"];
 }): CodeRef[] | undefined {
-  if (groupBy !== "code") return undefined;
+  // Only a SINGLE code axis reads as a grille. Crossed with anything else, the
+  // codebook's order would seed a row for every pair nobody ever produced.
+  const axis = rules.length === 1 && rules[0].kind === "code" ? rules[0] : null;
+  if (!axis) return undefined;
   if (filter.codes.length > 0) return filter.codes;
-  const codebook =
-    codebooks.find((c) => c.id === context.codebookId) ??
-    onlyVerbatimCodebook(codebooks, context.projectId);
+  const codebook = axis.codebookId
+    ? codebooks.find((c) => c.id === axis.codebookId)
+    : (codebooks.find((c) => c.id === context.codebookId) ??
+      onlyVerbatimCodebook(codebooks, context.projectId));
   if (!codebook) return undefined;
   return flattenCodes(codebook.codes).map(({ code }) => ({
     codebookId: codebook.id,

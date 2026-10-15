@@ -30,19 +30,30 @@ export function ExcerptPanelTrigger() {
   if (!betaFeatures || !onPage) return null;
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={panel.toggle}
-      aria-pressed={panel.open}
-      aria-label={t("title")}
-      title={t("title")}
-      className={cn(
-        "hidden size-8 shrink-0 md:inline-flex",
-        panel.open && "bg-accent",
-      )}
-    >
-      <PanelRightIcon className="size-4" />
-    </Button>
+    <>
+      {/* This toggle changes the SHAPE of the window; everything to its left acts
+          on the document. A hairline says so, and stops the panel button reading
+          as one more entry in the document's own row of actions. It rides with the
+          trigger rather than sitting in the header, so it appears exactly when the
+          trigger does — which is to say, in coding. */}
+      <span
+        aria-hidden
+        className="mx-1 hidden h-5 w-px shrink-0 bg-border md:block"
+      />
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={panel.toggle}
+        aria-pressed={panel.open}
+        aria-label={t("title")}
+        title={t("title")}
+        className={cn(
+          "hidden size-8 shrink-0 md:inline-flex",
+          panel.open && "bg-accent",
+        )}
+      >
+        <PanelRightIcon className="size-4" />
+      </Button>
+    </>
   );
 }

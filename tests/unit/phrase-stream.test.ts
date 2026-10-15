@@ -145,7 +145,12 @@ describe("the streaming query agrees with the materialising one", () => {
   }> = [
     { name: "no filter, ungrouped", options: {} },
     { name: "grouped by code", options: { groupBy: "code" } },
-    { name: "grouped by codebook", options: { groupBy: "codebook" } },
+    {
+      name: "crossed: by speaker, then by the codes of one codebook",
+      options: {
+        rules: [{ kind: "speaker" }, { kind: "code", codebookId: "cb1" }],
+      },
+    },
     { name: "grouped by document", options: { groupBy: "document" } },
     { name: "grouped by speaker", options: { groupBy: "speaker" } },
     {
@@ -309,10 +314,17 @@ describe("createPhraseStream", () => {
     // through a prism we cannot read still counts.
     expect(
       streamFromLinks(index.links, {
-        groupBy: "codebook",
+        rules: [{ kind: "code", codebookId: "cb1" }],
         sanitize: [{ id: "cbElsewhere", codeIds: [] }],
-      }).groups.map((g) => g.key),
-    ).toEqual(["codebook:cb1"]);
+      })
+        .groups.map((g) => g.key)
+        .sort(),
+    ).toEqual([
+      "code:cb1:cadre",
+      "code:cb1:hierarchie",
+      "code:cb1:institution",
+      "code:cb1:violence",
+    ]);
   });
 
   it("holds nothing per phrase — a large corpus costs the page, not the corpus", () => {
@@ -342,7 +354,10 @@ describe("createPhraseStream", () => {
 describe("takeRefs", () => {
   const group = (key: string, refs: number, count = refs): StreamedGroup => ({
     key,
+    facets: [],
+    path: [{ type: "all" }],
     label: { type: "all" },
+    commentIds: [],
     count,
     refs: Array.from({ length: refs }, (_, i) => ({
       id: `${key}-${i}`,

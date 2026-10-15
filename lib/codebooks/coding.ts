@@ -26,6 +26,8 @@ export type CodingDTO = {
   author: { id: string; name: string | null; email: string } | null;
   codebookId: string;
   codeId: string;
+  /** Characters the passage spanned when it was coded — approximate, see schema. */
+  textLength: number;
   createdAt: string;
 };
 
@@ -200,9 +202,19 @@ export function parseCodingInput(
   body: Record<string, unknown>,
   allowedCodebookIds: Set<string>,
 ):
-  | { data: { id: string; codebookId: string; codeId: string } }
+  | {
+      data: {
+        id: string;
+        codebookId: string;
+        codeId: string;
+        textLength: number;
+      };
+    }
   | { error: string } {
-  const { id, codebookId, codeId } = body as Record<string, unknown>;
+  const { id, codebookId, codeId, textLength } = body as Record<
+    string,
+    unknown
+  >;
   if (typeof id !== "string" || !id.trim()) {
     return { error: "id is required" };
   }
@@ -212,7 +224,14 @@ export function parseCodingInput(
   if (!allowedCodebookIds.has(codebookId)) {
     return { error: "Unknown codebook" };
   }
-  return { data: { id, codebookId, codeId } };
+  // Approximate by design (see the schema): clamped rather than rejected, so a
+  // client that miscounts produces a slightly wrong ratio rather than a failed
+  // coding. 1e7 characters is far past any interview.
+  const length =
+    typeof textLength === "number" && Number.isFinite(textLength)
+      ? Math.max(0, Math.min(10_000_000, Math.round(textLength)))
+      : 0;
+  return { data: { id, codebookId, codeId, textLength: length } };
 }
 
 /**

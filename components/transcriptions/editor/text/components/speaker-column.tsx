@@ -3,6 +3,7 @@
 import { SpeakerCodesMenu } from "@/components/codebooks/speaker-codes-menu";
 import { useTranslations } from "@/components/locale-provider";
 import { useSpeakerOptionsModal } from "@/components/transcriptions/dialogs/speaker-options-dialog";
+import { useDocumentViewPrefs } from "@/hooks/use-document-view-prefs";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -71,6 +72,13 @@ function SpeakerBadge({
   const { speakerId, index, top } = position;
   const { openRename } = useSpeakerRenameModal();
   const { openSpeakerOptions } = useSpeakerOptionsModal();
+
+  // Coding a person is a coding-phase gesture. While transcribing, the menu of a
+  // speaker badge is about who is speaking — renaming them, reassigning a
+  // paragraph — and a codebook submenu there is one more thing to read past on
+  // every badge, in the pass where it is never the answer.
+  const { prefs } = useDocumentViewPrefs();
+  const coding = prefs.phase === "coding";
 
   const speakers = editorAPI.getSpeakers();
 
@@ -161,11 +169,13 @@ function SpeakerBadge({
               {/* Codes carried by the person, not by what they say — kept on
                   the speaker itself, so coding one is a click away from where
                   they are visible. */}
-              <SpeakerCodesMenu
-                transcriptionId={transcriptionId}
-                projectId={projectId}
-                speakerId={speakerId}
-              />
+              {coding && (
+                <SpeakerCodesMenu
+                  transcriptionId={transcriptionId}
+                  projectId={projectId}
+                  speakerId={speakerId}
+                />
+              )}
 
               <DropdownMenuSeparator />
             </>

@@ -3,8 +3,11 @@
 import { CannotAccessTranscription } from "@/components/encryption";
 import { DocumentPhaseSwitch } from "@/components/transcriptions/document-phase-switch";
 import {
+  DOCUMENT_PHASES,
   parseDocumentPhase,
+  WORKSPACE_AREAS,
   type DocumentPhase,
+  type WorkspaceArea,
 } from "@/components/transcriptions/editor/phase";
 import { TranscriptionActions } from "@/components/transcriptions/transcription-actions";
 import { TranscriptionEditor } from "@/components/transcriptions/transcription-editor";
@@ -13,9 +16,13 @@ import { TranscriptionLoading } from "@/components/transcriptions/transcription-
 import { ProjectBadge } from "@/components/projects/project-badge";
 import { useBetaFeatures, useProjects } from "@/hooks/use-api";
 import { useDocumentTitle } from "@/hooks/use-document-title";
-import { useDocumentViewPrefs } from "@/hooks/use-document-view-prefs";
+import { useExcerptUrlSync } from "@/hooks/use-excerpt-url";
+import { useDeclareWorkspaceArea } from "@/hooks/use-workspace-area";
 import { useEncryptionStatus } from "@/hooks/use-encryption";
-import { useTranscription, useTranscriptions } from "@/hooks/use-transcriptions";
+import {
+  useTranscription,
+  useTranscriptions,
+} from "@/hooks/use-transcriptions";
 import { useTranscriptionDeleteModal } from "@/components/transcriptions/dialogs/transcription-delete-dialog";
 import { PencilIcon } from "lucide-react";
 import Link from "next/link";
@@ -62,10 +69,19 @@ function TranscriptionPageContent({ params }: TranscriptionPageProps) {
     : "transcription";
   // Keep the sidebar's open section on the phase actually being looked at — a
   // link opened from elsewhere, or the switch above, both land here.
-  const { prefs, update } = useDocumentViewPrefs();
-  useEffect(() => {
-    if (prefs.phase !== phase) update({ phase });
-  }, [phase, prefs.phase, update]);
+  useDeclareWorkspaceArea(phase);
+
+  // The excerpt panel's question rides in this URL too, so a coding pass survives
+  // a reload and can be linked to. Only while it is actually shown.
+  useExcerptUrlSync(phase === "coding");
+
+  /**
+   * The steps the switch offers here. Analysis is a study-level space, so it is
+   * only reachable from a document that has a study.
+   */
+  const areas: WorkspaceArea[] = transcription?.projectId
+    ? [...WORKSPACE_AREAS]
+    : [...DOCUMENT_PHASES];
 
   const setPhase = (next: DocumentPhase) => {
     const query = new URLSearchParams(searchParams.toString());
@@ -75,6 +91,24 @@ function TranscriptionPageContent({ params }: TranscriptionPageProps) {
     router.replace(`/app/transcription/${id}${suffix ? `?${suffix}` : ""}`, {
       scroll: false,
     });
+  };
+
+  const setArea = (next: WorkspaceArea) => {
+    // Analysis is not a pass over this document: it is the study's excerpt table,
+    // opened on the interview that was being read. Leaving with the document named
+    // is what makes it continuous with the coding that came before it.
+    //
+    // The preference is NOT set here — the page we are going to declares its own
+    // space. Setting it from the click that leaves was a race the page being left
+    // always won, so the sidebar arrived still showing this document's phase.
+    if (next === "analysis") {
+      if (!transcription?.projectId) return;
+      router.push(
+        `/app/project/${transcription.projectId}/analysis?document=${id}`,
+      );
+      return;
+    }
+    setPhase(next);
   };
 
   const isEncryptionError = error?.message === "error_encrypted";
@@ -194,7 +228,11 @@ function TranscriptionPageContent({ params }: TranscriptionPageProps) {
                   )}
                 </span>
                 {betaFeatures && transcription.state === "COMPLETED" && (
-                  <DocumentPhaseSwitch phase={phase} onChange={setPhase} />
+                  <DocumentPhaseSwitch
+                    area={phase}
+                    areas={areas}
+                    onChange={setArea}
+                  />
                 )}
               </div>
               <TranscriptionActions

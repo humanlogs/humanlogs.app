@@ -7,6 +7,7 @@ import { useExcerptPanelContext } from "@/components/codebooks/excerpts/excerpt-
 import { useTranslations } from "@/components/locale-provider";
 import { PageLayout } from "@/components/page-layout";
 import { ProjectBadge } from "@/components/projects/project-badge";
+import { StudyHeader } from "@/components/projects/study-header";
 import { StudySharingSummary } from "@/components/projects/study-sharing-summary";
 import { DocumentList } from "@/components/transcriptions/document-list";
 import { Button } from "@/components/ui/button";
@@ -86,65 +87,66 @@ export default function StudyPage() {
   );
 
   return (
-    <PageLayout
-      backHref="/app"
-      backLabel={t("backHome")}
-      title={titleNode}
-      action={
-        <div className="flex items-center gap-2">
-          <Button onClick={goImport}>
-            <PlusIcon className="h-4 w-4" />
-            {t("addDocument")}
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => openRename(project.id, project.name)}
-            aria-label={t("settings")}
-          >
-            <Settings2Icon className="h-4 w-4" />
-          </Button>
-        </div>
-      }
-      maxWidth="max-w-4xl"
-    >
-      {/* Documents */}
-      <section className="space-y-3">
-        <h2 className="text-sm font-medium text-muted-foreground">
-          {t("documents.title", { count: documents.length })}
-        </h2>
-
-        {isLoadingTranscriptions ? (
-          <div className="space-y-2">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-14 w-full" />
-            ))}
+    <>
+      <StudyHeader study={project} area="transcription" />
+      <PageLayout
+        title={titleNode}
+        action={
+          <div className="flex items-center gap-2">
+            <Button onClick={goImport}>
+              <PlusIcon className="h-4 w-4" />
+              {t("addDocument")}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => openRename(project.id, project.name)}
+              aria-label={t("settings")}
+            >
+              <Settings2Icon className="h-4 w-4" />
+            </Button>
           </div>
-        ) : documents.length === 0 ? (
-          <GuideCallout
-            icon={<PlusIcon className="h-5 w-5" />}
-            title={t("empty.title")}
-            description={t("empty.description")}
-            action={{
-              label: t("empty.action"),
-              onClick: goImport,
-              icon: <PlusIcon className="h-4 w-4" />,
-            }}
-          />
-        ) : (
-          <DocumentList documents={documents} />
-        )}
-      </section>
+        }
+        maxWidth="max-w-4xl"
+      >
+        {/* Documents */}
+        <section className="space-y-3">
+          <h2 className="text-sm font-medium text-muted-foreground">
+            {t("documents.title", { count: documents.length })}
+          </h2>
 
-      {/* Codebooks available from this study. Still beta, so it only shows for
+          {isLoadingTranscriptions ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-14 w-full" />
+              ))}
+            </div>
+          ) : documents.length === 0 ? (
+            <GuideCallout
+              icon={<PlusIcon className="h-5 w-5" />}
+              title={t("empty.title")}
+              description={t("empty.description")}
+              action={{
+                label: t("empty.action"),
+                onClick: goImport,
+                icon: <PlusIcon className="h-4 w-4" />,
+              }}
+            />
+          ) : (
+            <DocumentList documents={documents} />
+          )}
+        </section>
+
+        {/* Codebooks available from this study. Still beta, so it only shows for
           users who opted in from /app/account. Hidden until the study holds a
           document too — there is nothing to code before that. */}
-      {betaFeatures && documents.length > 0 && (
-        <CodebookSection projectId={projectId} />
-      )}
+        {betaFeatures && documents.length > 0 && (
+          <CodebookSection projectId={projectId} />
+        )}
 
-      {/* Who has access to what — only once something here is shared. */}
-      <StudySharingSummary documents={documents} />
-    </PageLayout>
+        {/* Who has access to what — only once something here is shared. */}
+        <StudySharingSummary documents={documents} />
+      </PageLayout>
+    </>
   );
 }

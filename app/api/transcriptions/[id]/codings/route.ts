@@ -15,6 +15,7 @@ function toDTO(c: {
   userId: string;
   codebookId: string;
   codeId: string;
+  textLength: number;
   createdAt: Date;
   user?: { id: string; name: string | null; email: string } | null;
 }): CodingDTO {
@@ -26,6 +27,7 @@ function toDTO(c: {
       : null,
     codebookId: c.codebookId,
     codeId: c.codeId,
+    textLength: c.textLength,
     createdAt: c.createdAt.toISOString(),
   };
 }
@@ -118,6 +120,7 @@ export const POST = withAuthRateLimit(
         userId: user.id,
         codebookId: parsed.data.codebookId,
         codeId: parsed.data.codeId,
+        textLength: parsed.data.textLength,
       },
       include: { user: { select: { id: true, name: true, email: true } } },
     });

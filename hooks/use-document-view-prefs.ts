@@ -10,7 +10,8 @@ import {
 } from "@/lib/documents/grouping";
 import {
   DEFAULT_DOCUMENT_PHASE,
-  type DocumentPhase,
+  isWorkspaceArea,
+  type WorkspaceArea,
 } from "@/components/transcriptions/editor/phase";
 import * as React from "react";
 
@@ -21,8 +22,12 @@ export type DocumentViewPrefs = {
   sortBy: SortBy;
   /** The study the sidebar is scoped to — a project id, "all", or "none". */
   studyScope: StudyScope;
-  /** Which phase section is open. The two are exclusive, so one name is enough. */
-  phase: DocumentPhase;
+  /**
+   * Which space of the work is open. The three are exclusive, so one name is
+   * enough. Wider than a document phase because analysis is a space without
+   * being a pass over a document — see {@link WorkspaceArea}.
+   */
+  phase: WorkspaceArea;
   /** Underline the words the speech-to-text engine was unsure of. */
   showConfidence: boolean;
 };
@@ -52,7 +57,9 @@ function parse(raw: string | null): DocumentViewPrefs {
       groupBy: parsed.groupBy ?? DEFAULTS.groupBy,
       sortBy: parsed.sortBy ?? DEFAULTS.sortBy,
       studyScope: parsed.studyScope ?? DEFAULTS.studyScope,
-      phase: parsed.phase ?? DEFAULTS.phase,
+      // Guarded rather than taken as written: a value stored by an older build
+      // (or by hand) must not put the sidebar in a space that does not exist.
+      phase: isWorkspaceArea(parsed.phase) ? parsed.phase : DEFAULTS.phase,
       showConfidence: parsed.showConfidence ?? DEFAULTS.showConfidence,
     };
   } catch {

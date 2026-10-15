@@ -39,7 +39,11 @@ function ScrollBar({
       data-orientation={orientation}
       orientation={orientation}
       className={cn(
-        "flex touch-none p-px transition-colors select-none data-horizontal:h-2.5 data-horizontal:flex-col data-horizontal:border-t data-horizontal:border-t-transparent data-vertical:h-full data-vertical:w-2.5 data-vertical:border-l data-vertical:border-l-transparent",
+        // `z-20` because scrolled content routinely stacks itself: a sticky group
+        // heading with a `z-10` sits in the same positioned layer as this bar and,
+        // being the earlier sibling's descendant, would otherwise paint OVER the
+        // thumb — the scrollbar disappearing behind the headings it scrolls past.
+        "z-20 flex touch-none p-px transition-colors select-none data-horizontal:h-2.5 data-horizontal:flex-col data-horizontal:border-t data-horizontal:border-t-transparent data-vertical:h-full data-vertical:w-2.5 data-vertical:border-l data-vertical:border-l-transparent",
         className,
       )}
       {...props}

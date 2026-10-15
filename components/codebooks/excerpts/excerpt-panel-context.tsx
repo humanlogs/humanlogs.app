@@ -2,12 +2,38 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useDocumentViewPrefs } from "@/hooks/use-document-view-prefs";
+import { workspaceAreaOf } from "@/lib/documents/workspace-area";
 import type { CodeRef } from "@/lib/codebooks/codebook";
-import {
-  DEFAULT_PHRASE_GROUP_BY,
-  phraseMatchesAnchors,
-  type PhraseGroupBy,
-} from "@/lib/local/phrase-query";
+import type { GroupRule } from "@/lib/local/group-rules";
+import { phraseMatchesAnchors } from "@/lib/local/phrase-query";
+
+/**
+ * Grouping by code to start with, because that is what a coding pass produces:
+ * the codebook down the left, the passages under each code. Everything else is a
+ * rule you ADD to it.
+ */
+const DEFAULT_RULES: GroupRule[] = [{ kind: "code" }];
+
+/**
+ * A stored chain, defensively. It is JSON written by an older build (where it was
+ * a single axis name) or by hand, and a malformed one must leave the table
+ * grouped rather than crash the panel.
+ */
+function parseRules(raw: string): GroupRule[] {
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return DEFAULT_RULES;
+    return parsed.filter(
+      (rule): rule is GroupRule =>
+        !!rule &&
+        typeof rule === "object" &&
+        ["speaker", "document", "code", "context"].includes(rule.kind),
+    );
+  } catch {
+    return DEFAULT_RULES;
+  }
+}
 
 /**
  * The excerpt panel's state, and the thread between it and the editor.
@@ -105,8 +131,13 @@ type ExcerptPanelValue = {
 
   filter: ExcerptFilterState;
   setFilter: React.Dispatch<React.SetStateAction<ExcerptFilterState>>;
-  groupBy: PhraseGroupBy;
-  setGroupBy: (groupBy: PhraseGroupBy) => void;
+  /**
+   * How the table is grouped: a CHAIN, appended to one rule at a time. Empty is
+   * the flat list. See `lib/local/group-rules.ts` for what a rule can be and why
+   * a crossing has one identity whatever order it was built in.
+   */
+  rules: GroupRule[];
+  setRules: (rules: GroupRule[]) => void;
 
   context: ExcerptDocumentContext;
   setContext: (context: ExcerptDocumentContext) => void;
@@ -131,6 +162,19 @@ type ExcerptPanelValue = {
    * only way to reach a row's play and code controls from a study-wide view.
    */
   followDocument: (documentId: string, codingId?: string) => void;
+  /**
+   * Open the interview at a COMMENT thread. The analysis column shows the notes
+   * written while coding, and a remark is mostly about the sentence it sits on —
+   * so following one has to land on that sentence, not on the document.
+   */
+  followThread: (documentId: string, anchorId: string) => void;
+  /**
+   * "I am arriving on this document on purpose, do not rebuild the table."
+   *
+   * The same suppression {@link followDocument} uses, exposed because a LINK can
+   * carry a question too — see `hooks/use-excerpt-url.ts`.
+   */
+  keepView: () => void;
 
   /**
    * The document whose audio is currently playable, if any.
@@ -287,9 +331,7 @@ export function ExcerptPanelProvider({
   const router = useRouter();
   const [open, setOpenState] = React.useState(false);
   const [width, setWidthState] = React.useState(DEFAULT_PANEL_WIDTH);
-  const [groupBy, setGroupByState] = React.useState<PhraseGroupBy>(
-    DEFAULT_PHRASE_GROUP_BY,
-  );
+  const [rules, setRulesState] = React.useState<GroupRule[]>(DEFAULT_RULES);
   const [filter, setFilter] = React.useState<ExcerptFilterState>(EMPTY_FILTER);
   const [context, setContextState] = React.useState<ExcerptDocumentContext>({
     documentId: null,
@@ -312,13 +354,7 @@ export function ExcerptPanelProvider({
         DEFAULT_PANEL_WIDTH,
       ),
     );
-    setGroupByState(
-      readStored(
-        GROUP_KEY,
-        (raw) => raw as PhraseGroupBy,
-        DEFAULT_PHRASE_GROUP_BY,
-      ),
-    );
+    setRulesState(readStored(GROUP_KEY, parseRules, DEFAULT_RULES));
     const study = readStored<string | null>(STUDY_KEY, (raw) => raw, null);
     if (study !== null) {
       // Only the study. A restored document id would claim an editor is open when
@@ -382,10 +418,10 @@ export function ExcerptPanelProvider({
       window.localStorage.setItem(WIDTH_KEY, String(clamped));
   }, []);
 
-  const setGroupBy = React.useCallback((next: PhraseGroupBy) => {
-    setGroupByState(next);
+  const setRules = React.useCallback((next: GroupRule[]) => {
+    setRulesState(next);
     if (typeof window !== "undefined")
-      window.localStorage.setItem(GROUP_KEY, next);
+      window.localStorage.setItem(GROUP_KEY, JSON.stringify(next));
   }, []);
 
   /**
@@ -415,11 +451,24 @@ export function ExcerptPanelProvider({
    * once.
    */
   const keepView = React.useRef(false);
+  const holdView = React.useCallback(() => {
+    keepView.current = true;
+  }, []);
   const followDocument = React.useCallback(
     (documentId: string, codingId?: string) => {
       keepView.current = true;
       const anchor = codingId ? `&coding=${encodeURIComponent(codingId)}` : "";
       router.push(`/app/transcription/${documentId}?phase=coding${anchor}`);
+    },
+    [router],
+  );
+
+  const followThread = React.useCallback(
+    (documentId: string, anchorId: string) => {
+      keepView.current = true;
+      router.push(
+        `/app/transcription/${documentId}?phase=coding&comment=${encodeURIComponent(anchorId)}`,
+      );
     },
     [router],
   );
@@ -451,7 +500,7 @@ export function ExcerptPanelProvider({
       codes: [],
       contextCodes: [],
     }));
-    setGroupByState("code");
+    setRulesState(DEFAULT_RULES);
   }, [documentId]);
 
   const listeners = React.useRef(new Set<(focus: PhraseFocus) => void>());
@@ -555,8 +604,8 @@ export function ExcerptPanelProvider({
     setWidth,
     filter,
     setFilter,
-    groupBy,
-    setGroupBy,
+    rules,
+    setRules,
     context,
     setContext,
     focused,
@@ -565,6 +614,8 @@ export function ExcerptPanelProvider({
     claimFocus,
     autoOpen,
     followDocument,
+    followThread,
+    keepView: holdView,
     audioDocumentId: audio.held?.documentId ?? null,
     registerAudio: audio.register,
     playingPhraseId,
@@ -586,19 +637,20 @@ export function ExcerptPanelProvider({
 /**
  * Whether the excerpt table belongs on the page you are on.
  *
- * Only a document, in either of its phases. The panel used to follow you
- * everywhere, which is what "global" bought: the table survived opening a second
- * interview. It also meant it sat open over the home page, the account settings
- * and a study's page, answering a question none of them had asked.
+ * A document being CODED, and nothing else. It used to follow you everywhere,
+ * which is what "global" bought: the table survived opening a second interview.
+ * It also meant it sat open over the home page and the account settings,
+ * answering a question neither had asked; and beside a transcript being written,
+ * where a table of what has been read of it is one thing too many on screen.
  *
- * Decided from the ROUTE rather than from `context.documentId`, because that is
- * reported by the pages that bother to report it: a page that forgets would leave
- * the previous document's id standing and the panel with it. A route cannot
- * forget where it is.
+ * The route decides whether there is a document, the phase decides whether it is
+ * being coded. Both from outside the panel: a page that forgot to report would
+ * leave the previous answer standing, and a route cannot forget where it is.
  */
 export function useExcerptPanelOnPage(): boolean {
   const pathname = usePathname();
-  return pathname?.startsWith("/app/transcription/") ?? false;
+  const { prefs } = useDocumentViewPrefs();
+  return workspaceAreaOf(pathname, prefs.phase) === "coding";
 }
 
 export function useExcerptPanel(): ExcerptPanelValue {

@@ -76,6 +76,20 @@ export type PhraseRow = {
    */
   startTime?: number;
   endTime?: number;
+  /**
+   * Comment threads anchored ANYWHERE inside this passage.
+   *
+   * Comments and codings are the same mechanism — an id on a mark, a row in a
+   * table — so the flat projection already carries both per token, and a coded
+   * span knows which threads it overlaps for free. That is what lets the analysis
+   * column show the notes written on a passage while coding it, which is where
+   * most of the small readings in a study are actually made.
+   *
+   * Ids only. The bodies are end-to-end encrypted and live with the document;
+   * this says which threads to ask for. Omitted when there are none, which is the
+   * overwhelming majority of passages.
+   */
+  commentIds?: string[];
 };
 
 /**
@@ -111,6 +125,14 @@ export type PhraseCodeRow = {
    * phrase of the study to display sixty of them.
    */
   offset: number;
+  /**
+   * The phrase's comment threads, copied here for the same reason `offset` is: the
+   * query walks THIS store and never reads a phrase row, so a group can only know
+   * which notes were written inside it if the links carry them. Duplicated across
+   * a phrase's links, which is a few dozen bytes on the small minority of passages
+   * that carry a comment at all.
+   */
+  commentIds?: string[];
 };
 
 export type PhraseIndex = {
@@ -150,6 +172,8 @@ type Span = {
   /** Audio seconds, from the first and last WORD the span covers. */
   audioStart?: number;
   audioEnd?: number;
+  /** Comment threads anchored on any token of the run. */
+  comments?: Set<string>;
 };
 
 /**
@@ -204,6 +228,7 @@ export function buildPhraseIndex({
   for (const token of segments ?? []) {
     const ids = token.codings ?? [];
     const present = ids.length > 0 ? new Set(ids) : null;
+    const comments = token.comments;
 
     // Anything not carried by this token ends here — that is what makes a span a
     // MAXIMAL run, and what keeps two codings of the same code on two passages from
@@ -222,6 +247,10 @@ export function buildPhraseIndex({
         if (existing) {
           existing.end = offset + token.text.length;
           existing.parts.push(token.text);
+          if (comments?.length) {
+            existing.comments ??= new Set();
+            for (const id of comments) existing.comments.add(id);
+          }
           existing.speakerId ??=
             token.type === "word" ? (token.speakerId ?? null) : null;
           if (token.type === "word") {
@@ -239,6 +268,7 @@ export function buildPhraseIndex({
             // covers: the whitespace between two turns belongs to neither.
             speakerId: token.type === "word" ? (token.speakerId ?? null) : null,
             parts: [token.text],
+            ...(comments?.length ? { comments: new Set(comments) } : {}),
             ...(token.type === "word"
               ? { audioStart: token.start, audioEnd: token.end }
               : {}),
@@ -273,6 +303,13 @@ export function buildPhraseIndex({
     // Every span here covers the SAME range, so they agree on the timing; the
     // first one that has any is as good as the rest.
     const timed = spans.find((s) => s.audioStart !== undefined);
+    // Every span covers the same range, so they see the same threads; the union
+    // guards against a mark that opens one token later than the coding it sits in.
+    const commentIds = new Set<string>();
+    for (const span of spans) {
+      for (const id of span.comments ?? []) commentIds.add(id);
+    }
+    const comments = commentIds.size > 0 ? Array.from(commentIds).sort() : null;
 
     phrases.push({
       id,
@@ -286,6 +323,7 @@ export function buildPhraseIndex({
         ? { startTime: timed.audioStart }
         : {}),
       ...(timed?.audioEnd !== undefined ? { endTime: timed.audioEnd } : {}),
+      ...(comments ? { commentIds: comments } : {}),
     });
 
     for (const codingId of codingIds) {
@@ -301,6 +339,7 @@ export function buildPhraseIndex({
         codeId: coding.codeId,
         userId: coding.userId,
         offset: spans[0].start,
+        ...(comments ? { commentIds: comments } : {}),
       });
     }
   }

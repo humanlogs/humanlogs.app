@@ -106,7 +106,8 @@
       "phase": {
         "label": "Fase",
         "transcription": "Edición",
-        "coding": "Codificación"
+        "coding": "Codificación",
+        "analysis": "Análisis"
       },
       "apply": "Codificar",
       "comment": "Comentar",
@@ -116,7 +117,8 @@
         "everyone": "Los códigos de todos"
       },
       "codebook": "Codebook",
-      "untitled": "Codebook sin nombre"
+      "untitled": "Codebook sin nombre",
+      "changeCodebook": "Cambiar de codebook"
     },
     "excerpts": {
       "title": "Extractos",
@@ -128,23 +130,31 @@
       "narrowed": "Documentos en esta selección: {count}",
       "scope": {
         "document": "Este documento",
-        "study": "Todo el estudio"
+        "study": "Todo el estudio",
+        "label": "Mostrar"
       },
       "filter": {
         "codes": "Códigos",
-        "context": "Documentos y personas"
+        "context": "Documentos y personas",
+        "label": "Filtrar"
       },
       "authors": {
         "everyone": "Todos",
-        "mine": "Míos"
+        "mine": "Míos",
+        "label": "Lecturas"
       },
       "groupBy": {
         "label": "Agrupar por",
         "none": "Sin agrupar",
-        "code": "Por código",
+        "code": "Códigos",
         "codebook": "Por libro de códigos",
-        "document": "Por documento",
-        "speaker": "Por hablante"
+        "document": "Documento",
+        "speaker": "Hablante",
+        "add": "Añadir una regla",
+        "remove": "Quitar esta regla",
+        "context": "Códigos de participantes",
+        "onPeople": "sobre las personas",
+        "uncoded": "Fuera de {codebook}"
       },
       "unknownCode": "Código eliminado",
       "unknownCodebook": "Libro de códigos eliminado",
@@ -177,7 +187,8 @@
       "recode": "Códigos de este pasaje",
       "recodeMine": "Solo puede retirar sus propias lecturas.",
       "open": "Abrir esta entrevista",
-      "pause": "Pausa"
+      "pause": "Pausa",
+      "expand": "Abrir en el análisis"
     },
     "import": {
       "label": "Códigos del documento",
@@ -185,6 +196,33 @@
       "none": "Sin códigos",
       "failed": "El documento se creó, pero sus códigos no se pudieron guardar",
       "add": "Añadir códigos"
+    },
+    "analysis": {
+      "title": "Análisis",
+      "description": "Todos los pasajes codificados de este estudio, en una sola tabla. Elija un documento en la barra lateral para limitarlo a esa entrevista.",
+      "placeholder": "¿Qué concluye de estos pasajes?",
+      "narrower": "Escrito sobre conjuntos más precisos",
+      "fromCoding": "Desde la codificación ({count})",
+      "others": "Otras lecturas"
+    },
+    "start": {
+      "title": "Codificar esta entrevista",
+      "description": "Elija la rejilla con la que va a leerla. Decide los colores, las letras y qué cuenta como codificado.",
+      "create": "Nuevo codebook",
+      "untitled": "Codebook sin nombre",
+      "coverage": "{covered}/{total} códigos usados",
+      "passages": "{count} pasajes",
+      "actions": "Sobre todo el documento",
+      "soon": "Pronto",
+      "auto": {
+        "title": "Codificar automáticamente",
+        "description": "Proponer codificaciones en toda la entrevista, para revisarlas una a una."
+      },
+      "empty": {
+        "title": "Todavía no hay codebook de verbatim",
+        "description": "Codificar una transcripción requiere una rejilla cuyos códigos se apliquen a un pasaje de texto."
+      },
+      "codedShare": "{percent}% codificado · {count} pasajes"
     }
   }
 }

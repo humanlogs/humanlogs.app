@@ -5,6 +5,8 @@ import {
   EncryptionUtils,
 } from "@/lib/encryption/encryption-entities";
 import { mentionedUserIds } from "@/components/transcriptions/editor/text/utils/mentions";
+import { isAnchorType, type AnchorType } from "@/lib/comments/anchor";
+import { useEncryptionStatus } from "./use-encryption";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { browserCrypto } from "../lib/encryption/encryption-entities.browser";
 import { fetchGateway } from "./fetch";
@@ -62,7 +64,9 @@ export type Participant = {
 };
 
 /** Everyone with access to a transcription, with display names. */
-export function useTranscriptionParticipants(transcriptionId: string | undefined) {
+export function useTranscriptionParticipants(
+  transcriptionId: string | undefined,
+) {
   return useQuery({
     queryKey: ["transcriptions", transcriptionId, "participants"],
     enabled: !!transcriptionId,
@@ -299,6 +303,191 @@ export function useDeleteComment(transcriptionId: string) {
       queryClient.invalidateQueries({
         queryKey: ["comments", transcriptionId],
       });
+    },
+  });
+}
+
+/**
+ * A note as the excerpt table reads it: decrypted, and knowing what it is on.
+ *
+ * Both kinds come out of the same fetch — see `lib/comments/anchor.ts`. A passage
+ * note has a `transcriptionId`; a slice note has a `projectId` and the facets of
+ * the question it answers.
+ */
+export type StudyComment = DecryptedComment & {
+  transcriptionId: string | null;
+  projectId: string | null;
+  anchorType: AnchorType;
+  facets: string[] | null;
+};
+
+/**
+ * Every comment on a study (or on one interview), for the excerpt table.
+ *
+ * A separate query from {@link useComments}, not a wider version of it: the two
+ * have different keys, different lifetimes and different consumers, and making the
+ * editor's comment rail depend on a study-wide fetch would be a much larger
+ * request on every document opened.
+ *
+ * Scoped as narrowly as the view allows — the open interview while coding, the
+ * study on the analysis page — so the common case is the same rows the editor
+ * already has, and the expensive case happens where it is actually needed.
+ */
+export function useStudyComments(
+  projectId: string | null | undefined,
+  documentId?: string | null,
+) {
+  const decrypt = useDecryptData();
+
+  return useQuery({
+    queryKey: ["study-comments", projectId ?? null, documentId ?? null],
+    enabled: !!projectId || !!documentId,
+    queryFn: async (): Promise<StudyComment[]> => {
+      const params = new URLSearchParams();
+      if (projectId) params.set("projectId", projectId);
+      if (documentId) params.set("documentId", documentId);
+      const response = await fetchGateway(`/api/comments?${params.toString()}`);
+      if (!response.ok) throw new Error("Failed to fetch comments");
+      const { comments } = (await response.json()) as {
+        comments: Array<
+          CommentDTO & {
+            transcriptionId: string | null;
+            projectId: string | null;
+            anchorType: string;
+            facets: string[] | null;
+          }
+        >;
+      };
+
+      return Promise.all(
+        comments.map(async (c) => {
+          let text = "";
+          if (isEncryptedEntity(c.body)) {
+            try {
+              const dec = await decrypt<{ text: string }>(c.body);
+              text = dec.text ?? "";
+            } catch {
+              // A document this device holds no key for: the thread is real and
+              // unreadable here, which is different from absent. Shown as empty
+              // rather than dropped would be a blank note, so it is dropped below.
+              text = "";
+            }
+          } else {
+            text = (c.body as { text?: string })?.text ?? "";
+          }
+          return {
+            id: c.id,
+            transcriptionId: c.transcriptionId,
+            projectId: c.projectId,
+            // A row written by a newer build with a third kind of key is skipped
+            // below rather than rendered as a passage note pointing at nothing.
+            anchorType: (isAnchorType(c.anchorType)
+              ? c.anchorType
+              : "passage") as AnchorType,
+            facets: c.facets ?? null,
+            anchorId: c.anchorId,
+            userId: c.userId,
+            author: c.author,
+            resolved: c.resolved,
+            createdAt: c.createdAt,
+            updatedAt: c.updatedAt,
+            text,
+          };
+        }),
+      ).then((rows) => rows.filter((row) => row.text.trim().length > 0));
+    },
+  });
+}
+
+/**
+ * Encrypt a note that belongs to no document.
+ *
+ * A passage note borrows the transcript's accessors, so everyone who can read the
+ * interview can read the note. A SLICE note has no document to borrow from, and a
+ * study belongs to one person in the data model — so it is wrapped for its author
+ * alone. That is stricter than the analyses this replaces, which were stored in
+ * clear; when studies become shareable this is the one function to widen.
+ */
+async function encryptSliceBody(
+  text: string,
+  publicKey: string | null | undefined,
+  userId: string | undefined,
+): Promise<EncryptedDataEntity | { text: string }> {
+  if (!publicKey || !userId) return { text };
+  const utils = new EncryptionUtils(browserCrypto);
+  return utils.createEncryptedDataEntity({ text }, [{ userId, publicKey }]);
+}
+
+/**
+ * Write the reader's note on one slice: create, update, or retract when emptied.
+ *
+ * Clearing the box is how an analysis is withdrawn, so an empty body deletes
+ * rather than storing a note that reads as written.
+ */
+export function useSaveSliceNote(projectId: string | null | undefined) {
+  const queryClient = useQueryClient();
+  const { data: encryption } = useEncryptionStatus();
+
+  return useMutation({
+    mutationFn: async ({
+      facets,
+      text,
+      existingId,
+    }: {
+      facets: string[];
+      text: string;
+      /** The note already written on this slice by this reader, if any. */
+      existingId?: string | null;
+    }) => {
+      const trimmed = text.trim();
+
+      if (!trimmed) {
+        if (!existingId) return null;
+        const response = await fetchGateway(`/api/comments/${existingId}`, {
+          method: "DELETE",
+        });
+        if (!response.ok) throw new Error("Failed to retract the note");
+        return null;
+      }
+
+      const body = await encryptSliceBody(
+        trimmed,
+        encryption?.publicKey,
+        encryption?.userId,
+      );
+
+      const response = existingId
+        ? await fetchGateway(`/api/comments/${existingId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ body }),
+          })
+        : await fetchGateway("/api/comments", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ projectId, facets, body }),
+          });
+      if (!response.ok) throw new Error("Failed to save the note");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["study-comments"] });
+    },
+  });
+}
+
+/** Retract a slice note outright — used where there is no box to empty. */
+export function useDeleteSliceNote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (commentId: string) => {
+      const response = await fetchGateway(`/api/comments/${commentId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to retract the note");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["study-comments"] });
     },
   });
 }

@@ -24,6 +24,7 @@ import {
 import { InteractiveAudio } from "./audio";
 import { EditorAPI } from "./text/api";
 import { ActiveSegmentHighlight } from "./text/components/active-segment-highlight";
+import { endCodingSession } from "@/lib/documents/coding-session";
 import { CodingBar } from "./text/components/coding-bar";
 import { CodingHighlightStyles } from "./text/components/coding-highlight-styles";
 import { CodingSelectionToolbar } from "./text/components/coding-selection-toolbar";
@@ -698,9 +699,8 @@ export function TranscriptEditor({
                   onBack={codingController.back}
                   appliedKeys={appliedCodeKeys}
                   onPick={codingController.pick}
-                  codebooks={codingController.availableCodebooks}
-                  codebookId={codingController.codebook?.id ?? null}
-                  onCodebookChange={codingController.selectCodebook}
+                  codebookName={codingController.codebook?.name ?? null}
+                  onLeave={endCodingSession}
                   scope={codingController.scope}
                   onScopeChange={codingController.setScope}
                   disabled={!canWrite || !documentSelection}

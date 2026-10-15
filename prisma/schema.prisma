@@ -98,6 +98,7 @@ model Project {
   updatedAt      DateTime        @updatedAt
   transcriptions Transcription[]
   codebooks      CodebookStudy[]
+  comments       Comment[]
   user           User            @relation(fields: [userId], references: [id])
 
   @@index([userId])
@@ -171,6 +172,10 @@ model Transcription {
   /// reads it in the creation request, nothing reads it at rest afterwards.
   vocabulary                Json?
   speakerCount              Int                @default(1)
+  /// Characters of transcript, as the client counted them on the last save. The
+  /// denominator of "how much of this interview is coded"; null until saved once,
+  /// and never read for anything that has to be exact.
+  textLength                Int?
   state                     TranscriptionState @default(PENDING)
   errorMessage              String?
   /// Credits debited for this transcription at creation, so a job that never
@@ -236,24 +241,40 @@ model TranscriptionHistory {
 /// (AES-GCM payload + per-authorized-user RSA-wrapped key) when the transcription is
 /// encrypted, or plain `{ text }` otherwise.
 model Comment {
-  id              String        @id @default(uuid())
-  transcriptionId String
-  // Groups notes into a thread; equals the `commentId` attribute of the mark in the doc.
+  id              String         @id @default(uuid())
+  /// The interview a PASSAGE note is on. Null for a SLICE note, which is about a
+  /// question asked of the corpus rather than about any one document.
+  transcriptionId String?
+  /// The study a SLICE note belongs to. Null for a passage note, which reaches its
+  /// study through the document.
+  projectId       String?
+  /// What `anchorId` names — see `lib/comments/anchor.ts`.
+  /// `passage`: the `commentId` of a mark in a transcript (the original kind).
+  /// `slice`:   the canonical facet key of a question the excerpt table was asked.
+  anchorType      String         @default("passage")
+  /// Groups notes into a thread. A mark id, or a facet key, per `anchorType`.
   anchorId        String
-  // Author of this note.
+  /// A slice note's facets as a JSON array of strings, in canonical order. Kept
+  /// beside the key because "every note narrower than this one" is a containment
+  /// test over sets, which no index serves and no key can be parsed into cheaply.
+  facets          Json?
+  /// Author of this note.
   userId          String
   // EncryptedDataEntity (encrypted) or { text: string } (plaintext).
   body            Json
-  resolved        Boolean       @default(false)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  resolved        Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
   deletedAt       DateTime?
-  transcription   Transcription @relation(fields: [transcriptionId], references: [id], onDelete: Cascade)
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transcription   Transcription? @relation(fields: [transcriptionId], references: [id], onDelete: Cascade)
+  project         Project?       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([transcriptionId])
   @@index([transcriptionId, anchorId])
+  @@index([projectId, anchorType])
 }
+
 
 /// One verbatim code applied to one passage by one author.
 ///
@@ -280,6 +301,13 @@ model Coding {
   userId          String
   codebookId      String
   codeId          String
+  /// How many characters the coded passage spans, as the client counted them when
+  /// it was applied. Not authoritative and not maintained: the passage is an anchor
+  /// in the transcript and moves with it, so this is a snapshot, kept because
+  /// "how much of this interview is coded" has no other answer the server can
+  /// give — the transcript may be end-to-end encrypted. Overlapping codings double
+  /// count; the ratio is clamped where it is shown.
+  textLength      Int           @default(0)
   createdAt       DateTime      @default(now())
   transcription   Transcription @relation(fields: [transcriptionId], references: [id], onDelete: Cascade)
   user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -287,6 +315,7 @@ model Coding {
   @@index([transcriptionId])
   @@index([transcriptionId, userId])
 }
+
 
 /// Generic in-app notification. Deliberately feature-agnostic: `type` names the event
 /// ("comment.reply", "comment.mention", …) and `entityType`/`entityId` point at whatever

@@ -106,7 +106,8 @@
       "phase": {
         "label": "Phase",
         "transcription": "Editing",
-        "coding": "Coding"
+        "coding": "Coding",
+        "analysis": "Analysis"
       },
       "apply": "Code",
       "comment": "Comment",
@@ -116,7 +117,8 @@
         "everyone": "Everyone's codes"
       },
       "codebook": "Codebook",
-      "untitled": "Untitled codebook"
+      "untitled": "Untitled codebook",
+      "changeCodebook": "Change codebook"
     },
     "excerpts": {
       "title": "Excerpts",
@@ -128,23 +130,31 @@
       "narrowed": "Documents in this selection: {count}",
       "scope": {
         "document": "This document",
-        "study": "Whole study"
+        "study": "Whole study",
+        "label": "Show"
       },
       "filter": {
         "codes": "Codes",
-        "context": "Documents & people"
+        "context": "Documents & people",
+        "label": "Filter"
       },
       "authors": {
         "everyone": "Everyone",
-        "mine": "Mine"
+        "mine": "Mine",
+        "label": "Readings"
       },
       "groupBy": {
         "label": "Group by",
         "none": "No grouping",
-        "code": "By code",
+        "code": "Codes",
         "codebook": "By codebook",
-        "document": "By document",
-        "speaker": "By speaker"
+        "document": "Document",
+        "speaker": "Speaker",
+        "add": "Add a rule",
+        "remove": "Remove this rule",
+        "context": "Participant codes",
+        "onPeople": "on the people",
+        "uncoded": "Not in {codebook}"
       },
       "unknownCode": "Deleted code",
       "unknownCodebook": "Deleted codebook",
@@ -177,7 +187,8 @@
       "recode": "Codes on this passage",
       "recodeMine": "You can only take back your own readings.",
       "open": "Open this interview",
-      "pause": "Pause"
+      "pause": "Pause",
+      "expand": "Open in analysis"
     },
     "import": {
       "label": "Document codes",
@@ -185,6 +196,33 @@
       "none": "No codes",
       "failed": "The document was created, but its codes could not be saved",
       "add": "Add codes"
+    },
+    "analysis": {
+      "title": "Analysis",
+      "description": "Every coded passage in this study, as one table. Pick a document in the sidebar to narrow it to that interview.",
+      "placeholder": "What do you make of these passages?",
+      "narrower": "Written about narrower slices",
+      "fromCoding": "From the coding ({count})",
+      "others": "Other readings"
+    },
+    "start": {
+      "title": "Code this interview",
+      "description": "Choose the grille you will read it through. It decides the colours, the letters and what counts as coded.",
+      "create": "New codebook",
+      "untitled": "Untitled codebook",
+      "coverage": "{covered}/{total} codes used",
+      "passages": "{count} passages",
+      "actions": "On the whole document",
+      "soon": "Soon",
+      "auto": {
+        "title": "Code automatically",
+        "description": "Propose codings over the whole interview, to review one by one."
+      },
+      "empty": {
+        "title": "No verbatim codebook yet",
+        "description": "Coding a transcript needs a grille whose codes apply to a passage of text."
+      },
+      "codedShare": "{percent}% coded · {count} passages"
     }
   }
 }

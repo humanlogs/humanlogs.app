@@ -146,6 +146,7 @@ describe("coding scope", () => {
       author: null,
       codebookId: "cb1",
       codeId: "emotion",
+      textLength: 0,
       createdAt: "",
     },
     {
@@ -154,6 +155,7 @@ describe("coding scope", () => {
       author: null,
       codebookId: "cb1",
       codeId: "work",
+      textLength: 0,
       createdAt: "",
     },
   ];
@@ -186,10 +188,44 @@ describe("coding input validation", () => {
   it("accepts a well-formed coding", () => {
     expect(
       parseCodingInput(
+        { id: "x", codebookId: "cb1", codeId: "emotion", textLength: 42 },
+        allowed,
+      ),
+    ).toEqual({
+      data: { id: "x", codebookId: "cb1", codeId: "emotion", textLength: 42 },
+    });
+  });
+
+  /**
+   * The passage length is approximate by construction — the numerator of a
+   * coverage percentage, not a measurement — so a client that sends nonsense
+   * should skew a figure rather than fail to record a reading.
+   */
+  it("takes a missing length as zero rather than refusing the coding", () => {
+    expect(
+      parseCodingInput(
         { id: "x", codebookId: "cb1", codeId: "emotion" },
         allowed,
       ),
-    ).toEqual({ data: { id: "x", codebookId: "cb1", codeId: "emotion" } });
+    ).toEqual({
+      data: { id: "x", codebookId: "cb1", codeId: "emotion", textLength: 0 },
+    });
+  });
+
+  it("clamps an impossible length instead of rejecting it", () => {
+    const negative = parseCodingInput(
+      { id: "x", codebookId: "cb1", codeId: "emotion", textLength: -10 },
+      allowed,
+    );
+    expect(negative).toEqual({
+      data: { id: "x", codebookId: "cb1", codeId: "emotion", textLength: 0 },
+    });
+
+    const absurd = parseCodingInput(
+      { id: "x", codebookId: "cb1", codeId: "emotion", textLength: 1e12 },
+      allowed,
+    );
+    expect("data" in absurd && absurd.data.textLength).toBe(10_000_000);
   });
 
   it("rejects a codebook the caller does not own", () => {

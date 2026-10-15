@@ -39,6 +39,7 @@ import {
   STORE_PHRASES,
 } from "./db.browser";
 import type { PhraseCodeRow, PhraseRow } from "./phrase-index";
+import type { GroupRules } from "./group-rules";
 import type { PhraseFilter, PhraseGroupBy } from "./phrase-query";
 import { prefixRange, searchTokens } from "./phrase-tokens";
 import {
@@ -63,12 +64,19 @@ export type StudyQuery = {
   /** The study. `null` is the documents filed in none — a real scope, not "any". */
   projectId: string | null;
   filter?: PhraseFilter;
+  /** The single axis, for callers that want one — the export, mainly. */
   groupBy?: PhraseGroupBy;
+  /** The chain of grouping rules. Wins over {@link groupBy} when both are given. */
+  rules?: GroupRules;
   codeOrder?: readonly CodeRef[];
   perGroup?: number;
   sanitize?: KnownCodebooks;
   /** Pair key → person, so grouping by speaker groups by person. */
   speakerPersons?: Readonly<Record<string, string>>;
+  /** Person key → the `codebookId:codeId` they carry — for a `context` rule. */
+  contextByPerson?: Readonly<Record<string, readonly string[]>>;
+  /** Document id → the `codebookId:codeId` it carries — for a `context` rule. */
+  contextByDocument?: Readonly<Record<string, readonly string[]>>;
   signal?: AbortSignal;
   /**
    * Rows per read. Only ever set by the tests, which need batches small enough
@@ -92,10 +100,13 @@ export async function queryStudy(
     projectId,
     filter = {},
     groupBy = "none",
+    rules,
     codeOrder,
     perGroup,
     sanitize,
     speakerPersons,
+    contextByPerson,
+    contextByDocument,
     signal,
     batchSize = SCAN_BATCH,
   }: StudyQuery,
@@ -127,11 +138,14 @@ export async function queryStudy(
   const stream = createPhraseStream({
     filter: rest,
     groupBy,
+    rules,
     codeOrder,
     perGroup,
     only,
     sanitize,
     speakerPersons,
+    contextByPerson,
+    contextByDocument,
   });
 
   const study = projectIdOf(studyKeyOf(projectId));

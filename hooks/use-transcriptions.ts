@@ -78,6 +78,12 @@ export type TranscriptionDetail = {
    * documents created before the column was encrypted. */
   vocabulary: string[] | null;
   speakerCount: number;
+  /**
+   * Characters of transcript, as the client counted them on the last save. Null
+   * on a document not saved since the column existed. Approximate by design: it
+   * is the denominator of a coding-coverage percentage, nothing more.
+   */
+  textLength?: number | null;
   state: "PENDING" | "COMPLETED" | "ERROR";
   errorMessage?: string | null;
   transcription?: TranscriptionContent;
@@ -518,6 +524,14 @@ export function useSaveTranscription(
           body: JSON.stringify({
             transcription: transcriptionData,
             ...(speakers ? { speakers } : {}),
+            // The denominator of "how much of this interview is coded". Only we
+            // can count it: an encrypted transcript never reaches the server in
+            // clear. Approximate on purpose — words joined by a space is close
+            // enough for a percentage nobody checks character by character.
+            textLength: data.words.reduce(
+              (total, word) => total + (word.text?.length ?? 0) + 1,
+              0,
+            ),
             changeStats,
           }),
         },

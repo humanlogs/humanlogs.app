@@ -329,8 +329,24 @@ export class EditorAPI extends EventEmitter {
     return positions;
   }
 
-  getEditorElement() {
-    return (this.editorRef.current?.view.dom as HTMLElement) ?? null;
+  /**
+   * The contenteditable element, or null.
+   *
+   * `editor.view` THROWS when the editor has not mounted its view yet — a
+   * getter with an assertion inside it, not a plain field — so an optional chain
+   * on the editor is not enough. It happens legitimately: the effects that
+   * measure the document run on the render that creates the editor, and any
+   * screen that stands in front of the transcript (the coding start screen)
+   * leaves it constructed but never mounted. Every caller already handles null.
+   */
+  getEditorElement(): HTMLElement | null {
+    const editor = this.editorRef.current;
+    if (!editor || editor.isDestroyed) return null;
+    try {
+      return (editor.view?.dom as HTMLElement) ?? null;
+    } catch {
+      return null;
+    }
   }
 
   /**

@@ -106,7 +106,8 @@
       "phase": {
         "label": "Phase",
         "transcription": "Bearbeitung",
-        "coding": "Codierung"
+        "coding": "Codierung",
+        "analysis": "Analyse"
       },
       "apply": "Codieren",
       "comment": "Kommentieren",
@@ -116,7 +117,8 @@
         "everyone": "Codes aller"
       },
       "codebook": "Codebook",
-      "untitled": "Unbenanntes Codebook"
+      "untitled": "Unbenanntes Codebook",
+      "changeCodebook": "Codebook wechseln"
     },
     "excerpts": {
       "title": "Auszüge",
@@ -128,23 +130,31 @@
       "narrowed": "Dokumente in dieser Auswahl: {count}",
       "scope": {
         "document": "Dieses Dokument",
-        "study": "Ganze Studie"
+        "study": "Ganze Studie",
+        "label": "Anzeigen"
       },
       "filter": {
         "codes": "Codes",
-        "context": "Dokumente & Personen"
+        "context": "Dokumente & Personen",
+        "label": "Filtern"
       },
       "authors": {
         "everyone": "Alle",
-        "mine": "Meine"
+        "mine": "Meine",
+        "label": "Lesarten"
       },
       "groupBy": {
         "label": "Gruppieren nach",
         "none": "Keine Gruppierung",
-        "code": "Nach Code",
+        "code": "Codes",
         "codebook": "Nach Codebuch",
-        "document": "Nach Dokument",
-        "speaker": "Nach Sprecher"
+        "document": "Dokument",
+        "speaker": "Sprecher",
+        "add": "Regel hinzufügen",
+        "remove": "Regel entfernen",
+        "context": "Teilnehmer-Codes",
+        "onPeople": "auf die Personen",
+        "uncoded": "Nicht in {codebook}"
       },
       "unknownCode": "Gelöschter Code",
       "unknownCodebook": "Gelöschtes Codebuch",
@@ -177,7 +187,8 @@
       "recode": "Codes dieser Passage",
       "recodeMine": "Sie können nur Ihre eigenen Lesarten zurücknehmen.",
       "open": "Dieses Interview öffnen",
-      "pause": "Pause"
+      "pause": "Pause",
+      "expand": "In der Analyse öffnen"
     },
     "import": {
       "label": "Dokument-Codes",
@@ -185,6 +196,33 @@
       "none": "Keine Codes",
       "failed": "Das Dokument wurde erstellt, aber seine Codes konnten nicht gespeichert werden",
       "add": "Codes hinzufügen"
+    },
+    "analysis": {
+      "title": "Analyse",
+      "description": "Alle codierten Passagen dieser Studie in einer Tabelle. Wählen Sie in der Seitenleiste ein Dokument, um sie auf dieses Interview einzugrenzen.",
+      "placeholder": "Was schließen Sie aus diesen Passagen?",
+      "narrower": "Zu enger gefassten Ausschnitten geschrieben",
+      "fromCoding": "Aus der Codierung ({count})",
+      "others": "Andere Lesarten"
+    },
+    "start": {
+      "title": "Dieses Interview codieren",
+      "description": "Wählen Sie das Raster, durch das Sie es lesen. Es bestimmt Farben, Buchstaben und was als codiert gilt.",
+      "create": "Neues Codebook",
+      "untitled": "Codebook ohne Namen",
+      "coverage": "{covered}/{total} Codes verwendet",
+      "passages": "{count} Passagen",
+      "actions": "Für das ganze Dokument",
+      "soon": "Bald",
+      "auto": {
+        "title": "Automatisch codieren",
+        "description": "Codierungen für das ganze Interview vorschlagen, einzeln zu prüfen."
+      },
+      "empty": {
+        "title": "Noch kein Verbatim-Codebook",
+        "description": "Ein Transkript zu codieren braucht ein Raster, dessen Codes für eine Textpassage gelten."
+      },
+      "codedShare": "{percent}% codiert · {count} Passagen"
     }
   }
 }

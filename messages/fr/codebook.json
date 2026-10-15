@@ -106,7 +106,8 @@
       "phase": {
         "label": "Phase",
         "transcription": "Édition",
-        "coding": "Codage"
+        "coding": "Codage",
+        "analysis": "Analyse"
       },
       "apply": "Coder",
       "comment": "Commenter",
@@ -116,7 +117,8 @@
         "everyone": "Les codes de tous"
       },
       "codebook": "Codebook",
-      "untitled": "Codebook sans nom"
+      "untitled": "Codebook sans nom",
+      "changeCodebook": "Changer de codebook"
     },
     "excerpts": {
       "title": "Extraits",
@@ -128,23 +130,31 @@
       "narrowed": "Documents dans cette sélection : {count}",
       "scope": {
         "document": "Ce document",
-        "study": "Toute l’étude"
+        "study": "Toute l’étude",
+        "label": "Afficher"
       },
       "filter": {
         "codes": "Codes",
-        "context": "Documents et personnes"
+        "context": "Documents et personnes",
+        "label": "Filtrer"
       },
       "authors": {
         "everyone": "Tout le monde",
-        "mine": "Moi"
+        "mine": "Moi",
+        "label": "Lectures"
       },
       "groupBy": {
         "label": "Grouper par",
         "none": "Sans groupe",
-        "code": "Par code",
+        "code": "Codes",
         "codebook": "Par grille",
-        "document": "Par document",
-        "speaker": "Par locuteur"
+        "document": "Document",
+        "speaker": "Locuteur",
+        "add": "Ajouter une règle",
+        "remove": "Retirer cette règle",
+        "context": "Codes des participants",
+        "onPeople": "sur les personnes",
+        "uncoded": "Hors {codebook}"
       },
       "unknownCode": "Code supprimé",
       "unknownCodebook": "Grille supprimée",
@@ -177,7 +187,8 @@
       "recode": "Codes de ce passage",
       "recodeMine": "Vous ne pouvez retirer que vos propres lectures.",
       "open": "Ouvrir cet entretien",
-      "pause": "Pause"
+      "pause": "Pause",
+      "expand": "Ouvrir dans l'analyse"
     },
     "import": {
       "label": "Codes du document",
@@ -185,6 +196,33 @@
       "none": "Aucun code",
       "failed": "Le document a été créé, mais ses codes n'ont pas pu être enregistrés",
       "add": "Ajouter des codes"
+    },
+    "analysis": {
+      "title": "Analyse",
+      "description": "Tous les extraits codés de cette étude, dans un seul tableau. Choisissez un document dans la barre latérale pour le restreindre à cet entretien.",
+      "placeholder": "Que retenez-vous de ces passages ?",
+      "narrower": "Écrit sur des ensembles plus précis",
+      "fromCoding": "Depuis le codage ({count})",
+      "others": "Autres lectures"
+    },
+    "start": {
+      "title": "Coder cet entretien",
+      "description": "Choisissez la grille à travers laquelle vous allez le lire. Elle décide des couleurs, des lettres et de ce qui compte comme codé.",
+      "create": "Nouveau codebook",
+      "untitled": "Codebook sans nom",
+      "coverage": "{covered}/{total} codes utilisés",
+      "passages": "{count} passages",
+      "actions": "Sur tout le document",
+      "soon": "Bientôt",
+      "auto": {
+        "title": "Coder automatiquement",
+        "description": "Proposer des codages sur tout l'entretien, à valider un par un."
+      },
+      "empty": {
+        "title": "Aucun codebook de verbatim",
+        "description": "Coder une transcription demande une grille dont les codes s'appliquent à un passage de texte."
+      },
+      "codedShare": "{percent}% codé · {count} passages"
     }
   }
 }

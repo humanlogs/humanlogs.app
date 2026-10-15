@@ -2,6 +2,14 @@
 
 import * as React from "react";
 import { useTranslations } from "@/components/locale-provider";
+import type { Analysis } from "@/hooks/use-analyses";
+import {
+  analysisKey,
+  extraFacets,
+  facetsOfView,
+  isNarrowerThan,
+  type AnalysisView,
+} from "@/lib/analysis/analysis-facets";
 import { useUserProfile } from "@/hooks/use-api";
 import {
   downloadBlob,
@@ -60,6 +68,8 @@ export function useExcerptExport({
   title,
   caption,
   enabled,
+  analyses,
+  analysisView,
 }: {
   /** The panel's question. Its grouping is replaced; its filter is kept. */
   request: Omit<StudyQuery, "signal">;
@@ -67,6 +77,14 @@ export function useExcerptExport({
   title: string;
   caption?: string;
   enabled: boolean;
+  /**
+   * Every analysis written on this study. Resolved per theme below rather than
+   * ahead of time, because the export regroups by code and only then knows which
+   * themes there are.
+   */
+  analyses?: Analysis[];
+  /** The filter half of the slice — see `lib/analysis/analysis-facets.ts`. */
+  analysisView?: Omit<AnalysisView, "groupFacets">;
 }) {
   const t = useTranslations("codebook.excerpts");
   const { data: profile } = useUserProfile();
@@ -133,6 +151,12 @@ export function useExcerptExport({
             group.label.type === "code"
               ? labels.codeLabel(group.label).label
               : t("groupBy.none"),
+          analysis: analysisFor(
+            analyses,
+            analysisView,
+            group.facets,
+            labels.facetLabel,
+          ),
           passages: group.refs.flatMap((ref) => {
             const row = texts.get(ref.id);
             // A passage the store no longer has is dropped rather than exported
@@ -178,4 +202,34 @@ export function useExcerptExport({
   );
 
   return { run, progress, error };
+}
+
+/**
+ * The analysis column of one theme, as text.
+ *
+ * The note written about exactly this slice, then the narrower ones under it,
+ * each prefixed by what makes it narrower. A file that left the tool holding only
+ * the widest note would drop the most specific work in the study — and it is
+ * precisely the specific notes a reader wants next to the quotes.
+ */
+function analysisFor(
+  analyses: Analysis[] | undefined,
+  view: Omit<AnalysisView, "groupFacets"> | undefined,
+  groupFacets: readonly string[],
+  describe: (facet: string) => string,
+): string | undefined {
+  if (!analyses?.length) return undefined;
+  const facets = facetsOfView({ ...(view ?? {}), groupFacets });
+  const own = analyses.find((note) => note.key === analysisKey(facets));
+  const narrower = analyses
+    .filter((note) => isNarrowerThan(note.facets, facets))
+    .map((note) => ({ note, extra: extraFacets(note.facets, facets) }))
+    .sort((a, b) => a.extra.length - b.extra.length);
+
+  const parts: string[] = [];
+  if (own) parts.push(own.body);
+  for (const { note, extra } of narrower) {
+    parts.push(`${extra.map(describe).join(" · ")} — ${note.body}`);
+  }
+  return parts.length > 0 ? parts.join("\n\n") : undefined;
 }

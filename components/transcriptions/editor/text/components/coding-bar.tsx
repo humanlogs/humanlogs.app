@@ -3,7 +3,6 @@
 import { CodeDot } from "@/components/codebooks/coding-menu";
 import { useTranslations } from "@/components/locale-provider";
 import { Select } from "@/components/ui/select";
-import type { DecryptedCodebook } from "@/lib/codebooks/codebook";
 import {
   codeKey,
   type CodingOption,
@@ -29,9 +28,8 @@ export function CodingBar({
   onBack,
   appliedKeys,
   onPick,
-  codebooks,
-  codebookId,
-  onCodebookChange,
+  codebookName,
+  onLeave,
   scope,
   onScopeChange,
   disabled,
@@ -45,10 +43,10 @@ export function CodingBar({
   onBack: () => void;
   appliedKeys: Set<string>;
   onPick: (option: CodingOption) => void;
-  /** The verbatim codebooks in scope — the prisms available for this study. */
-  codebooks: DecryptedCodebook[];
-  codebookId: string | null;
-  onCodebookChange: (id: string) => void;
+  /** The grille being read through, named on the way back to the chooser. */
+  codebookName: string | null;
+  /** End the pass: back to the screen that chose the grille. */
+  onLeave: () => void;
   scope: CodingScope;
   onScopeChange: (scope: CodingScope) => void;
   /** No selection: the chips are a legend only. */
@@ -72,6 +70,30 @@ export function CodingBar({
     // the whole of the second, where they wrap the way a legend should.
     <div className="flex flex-col gap-1.5">
       <div className="flex flex-wrap items-center gap-2">
+        {/* The prism first, left of everything including the transport: it
+            decides what the row below means, and on an interview coded by ear
+            the play controls were pushing it into the middle of the bar. Not a
+            picker any more — choosing one is how a pass STARTS, on a screen of its own,
+            so here it names the grille and offers the way back to that screen. A
+            dropdown at this weight made the most consequential choice in the
+            phase look like the playback speed. */}
+        <button
+          type="button"
+          onMouseDown={(event) => {
+            // The selection is the thing being coded; a plain click would blur
+            // the editor first. Harmless here, but the whole row behaves this way.
+            event.preventDefault();
+            onLeave();
+          }}
+          title={t("changeCodebook")}
+          className="inline-flex h-7 max-w-52 shrink-0 items-center gap-1.5 rounded-md border px-2 text-xs transition-colors hover:bg-accent"
+        >
+          <ChevronLeftIcon className="size-3 shrink-0" />
+          <span className="truncate font-medium">
+            {codebookName || t("codebook")}
+          </span>
+        </button>
+
         {/* Play, speed and position. This bar REPLACES the transcription toolbar,
             which is where they used to live, so without them entering the coding
             phase silently took the audio controls away from someone coding an
@@ -84,20 +106,6 @@ export function CodingBar({
             />
           </div>
         )}
-
-        {/* The prism: it decides what the row below means. */}
-        <Select
-          size="sm"
-          className="w-52 shrink-0"
-          options={codebooks.map((c) => ({
-            value: c.id,
-            label: c.name || t("untitled"),
-          }))}
-          value={codebookId ?? undefined}
-          onChange={onCodebookChange}
-          placeholder={t("codebook")}
-          disabled={codebooks.length === 0}
-        />
 
         <Select
           size="sm"

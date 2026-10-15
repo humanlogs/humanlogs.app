@@ -30,6 +30,13 @@
 import type { CodeRef } from "@/lib/codebooks/codebook";
 import type { PhraseCodeRow } from "./phrase-index";
 import {
+  groupKeyOf,
+  placementsOf,
+  rulesFromGroupBy,
+  type GroupContext,
+  type GroupRules,
+} from "./group-rules";
+import {
   codeRefKey,
   speakerKey,
   type PhraseFilter,
@@ -45,10 +52,28 @@ export type PhraseRef = {
 };
 
 export type StreamedGroup = {
+  /** The sorted facet set — one identity per crossing. Matches `analysisKey`. */
   key: string;
+  /**
+   * What identifies this group, in the vocabulary an analysis is keyed on, one
+   * per rule IN RULE ORDER. Identity is the set; the order is for reading.
+   */
+  facets: string[];
+  /** One label per grouping rule, in rule order — the header's breadcrumb. */
+  path: PhraseGroupLabel[];
+  /** The first level, kept for the callers that only ever group by one thing. */
   label: PhraseGroupLabel;
   /** Every phrase in this group, counted — not only the ones kept below. */
   count: number;
+  /**
+   * The comment threads written inside this group's passages, capped.
+   *
+   * Collected during the pass rather than fetched afterwards: the walk already
+   * touches every link, and the alternative — hydrating a group's three hundred
+   * references to find out whether any of them was commented — is the thing the
+   * whole streaming design exists to avoid.
+   */
+  commentIds: string[];
   /** The first `perGroup` of them, in reading order. */
   refs: PhraseRef[];
 };
@@ -67,6 +92,15 @@ export type PhraseStreamResult = {
  * another pass.
  */
 export const DEFAULT_PER_GROUP = 300;
+
+/**
+ * How many comment threads one group remembers.
+ *
+ * A reading aid, not a corpus: past a couple of hundred notes under one theme
+ * nobody is reading them, and an unbounded set would put the study back in memory
+ * — which is the one thing this module exists not to do.
+ */
+const MAX_GROUP_COMMENTS = 200;
 
 export type PhraseStream = {
   /**
@@ -94,12 +128,15 @@ export type KnownCodebooks = ReadonlyArray<{
 
 export function createPhraseStream({
   filter = {},
-  groupBy = "none",
+  groupBy,
+  rules,
   codeOrder,
   perGroup = DEFAULT_PER_GROUP,
   only,
   sanitize,
   speakerPersons,
+  contextByPerson,
+  contextByDocument,
 }: {
   /**
    * Everything but `search`: matching text needs the phrase rows, which this
@@ -107,7 +144,10 @@ export function createPhraseStream({
    * {@link only}.
    */
   filter?: Omit<PhraseFilter, "search">;
+  /** The single axis, for callers that want one — the export, mainly. */
   groupBy?: PhraseGroupBy;
+  /** The chain of grouping rules. Wins over {@link groupBy} when both are given. */
+  rules?: GroupRules;
   codeOrder?: readonly CodeRef[];
   perGroup?: number;
   /** When given, only these phrase ids are considered at all. */
@@ -122,6 +162,10 @@ export function createPhraseStream({
    * has expanded a code on a person into every pair before it gets here.
    */
   speakerPersons?: Readonly<Record<string, string>>;
+  /** Person key → the `codebookId:codeId` they carry — for a `context` rule. */
+  contextByPerson?: Readonly<Record<string, readonly string[]>>;
+  /** Document id → the `codebookId:codeId` it carries — for a `context` rule. */
+  contextByDocument?: Readonly<Record<string, readonly string[]>>;
 }): PhraseStream {
   const documentIds = filter.documentIds && new Set(filter.documentIds);
   const speakerKeys = filter.speakerKeys && new Set(filter.speakerKeys);
@@ -136,40 +180,69 @@ export function createPhraseStream({
     return !!codes && !codes.has(link.codeId);
   };
 
+  const chain: GroupRules = rules ?? rulesFromGroupBy(groupBy ?? "none");
+  const context: GroupContext = {
+    speakerPersons,
+    contextByPerson,
+    contextByDocument,
+  };
+
   const groups = new Map<string, StreamedGroup>();
-  const ensure = (key: string, label: PhraseGroupLabel): StreamedGroup => {
+  const ensure = (placement: {
+    facets: string[];
+    path: PhraseGroupLabel[];
+  }): StreamedGroup => {
+    const key = groupKeyOf(placement.facets);
     let group = groups.get(key);
     if (!group) {
-      group = { key, label, count: 0, refs: [] };
+      group = {
+        key,
+        facets: placement.facets,
+        path: placement.path,
+        label: placement.path[0] ?? { type: "all" },
+        count: 0,
+        commentIds: [],
+        refs: [],
+      };
       groups.set(key, group);
     }
     return group;
   };
 
-  // Seeded first, so the groups read as the codebook does and the codes nobody
-  // used are still visible — the same rule the materialising query had.
-  if (groupBy === "code" && codeOrder) {
+  /**
+   * A single code axis is seeded from the codebook, so the groups read as the
+   * grille does and the codes nobody used are still visible — the same rule the
+   * materialising query had. Only for ONE rule: seeding a crossing would invent
+   * rows for every pair of a code and a person who never said anything.
+   */
+  const singleCodeAxis =
+    chain.length === 1 && chain[0].kind === "code" ? chain[0] : null;
+  if (singleCodeAxis && codeOrder) {
     for (const ref of codeOrder) {
-      ensure(`code:${codeRefKey(ref)}`, {
-        type: "code",
-        codebookId: ref.codebookId,
-        codeId: ref.codeId,
+      if (
+        singleCodeAxis.codebookId &&
+        ref.codebookId !== singleCodeAxis.codebookId
+      )
+        continue;
+      ensure({
+        facets: [`code:${codeRefKey(ref)}`],
+        path: [
+          { type: "code", codebookId: ref.codebookId, codeId: ref.codeId },
+        ],
       });
     }
   }
 
   let total = 0;
   /** Reused across phrases so a pass over a study allocates one array, not N. */
-  const keys: string[] = [];
-  const labels: PhraseGroupLabel[] = [];
+  const kept: PhraseCodeRow[] = [];
 
   const addPhrase = (phraseId: string, links: readonly PhraseCodeRow[]) => {
     if (only && !only.has(phraseId)) return;
 
     let matched = false;
     let ref: PhraseRef | null = null;
-    keys.length = 0;
-    labels.length = 0;
+    kept.length = 0;
 
     for (const link of links) {
       if (deleted(link)) continue;
@@ -191,107 +264,102 @@ export function createPhraseStream({
         };
       }
       if (!wantedCodes || wantedCodes.has(codeRefKey(link))) matched = true;
-
-      // A phrase belongs to a code group once, however many people applied that
-      // code to it. Grouping by anything else is a partition, so one key.
-      switch (groupBy) {
-        case "code": {
-          const key = `code:${codeRefKey(link)}`;
-          if (!keys.includes(key)) {
-            keys.push(key);
-            labels.push({
-              type: "code",
-              codebookId: link.codebookId,
-              codeId: link.codeId,
-            });
-          }
-          break;
-        }
-        case "codebook": {
-          const key = `codebook:${link.codebookId}`;
-          if (!keys.includes(key)) {
-            keys.push(key);
-            labels.push({ type: "codebook", codebookId: link.codebookId });
-          }
-          break;
-        }
-        case "document":
-          if (keys.length === 0) {
-            keys.push(`document:${link.documentId}`);
-            labels.push({ type: "document", documentId: link.documentId });
-          }
-          break;
-        case "speaker":
-          if (keys.length === 0) {
-            const pair = speakerKey(link.documentId, link.speakerId);
-            keys.push(`speaker:${speakerPersons?.[pair] ?? pair}`);
-            // The label still names ONE (document, speaker): that is what
-            // resolves to a display name, and for a person it is the same name
-            // whichever of their interviews supplies it.
-            labels.push({
-              type: "speaker",
-              documentId: link.documentId,
-              speakerId: link.speakerId,
-            });
-          }
-          break;
-        default:
-          if (keys.length === 0) {
-            keys.push("all");
-            labels.push({ type: "all" });
-          }
-      }
+      kept.push(link);
     }
 
     if (!matched || !ref) return;
     total++;
-    for (let i = 0; i < keys.length; i++) {
-      const group = ensure(keys[i], labels[i]);
+    // One phrase's threads, deduplicated across its links before they are merged
+    // into every group it lands in.
+    let threads: string[] | null = null;
+    for (const link of kept) {
+      if (!link.commentIds?.length) continue;
+      threads ??= [];
+      for (const id of link.commentIds) {
+        if (!threads.includes(id)) threads.push(id);
+      }
+    }
+
+    for (const placement of placementsOf(chain, kept, context)) {
+      const group = ensure(placement);
       group.count++;
       insert(group.refs, ref, perGroup);
+      if (threads) {
+        for (const id of threads) {
+          if (group.commentIds.length >= MAX_GROUP_COMMENTS) break;
+          if (!group.commentIds.includes(id)) group.commentIds.push(id);
+        }
+      }
     }
   };
 
   return {
     addPhrase,
-    result: () => ({ total, groups: ordered(groups, groupBy, codeOrder) }),
+    result: () => ({ total, groups: ordered(groups, chain, codeOrder) }),
   };
 }
 
 /**
  * The order the groups come back in.
  *
- * The codebook's own order wins where there is one — that is what makes a coding
- * pass read like the grille it is made with, empty codes included. Everything
- * else is sorted by size, largest first, then by key.
+ * Level by level, not by total size, because a crossing read out of order is not
+ * a table: all of Renée's rows have to sit together before any of Bob's, or the
+ * grouping has bought nothing. So two groups are compared on their first level,
+ * then on their second, and so on.
+ *
+ * Within a level: the CODEBOOK's own order wins where there is one, which is what
+ * makes a coding pass read like the grille it is made with, empty codes included.
+ * Otherwise the bigger branch comes first — comparing the count of the whole
+ * PREFIX, not of the leaf, so a person with many passages leads whatever their
+ * individual codes weigh. Ties fall back to the key.
  *
  * Not "the order they were encountered", which is what both this and the
  * materialising query used to do: that order is a property of how the rows
- * happened to be stored, so it differed between the two implementations and
- * would shift under the reader as a study is re-indexed. Arbitrary is fine in a
+ * happened to be stored, so it differed between the two implementations and would
+ * shift under the reader as a study is re-indexed. Arbitrary is fine in a
  * function; it is not fine in a list someone is scanning.
  */
 function ordered(
   groups: Map<string, StreamedGroup>,
-  groupBy: PhraseGroupBy,
+  rules: GroupRules,
   codeOrder?: readonly CodeRef[],
 ): StreamedGroup[] {
   const all = [...groups.values()];
-  if (groupBy === "code" && codeOrder) {
-    const rank = new Map(
-      codeOrder.map((ref, i) => [`code:${codeRefKey(ref)}`, i]),
-    );
-    return all.sort((a, b) => {
-      const ra = rank.get(a.key) ?? Number.MAX_SAFE_INTEGER;
-      const rb = rank.get(b.key) ?? Number.MAX_SAFE_INTEGER;
-      // Codes the codebook no longer lists still have passages under them; they
-      // follow the ones it does, biggest first.
-      return ra - rb || b.count - a.count || (a.key < b.key ? -1 : 1);
-    });
+
+  // How much each branch of the tree holds, so a level can be ordered by weight
+  // without the leaves deciding it.
+  const weight = new Map<string, number>();
+  for (const group of all) {
+    for (let depth = 1; depth <= group.facets.length; depth++) {
+      const prefix = group.facets.slice(0, depth).join("\u0000");
+      weight.set(prefix, (weight.get(prefix) ?? 0) + group.count);
+    }
   }
-  return all.sort(
-    (a, b) => b.count - a.count || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0),
-  );
+
+  const rank = codeOrder
+    ? new Map(codeOrder.map((ref, i) => [`code:${codeRefKey(ref)}`, i]))
+    : null;
+
+  return all.sort((a, b) => {
+    const ka = a.facets;
+    const kb = b.facets;
+    const depth = Math.min(ka.length, kb.length);
+    for (let i = 0; i < depth; i++) {
+      if (ka[i] === kb[i]) continue;
+      // A code level follows the codebook; a code the codebook no longer lists
+      // sorts after the ones it does.
+      if (rank && rules[i]?.kind === "code") {
+        const ra = rank.get(ka[i]) ?? Number.MAX_SAFE_INTEGER;
+        const rb = rank.get(kb[i]) ?? Number.MAX_SAFE_INTEGER;
+        if (ra !== rb) return ra - rb;
+      }
+      const wa = weight.get(ka.slice(0, i + 1).join("\u0000")) ?? 0;
+      const wb = weight.get(kb.slice(0, i + 1).join("\u0000")) ?? 0;
+      if (wa !== wb) return wb - wa;
+      return ka[i] < kb[i] ? -1 : 1;
+    }
+    return ka.length - kb.length;
+  });
 }
 
 /** Reading order: by document, then by position within it. */

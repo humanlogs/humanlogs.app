@@ -516,7 +516,6 @@ describe("phraseMatchesAnchors", () => {
   });
 });
 
-
 /**
  * The audio bounds of a coded passage.
  *
@@ -600,5 +599,96 @@ describe("audio bounds", () => {
     expect(phrases).toHaveLength(1);
     expect(phrases[0].startTime).toBe(1);
     expect(phrases[0].endTime).toBe(2.5);
+  });
+});
+
+/**
+ * Comments and codings are the same mechanism — an id on a mark, a row in a table —
+ * which is what lets a coded passage know which notes were written inside it
+ * without opening the document. Most of the small readings in a study are made in
+ * that margin while coding, so getting this wrong hides half the thinking from the
+ * analysis column and nothing complains.
+ */
+describe("comment threads on a passage", () => {
+  const withComments = (
+    turns: Array<{ speakerId: string; text: string }>,
+    codings: Record<number, string[]>,
+    comments: Record<number, string[]>,
+  ): TranscriptionSegment[] => {
+    const out = segmentsOf(turns, codings);
+    let word = 0;
+    for (const token of out) {
+      if (token.type !== "word") continue;
+      if (comments[word]?.length) token.comments = comments[word];
+      word++;
+    }
+    return out;
+  };
+
+  const turns = [{ speakerId: "s1", text: "on nous crie dessus vraiment" }];
+
+  it("carries a thread anchored inside the coded run", () => {
+    const index = buildPhraseIndex({
+      documentId: "doc1",
+      segments: withComments(
+        turns,
+        { 1: ["c1"], 2: ["c1"], 3: ["c1"] },
+        { 2: ["t1"] },
+      ),
+      codings: [coding("c1", "violence")],
+    });
+    expect(index.phrases[0].commentIds).toEqual(["t1"]);
+    // ...and on the links too, because the query walks those and never reads a
+    // phrase row.
+    expect(index.links[0].commentIds).toEqual(["t1"]);
+  });
+
+  it("unions several threads, sorted, without repeating one", () => {
+    const index = buildPhraseIndex({
+      documentId: "doc1",
+      segments: withComments(
+        turns,
+        { 0: ["c1"], 1: ["c1"], 2: ["c1"], 3: ["c1"] },
+        { 0: ["t2"], 1: ["t2"], 3: ["t1"] },
+      ),
+      codings: [coding("c1", "violence")],
+    });
+    expect(index.phrases[0].commentIds).toEqual(["t1", "t2"]);
+  });
+
+  it("says nothing at all when the passage carries no thread", () => {
+    const index = buildPhraseIndex({
+      documentId: "doc1",
+      segments: segmentsOf(turns, { 1: ["c1"], 2: ["c1"] }),
+      codings: [coding("c1", "violence")],
+    });
+    // Absent rather than empty: this rides on every link row of the index, and a
+    // field the overwhelming majority of passages do not need should cost nothing.
+    expect(index.phrases[0].commentIds).toBeUndefined();
+    expect(index.links[0].commentIds).toBeUndefined();
+  });
+
+  it("ignores a thread outside the coded run", () => {
+    const index = buildPhraseIndex({
+      documentId: "doc1",
+      segments: withComments(turns, { 1: ["c1"], 2: ["c1"] }, { 4: ["t9"] }),
+      codings: [coding("c1", "violence")],
+    });
+    expect(index.phrases[0].commentIds).toBeUndefined();
+  });
+
+  it("gives two codes on one range the same threads, once per link", () => {
+    const index = buildPhraseIndex({
+      documentId: "doc1",
+      segments: withComments(
+        turns,
+        { 1: ["c1", "c2"], 2: ["c1", "c2"] },
+        { 1: ["t1"] },
+      ),
+      codings: [coding("c1", "violence"), coding("c2", "institution")],
+    });
+    expect(index.phrases).toHaveLength(1);
+    expect(index.links).toHaveLength(2);
+    for (const link of index.links) expect(link.commentIds).toEqual(["t1"]);
   });
 });

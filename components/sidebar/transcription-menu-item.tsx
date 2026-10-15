@@ -46,6 +46,12 @@ type TranscriptionMenuItemProps = {
    * whole difference between the two lists.
    */
   phase?: DocumentPhase;
+  /**
+   * Where the row goes, when that is not the document itself. Analysis has no
+   * document route: naming an interview there NARROWS the study's excerpt table
+   * to it, so the row links to that page with the document as a parameter.
+   */
+  href?: string;
   /** Sits under a group header, so it takes the same indent as the header. */
   indented?: boolean;
   /** Received from someone else — shown, since the study alone no longer says so. */
@@ -57,6 +63,7 @@ export function TranscriptionMenuItem({
   isActive,
   study,
   phase = "transcription",
+  href: hrefOverride,
   indented = false,
   shared = false,
 }: TranscriptionMenuItemProps) {
@@ -98,9 +105,10 @@ export function TranscriptionMenuItem({
   };
 
   const href =
-    phase === "coding"
+    hrefOverride ??
+    (phase === "coding"
       ? `/app/transcription/${transcription.id}?phase=coding`
-      : `/app/transcription/${transcription.id}`;
+      : `/app/transcription/${transcription.id}`);
 
   return (
     <SidebarMenuItem>

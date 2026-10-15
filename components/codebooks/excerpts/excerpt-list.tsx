@@ -1,10 +1,13 @@
 "use client";
 
 import * as React from "react";
+import { ChevronRightIcon } from "lucide-react";
 import { useTranslations } from "@/components/locale-provider";
 import { usePhraseRows } from "@/hooks/use-local-index";
 import { codeColorVar } from "@/lib/codebooks/coding";
 import { codingIdsOf } from "@/lib/local/phrase-index";
+import type { PhraseGroupLabel } from "@/lib/local/phrase-query";
+import { cn } from "@/lib/utils/utils";
 import {
   takeRefs,
   type PhraseRef,
@@ -16,6 +19,7 @@ import {
   useExcerptPanel,
   type PhraseFocus,
 } from "./excerpt-panel-context";
+import { AnalysisBox, type ExcerptAnalysis } from "./excerpt-analysis";
 import { ExcerptRow, type ExcerptCoding, type Provenance } from "./excerpt-row";
 import type { ExcerptLabels } from "./use-excerpt-query";
 
@@ -45,12 +49,19 @@ export function ExcerptList({
   labels,
   deepen,
   coding,
+  analysis,
 }: {
   groups: StreamedGroup[];
   labels: ExcerptLabels;
   deepen: () => void;
   /** Present only while an editor is lending the table its document. */
   coding?: ExcerptCoding;
+  /**
+   * Present only on the full-page analysis view. The panel docked beside a
+   * transcript is too narrow for a second column, and writing an analysis is not
+   * what a coding pass is for.
+   */
+  analysis?: ExcerptAnalysis;
 }) {
   const t = useTranslations("codebook.excerpts");
   const panel = useExcerptPanel();
@@ -86,7 +97,7 @@ export function ExcerptList({
    * observer had just added.
    */
   const question = panel.filter;
-  const grouping = panel.groupBy;
+  const grouping = panel.rules;
   const scope = panel.context;
   React.useEffect(() => {
     setVisible(PAGE);
@@ -184,9 +195,10 @@ export function ExcerptList({
    * document or by speaker, the header has already said it. The line disappears
    * entirely when it would carry neither.
    */
+  const groupedBy = new Set(panel.rules.map((rule) => rule.kind));
   const provenance = {
-    document: panel.filter.scope !== "document" && panel.groupBy !== "document",
-    speaker: panel.groupBy !== "speaker",
+    document: panel.filter.scope !== "document" && !groupedBy.has("document"),
+    speaker: !groupedBy.has("speaker"),
   };
 
   /**
@@ -232,6 +244,7 @@ export function ExcerptList({
           onSelect={panel.focus}
           onFollow={followDocument}
           coding={coding}
+          analysis={analysis}
           onPlay={playable ? onPlay : undefined}
           playingPhraseId={playingPhraseId}
         />
@@ -292,6 +305,7 @@ function ExcerptGroupSection({
   playingPhraseId,
   onFollow,
   coding,
+  analysis,
 }: {
   group: StreamedGroup;
   hydrated: HydratedPhrases | undefined;
@@ -308,9 +322,11 @@ function ExcerptGroupSection({
   playingPhraseId?: string | null;
   onFollow: (documentId: string, codingId?: string) => void;
   coding?: ExcerptCoding;
+  analysis?: ExcerptAnalysis;
 }) {
   const t = useTranslations("codebook.excerpts");
   const [collapsed, setCollapsed] = React.useState(false);
+  const note = analysis?.of(group.key);
   const header = groupHeader(group, labels);
   // Under a code heading, repeating that code on every row says nothing. The
   // OTHER codes a passage carries are exactly what the reader wants to see there
@@ -342,70 +358,137 @@ function ExcerptGroupSection({
       {/* The rows keep their inset; only the rules and the sticky heading run the
           full width of the panel, which is what makes them read as separators
           rather than as the edges of a card. */}
-      {!collapsed &&
-        (group.refs.length === 0 ? (
-          <p className="px-3 py-1.5 text-xs text-muted-foreground/60">
-            {t("groupEmpty")}
-          </p>
-        ) : (
-          <div className="px-2 pt-1">
-            {group.refs.map((ref) => (
-              <ExcerptRow
-                key={`${group.key}:${ref.id}`}
-                phraseRef={ref}
-                hydrated={hydrated}
-                grouping={grouping}
-                labels={labels}
-                focused={focusMatchesPhrase(focused, asPhrase(ref))}
-                provenance={provenance}
-                onSelect={onSelect}
-                onPlay={onPlay}
-                playing={playingPhraseId === ref.id}
-                onFollow={onFollow}
-                coding={coding}
-              />
-            ))}
+      {!collapsed && (
+        // Two columns where there is an analysis to write: the passages are the
+        // evidence, the note is what is made of them, and they have to be read
+        // against each other. The note STICKS, because a group can be thirty
+        // ragged blocks of prose and an analysis that scrolled away at the third
+        // one would be written from memory.
+        <div
+          className={cn(
+            "px-2 pt-1",
+            note && "lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]",
+          )}
+        >
+          <div className="min-w-0">
+            {group.refs.length === 0 ? (
+              <p className="px-1 py-1.5 text-xs text-muted-foreground/60">
+                {t("groupEmpty")}
+              </p>
+            ) : (
+              group.refs.map((ref) => (
+                <ExcerptRow
+                  key={`${group.key}:${ref.id}`}
+                  phraseRef={ref}
+                  hydrated={hydrated}
+                  grouping={grouping}
+                  labels={labels}
+                  focused={focusMatchesPhrase(focused, asPhrase(ref))}
+                  provenance={provenance}
+                  onSelect={onSelect}
+                  onPlay={onPlay}
+                  playing={playingPhraseId === ref.id}
+                  onFollow={onFollow}
+                  coding={coding}
+                />
+              ))
+            )}
           </div>
-        ))}
+          {note && analysis && (
+            // A rule down the left rather than a card around the note: the two
+            // columns are one row of a table, and boxing the analysis would make
+            // it a separate object beside the evidence instead of the reading of
+            // it. On a narrow screen the columns stack, so the rule goes across.
+            <div className="mt-2 min-w-0 border-t pt-2 lg:sticky lg:top-10 lg:mt-0 lg:self-start lg:border-t-0 lg:border-l lg:pt-0 lg:pl-4">
+              <AnalysisBox
+                groupKey={group.key}
+                group={note}
+                analysis={analysis}
+              />
+            </div>
+          )}
+        </div>
+      )}
     </section>
   );
 }
 
+/**
+ * The group's heading: one chip per grouping rule, in rule order.
+ *
+ * A breadcrumb rather than a single name, because a group is a CROSSING now —
+ * "Renée › Violence" is one row of the table and both halves of it are load
+ * bearing. Null when there is nothing to say, which is the ungrouped list.
+ */
 function groupHeader(
   group: StreamedGroup,
   labels: ExcerptLabels,
 ): React.ReactNode | null {
-  switch (group.label.type) {
+  const parts = group.path
+    .map((label, index) => levelHeader(label, labels, index))
+    .filter(Boolean);
+  if (parts.length === 0) return null;
+  return (
+    <span className="flex min-w-0 flex-wrap items-center gap-1">
+      {parts.map((part, index) => (
+        <React.Fragment key={index}>
+          {index > 0 && (
+            <ChevronRightIcon
+              aria-hidden
+              className="size-3 shrink-0 text-muted-foreground/50"
+            />
+          )}
+          {part}
+        </React.Fragment>
+      ))}
+    </span>
+  );
+}
+
+function levelHeader(
+  label: PhraseGroupLabel,
+  labels: ExcerptLabels,
+  index: number,
+): React.ReactNode | null {
+  switch (label.type) {
     case "all":
       return null;
     case "code": {
-      const { label, color } = labels.codeLabel(group.label);
+      const { label: text, color } = labels.codeLabel(label);
       return (
-        <span className="flex min-w-0 items-center gap-1.5">
+        <span key={index} className="flex min-w-0 items-center gap-1.5">
           <span
             className="size-2 shrink-0 rounded-full"
             style={{ background: codeColorVar(color) }}
           />
-          <span className="truncate">{label}</span>
+          <span className="truncate">{text}</span>
         </span>
       );
     }
     case "codebook":
       return (
-        <span className="truncate">
-          {labels.codebookName(group.label.codebookId)}
+        <span key={index} className="truncate">
+          {labels.codebookName(label.codebookId)}
         </span>
       );
     case "document":
       return (
-        <span className="truncate">
-          {labels.documentTitle(group.label.documentId)}
+        <span key={index} className="truncate">
+          {labels.documentTitle(label.documentId)}
         </span>
       );
     case "speaker":
       return (
-        <span className="truncate">
-          {labels.speakerName(group.label.documentId, group.label.speakerId)}
+        <span key={index} className="truncate">
+          {labels.speakerName(label.documentId, label.speakerId)}
+        </span>
+      );
+    case "unassigned":
+      // Said in words rather than left blank: a row for what a grille does not
+      // cover is an answer, and an unnamed one reads as a bug.
+      return (
+        <span key={index} className="truncate text-muted-foreground/70 italic">
+          {labels.facetLabel(`nocode:${label.codebookId ?? ""}`)}
         </span>
       );
   }
