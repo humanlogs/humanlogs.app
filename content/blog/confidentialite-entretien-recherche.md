@@ -47,6 +47,8 @@ Le bon réflexe est de traiter l'anonymisation comme une étape du protocole, pa
 
 ## Ce que doit prévoir le formulaire de consentement
 
+Pour le détail de chaque rubrique et du consentement oral, voir notre guide du [formulaire de consentement d'entretien de recherche](/fr/blog/formulaire-consentement-entretien-recherche).
+
 Un comité d'éthique (CPP, commission universitaire) ou la CNIL attend une description précise, pas une promesse générique :
 
 - Le niveau réel visé : anonymisation complète ou pseudonymisation avec table de correspondance conservée.
